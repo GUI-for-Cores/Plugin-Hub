@@ -1,0 +1,16 @@
+[
+    {
+        "id": "plugin-gfc-example",
+        "name": "GFC插件示例",
+        "description": "GFC插件示例。",
+        "type": "Http",
+        "url": "",
+        "path": "",
+        "triggers": [
+            "on::manual"
+        ],
+        "disabled": false,
+        "install": false,
+        "installed": false
+    }
+]
