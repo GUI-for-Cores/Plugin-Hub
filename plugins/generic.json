@@ -1,0 +1,16 @@
+[
+    {
+        "id": "plugin-generic-example",
+        "name": "通用插件示例",
+        "description": "插件中心上线，欢迎下载体验。",
+        "type": "Http",
+        "url": "",
+        "path": "data/plugins/plugin-generic-example.js",
+        "triggers": [
+            "on::manual"
+        ],
+        "disabled": false,
+        "install": false,
+        "installed": false
+    }
+]
