@@ -15,7 +15,7 @@ async function onInstall() {
         console.error(
             'Please install nodejs: https://nodejs.org/en/download/current'
         );
-        Plugins.message.info('Please run Sub-Store service first', 4_000);
+        Plugins.message.info('Please install nodejs first', 4_000);
         return;
     }
     let hasPnpm = false;
