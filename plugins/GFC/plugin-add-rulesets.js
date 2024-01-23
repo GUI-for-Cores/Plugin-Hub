@@ -202,8 +202,8 @@ const onRun = async () => {
     ]
 
     for (let i = 0; i < list.length; i++) {
-        if (!rulesetsStore.getRulesetByID(list[i].id)) {
-            // await rulesetsStore.add(list[i])
+        if (!rulesetsStore.getRulesetById(list[i].id)) {
+            await rulesetsStore.addRuleset(list[i])
             console.log('添加', list[i].name);
         }
     }
