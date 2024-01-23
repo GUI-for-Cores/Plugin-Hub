@@ -12,5 +12,35 @@
         "disabled": false,
         "install": false,
         "installed": false
+    },
+    {
+        "id": "plugin-sub-store",
+        "name": "Sub-Store",
+        "description": "高级订阅管理工具",
+        "type": "Http",
+        "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sub-store.js",
+        "path": "data/plugins/plugin-sub-store.js",
+        "triggers": [
+            "on::manual",
+            "on::startup",
+            "on::shutdown"
+        ],
+        "disabled": false,
+        "install": true,
+        "installed": false
+    },
+    {
+        "id": "plugin-sub-store-update",
+        "name": "更新Sub-Store",
+        "description": "更新Sub-Store到最新版",
+        "type": "Http",
+        "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sub-store-update.js",
+        "path": "data/plugins/plugin-sub-store-update.js",
+        "triggers": [
+            "on::manual"
+        ],
+        "disabled": false,
+        "install": false,
+        "installed": false
     }
 ]
