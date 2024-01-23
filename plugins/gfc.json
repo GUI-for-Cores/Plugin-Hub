@@ -5,7 +5,7 @@
         "description": "一键添加所有的规则组到你的列表，添加后你需要手动更新规则组来下载到本地，以便在配置文件中引用它们。",
         "type": "Http",
         "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFC/plugin-add-rulesets.js",
-        "path": "",
+        "path": "data/plugins/plugin-add-rulesets.js",
         "triggers": [
             "on::manual"
         ],
