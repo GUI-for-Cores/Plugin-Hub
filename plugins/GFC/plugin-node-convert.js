@@ -116,10 +116,49 @@ const protocolHandler = {
     trojan['client-fingerprint'] = query.get('fp') || 'chrome'
     return trojan
   },
-  vless: (line) => {},
-  vmess: (line) => {},
-  ss: (line) => {},
-  ssr: (line) => {}
+  vless: (line) => { },
+  vmess: (line) => { },
+  ss: (line) => {
+    let urlSS = new URL(line)
+    const port = urlSS.port
+
+    if (!port) {
+      const dcStr = decodeURIComponent(urlSS.host)
+      urlSS = new URL('ss://' + dcStr)
+    }
+
+    let cipherRaw = urlSS.username
+    let cipher = cipherRaw, password
+
+    if (!urlSS.password) {
+      dcStr = decodeURIComponent(cipherRaw)
+      const [_cipher, _password] = dcStr.split(':')
+      cipher = _cipher
+      password = _password
+    }
+
+    const ss = {
+      name: '',
+      type: 'ss',
+      server: urlSS.hostname,
+      port: urlSS.port,
+      cipher: cipher,
+      password: password,
+      udp: true
+    }
+
+    if (query.get('udp-over-tcp') == 'true' || query.get('uot') == '1') {
+      ss["udp-over-tcp"] = true
+    }
+
+    const plugin = query.get('plugin')
+    if (plugin.includes(';')) {
+      pluginInfo = new sear
+    }
+
+    return ss
+  },
+  ssr: (line) => { }
 }
 
 const onSubscribe = async (proxies) => {
