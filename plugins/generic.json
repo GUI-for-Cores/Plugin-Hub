@@ -42,5 +42,17 @@
         "disabled": false,
         "install": false,
         "installed": false
+    },
+    {
+        "id": "plugin-install-font",
+        "name": "Twemoji.Mozilla",
+        "description": "下载并安装字体“Twemoji.Mozilla.ttf”，你的节点将正常显示国旗图标。",
+        "type": "Http",
+        "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-install-font.js",
+        "path": "data/plugins/plugin-install-font.js",
+        "triggers": [],
+        "disabled": false,
+        "install": true,
+        "installed": false
     }
 ]
