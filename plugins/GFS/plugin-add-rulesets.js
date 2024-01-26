@@ -76,7 +76,7 @@ const onRun = async () => {
         },
         {
             id: 'remote-gfw',
-            tag: 'GFWList 域名列表',
+            tag: 'GFW 域名列表',
             updateTime: '',
             type: 'Http',
             format: 'binary',
