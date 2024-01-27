@@ -9,12 +9,13 @@ const DownloadFont = async () => {
         try {
             await Plugins.Download(url, cache)
             Plugins.message.update(id, '下载字体完成')
-            await Plugins.sleep(1000)
         } catch (err) {
             console.log(err)
             Plugins.message.update(id, '下载字体失败')
             Plugins.message.info(err.message || err)
+            throw '下载字体失败，请查看控制台报错'
         } finally {
+            await Plugins.sleep(1000)
             Plugins.message.destroy(id)
         }
     }
@@ -33,12 +34,13 @@ mshta "javascript:new ActiveXObject('Shell.Application').NameSpace(20).CopyHere(
             await Plugins.Exec('data/.cache/installFont.bat')
             await Plugins.Removefile('data/.cache/installFont.bat')
             Plugins.message.update(id, '安装字体成功，请重启APP')
-            await Plugins.sleep(1000)
         } catch (err) {
             console.log(err)
             Plugins.message.update('安装字体失败')
             Plugins.message.info(err.message || err)
+            throw '安装字体失败，请查看控制台报错'
         } finally {
+            await Plugins.sleep(1000)
             Plugins.message.destroy(id)
         }
     }
@@ -54,6 +56,7 @@ const UninstallFont = async () => {
         Plugins.message.update('卸载字体失败')
         Plugins.message.info(err.message || err)
     } finally {
+        await Plugins.sleep(1000)
         Plugins.message.destroy(id)
     }
 }
