@@ -1,11 +1,11 @@
 [
     {
-        "id": "plugin-gfc-example",
-        "name": "GFS插件示例",
-        "description": "GFS插件示例。",
+        "id": "plugin-add-rulesets",
+        "name": "一键添加规则集",
+        "description": "一键添加所有的规则集到你的列表，添加后你需要手动更新规则集来下载到本地，以便在配置文件中引用它们。",
         "type": "Http",
-        "url": "",
-        "path": "data/plugins/plugin-gfc-example.js",
+        "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-add-rulesets.js",
+        "path": "data/plugins/plugin-add-rulesets.js",
         "triggers": [
             "on::manual"
         ],
