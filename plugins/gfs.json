@@ -12,5 +12,17 @@
         "disabled": false,
         "install": false,
         "installed": false
+    },
+    {
+        "id": "plugin-register-sing-box",
+        "name": "注册SingBox协议到注册表",
+        "description": "注册后，你可以使用机场的一键导入订阅功能。",
+        "type": "Http",
+        "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-register-sing-box.js",
+        "path": "data/plugins/plugin-register-sing-box.js",
+        "triggers": [],
+        "disabled": false,
+        "install": true,
+        "installed": false
     }
 ]
