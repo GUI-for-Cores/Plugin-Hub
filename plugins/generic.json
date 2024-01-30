@@ -54,5 +54,19 @@
         "disabled": false,
         "install": true,
         "installed": false
+    },
+    {
+        "id": "plugin-adguardhome.js",
+        "name": "AdGuardHome",
+        "description": "集成AdGuardHome程序。",
+        "type": "Http",
+        "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-adguardhome.js",
+        "path": "data/plugins/plugin-adguardhome.js",
+        "triggers": [
+            "on::manual"
+        ],
+        "disabled": false,
+        "install": true,
+        "installed": false
     }
 ]
