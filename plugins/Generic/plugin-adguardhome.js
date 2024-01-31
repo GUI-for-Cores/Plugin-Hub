@@ -57,11 +57,17 @@ const onUninstall = async () => {
 
 // 默认不启用，请在插件编辑里勾选对应的触发器
 const onStartup = async () => {
+  if(await Plugins.FileExists(pidfile)) {
+    return
+  }
   await runAdGuardHome()
 }
 
 // 默认不启用，请在插件编辑里勾选对应的触发器
 const onShutdown = async () => {
+  if(!await Plugins.FileExists(pidfile)) {
+    return
+  }
   await stopAdGuardHome()
 }
 
