@@ -9,6 +9,7 @@
         "triggers": [
             "on::manual"
         ],
+        "menus": {},
         "disabled": false,
         "install": false,
         "installed": false
@@ -21,6 +22,7 @@
         "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFC/plugin-register-clash.js",
         "path": "data/plugins/plugin-register-clash.js",
         "triggers": [],
+        "menus": {},
         "disabled": false,
         "install": true,
         "installed": false
