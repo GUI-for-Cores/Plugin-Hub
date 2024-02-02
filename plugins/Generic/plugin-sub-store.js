@@ -3,9 +3,11 @@ const subStoreConfigPath = 'data/plugins/assets/sub-store-config';
 const subStoreSrcPath = subStoreDir + '/sub-store.min.js';
 const subStoreBackendInfoPath = subStoreDir + '/sub-store-backend-info.yaml';
 const envPath = subStoreConfigPath + '/.env';
-const defaultPort = Plugins.APP_TITLE.toLowerCase().includes("singbox") ? 20433 : 20233;
+const defaultPort = Plugins.APP_TITLE.toLowerCase().includes('singbox')
+    ? 20433
+    : 20233;
 
-async function onInstall() {
+async function installSubStore() {
     let hasNode = false;
     try {
         const nodeVersion = await Plugins.Exec('node', ['-v']);
@@ -15,8 +17,8 @@ async function onInstall() {
         console.error(
             'Please install nodejs: https://nodejs.org/en/download/current'
         );
-        Plugins.message.info('Please install nodejs first', 4_000);
-        return;
+        Plugins.message.info('请先安装 nodejs', 4_000);
+        return false;
     }
     let hasPnpm = false;
     try {
@@ -66,8 +68,17 @@ async function onInstall() {
             `SUB_STORE_BACKEND_API_PORT=${defaultPort}`
         );
     }
+    return true;
+}
 
-    console.log('Install Sub-Store finished');
+async function onInstall() {
+    try {
+        if (await installSubStore()) {
+            Plugins.message.info('安装成功');
+        }
+    } catch (e) {
+        Plugins.message.error(`安装失败 ${e}`);
+    }
 }
 
 async function onUninstall() {
@@ -92,7 +103,7 @@ async function onRun() {
         }
     }
 
-    Plugins.message.info('Please run Sub-Store service first');
+    Plugins.message.info('请先运行Sub-Store服务');
 }
 
 async function onStartup() {
@@ -146,5 +157,15 @@ async function killProcess() {
             }
         } catch (e) {}
         console.log(`Sub-Store backend stop failed. PID: ${backendInfo.pid}`);
+    }
+}
+
+async function onUpdate() {
+    try {
+        if (await installSubStore()) {
+            Plugins.message.info('更新成功');
+        }
+    } catch (e) {
+        Plugins.message.error(`更新失败 ${e}`);
     }
 }
