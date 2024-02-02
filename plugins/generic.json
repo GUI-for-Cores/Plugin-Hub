@@ -69,7 +69,9 @@
         "triggers": [
             "on::manual"
         ],
-        "menus": {},
+        "menus": {
+            "管理界面": "openAdguardHome"
+        },
         "disabled": false,
         "install": true,
         "installed": false
