@@ -4,6 +4,7 @@ const execfile = data + "/AdGuardHome.exe"; // 主程序
 const execargs = []; // 运行时参数
 const version = "v0.107.43"; // 版本，可自行更改升级
 const cachefile = `data/.cache/adguard_${version}.zip`; // 主程序压缩文件
+const backup_config_file = "data/third/AdGuardHome.yaml.bak"; // 备份的配置文件
 window.pluginAdguardHome = window.pluginAdguardHome || {
   admin_address: "",
 };
@@ -102,10 +103,38 @@ const onShutdown = async () => {
 };
 
 /* 菜单项 - 访问管理界面 */
-const openAdguardHome = () => {
+const openAdguardHome = async () => {
+  if (!(await Plugins.FileExists(pidfile))) {
+    throw "请先运行AdGuardHome";
+  }
   Plugins.BrowserOpenURL(
     window.pluginAdguardHome.admin_address || "http://127.0.0.1:3000/"
   );
+};
+
+/* 菜单项 - 备份配置 */
+const backupConfig = async () => {
+  if (!(await Plugins.FileExists(data + "/AdGuardHome.yaml"))) {
+    throw "没有可备份的配置文件";
+  }
+  // TODO: copy file
+  const config_content = await Plugins.Readfile(data + "/AdGuardHome.yaml");
+  await Plugins.Writefile(backup_config_file, config_content);
+  Plugins.message.success("配置文件备份成功");
+};
+
+/* 菜单项 - 恢复配置 */
+const restoreConfig = async () => {
+  if (!(await Plugins.FileExists(backup_config_file))) {
+    throw "没有可恢复的配置文件";
+  }
+  if (await Plugins.FileExists(pidfile)) {
+    throw "请先停止运行AdGuardHome";
+  }
+  // TODO: copy file
+  const config_content = await Plugins.Readfile(backup_config_file);
+  await Plugins.Writefile(data + "/AdGuardHome.yaml", config_content);
+  Plugins.message.success("配置文件恢复成功");
 };
 
 const onRun = async () => {
