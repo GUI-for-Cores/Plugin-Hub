@@ -4,6 +4,9 @@ const execfile = data + "/AdGuardHome.exe"; // 主程序
 const execargs = []; // 运行时参数
 const version = "v0.107.43"; // 版本，可自行更改升级
 const cachefile = `data/.cache/adguard_${version}.zip`; // 主程序压缩文件
+window.pluginAdguardHome = window.pluginAdguardHome || {
+  admin_address: "",
+};
 
 const { arch } = await Plugins.GetEnv();
 
@@ -25,14 +28,15 @@ const runAdGuardHome = async () => {
     execfile,
     execargs,
     (out) => {
-      if (out.includes("go to")) {
-        Plugins.message.info(
-          "AdGuardHome管理地址：" + out.split("go to")[1],
+      if (out.includes("go to") && out.includes("127.0.0.1")) {
+        window.pluginAdguardHome.admin_address = out.split("go to")[1].trim();
+        Plugins.message.success(
+          "AdGuardHome管理地址：" + window.pluginAdguardHome.admin_address,
           5_000
         );
       }
       if (out.includes("dnsproxy: listening to")) {
-        Plugins.message.info(
+        Plugins.message.success(
           "AdGuardHome服务地址：" + out.split("dnsproxy: listening to")[1],
           5_000
         );
@@ -97,10 +101,17 @@ const onShutdown = async () => {
   await stopAdGuardHome();
 };
 
+/* 菜单项 - 访问管理界面 */
+const openAdguardHome = () => {
+  Plugins.BrowserOpenURL(
+    window.pluginAdguardHome.admin_address || "http://127.0.0.1:3000/"
+  );
+};
+
 const onRun = async () => {
   if (await Plugins.FileExists(pidfile)) {
     await stopAdGuardHome();
-    Plugins.message.info("AdGuardHome停止成功");
+    Plugins.message.success("AdGuardHome停止成功");
   } else {
     await runAdGuardHome();
   }
