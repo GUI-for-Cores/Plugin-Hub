@@ -70,7 +70,9 @@
             "on::manual"
         ],
         "menus": {
-            "管理界面": "openAdguardHome"
+            "管理界面": "openAdguardHome",
+            "备份配置": "backupConfig",
+            "恢复配置": "restoreConfig"
         },
         "disabled": false,
         "install": true,
