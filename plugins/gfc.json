@@ -26,5 +26,20 @@
         "disabled": false,
         "install": true,
         "installed": false
+    },
+    {
+        "id": "plugin-fix-profile-v1.4.2",
+        "name": "修复v1.4.2之前的DNS配置",
+        "description": "修复v1.4.2之前的DNS配置，修复后可配置DNS策略字段：nameserver-policy",
+        "type": "Http",
+        "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFC/plugin-fix-profile-v1.4.2.js",
+        "path": "data/plugins/plugin-fix-profile-v1.4.2.js",
+        "triggers": [
+            "on::manual"
+        ],
+        "menus": {},
+        "disabled": false,
+        "install": false,
+        "installed": false
     }
 ]
