@@ -18,10 +18,10 @@ const onInstall = async () => {
 
     await Plugins.Writefile(file, reg)
     await Plugins.Exec('reg', ['import', file])
-    Plugins.message.info('注册完成')
+    Plugins.message.success('注册完成')
 }
 
 const onUninstall = async () => {
     await Plugins.Exec('reg', ['delete', `HKEY_CLASSES_ROOT\\clash`, '/f'])
-    Plugins.message.info('卸载完成')
+    Plugins.message.success('卸载完成')
 }
