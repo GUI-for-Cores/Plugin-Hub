@@ -54,8 +54,10 @@ const runAdGuardHome = async () => {
 /* 安装AdGuardHome */
 const installAdGuardHome = async () => {
   if (!(await Plugins.FileExists(cachefile))) {
-    console.log("下载AdGuardHome压缩包");
-    await Plugins.Download(url, cachefile);
+    const { id } = Plugins.message.info("下载AdGuardHome压缩包")
+    await Plugins.Download(url, cachefile, (progress, total) => {
+      Plugins.message.update(id, '下载AdGuardHome压缩包：' + ((progress / total) * 100).toFixed(2) + '%')
+    })
     console.log("下载AdGuardHome完成");
   }
   console.log("解压AdGuardHome压缩包");
