@@ -208,5 +208,5 @@ const onRun = async () => {
         }
     }
 
-    Plugins.message.info('添加完毕')
+    Plugins.message.success('添加完毕')
 }
