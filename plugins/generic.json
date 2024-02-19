@@ -98,7 +98,7 @@
     {
         "id": "plugin-add-emoji-before-proxy-name",
         "name": "节点名称前加国家地区emoji",
-        "description": "更新订阅时在节点名称前加国家地区emoji的插件。Powered by: QiChaiQiChai",
+        "description": "更新订阅时在节点名称前加国家地区emoji的插件。Supported by: QiChaiQiChai",
         "type": "Http",
         "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-add-emoji-before-proxy-name.js",
         "path": "data/plugins/plugin-add-emoji-before-proxy-name.js",
