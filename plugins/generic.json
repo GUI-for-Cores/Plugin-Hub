@@ -109,5 +109,20 @@
         "disabled": false,
         "install": false,
         "installed": false
+    },
+    {
+        "id": "plugin-generate-report",
+        "name": "生成报告信息",
+        "description": "生成报告信息，用于我们帮助您排错。",
+        "type": "Http",
+        "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-generate-report.js",
+        "path": "data/plugins/plugin-generate-report.js",
+        "triggers": [
+            "on::manual"
+        ],
+        "menus": {},
+        "disabled": false,
+        "install": false,
+        "installed": false
     }
 ]
