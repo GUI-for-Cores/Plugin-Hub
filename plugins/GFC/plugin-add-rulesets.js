@@ -208,5 +208,15 @@ const onRun = async () => {
         }
     }
 
+    if (!await Plugins.FileExists('data/rulesets/direct.yaml')) {
+        Plugins.Writefile('data/rulesets/direct.yaml', 'payload: []')
+    }
+    if (!await Plugins.FileExists('data/rulesets/reject.yaml')) {
+        Plugins.Writefile('data/rulesets/reject.yaml', 'payload: []')
+    }
+    if (!await Plugins.FileExists('data/rulesets/proxy.yaml')) {
+        Plugins.Writefile('data/rulesets/proxy.yaml', 'payload: []')
+    }
+
     Plugins.message.success('添加完毕')
 }
