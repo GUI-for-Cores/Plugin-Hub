@@ -26,7 +26,7 @@ let RemoveKeywords = /-|_|🇨🇳/g;
 
 
 // 使用正则表达式来表示国家地区关键词
-const keywordsToEmoji = {
+const KeywordsToEmoji = {
     '香港|沪港|呼港|中港|HKT|HKBN|HGC|WTT|CMI|穗港|广港|京港|🇭🇰|HK|Hongkong|Hong Kong|HongKong|HONG KONG': '🇭🇰',
     '台湾|台灣|臺灣|台北|台中|新北|彰化|台|CHT|HINET|TW|Taiwan|TAIWAN': '🇹🇼',
     '澳门|澳門|CTM|MAC|Macao|Macau': '🇲🇴',
@@ -176,16 +176,31 @@ const { appName } = await Plugins.GetEnv()
 
 const onSubscribe = async (proxies) => {
     if (EnableAddEmoji === 1) {
+        const SubKeywordsToEmoji = {};
+        for (const keyword in KeywordsToEmoji) {
+            const emoji = KeywordsToEmoji[keyword];
+            const Keywords = keyword.split('|');
+            Keywords.forEach(word => SubKeywordsToEmoji[word] = emoji);
+        };
+        // 按子关键词长度从长到短排序
+        const SortedKeywordsToEmoji = Object.fromEntries(
+            Object.entries(SubKeywordsToEmoji).sort((a, b) => {
+                if (a[0].length === b[0].length) {
+                    return a[0].localeCompare(b[0]); // 使用关键词的字典顺序进行比较
+                }
+                return b[0].length - a[0].length; // 按照长度从长到短排序
+            })
+        );
         if(appName.toLowerCase().includes('singbox')) {
             // 修改代理数组，根据节点名称添加对应的 emoji
             proxies = proxies.map((v, i) => {
                 const lowercasetag = v.tag.toLowerCase();
                 let shouldAddEmoji = true; // Flag to track whether emoji should be added
-                for (const keywords in keywordsToEmoji) {
+                for (const keywords in SortedKeywordsToEmoji) {
                     const regex = new RegExp(keywords, 'i');
                     // Check if the proxy tag matches any keywords
                     if (regex.test(lowercasetag)) {
-                        const emoji = keywordsToEmoji[keywords];
+                        const emoji = SortedKeywordsToEmoji[keywords];
                         // Check if the proxy tag already starts with an emoji
                         if (v.tag.startsWith(emoji)) {
                             shouldAddEmoji = false; // If the proxy tag already has an emoji, do not add another one
@@ -202,11 +217,11 @@ const onSubscribe = async (proxies) => {
             proxies = proxies.map((v, i) => {
                 const lowercaseName = v.name.toLowerCase();
                 let shouldAddEmoji = true; // Flag to track whether emoji should be added
-                for (const keywords in keywordsToEmoji) {
+                for (const keywords in SortedKeywordsToEmoji) {
                     const regex = new RegExp(keywords, 'i');
                     // Check if the proxy name matches any keywords
                     if (regex.test(lowercaseName)) {
-                        const emoji = keywordsToEmoji[keywords];
+                        const emoji = SortedKeywordsToEmoji[keywords];
                         // Check if the proxy name already starts with an emoji
                         if (v.name.startsWith(emoji)) {
                             shouldAddEmoji = false; // If the proxy name already has an emoji, do not add another one
