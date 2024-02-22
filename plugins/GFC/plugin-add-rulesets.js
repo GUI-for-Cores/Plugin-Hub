@@ -12,7 +12,7 @@ const onRun = async () => {
             format: 'yaml',
             url: "",
             interval: 86400,
-            count: 4,
+            count: 0,
             path: 'data/rulesets/direct.yaml',
             disabled: false,
         },
@@ -25,7 +25,7 @@ const onRun = async () => {
             format: 'yaml',
             url: "",
             interval: 86400,
-            count: 4,
+            count: 0,
             path: 'data/rulesets/reject.yaml',
             disabled: false,
         },
@@ -38,7 +38,7 @@ const onRun = async () => {
             format: 'yaml',
             url: "",
             interval: 86400,
-            count: 4,
+            count: 0,
             path: 'data/rulesets/proxy.yaml',
             disabled: false,
         },
@@ -52,7 +52,7 @@ const onRun = async () => {
             format: 'yaml',
             url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/direct.txt",
             interval: 86400,
-            count: 4,
+            count: 0,
             path: 'data/rulesets/remote-direct.yaml',
             disabled: false,
         },
@@ -65,7 +65,7 @@ const onRun = async () => {
             format: 'yaml',
             url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/proxy.txt",
             interval: 86400,
-            count: 4,
+            count: 0,
             path: 'data/rulesets/remote-proxy.yaml',
             disabled: false,
         },
@@ -78,7 +78,7 @@ const onRun = async () => {
             format: 'yaml',
             url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/reject.txt",
             interval: 86400,
-            count: 4,
+            count: 0,
             path: 'data/rulesets/remote-reject.yaml',
             disabled: false,
         },
@@ -91,7 +91,7 @@ const onRun = async () => {
             format: 'yaml',
             url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/private.txt",
             interval: 86400,
-            count: 4,
+            count: 0,
             path: 'data/rulesets/remote-private.yaml',
             disabled: false,
         },
@@ -104,7 +104,7 @@ const onRun = async () => {
             format: 'yaml',
             url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/apple.txt",
             interval: 86400,
-            count: 4,
+            count: 0,
             path: 'data/rulesets/remote-apple.yaml',
             disabled: false,
         },
@@ -117,7 +117,7 @@ const onRun = async () => {
             format: 'yaml',
             url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/icloud.txt",
             interval: 86400,
-            count: 4,
+            count: 0,
             path: 'data/rulesets/remote-icloud.yaml',
             disabled: false,
         },
@@ -130,7 +130,7 @@ const onRun = async () => {
             format: 'yaml',
             url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/gfw.txt",
             interval: 86400,
-            count: 4,
+            count: 0,
             path: 'data/rulesets/remote-gfw.yaml',
             disabled: false,
         },
@@ -143,7 +143,7 @@ const onRun = async () => {
             format: 'yaml',
             url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/tld-not-cn.txt",
             interval: 86400,
-            count: 4,
+            count: 0,
             path: 'data/rulesets/remote-tld-not-cn.yaml',
             disabled: false,
         },
@@ -156,7 +156,7 @@ const onRun = async () => {
             format: 'yaml',
             url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/telegramcidr.txt",
             interval: 86400,
-            count: 4,
+            count: 0,
             path: 'data/rulesets/remote-telegramcidr.yaml',
             disabled: false,
         },
@@ -169,7 +169,7 @@ const onRun = async () => {
             format: 'yaml',
             url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/lancidr.txt",
             interval: 86400,
-            count: 4,
+            count: 0,
             path: 'data/rulesets/remote-lancidr.yaml',
             disabled: false,
         },
@@ -182,7 +182,7 @@ const onRun = async () => {
             format: 'yaml',
             url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/cncidr.txt",
             interval: 86400,
-            count: 4,
+            count: 0,
             path: 'data/rulesets/remote-cncidr.yaml',
             disabled: false,
         },
@@ -195,17 +195,34 @@ const onRun = async () => {
             format: 'yaml',
             url: "https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/applications.txt",
             interval: 86400,
-            count: 4,
+            count: 0,
             path: 'data/rulesets/remote-applications.yaml',
             disabled: false,
         }
     ]
 
-    for (let i = 0; i < list.length; i++) {
-        if (!rulesetsStore.getRulesetById(list[i].id)) {
-            await rulesetsStore.addRuleset(list[i])
-            console.log('添加', list[i].name);
+    const ids = await Plugins.picker.multi(
+      '请选择你要添加的规则集',
+      list.map(v => ({label: v.name, value: v.id})),
+      list.filter(v => rulesetsStore.getRulesetById(v.id)).map(v => v.id)
+    )
+
+    for (let i = 0; i < ids.length; i++) {
+        if (!rulesetsStore.getRulesetById(ids[i])) {
+            const ruleset = list.find(v => v.id == ids[i])
+            await rulesetsStore.addRuleset(ruleset)
+            console.log('添加', ruleset.name);
         }
+    }
+
+    if (!await Plugins.FileExists('data/rulesets/direct.yaml') && ids.includes('direct')) {
+        Plugins.Writefile('data/rulesets/direct.yaml', 'payload: []')
+    }
+    if (!await Plugins.FileExists('data/rulesets/reject.yaml') && ids.includes('reject')) {
+        Plugins.Writefile('data/rulesets/reject.yaml', 'payload: []')
+    }
+    if (!await Plugins.FileExists('data/rulesets/proxy.yaml') && ids.includes('proxy')) {
+        Plugins.Writefile('data/rulesets/proxy.yaml', 'payload: []')
     }
 
     Plugins.message.success('添加完毕')
