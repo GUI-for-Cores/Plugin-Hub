@@ -13,16 +13,11 @@
 //    - EnableIndexProxyName = 1 对所有节点按顺序标号。
 //    - EnableIndexProxyName = 2 对相同的节点名称进行标号，默认值为 2。
 
-// 默认值：
-let EnableAddEmoji = 1;         // 是否添加 Emoji，默认值为 1。
-let EnableRemoveKeywords = 0;   // 是否移除关键词，默认值为 0。
-let EnableIndexProxyName = 2;   // 是否对节点名称进行标号，默认值为 2。
 
 // 移除关键词的正则表达式，匹配的关键词将被移除。
-let RemoveKeywords = /-|_|🇨🇳/g;
+let RemoveKeywords = /-|_|油|羊|🇨🇳/g;
 // 正则表达式 /关键词1|关键词2|关键词3/ 将会匹配 proxy name 中的 关键词1、关键词2 和 关键词3，
 // 并将其替换为一个空字符串。你可以根据自己的需求修改正则表达式，添加或删除需要匹配的关键词。
-
 
 
 // 使用正则表达式来表示国家地区关键词
@@ -172,9 +167,75 @@ const KeywordsToEmoji = {
     // 添加更多的国家关键词和对应的 Emoji
 };
 
+
+const settingconfig = async () => {
+    const configname = "plugin-modify-proxy-name-config";
+    const configpath = "data/plugins/plugins-configs/" + configname + ".yaml";
+
+    const EnableAddEmojiValue = await Plugins.picker.single(
+        "请选择是否添加国家地区 Emoji",
+        [
+          { label: "关闭", value: "0" },
+          { label: "开启", value: "1" },
+        ],
+        ["1"]
+    );
+ 
+    const EnableRemoveKeywordsValue = await Plugins.picker.single(
+    "移除节点名称中的一些关键词",
+    [
+        { label: "关闭", value: "0" },
+        { label: "开启（需在插件源码中手动输入关键词）", value: "1" },
+    ],
+    ["0"]
+    );
+
+    const EnableIndexProxyNameValue = await Plugins.picker.single(
+    "请选择操作类型",
+    [
+        { label: "关闭", value: "0" },
+        { label: "对所有节点按顺序标号", value: "1" },
+        { label: "对相同名称的节点标号", value: "2" },
+    ],
+    ["2"]
+    );
+    
+    const code = `
+EnableAddEmoji: ${EnableAddEmojiValue}
+EnableRemoveKeywords: ${EnableRemoveKeywordsValue}
+EnableIndexProxyName: ${EnableIndexProxyNameValue}
+`;
+    await Plugins.Writefile(configpath, code);
+    Plugins.message.success("设置插件配置成功");
+};
+
 const { appName } = await Plugins.GetEnv()
 
 const onSubscribe = async (proxies) => {
+    const configpath = './data/plugins/plugins-configs/plugin-modify-proxy-name-config.yaml';
+
+    let fileExists = false;
+    try {
+        const yamlContent = await Plugins.Readfile(configpath);
+        fileExists = true;
+    } catch (error) {
+        fileExists = false;
+        // 文件不存在时执行的代码
+        await settingconfig();
+        Plugins.message.success("通过右键插件可重新设置");
+    };
+
+    // 读取 YAML 文件
+    const yamlContent = await Plugins.Readfile(configpath)
+
+    // 解析 YAML 内容
+    const yamlData = Plugins.YAML.parse(yamlContent)
+
+    // 将 YAML 中的值赋给不同的变量
+    const EnableAddEmoji = yamlData.EnableAddEmoji
+    const EnableRemoveKeywords = yamlData.EnableRemoveKeywords
+    const EnableIndexProxyName = yamlData.EnableIndexProxyName
+
     if (EnableAddEmoji === 1) {
         const SubKeywordsToEmoji = {};
         for (const keyword in KeywordsToEmoji) {
@@ -235,6 +296,7 @@ const onSubscribe = async (proxies) => {
             });
         }
     };
+
     if (EnableRemoveKeywords === 1) {
         if(appName.toLowerCase().includes('singbox')) {
             proxies = proxies.map((v) => {
@@ -252,6 +314,7 @@ const onSubscribe = async (proxies) => {
             });
         }
     };
+
     if (EnableIndexProxyName === 1) {
         if(appName.toLowerCase().includes('singbox')) {
             proxies = proxies.map((v, i) => ({...v, tag: v.tag + ' ' + (i + 1)}))
@@ -259,6 +322,7 @@ const onSubscribe = async (proxies) => {
             proxies = proxies.map((v, i) => ({...v, name: v.name + ' ' + (i + 1)}))
         }
     };
+
     if (EnableIndexProxyName === 2) {
         let seenNames = {}; // 用于记录已经出现过的节点名称的集合
 
