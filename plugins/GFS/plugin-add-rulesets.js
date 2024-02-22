@@ -136,11 +136,28 @@ const onRun = async () => {
         }
     ]
 
-    for (let i = 0; i < list.length; i++) {
-        if (!rulesetsStore.getRulesetById(list[i].id)) {
-            await rulesetsStore.addRuleset(list[i])
-            console.log('添加', list[i].tag);
+    const ids = await Plugins.picker.multi(
+        '请选择你要添加的规则集',
+        list.map(v => ({label: v.tag, value: v.id})),
+        list.filter(v => rulesetsStore.getRulesetById(v.id)).map(v => v.id)
+    )
+
+    for (let i = 0; i < ids.length; i++) {
+        if (!rulesetsStore.getRulesetById(ids[i])) {
+            const ruleset = list.find(v => v.id == ids[i])
+            await rulesetsStore.addRuleset(ruleset)
+            console.log('添加', ruleset.tag);
         }
+    }
+
+    if (!await Plugins.FileExists('data/rulesets/direct.json') && ids.includes('direct')) {
+        Plugins.Writefile('data/rulesets/direct.json', '{\n  "version": 1,\n  "rules": []\n}')
+    }
+    if (!await Plugins.FileExists('data/rulesets/reject.json') && ids.includes('reject')) {
+        Plugins.Writefile('data/rulesets/reject.json', '{\n  "version": 1,\n  "rules": []\n}')
+    }
+    if (!await Plugins.FileExists('data/rulesets/proxy.json') && ids.includes('proxy')) {
+        Plugins.Writefile('data/rulesets/proxy.json', '{\n  "version": 1,\n  "rules": []\n}')
     }
 
     Plugins.message.info('添加完毕')
