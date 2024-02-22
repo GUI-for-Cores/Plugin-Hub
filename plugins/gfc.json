@@ -41,5 +41,20 @@
         "disabled": false,
         "install": false,
         "installed": false
+    },
+    {
+        "id": "plugin-generate-puppet",
+        "name": "傀儡配置助手",
+        "description": "此插件会为你创建一份假的配置(profile)，称之为傀儡配置，同时创建一个触发器为【生成配置时】的插件作用于此配置(profile)，这样你就能使用完整的自定义配置文件(config.yaml)了。其原理是在生成内核配置文件(config.yaml)时，使用你的配置文件(config.yaml)进行完整替换。",
+        "type": "Http",
+        "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFC/plugin-generate-puppet.js",
+        "path": "data/plugins/plugin-generate-puppet.js",
+        "triggers": [
+            "on::manual"
+        ],
+        "menus": {},
+        "disabled": false,
+        "install": false,
+        "installed": false
     }
 ]
