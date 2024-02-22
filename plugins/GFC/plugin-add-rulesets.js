@@ -201,7 +201,11 @@ const onRun = async () => {
         }
     ]
 
-    const ids = await Plugins.picker.multi('请选择你要添加的规则集', list.map(v => ({label: v.name, value: v.id})), list.map(v => v.id))
+    const ids = await Plugins.picker.multi(
+      '请选择你要添加的规则集',
+      list.map(v => ({label: v.name, value: v.id})),
+      list.filter(v => rulesetsStore.getRulesetById(v.id)).map(v => v.id)
+    )
 
     for (let i = 0; i < ids.length; i++) {
         if (!rulesetsStore.getRulesetById(ids[i])) {
