@@ -3,59 +3,49 @@ const onRun = async () => {
 
     const url = "https://ipapi.co/json";
 
-    try {
-        await Plugins.HttpGetJSON(url);
-        fileExists = true;
-    } catch (error) {
-        fileExists = false;
-        Plugins.message.info("获取 IP 信息失败");
-    };
+    const { json } = await Plugins.HttpGetJSON('https://ipapi.co/json')
 
-    if (fileExists) {
-        const { json } = await Plugins.HttpGetJSON('https://ipapi.co/json')
+    // 将 json 中的值赋给不同的变量
+    let ip = json.ip
+    let country = json.country
+    let region = json.region
+    let city = json.city
+    let timezone = json.timezone
 
-        // 将 json 中的值赋给不同的变量
-        let ip = json.ip
-        let country = json.country
-        let region = json.region
-        let city = json.city
-        let timezone = json.timezone
+    // 根据 country 的值获取对应的 emoji
+    const emoji = flags.get(country) || "❓"; // 默认值为❓
 
-        // 根据 country 的值获取对应的 emoji
-        const emoji = flags.get(country) || "❓"; // 默认值为❓
+    if (ip === null) {
+        ip = '';
+    }
+    
+    if (country === null) {
+        country = '';
+    }
+    
+    if (region === null) {
+        region = '';
+    }
+    
+    if (city === null) {
+        city = '';
+    }
+    
+    if (timezone === null) {
+        timezone = '';
+    }
 
-        if (ip === null) {
-            ip = '';
-        }
-        
-        if (country === null) {
-            country = '';
-        }
-        
-        if (region === null) {
-            region = '';
-        }
-        
-        if (city === null) {
-            city = '';
-        }
-        
-        if (timezone === null) {
-            timezone = '';
-        }
+    const text1 = `${emoji} ${region} ${city}`;
+    const text2 = `🌐 IP: ${ip}`;
+    const text3 = `🕗 时区: ${timezone}`;
 
-        const text1 = `${emoji} ${region} ${city}`;
-        const text2 = `🌐 IP: ${ip}`;
-        const text3 = `🕗 时区: ${timezone}`;
+    const message = `
+    ${text1}
+    ${text2}
+    ${text3}`;
 
-        const message = `
-        ${text1}
-        ${text2}
-        ${text3}`;
-
-        Plugins.confirm(
-            'IP 信息',
-            message
-        )
-    };
+    Plugins.confirm(
+        'IP 信息',
+        message
+    )
 }
