@@ -1,5 +1,5 @@
 const addProfile = async () => {
-  const url = prompt(
+  const url = await Plugins.prompt(
     "请输入你的配置文件路径，例如：C:\\Users\\Admin\\Desktop\\config.yaml"
   );
   if (!url || !url.trim()) {
