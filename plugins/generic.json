@@ -113,6 +113,21 @@
         "installed": false
     },
     {
+        "id": "plugin-ip-geolocation",
+        "name": "IP 信息查询",
+        "description": "快速查询当前 IP 信息。Supported by: QiChaiQiChai",
+        "type": "Http",
+        "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-ip-geolocation.js",
+        "path": "data/plugins/plugin-ip-geolocation.js",
+        "triggers": [
+            "on::manual"
+        ],
+        "menus": {},
+        "disabled": false,
+        "install": false,
+        "installed": false
+    },
+    {
         "id": "plugin-generate-report",
         "name": "生成报告信息",
         "description": "生成报告信息，用于我们帮助您排错。",
