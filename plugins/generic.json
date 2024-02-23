@@ -113,6 +113,38 @@
         "installed": false
     },
     {
+        "id": "plugin-ip-geolocation",
+        "name": "IP 信息查询",
+        "description": "快速查询当前 IP 信息。Supported by: QiChaiQiChai",
+        "type": "Http",
+        "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-ip-geolocation.js",
+        "path": "data/plugins/plugin-ip-geolocation.js",
+        "triggers": [
+            "on::manual"
+        ],
+        "menus": {},
+        "disabled": false,
+        "install": false,
+        "installed": false
+    },
+    {
+        "id": "plugin-speedtest",
+        "name": "SpeedTest 速度测试",
+        "description": "测试当前节点延迟和下行速度。Supported by: QiChaiQiChai",
+        "type": "Http",
+        "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-speedtest.js",
+        "path": "data/plugins/plugin-speedtest.js",
+        "triggers": [
+            "on::manual"
+        ],
+        "menus": {
+            "设置": "settingconfig"
+        },
+        "disabled": false,
+        "install": false,
+        "installed": false
+    },
+    {
         "id": "plugin-generate-report",
         "name": "生成报告信息",
         "description": "生成报告信息，用于我们帮助您排错。",
