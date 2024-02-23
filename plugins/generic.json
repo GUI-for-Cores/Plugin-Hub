@@ -105,7 +105,9 @@
         "triggers": [
             "on::subscribe"
         ],
-        "menus": {},
+        "menus": {
+            "设置": "settingconfig"
+        },
         "disabled": false,
         "install": false,
         "installed": false
