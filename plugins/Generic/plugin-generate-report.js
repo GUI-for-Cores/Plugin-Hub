@@ -34,7 +34,7 @@ const onRun = async () => {
   }
 
   await Plugins.sleep(500);
-  Plugins.message.update(id, "检测完毕");
+  Plugins.message.update(id, "检测完毕", 'success');
 
   const result = `====系统环境====
 客户端：${Plugins.APP_TITLE} ${Plugins.APP_VERSION}
@@ -58,10 +58,12 @@ IPv6：${config.ipv6 ? "已开启" : "已关闭"}
 谷歌连通性：${googleSuccess ? "OK" : "Fail"}
 `;
 
-  await Plugins.ClipboardSetText(result);
-  await Plugins.sleep(500);
-  Plugins.message.update(id, "检测结果已复制到剪切板");
+  try {
+    await Plugins.confirm('报告信息', result)
+    await Plugins.ClipboardSetText(result);
+    await Plugins.sleep(500);
+    Plugins.message.update(id, "检测结果已复制到剪切板");
+  } catch (error) {}
   await Plugins.sleep(500);
   Plugins.message.destroy(id);
-  console.log(result);
 };
