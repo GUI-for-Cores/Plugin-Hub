@@ -1,6 +1,53 @@
+const onRun = async () => {
+  const res = await Plugins.prompt('请输入分享链接：', '', { placeholder: 'vmess://' })
+  const [schema, body] = res.split("://");
+  const proxy = protocolHandler[schema.toLowerCase()]?.(body);
+  if (proxy) {
+    // await Plugins.confirm(JSON.stringify(proxy, null, 2))
+    Plugins.ClipboardSetText(JSON.stringify(proxy, null, 2))
+    Plugins.message.success('解析成功，请查看剪切板')
+  } else {
+    Plugins.message.error('解析错误')
+  }
+}
+
+const onSubscribe = async (proxies) => {
+  if (Plugins.isValidBase64(proxies)) {
+    const result = []
+    const arr = atob(proxies).trim().split("\n");
+    for (const line of arr) {
+      let [schema, body] = line.split("://");
+      schema = schema.toLowerCase();
+      try {
+        const proxy = protocolHandler[schema]?.(body);
+        result.push(proxy)
+      } catch (error) {
+        console.log("parse error", error);
+      }
+    }
+    return result
+  }
+  return proxies
+}
+
+
 const protocolHandler = {
-  hysteria: (line) => {
-    const urlHysteria = new URL(line);
+  socks: (body) => {
+    const urlSocks = new URL('http://' + body)
+    const arr = atob(urlSocks.username).split(':')
+    const socks = {
+      name: urlSocks.hash.slice(1),
+      type: 'socks5',
+      server: urlSocks.hostname,
+      port: Number(urlSocks.port),
+      username: arr[0],
+      password: arr[1],
+      udp: true,
+    }
+    return socks
+  },
+  hysteria: (body) => {
+    const urlHysteria = new URL('http://' + body);
     const query = urlHysteria.searchParams;
     const up = query.get("up") || query.get("upmbps");
     const down = query.get("down") || query.get("downmbps");
@@ -22,17 +69,17 @@ const protocolHandler = {
     }
     return hysteria;
   },
-  hysteria2: (line) => {
-    const urlHysteria2 = new URL(line);
+  hysteria2: (body) => {
+    const urlHysteria2 = new URL('http://' + body);
     const query = urlHysteria2.searchParams;
     const hysteria2 = {
-      name: "",
+      name: urlHysteria2.hash.slice(1),
       type: "hysteria2",
       server: urlHysteria2.hostname,
       port: urlHysteria2.port || 443,
       obfs: query.get("obfs"),
       "obfs-password": query.get("obfs-password"),
-      sni: query.get("peer"),
+      sni: query.get("sni"),
       "skip-cert-verify": Boolean(query.get("insecure")),
       fingerprint: query.get("pinSHA256"),
       down: query.get("down"),
@@ -46,17 +93,20 @@ const protocolHandler = {
     }
     return hysteria2;
   },
-  tuic: (line) => {
-    const urlTUIC = new URL(line);
+  tuic: (body) => {
+    const urlTUIC = new URL('http://' + body);
     const query = urlTUIC.searchParams;
+
     const tuic = {
-      name: "",
+      name: urlTUIC.hash.slice(1),
       type: "tuic",
       server: urlTUIC.hostname,
-      port: urlTUIC.port,
+      port: Number(urlTUIC.port),
       udp: true,
+      uuid: urlTUIC.username,
+      password: urlTUIC.password
     };
-    // uuid, password / token
+    // token
     if (query.get("congestion_control")) {
       tuic["congestion-controller"] = query.get("congestion_control");
     }
@@ -74,14 +124,14 @@ const protocolHandler = {
     }
     return tuic;
   },
-  trojan: (line) => {
-    const urlTrojan = new URL(line);
+  trojan: (body) => {
+    const urlTrojan = new URL('http://' + body);
     const query = urlTrojan.searchParams;
     const trojan = {
-      name: "",
+      name: decodeURIComponent(urlTrojan.hash.slice(1)),
       type: "trojan",
       server: urlTrojan.hostname,
-      port: urlTrojan.port,
+      port: Number(urlTrojan.port),
       password: urlTrojan.username,
       udp: true,
       "skip-cert-verify": Boolean(query.get("allowInsecure")),
@@ -92,7 +142,7 @@ const protocolHandler = {
     if (query.get("sni")) {
       trojan.sni = query.get("sni");
     }
-    const network = query.get("type").toLowerCase();
+    const network = query.get("type")?.toLowerCase();
     if (network) {
       trojan.network = network;
     }
@@ -111,21 +161,143 @@ const protocolHandler = {
         trojan["grpc-opts"] = {
           "grpc-service-name": query.get("serviceName"),
         };
+        break
       }
     }
     trojan["client-fingerprint"] = query.get("fp") || "chrome";
     return trojan;
   },
-  vless: (line) => {},
-  vmess: (line, body) => {
-    const urlVmess = new URL(line);
+  vless: (body) => {
+    const urlVless = new URL('http://' + body);
+    const query = urlVless.searchParams;
+    if (urlVless.hostname == "") {
+      throw 'hostname is empty'
+    }
+    if (urlVless.port == '') {
+      throw 'port is empty'
+    }
+    const vless = {
+      name: decodeURIComponent(urlVless.hash.slice(1)),
+      type: 'vless',
+      server: urlVless.hostname,
+      port: Number(urlVless.port),
+      uuid: urlVless.username,
+      udp: true
+    }
+    const tls = query.get('security').toLocaleLowerCase()
+    if (tls.endsWith('tls') || tls == 'reality') {
+      vless.tls = true
+      vless['client-fingerprint'] = query.get('fp') || 'chrome'
+      if (query.get('alpn')) {
+        vless.alpn = query.get('alpn').split(',')
+      }
+    }
+    if (query.get('sni')) {
+      vless.servername = query.get('sni')
+    }
+    if (query.get('pbk')) {
+      vless['reality-opts'] = {
+        'public-key': query.get('pbk'),
+        'short-id': query.get('sid')
+      }
+    }
+    switch (query.get('packetEncoding')) {
+      case 'none':
+      case 'packet': {
+        vless['packet-addr'] = true
+        break
+      }
+      default: {
+        vless.xudp = true
+      }
+    }
+    let network = query.get('type')?.toLowerCase()
+    if (!network) {
+      network = 'tcp'
+    }
+    const fakeType = query.get('headerType')
+    if (fakeType == 'http') {
+      network = 'http'
+    } else if (network == 'http') {
+      network = 'h2'
+    }
+    vless.network = network
+    switch (network) {
+      case 'tcp': {
+        if (fakeType != 'none') {
+          const headers = {}
+          const httpOpts = {
+            path: '/'
+          }
+          if (query.get('host')) {
+            headers.Host = query.get('host')
+          }
+          if (query.get('method')) {
+            httpOpts.method = query.get('method')
+          }
+          if (query.get('path')) {
+            httpOpts.path = query.get('path')
+          }
+          httpOpts.headers = headers
+          vless['http-opts'] = httpOpts
+        }
+        break
+      }
+      case 'http': {
+        const headers = {}
+        const h2Opts = {
+          path: '/'
+        }
+        if (query.get('path')) {
+          h2Opts.path = query.get('path')
+        }
+        if (query.get('host')) {
+          h2Opts.host = query.get('host')
+        }
+        h2Opts.headers = headers
+        vless['h2-opts'] = h2Opts
+        break
+      }
+      case 'ws': {
+        const headers = {
+          'User-Agent': 'chrome',
+          Host: query.get('host'),
+        }
+        const wsOpts = {
+          path: query.get('path'),
+          headers: headers
+        }
+        if (query.get('ed')) {
+          const med = atob(query.get('ed'))
+          wsOpts['max-early-data'] = med
+        }
+        if (query.get('eh')) {
+          wsOpts['early-data-header-name'] = query.get('eh')
+        }
+        vless['ws-opts'] = wsOpts
+        break
+      }
+      case 'grpc': {
+        vless['grpc-opts'] = {
+          "grpc-service-name": query.get('serviceName')
+        }
+        break
+      }
+    }
+    if (query.get('flow')) {
+      vless.flow = query.get('flow').toLowerCase()
+    }
+    return vless
+  },
+  vmess: (body) => {
+    const urlVmess = new URL('http://' + body);
     const query = urlVmess.searchParams;
-    const json = JSON.parse(body);
+    const json = JSON.parse(atob(body));
     const vmess = {
-      name: "",
+      name: json.v,
       type: "vmess",
       server: json.add,
-      port: json.port,
+      port: Number(json.port),
       uuid: json.id,
       alterId: json.aid || 0,
       udp: true,
@@ -145,9 +317,9 @@ const protocolHandler = {
     if (tls.endsWith("tls")) {
       vmess.tls = true;
     }
-    const alph = json.alph;
-    if (alph) {
-      vmess.alph = alph.split(",");
+    const alpn = json.alpn;
+    if (alpn) {
+      vmess.alpn = alpn.split(",");
     }
     const headers = {};
     const httpOpts = {};
@@ -176,43 +348,46 @@ const protocolHandler = {
         vmess["http-opts"] = httpOpts;
         break;
     }
+    return vmess
   },
-  ss: (line) => {
-    let urlSS = new URL(line);
-    const port = urlSS.port;
+  ss: (body) => {
+    let urlSS = new URL('http://' + body);
+    const query = urlSS.searchParams
 
-    if (!port) {
+    const ss = {
+      name: urlSS.hash.slice(1),
+      type: "ss",
+      server: urlSS.hostname,
+      port: Number(urlSS.port),
+      udp: true,
+    };
+
+    let cipherRaw = urlSS.username;
+
+    if (urlSS.username) {
       const dcStr = decodeURIComponent(urlSS.host);
       urlSS = new URL("ss://" + dcStr);
     }
 
-    let cipherRaw = urlSS.username;
     let cipher = cipherRaw,
       password;
 
     if (!urlSS.password) {
-      dcStr = decodeURIComponent(cipherRaw);
+      const dcStr = atob(decodeURIComponent(cipherRaw))
       const [_cipher, _password] = dcStr.split(":");
       cipher = _cipher;
       password = _password;
     }
 
-    const ss = {
-      name: "",
-      type: "ss",
-      server: urlSS.hostname,
-      port: urlSS.port,
-      cipher: cipher,
-      password: password,
-      udp: true,
-    };
+    ss.cipher = cipher
+    ss.password = password
 
     if (query.get("udp-over-tcp") == "true" || query.get("uot") == "1") {
       ss["udp-over-tcp"] = true;
     }
 
     const plugin = query.get("plugin");
-    if (plugin.includes(";")) {
+    if (plugin && plugin.includes(";")) {
       pluginInfo = new sear();
     }
 
@@ -243,20 +418,4 @@ const protocolHandler = {
     }
     return ss;
   },
-};
-
-const onSubscribe = async (proxies) => {
-  const arr = proxies.split("\n");
-
-  for (const line of arr) {
-    let [schema, body] = line.split("://");
-    schema = schema.toLowerCase();
-    try {
-      protocolHandler[schema]?.(line, body);
-    } catch (error) {
-      console.log("parse error");
-    }
-  }
-
-  return proxies;
 };
