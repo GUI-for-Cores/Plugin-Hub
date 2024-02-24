@@ -145,6 +145,36 @@
         "installed": false
     },
     {
+        "id": "plugin-geoip-search",
+        "name": "GeoIP 查询",
+        "description": "查询 IP 信息。Supported by: QiChaiQiChai",
+        "type": "Http",
+        "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-geoip-search.js",
+        "path": "data/plugins/plugin-geoip-search.js",
+        "triggers": [
+            "on::manual"
+        ],
+        "menus": {},
+        "disabled": false,
+        "install": false,
+        "installed": false
+    },
+    {
+        "id": "plugin-open-yacd-meta-dashboard",
+        "name": "Yacd-meta 仪表板",
+        "description": "启动 Yacd-meta 仪表板，若需关闭 GUI 程序时启动，可手动在“编辑”中开启对应的触发器。Supported by: QiChaiQiChai",
+        "type": "Http",
+        "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-open-yacd-meta-dashboard.js",
+        "path": "data/plugins/plugin-open-yacd-meta-dashboard.js",
+        "triggers": [
+            "on::manual"
+        ],
+        "menus": {},
+        "disabled": false,
+        "install": false,
+        "installed": false
+    },
+    {
         "id": "plugin-generate-report",
         "name": "生成报告信息",
         "description": "生成报告信息，用于我们帮助您排错。",
