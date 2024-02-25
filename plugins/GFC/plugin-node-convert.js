@@ -1,14 +1,18 @@
 const onRun = async () => {
   const res = await Plugins.prompt('请输入分享链接：', '', { placeholder: 'vmess://' })
   const [schema, body] = res.split("://");
-  const proxy = protocolHandler[schema.toLowerCase()]?.(body);
-  if (proxy) {
-    // await Plugins.confirm(JSON.stringify(proxy, null, 2))
-    Plugins.ClipboardSetText(JSON.stringify(proxy, null, 2))
-    Plugins.message.success('解析成功，请查看剪切板')
-  } else {
-    Plugins.message.error('解析错误')
-  }
+
+  const handler = protocolHandler[schema.toLowerCase()]
+  if (!handler) throw `未实现当前协议[ ${schema} ]`
+
+  const proxy = handler(body);
+  if (!proxy) throw '解析错误'
+
+  const str = Plugins.YAML.stringify(proxy)
+
+  await Plugins.alert('解析结果如下：', str)
+  Plugins.message.success('已复制剪切板')
+  Plugins.ClipboardSetText(str)
 }
 
 const onSubscribe = async (proxies) => {
@@ -19,7 +23,7 @@ const onSubscribe = async (proxies) => {
       let [schema, body] = line.split("://");
       schema = schema.toLowerCase();
       try {
-        const proxy = protocolHandler[schema]?.(body);
+        const proxy = protocolHandler[schema]?.('http://' + body);
         result.push(proxy)
       } catch (error) {
         console.log("parse error", error);
@@ -30,16 +34,15 @@ const onSubscribe = async (proxies) => {
   return proxies
 }
 
-
 const protocolHandler = {
   socks: (body) => {
-    const urlSocks = new URL('http://' + body)
-    const arr = atob(urlSocks.username).split(':')
+    const url = new URL('http://' + body)
+    const arr = atob(url.username).split(':')
     const socks = {
-      name: urlSocks.hash.slice(1),
+      name: url.hash.slice(1),
       type: 'socks5',
-      server: urlSocks.hostname,
-      port: Number(urlSocks.port),
+      server: url.hostname,
+      port: Number(url.port),
       username: arr[0],
       password: arr[1],
       udp: true,
@@ -47,21 +50,21 @@ const protocolHandler = {
     return socks
   },
   hysteria: (body) => {
-    const urlHysteria = new URL('http://' + body);
-    const query = urlHysteria.searchParams;
-    const up = query.get("up") || query.get("upmbps");
-    const down = query.get("down") || query.get("downmbps");
+    const url = new URL('http://' + body);
+    const query = url.searchParams;
+    const up = query.get("up") || query.get("upmbps") || 100;
+    const down = query.get("down") || query.get("downmbps") || 100;
     const hysteria = {
-      name: "",
+      name: decodeURIComponent(url.hash.slice(1)),
       type: "hysteria",
-      server: urlHysteria.hostname,
-      port: urlHysteria.port,
+      server: url.hostname,
+      port: url.port,
       sni: query.get("peer"),
       obfs: query.get("obfs"),
       auth_str: query.get("auth"),
       protocol: query.get("protocol"),
-      up,
-      down,
+      up: Number(up),
+      down: Number(down),
       "skip-cert-verify": Boolean(query.get("insecure")),
     };
     if (query.get("alpn")) {
@@ -70,41 +73,40 @@ const protocolHandler = {
     return hysteria;
   },
   hysteria2: (body) => {
-    const urlHysteria2 = new URL('http://' + body);
-    const query = urlHysteria2.searchParams;
+    const url = new URL('http://' + body);
+    const query = url.searchParams;
     const hysteria2 = {
-      name: urlHysteria2.hash.slice(1),
+      name: decodeURIComponent(url.hash.slice(1)),
       type: "hysteria2",
-      server: urlHysteria2.hostname,
-      port: urlHysteria2.port || 443,
+      server: url.hostname,
+      port: url.port || 443,
       obfs: query.get("obfs"),
       "obfs-password": query.get("obfs-password"),
       sni: query.get("sni"),
       "skip-cert-verify": Boolean(query.get("insecure")),
       fingerprint: query.get("pinSHA256"),
-      down: query.get("down"),
-      up: query.get("up"),
+      down: query.get("down") || 100,
+      up: query.get("up") || 100,
     };
     if (query.get("alpn")) {
       hysteria2["alpn"] = query.get("alpn").split(",");
     }
-    if (urlHysteria2.username) {
-      hysteria2["password"] = urlHysteria2.username;
+    if (url.username) {
+      hysteria2["password"] = url.username;
     }
     return hysteria2;
   },
   tuic: (body) => {
-    const urlTUIC = new URL('http://' + body);
-    const query = urlTUIC.searchParams;
-
+    const url = new URL('http://' + body);
+    const query = url.searchParams;
     const tuic = {
-      name: urlTUIC.hash.slice(1),
+      name: decodeURIComponent(url.hash.slice(1)),
       type: "tuic",
-      server: urlTUIC.hostname,
-      port: Number(urlTUIC.port),
+      server: url.hostname,
+      port: Number(url.port),
       udp: true,
-      uuid: urlTUIC.username,
-      password: urlTUIC.password
+      uuid: url.username,
+      password: url.password
     };
     // token
     if (query.get("congestion_control")) {
@@ -125,14 +127,14 @@ const protocolHandler = {
     return tuic;
   },
   trojan: (body) => {
-    const urlTrojan = new URL('http://' + body);
-    const query = urlTrojan.searchParams;
+    const url = new URL('http://' + body);
+    const query = url.searchParams;
     const trojan = {
-      name: decodeURIComponent(urlTrojan.hash.slice(1)),
+      name: decodeURIComponent(url.hash.slice(1)),
       type: "trojan",
-      server: urlTrojan.hostname,
-      port: Number(urlTrojan.port),
-      password: urlTrojan.username,
+      server: url.hostname,
+      port: Number(url.port),
+      password: url.username,
       udp: true,
       "skip-cert-verify": Boolean(query.get("allowInsecure")),
     };
@@ -168,20 +170,20 @@ const protocolHandler = {
     return trojan;
   },
   vless: (body) => {
-    const urlVless = new URL('http://' + body);
-    const query = urlVless.searchParams;
-    if (urlVless.hostname == "") {
+    const url = new URL('http://' + body);
+    const query = url.searchParams;
+    if (url.hostname == "") {
       throw 'hostname is empty'
     }
-    if (urlVless.port == '') {
+    if (url.port == '') {
       throw 'port is empty'
     }
     const vless = {
-      name: decodeURIComponent(urlVless.hash.slice(1)),
+      name: decodeURIComponent(url.hash.slice(1)),
       type: 'vless',
-      server: urlVless.hostname,
-      port: Number(urlVless.port),
-      uuid: urlVless.username,
+      server: url.hostname,
+      port: Number(url.port),
+      uuid: url.username,
       udp: true
     }
     const tls = query.get('security').toLocaleLowerCase()
@@ -208,7 +210,7 @@ const protocolHandler = {
         break
       }
       default: {
-        vless.xudp = true
+        vless['xudp'] = true
       }
     }
     let network = query.get('type')?.toLowerCase()
@@ -290,31 +292,31 @@ const protocolHandler = {
     return vless
   },
   vmess: (body) => {
-    const urlVmess = new URL('http://' + body);
-    const query = urlVmess.searchParams;
+    const url = new URL('http://' + body);
+    const query = url.searchParams;
     const json = JSON.parse(atob(body));
     const vmess = {
-      name: json.v,
+      name: decodeURIComponent(json.v || json.ps),
       type: "vmess",
       server: json.add,
       port: Number(json.port),
       uuid: json.id,
-      alterId: json.aid || 0,
+      alterId: Number(json.aid) || 0,
       udp: true,
       xudp: true,
       tls: false,
       "skip-cert-verify": false,
       cipher: query.get("encryption") || "auto",
     };
-    let network = json.net.toLowerCase();
+    let network = json.net?.toLowerCase();
     if (json.type == "http") {
       network = "http";
     } else if (network == "http") {
       network = "h2";
     }
     vmess.network = network;
-    let tls = json.tls.toLowerCase();
-    if (tls.endsWith("tls")) {
+    let tls = json.tls?.toLowerCase();
+    if (tls?.endsWith("tls")) {
       vmess.tls = true;
     }
     const alpn = json.alpn;
@@ -324,7 +326,7 @@ const protocolHandler = {
     const headers = {};
     const httpOpts = {};
     switch (network) {
-      case "http":
+      case "http": {
         if (json.host) {
           headers["Host"] = [json.host];
         }
@@ -335,7 +337,8 @@ const protocolHandler = {
         httpOpts["headers"] = headers;
         vmess["http-opts"] = httpOpts;
         break;
-      case "h2":
+      }
+      case "h2": {
         const wsOpts = {};
         if (json.host) {
           headers["Host"] = json.host;
@@ -347,65 +350,55 @@ const protocolHandler = {
         httpOpts["headers"] = headers;
         vmess["http-opts"] = httpOpts;
         break;
+      }
     }
     return vmess
   },
   ss: (body) => {
-    let urlSS = new URL('http://' + body);
-    const query = urlSS.searchParams
-
+    let url = new URL('http://' + body);
+    const query = url.searchParams
     const ss = {
-      name: urlSS.hash.slice(1),
+      name: decodeURIComponent(url.hash.slice(1)),
       type: "ss",
-      server: urlSS.hostname,
-      port: Number(urlSS.port),
+      server: url.hostname,
+      port: Number(url.port),
       udp: true,
     };
-
-    let cipherRaw = urlSS.username;
-
-    if (urlSS.username) {
-      const dcStr = decodeURIComponent(urlSS.host);
-      urlSS = new URL("ss://" + dcStr);
+    const cipherRaw = url.username
+    if (url.username) {
+      const dcStr = decodeURIComponent(url.host);
+      url = new URL("ss://" + dcStr);
     }
-
-    let cipher = cipherRaw,
-      password;
-
-    if (!urlSS.password) {
-      const dcStr = atob(decodeURIComponent(cipherRaw))
-      const [_cipher, _password] = dcStr.split(":");
-      cipher = _cipher;
-      password = _password;
+    let cipher = cipherRaw, password;
+    if (!url.password) {
+      const [_cipher, _password] = atob(cipherRaw).split(":")
+      cipher = _cipher
+      password = _password
     }
-
     ss.cipher = cipher
     ss.password = password
-
     if (query.get("udp-over-tcp") == "true" || query.get("uot") == "1") {
       ss["udp-over-tcp"] = true;
     }
-
     const plugin = query.get("plugin");
     if (plugin && plugin.includes(";")) {
       pluginInfo = new sear();
     }
-
     return ss;
   },
-  ssr: (line) => {
-    const [before, after] = line.split("/?");
+  ssr: (body) => {
+    const [before, after] = atob(body).split("/?");
     const beforeArr = before.split(":");
     const query = new URLSearchParams(after);
     const ss = {
-      name: query.get("remarks"),
+      name: atob(query.get("remarks")),
       type: "ssr",
-      host: beforeArr[1],
-      port: beforeArr[2],
-      protocol: beforeArr[3],
-      method: beforeArr[4],
-      obfs: beforeArr[5],
-      password: beforeArr[6],
+      host: beforeArr[0],
+      port: Number(beforeArr[1]),
+      protocol: beforeArr[2],
+      method: beforeArr[3],
+      obfs: beforeArr[4],
+      password: beforeArr[5],
       udp: true,
     };
     const obfsParam = query.get("obfsparam");
