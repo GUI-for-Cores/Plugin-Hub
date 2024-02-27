@@ -9,7 +9,10 @@ const onRun = async () => {
 
   await Plugins.sleep(500);
   Plugins.message.update(id, "检测运行权限");
-  const isAdmin = await Plugins.CheckPermissions();
+  let isAdmin = false
+  try {
+    isAdmin = await Plugins.CheckPermissions();
+  } catch (error) {}
 
   await Plugins.sleep(500);
   Plugins.message.update(id, "检测APP设置");
