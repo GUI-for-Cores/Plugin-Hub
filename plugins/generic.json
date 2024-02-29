@@ -170,7 +170,7 @@
             "on::manual"
         ],
         "menus": {
-            "手动模式": "manual"，
+            "手动模式": "manual",
             "设置": "settingconfig"
         },
         "disabled": false,
