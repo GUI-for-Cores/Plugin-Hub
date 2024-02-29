@@ -16,6 +16,121 @@
         "installed": false
     },
     {
+      "id": "plugin-configuration-example",
+      "name": "插件配置示例",
+      "description": "插件配置示例，该示例包含了多种数据格式：字符串数组、长文本、键值对、布尔值、单文本。开发者可在编辑插件中配置插件源码中使用到的参数，通过相关API进行引用。用户可右键【配置插件】对这些参数按需修改。",
+      "type": "Http",
+      "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-configuration-example.js",
+      "path": "data/plugins/plugin-configuration-example.js",
+      "triggers": [
+        "on::manual"
+      ],
+      "menus": {},
+      "configuration": [
+        {
+          "id": "ID_npthz66q",
+          "title": "请配置你最常用的协议？",
+          "description": "这是一个多选示例，返回值是一个字符串数组，例如：['vmess', 'vless', 'shadowsocks']，已经勾选了一些默认值。",
+          "key": "checkbox",
+          "component": "CheckBox",
+          "value": [
+            "vless",
+            "shadowsocks"
+          ],
+          "options": [
+            "vmess",
+            "vless",
+            "trojan",
+            "shadowsocks",
+            "hysteria",
+            "tuic"
+          ]
+        },
+        {
+          "id": "ID_xwfe0u0h",
+          "title": "请配置文本？",
+          "description": "长文本编辑器示例，返回值是一个字符串，可能包含换行。",
+          "key": "codeviewer",
+          "component": "CodeViewer",
+          "value": "const obj = {\n  name: 'plugin-test',\n  version: 1\n}",
+          "options": []
+        },
+        {
+          "id": "ID_np6jpmhc",
+          "title": "请配置你想显示的文本？",
+          "description": "单文本输入示例，",
+          "key": "input",
+          "component": "Input",
+          "value": "这一段文字是默认值",
+          "options": []
+        },
+        {
+          "id": "ID_lrehnpks",
+          "title": "请配置需要发起请求的网站？",
+          "description": "这是一个输入数组示例，返回值是一个字符串数组：['字符串1', '字符串2']",
+          "key": "inputlist",
+          "component": "InputList",
+          "value": [
+            "google.com",
+            "openai.com",
+            "youtube.com"
+          ],
+          "options": []
+        },
+        {
+          "id": "ID_k4oyi1wv",
+          "title": "请配置节点名称替换的关键词？",
+          "description": "键值对编辑器示例，返回值是一个对象：{key1: val1, key2: val2}",
+          "key": "keyvalueEditor",
+          "component": "KeyValueEditor",
+          "value": {
+            "github": "GitHub",
+            "gui.for.cores": "GUI.for.Cores"
+          },
+          "options": []
+        },
+        {
+          "id": "ID_hem1xu4i",
+          "title": "请配置你想使用的内核？",
+          "description": "单选示例，返回值是一个字符串：\"sing-box\"",
+          "key": "radio",
+          "component": "Radio",
+          "value": "mihomo",
+          "options": [
+            "sing-box",
+            "mihomo",
+            "xray",
+            "v2ray"
+          ]
+        },
+        {
+          "id": "ID_d0rgw5vn",
+          "title": "请配置你想使用的搜索引擎？",
+          "description": "下拉选择示例，通常用于展示过多的单选项，返回值是一个字符串：\"google.com\"",
+          "key": "select",
+          "component": "Select",
+          "value": "option2",
+          "options": [
+            "google.com",
+            "baidu.com",
+            "bing.com"
+          ]
+        },
+        {
+          "id": "ID_sgnvsolc",
+          "title": "请配置是否在启动时运行此插件？",
+          "description": "开关示例，返回值是一个布尔值：true",
+          "key": "switch",
+          "component": "Switch",
+          "value": true,
+          "options": []
+        }
+      ],
+      "disabled": false,
+      "install": false,
+      "installed": false
+    },
+    {
         "id": "plugin-sub-store",
         "name": "Sub-Store",
         "description": "高级订阅管理工具",
