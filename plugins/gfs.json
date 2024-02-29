@@ -10,6 +10,7 @@
             "on::manual"
         ],
         "menus": {},
+        "configuration": [],
         "disabled": false,
         "install": false,
         "installed": false
@@ -23,6 +24,7 @@
         "path": "data/plugins/plugin-register-sing-box.js",
         "triggers": [],
         "menus": {},
+        "configuration": [],
         "disabled": false,
         "install": true,
         "installed": false
