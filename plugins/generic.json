@@ -160,6 +160,24 @@
         "installed": false
     },
     {
+        "id": "plugin-scamalytics-ip-fraud-risk",
+        "name": "Scamalytics IP 欺诈风险查询",
+        "description": "查询当前节点落地 IP 的欺诈风险，也可以通过右键的方式手动输入需查询的 IP 地址。Supported by: QiChaiQiChai",
+        "type": "Http",
+        "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-scamalytics-ip-fraud-risk.js",
+        "path": "data/plugins/plugin-scamalytics-ip-fraud-risk.js",
+        "triggers": [
+            "on::manual"
+        ],
+        "menus": {
+            "手动模式": "manual"，
+            "设置": "settingconfig"
+        },
+        "disabled": false,
+        "install": false,
+        "installed": false
+    },
+    {
         "id": "plugin-open-yacd-meta-dashboard",
         "name": "Yacd-meta 仪表板",
         "description": "启动 Yacd-meta 仪表板，若需关闭 GUI 程序时启动，可手动在“编辑”中开启对应的触发器。Supported by: QiChaiQiChai",
