@@ -63,11 +63,13 @@ const checkIpFraudRisk = async (ip) => {
     const { json } = await Plugins.HttpGetJSON(url);
 
     let status = json.status;
+    let error = json.error;
+
     let score = json.score;
     let risk = json.risk;
 
     if (status === 'error') {
-        const text1 = `💥 Status of the request is error 💥`;
+        const text1 = `💥 ${error} 💥`;
 
         const message = `
         ${text1}`;
