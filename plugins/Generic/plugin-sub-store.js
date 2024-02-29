@@ -3,10 +3,6 @@ const subStoreConfigPath = 'data/plugins/assets/sub-store-config';
 const subStoreSrcPath = subStoreDir + '/sub-store.min.js';
 const subStoreBackendInfoPath = subStoreDir + '/sub-store-backend-info.yaml';
 const envPath = subStoreConfigPath + '/.env';
-const defaultPort = Plugins.APP_TITLE.toLowerCase().includes('singbox')
-    ? 20433
-    : 20233;
-
 async function installSubStore() {
     let hasNode = false;
     try {
@@ -65,7 +61,7 @@ async function installSubStore() {
     if (!(await Plugins.FileExists(envPath))) {
         await Plugins.Writefile(
             envPath,
-            `SUB_STORE_BACKEND_API_PORT=${defaultPort}`
+            `SUB_STORE_BACKEND_API_PORT=${Plugin.port}`
         );
     }
     return true;
@@ -110,7 +106,12 @@ async function onStartup() {
     await killProcess();
 
     const absSubStoreSrcPath = await Plugins.AbsolutePath(subStoreSrcPath);
-
+    
+    await Plugins.Writefile(
+        envPath,
+        `SUB_STORE_BACKEND_API_PORT=${Plugin.port}`
+    );
+    
     const pid = await Plugins.ExecBackground(
         'node',
         [absSubStoreSrcPath],
@@ -118,8 +119,8 @@ async function onStartup() {
         async (out) => {
             const line = out.trim();
             if (line.includes('[BACKEND]')) {
-                const backedPort = line.split(':::')[1];
-                const backendUrl = `http://127.0.0.1:${backedPort}`;
+                const backendPort = line.split(':::')[1];
+                const backendUrl = `http://127.0.0.1:${backendPort}`;
                 Plugins.Writefile(
                     subStoreBackendInfoPath,
                     Plugins.YAML.stringify({

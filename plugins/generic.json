@@ -131,26 +131,6 @@
       "installed": false
     },
     {
-        "id": "plugin-sub-store",
-        "name": "Sub-Store",
-        "description": "高级订阅管理工具",
-        "type": "Http",
-        "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sub-store.js",
-        "path": "data/plugins/plugin-sub-store.js",
-        "triggers": [
-            "on::manual",
-            "on::startup",
-            "on::shutdown"
-        ],
-        "menus": {
-            "更新Sub-Store": "onUpdate"
-        },
-        "configuration": [],
-        "disabled": false,
-        "install": true,
-        "installed": false
-    },
-    {
         "id": "plugin-install-font",
         "name": "Twemoji.Mozilla",
         "description": "下载并安装字体“Twemoji.Mozilla.ttf”，你的节点将正常显示国旗图标。",
