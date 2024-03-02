@@ -240,10 +240,27 @@
         "triggers": [
             "on::manual"
         ],
-        "menus": {
-            "设置": "settingconfig"
-        },
-        "configuration": [],
+        "menus": {},
+        "configuration": [
+            {
+              "id": "ID_112j2shp",
+              "title": "测速文件大小？",
+              "description": "请选择下行速度测试文件大小",
+              "key": "testFileSize",
+              "component": "Select",
+              "value": "10",
+              "options": [
+                "5MB,5",
+                "10MB,10",
+                "20MB,20",
+                "40MB,40",
+                "100MB,100",
+                "200MB,200",
+                "0.5GB,512",
+                "1GB,1024"
+              ]
+            },
+        ],
         "disabled": false,
         "install": false,
         "installed": false
