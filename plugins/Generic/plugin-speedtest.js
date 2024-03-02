@@ -1,54 +1,8 @@
-const settingconfig = async () => {
-    const configname = "plugin-speedtest-config";
-    const configpath = "data/plugins/plugins-configs/" + configname + ".yaml";
-
-    const mb = await Plugins.picker.single(
-        "请选择下行速度测试文件大小",
-        [
-          { label: "5 MB", value: "5" },
-          { label: "10 MB", value: "10" },
-          { label: "20 MB", value: "20" },
-          { label: "40 MB", value: "40" },
-          { label: "100 MB", value: "100" },
-          { label: "200 MB", value: "200" },
-          { label: "0.5 GB", value: "512" },
-          { label: "1 GB", value: "1024" },
-        ],
-        ["10"]
-    );
-
-    const code = `
-mb: ${mb}
-`;
-    await Plugins.Writefile(configpath, code);
-    Plugins.message.success("设置插件配置成功", 2_000);
-};
-
-
 const onRun = async () => {
     const starttime = Date.now();
 
-    const configpath = './data/plugins/plugins-configs/plugin-speedtest-config.yaml';
-
-    let fileExists = false;
-    try {
-        const yamlContent = await Plugins.Readfile(configpath);
-        fileExists = true;
-    } catch (error) {
-        fileExists = false;
-        // 文件不存在时执行的代码
-        await settingconfig();
-        Plugins.message.success("通过右键插件可重新设置", 6_000);
-    };
-
-    // 读取 YAML 文件
-    const yamlContent = await Plugins.Readfile(configpath)
-
-    // 解析 YAML 内容
-    const yamlData = Plugins.YAML.parse(yamlContent)
-
     // 将 YAML 中的值赋给不同的变量
-    const mb = yamlData.mb
+    const mb = Plugin.testFileSize
 
     const bytes = mb * 1024 * 1024;
     const url = `https://speed.cloudflare.com/__down?bytes=${bytes}`;
