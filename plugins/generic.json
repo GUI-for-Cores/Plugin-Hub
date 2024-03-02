@@ -259,7 +259,7 @@
                 "0.5GB,512",
                 "1GB,1024"
               ]
-            },
+            }
         ],
         "disabled": false,
         "install": false,
