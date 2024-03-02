@@ -292,10 +292,37 @@
             "on::manual"
         ],
         "menus": {
-            "手动模式": "manual",
-            "设置": "settingconfig"
+            "手动模式": "manual"
         },
-        "configuration": [],
+        "configuration": [
+            {
+              "id": "ID_z4ug0d5w",
+              "title": "请输入 hostname (provided by Scamalytics)",
+              "description": "例如: api11.scamalytics.com",
+              "key": "hostname",
+              "component": "Input",
+              "value": "",
+              "options": []
+            },
+            {
+              "id": "ID_0blhfutw",
+              "title": "请输入申请 Scamalytics API KEY 时填写的 usename",
+              "description": "",
+              "key": "username",
+              "component": "Input",
+              "value": "",
+              "options": []
+            },
+            {
+              "id": "ID_njkakwg1",
+              "title": "请输入 Scamalytics API KEY",
+              "description": "",
+              "key": "key",
+              "component": "Input",
+              "value": "",
+              "options": []
+            }
+        ],
         "disabled": false,
         "install": false,
         "installed": false
