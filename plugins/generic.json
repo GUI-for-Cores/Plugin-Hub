@@ -206,10 +206,49 @@
         "triggers": [
             "on::subscribe"
         ],
-        "menus": {
-            "设置": "settingconfig"
-        },
-        "configuration": [],
+        "menus": {},
+        "configuration": [
+            {
+              "id": "ID_b6yfktzm",
+              "title": "添加 Emoji",
+              "description": "是否在节点名称前加上对应的国家地区的 Emoji？",
+              "key": "EnableAddEmoji",
+              "component": "Switch",
+              "value": true,
+              "options": []
+            },
+            {
+              "id": "ID_f8auxoc1",
+              "title": "关键词移除",
+              "description": "是否移除节点名称中的一些关键词？",
+              "key": "EnableRemoveKeywords",
+              "component": "Switch",
+              "value": false,
+              "options": []
+            },
+            {
+              "id": "ID_gvbh1wtg",
+              "title": "添加索引",
+              "description": "是否对相同节点名称添加索引？",
+              "key": "EnableIndexProxyName",
+              "component": "Radio",
+              "value": "0",
+              "options": [
+                  "否,0",
+                  "所有节点按顺序标号,1",
+                  "仅对相同节点进行标号,2"
+              ]
+            },
+            {
+              "id": "ID_oqfaqveh",
+              "title": "移除关键词的正则表达式",
+              "description": "匹配的关键词将被移除，正则表达式 /关键词1|关键词2|关键词3/ 将会匹配 proxy name 中的 关键词1、关键词2 和关键词3，并将其替换为一个空字符串。你可以根据自己的需求修改正则表达式，添加或删除需要匹配的关键词。",
+              "key": "RemoveKeywords",
+              "component": "Input",
+              "value": "/-|_|油|羊|🇨🇳/g",
+              "options": []
+            }
+        ],
         "disabled": false,
         "install": false,
         "installed": false
