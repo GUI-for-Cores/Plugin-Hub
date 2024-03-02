@@ -91,7 +91,7 @@ const onRun = async () => {
     ${text1}
     ${text2}`;
 
-    Plugins.confirm(
+    Plugins.alert(
         '测速结果',
         message
     )
