@@ -85,8 +85,7 @@
         "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFC/plugin-node-convert.js",
         "path": "data/plugins/plugin-node-convert.js",
         "triggers": [
-            "on::manual",
-            "on::subscribe"
+            "on::manual"
         ],
         "menus": {},
         "configuration": [],
