@@ -15,25 +15,6 @@ const onRun = async () => {
   Plugins.ClipboardSetText(str)
 }
 
-const onSubscribe = async (proxies) => {
-  if (Plugins.isValidBase64(proxies)) {
-    const result = []
-    const arr = atob(proxies).trim().split("\n");
-    for (const line of arr) {
-      let [schema, body] = line.split("://");
-      schema = schema.toLowerCase();
-      try {
-        const proxy = protocolHandler[schema]?.('http://' + body);
-        result.push(proxy)
-      } catch (error) {
-        console.log("parse error", error);
-      }
-    }
-    return result
-  }
-  return proxies
-}
-
 const protocolHandler = {
   socks: (body) => {
     const url = new URL('http://' + body)
