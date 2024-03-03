@@ -165,6 +165,50 @@
         "installed": false
     },
     {
+        "id": "plugin-tv-helper",
+        "name": "电视盒子助手",
+        "description": "电视盒子助手，使用ADB工具对电视盒子进行方便的操作！",
+        "type": "Http",
+        "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-tv-helper.js",
+        "path": "data/plugins/plugin-tv-helper.js",
+        "triggers": [
+            "on::manual"
+        ],
+        "menus": {},
+        "configuration": [
+            {
+                "id": "ID_5tshtljx",
+                "title": "请输入固定调试的设备IP",
+                "description": "例如：192.168.0.100:5037，可留空，留空时可手动输入设备IP。",
+                "key": "DeviceAddress",
+                "component": "Input",
+                "value": "",
+                "options": []
+            },
+            {
+                "id": "ID_t3gxspl4",
+                "title": "ADB工具路径",
+                "description": "例如：c:\\tools\\adb\\adb.exe，可留空。",
+                "key": "AdbPath",
+                "component": "Input",
+                "value": "",
+                "options": []
+            },
+            {
+                "id": "ID_f2vcsyzo",
+                "title": "使用本地的ADB",
+                "description": "开启后将自动下载ADB到 data/third/platform-tools 目录内，不会破环您现有的环境",
+                "key": "EnableDownloadAdb",
+                "component": "Switch",
+                "value": false,
+                "options": []
+            }
+        ],
+        "disabled": false,
+        "install": false,
+        "installed": false
+    },
+    {
         "id": "plugin-index-the-proxy-name",
         "name": "防代理重名",
         "description": "在代理名称后面加上索引、避免名称冲突。",
