@@ -241,6 +241,32 @@
         "installed": false
     },
     {
+        "id": "plugin-terminal-proxy",
+        "name": "一键设置终端代理",
+        "description": "一键设置系统cmd、powershell等终端的代理，非常适用于使用系统代理的用户。",
+        "type": "Http",
+        "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-terminal-proxy.js",
+        "path": "data/plugins/plugin-terminal-proxy.js",
+        "triggers": [
+            "on::manual"
+        ],
+        "menus": {},
+        "configuration": [
+            {
+              "id": "ID_9jz1jc9c",
+              "title": "启用增强模式",
+              "description": "启用后，你可以使用高级功能：修改系统环境变量和使用注册表彻底清除环境变量",
+              "key": "enableEnhance",
+              "component": "Switch",
+              "value": false,
+              "options": []
+            }
+        ],
+        "disabled": false,
+        "install": false,
+        "installed": false
+    },
+    {
         "id": "plugin-modify-proxy-name",
         "name": "更好的代理名称显示",
         "description": "功能如下：1、在节点名称前加上对应的国家地区的 Emoji；2、移除节点名称中的一些关键词；3、对节点名称进行标号。Supported by: QiChaiQiChai",
