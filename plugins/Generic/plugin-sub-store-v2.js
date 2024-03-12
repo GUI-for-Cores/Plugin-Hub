@@ -111,7 +111,7 @@ const onUninstall = async () => {
  */
 const onRun = async () => {
   if(!await isSubStoreRunning()) {
-    throw '请先运行Sub-Store服务！'
+    throw '请先右键运行Sub-Store服务！'
   }
   const url = 'http://127.0.0.1:' + Plugin.SUB_STORE_FRONTEND_API_PORT + '?api=http://127.0.0.1:' + Plugin.SUB_STORE_BACKEND_API_PORT
   Plugin.useInternalBrowser ? open(url) : Plugins.BrowserOpenURL(url)
