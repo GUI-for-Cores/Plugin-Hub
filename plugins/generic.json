@@ -1,21 +1,5 @@
 [
     {
-        "id": "plugin-generic-example",
-        "name": "通用插件示例",
-        "description": "插件中心上线，欢迎下载体验。",
-        "type": "Http",
-        "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-generic-example.js",
-        "path": "data/plugins/plugin-generic-example.js",
-        "triggers": [
-            "on::manual"
-        ],
-        "menus": {},
-        "configuration": [],
-        "disabled": false,
-        "install": false,
-        "installed": false
-    },
-    {
       "id": "plugin-configuration-example",
       "name": "插件配置示例",
       "description": "插件配置示例，该示例包含了多种数据格式：字符串数组、长文本、键值对、布尔值、单文本。开发者可在编辑插件中配置插件源码中使用到的参数，通过相关API进行引用。用户可右键【配置插件】对这些参数按需修改。",
@@ -160,6 +144,82 @@
             "恢复配置": "restoreConfig"
         },
         "configuration": [],
+        "disabled": false,
+        "install": true,
+        "installed": false
+    },
+    {
+        "id": "plugin-sub-store-v2",
+        "name": "Sub-Store V2",
+        "description": "高级订阅管理工具",
+        "type": "Http",
+        "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sub-store-v2.js",
+        "path": "data/plugins/plugin-sub-store-v2.js",
+        "triggers": [
+            "on::manual",
+            "on::startup",
+            "on::shutdown"
+        ],
+        "menus": {
+            "启动服务": "Start",
+            "停止服务": "Stop"
+        },
+        "configuration": [
+            {
+               "id": "ID_ziwhcqmo",
+                "title": "后端监听地址",
+                "description": "环境变量：SUB_STORE_BACKEND_API_HOST",
+                "key": "SUB_STORE_BACKEND_API_HOST",
+                "component": "Input",
+                "value": "127.0.0.1",
+                "options": []
+            },
+            {
+               "id": "ID_khbdj07a",
+                "title": "前端监听地址",
+                "description": "环境变量：SUB_STORE_FRONTEND_HOST",
+                "key": "SUB_STORE_FRONTEND_HOST",
+                "component": "Input",
+                "value": "127.0.0.1",
+                "options": []
+            },
+            {
+               "id": "ID_rwdt9pzf",
+                "title": "前端监听端口",
+                "description": "环境变量：SUB_STORE_FRONTEND_API_PORT",
+                "key": "SUB_STORE_FRONTEND_API_PORT",
+                "component": "Input",
+                "value": "3001",
+                "options": []
+            },
+            {
+               "id": "ID_o9kapjcm",
+                "title": "后端监听端口",
+                "description": "环境变量：SUB_STORE_BACKEND_API_PORT",
+                "key": "SUB_STORE_BACKEND_API_PORT",
+                "component": "Input",
+                "value": "3002",
+                "options": []
+            },
+            {
+               "id": "ID_8twu1xoj",
+                "title": "使用内部浏览器",
+                "description": "开启将使用内部浏览器打开管理界面，关闭则使用系统浏览器打开管理界面。",
+                "key": "useInternalBrowser",
+                "component": "Switch",
+                "value": true,
+                "options": []
+            },
+            {
+               "id": "ID_qenehz06",
+                "title": "跟随GUI启动或停止",
+                "description": "开启后，Sub-Store服务将随着GUI自动开启或停止。",
+                "key": "AutoStartOrStop",
+                "component": "Switch",
+                "value": false,
+                "options": []
+            }
+        ],
         "disabled": false,
         "install": true,
         "installed": false
