@@ -111,6 +111,9 @@ const onUninstall = async () => {
  */
 const onRun = async () => {
   if(!await isSubStoreRunning()) {
+    if(!await Plugins.ignoredError(Plugins.Exec, 'node', ['-v'])) {
+      throw '检测到系统未安装Nodejs环境，请先安装。'
+    }
     await startSubStoreService()
   }
   const url = 'http://127.0.0.1:' + Plugin.SUB_STORE_FRONTEND_API_PORT + '?api=http://127.0.0.1:' + Plugin.SUB_STORE_BACKEND_API_PORT
