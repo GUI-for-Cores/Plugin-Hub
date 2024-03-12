@@ -2,17 +2,22 @@
 const getUWPList = async () => {
   const pattern = /REG_SZ\s+(.+)/
 
-  const res = await Plugins.Exec('Reg', ['Query', 'HKCU\\Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\CurrentVersion\\AppContainer\\Mappings'], true)
+  const res = await Plugins.Exec(
+    'Reg',
+    ['Query', 'HKCU\\Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\CurrentVersion\\AppContainer\\Mappings'],
+    true
+  )
 
-  const sids = res.split('\n')
-    .filter(v => v.startsWith('HKEY_CURRENT_USER'))
-    .map(v => v.trim('\r'))
+  const sids = res
+    .split('\n')
+    .filter((v) => v.startsWith('HKEY_CURRENT_USER'))
+    .map((v) => v.trim('\r'))
 
   const list = []
 
-  const promises = sids.map(async sid => {
+  const promises = sids.map(async (sid) => {
     const detail = await Plugins.Exec('Reg', ['Query', sid, '/v', 'DisplayName', '/t', 'REG_SZ'], true)
-    const match = detail.match(pattern);
+    const match = detail.match(pattern)
     if (!match || !match[1]) return
     if (match[1].includes('ms-resource')) return
     list.push({ label: match[1], value: sid.split('\\').pop() })
@@ -43,14 +48,14 @@ const onRun = async () => {
 
   // 已解除的列表
   const exemptList = await Plugins.Exec('CheckNetIsolation', ['LoopbackExempt', '-s'], true)
-  const initialValue = list.filter(v => exemptList.includes(v.value)).map(v => v.value)
+  const initialValue = list.filter((v) => exemptList.includes(v.value)).map((v) => v.value)
   console.log('已解除的列表：', initialValue)
 
   // 用户选择的UWP列表
-  const selected = (await Plugins.picker.multi('请选择要解除限制的UWP程序', list, initialValue))
+  const selected = await Plugins.picker.multi('请选择要解除限制的UWP程序', list, initialValue)
 
   // 获取勾选的程序
-  const tobeAdded = selected.filter(v => !initialValue.includes(v))
+  const tobeAdded = selected.filter((v) => !initialValue.includes(v))
 
   // 解除限制
   if (tobeAdded.length) {
@@ -60,7 +65,7 @@ const onRun = async () => {
   }
 
   // 获取取消勾选的的程序
-  const canceled = initialValue.filter(v => !selected.includes(v))
+  const canceled = initialValue.filter((v) => !selected.includes(v))
 
   // 取消解除限制
   if (canceled.length) {

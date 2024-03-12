@@ -4,7 +4,7 @@ if (Plugin.EnableDownloadAdb && !(await Plugins.FileExists('data/third/platform-
   console.log('已开启自动下载ADB模式，且当前未下载adb')
   let id
   try {
-    if (!await Plugins.FileExists('data/.cache/adb.zip')) {
+    if (!(await Plugins.FileExists('data/.cache/adb.zip'))) {
       console.log('未检测到adb缓存，将重新下载')
       id = Plugins.message.info('您已开启自动下载ADB工具，正在下载ADB工具', 200000).id
       await Plugins.Download('https://dl.google.com/android/repository/platform-tools-latest-windows.zip', 'data/.cache/adb.zip', (p, t) => {
@@ -25,7 +25,11 @@ const killAdbServer = () => Plugins.Exec(adb, ['kill-server'])
 
 const getDevices = async () => {
   const res = await Plugins.Exec(adb, ['devices'], !true)
-  return res.trim().split('\n').slice(1).map(v => v.replace('\tdevice', ''))
+  return res
+    .trim()
+    .split('\n')
+    .slice(1)
+    .map((v) => v.replace('\tdevice', ''))
 }
 
 const sendText = async (text) => {
@@ -71,11 +75,10 @@ const disconnectDevice = async (address) => {
 let currentDevice // 已连接的设备
 
 const onRun = async () => {
-
   const actions = [
     { label: currentDevice ? '1、断开当前设备' : '1、连接到设备', value: 'connectDevice' },
     { label: '2、查看设备列表', value: 'getDevices' },
-    { label: '3、关闭ADB服务并退出', value: 'exit' },
+    { label: '3、关闭ADB服务并退出', value: 'exit' }
   ]
 
   if (currentDevice) {
@@ -95,13 +98,19 @@ const onRun = async () => {
 
   if (action == 'viewApp3') {
     const list = await viewApp3()
-    await Plugins.picker.single('APP列表如下：', list.map(v => ({ label: v, value: v })))
+    await Plugins.picker.single(
+      'APP列表如下：',
+      list.map((v) => ({ label: v, value: v }))
+    )
     return
   }
 
   if (action == 'viewApp') {
     const list = await viewApp()
-    await Plugins.picker.single('APP列表如下：', list.map(v => ({ label: v, value: v })))
+    await Plugins.picker.single(
+      'APP列表如下：',
+      list.map((v) => ({ label: v, value: v }))
+    )
     return
   }
 
@@ -136,7 +145,11 @@ const onRun = async () => {
     if (list.length === 0) {
       await Plugins.alert('当前无设备', '请使用USB连接电脑，并开启电视盒子的开发者模式和USB调试模式！')
     } else {
-      const add = await Plugins.picker.single('请选择一个设备开始调试', list.map(v => ({ label: v, value: v })), [currentDevice])
+      const add = await Plugins.picker.single(
+        '请选择一个设备开始调试',
+        list.map((v) => ({ label: v, value: v })),
+        [currentDevice]
+      )
       if (add !== currentDevice) {
         try {
           await connectDevice(add)

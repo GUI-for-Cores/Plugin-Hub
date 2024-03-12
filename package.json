@@ -1,0 +1,19 @@
+{
+  "name": "Plugin-Hub",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "format": "prettier --write plugins/"
+  },
+  "keywords": [
+    "GUI.for.Cores",
+    "GUI.for.Clash",
+    "GUI.for.SingBox",
+    "Plugin-Hub"
+  ],
+  "author": "GUI.for.Cores",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "prettier": "^3.2.5"
+  }
+}

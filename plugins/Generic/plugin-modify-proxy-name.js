@@ -13,12 +13,10 @@
 //    - EnableIndexProxyName = 1 对所有节点按顺序标号。
 //    - EnableIndexProxyName = 2 对相同的节点名称进行标号，默认值为 2。
 
-
 // 移除关键词的正则表达式，匹配的关键词将被移除。
-let RemoveKeywords = new RegExp(Plugin.RemoveKeywords);
+let RemoveKeywords = new RegExp(Plugin.RemoveKeywords)
 // 正则表达式 /关键词1|关键词2|关键词3/ 将会匹配 proxy name 中的 关键词1、关键词2 和 关键词3，
 // 并将其替换为一个空字符串。你可以根据自己的需求修改正则表达式，添加或删除需要匹配的关键词。
-
 
 // 使用正则表达式来表示国家地区关键词
 const KeywordsToEmoji = {
@@ -165,7 +163,7 @@ const KeywordsToEmoji = {
   '南极|南極|Antarctica': '🇦🇶',
   '中国|中國|江苏|北京|上海|广州|深圳|杭州|徐州|青岛|宁波|镇江|沈阳|济南|回国|back|China': '🇨🇳'
   // 添加更多的国家关键词和对应的 Emoji
-};
+}
 
 const { appName } = await Plugins.GetEnv()
 
@@ -175,83 +173,83 @@ const onSubscribe = async (proxies) => {
   const EnableIndexProxyName = Plugin.EnableIndexProxyName
 
   if (EnableAddEmoji == 1) {
-    const SubKeywordsToEmoji = {};
+    const SubKeywordsToEmoji = {}
     for (const keyword in KeywordsToEmoji) {
-      const emoji = KeywordsToEmoji[keyword];
-      const Keywords = keyword.split('|');
-      Keywords.forEach(word => SubKeywordsToEmoji[word] = emoji);
-    };
+      const emoji = KeywordsToEmoji[keyword]
+      const Keywords = keyword.split('|')
+      Keywords.forEach((word) => (SubKeywordsToEmoji[word] = emoji))
+    }
     // 按子关键词长度从长到短排序
     const SortedKeywordsToEmoji = Object.fromEntries(
       Object.entries(SubKeywordsToEmoji).sort((a, b) => {
         if (a[0].length === b[0].length) {
-          return a[0].localeCompare(b[0]); // 使用关键词的字典顺序进行比较
+          return a[0].localeCompare(b[0]) // 使用关键词的字典顺序进行比较
         }
-        return b[0].length - a[0].length; // 按照长度从长到短排序
+        return b[0].length - a[0].length // 按照长度从长到短排序
       })
-    );
+    )
     if (appName.toLowerCase().includes('singbox')) {
       // 修改代理数组，根据节点名称添加对应的 emoji
       proxies = proxies.map((v, i) => {
-        const lowercasetag = v.tag.toLowerCase();
-        let shouldAddEmoji = true; // Flag to track whether emoji should be added
+        const lowercasetag = v.tag.toLowerCase()
+        let shouldAddEmoji = true // Flag to track whether emoji should be added
         for (const keywords in SortedKeywordsToEmoji) {
-          const regex = new RegExp(keywords, 'i');
+          const regex = new RegExp(keywords, 'i')
           // Check if the proxy tag matches any keywords
           if (regex.test(lowercasetag)) {
-            const emoji = SortedKeywordsToEmoji[keywords];
+            const emoji = SortedKeywordsToEmoji[keywords]
             // Check if the proxy tag already starts with an emoji
             if (v.tag.startsWith(emoji)) {
-              shouldAddEmoji = false; // If the proxy tag already has an emoji, do not add another one
+              shouldAddEmoji = false // If the proxy tag already has an emoji, do not add another one
             } else {
-              v.tag = emoji + ' ' + v.tag; // Add emoji and space before the proxy tag
+              v.tag = emoji + ' ' + v.tag // Add emoji and space before the proxy tag
             }
-            break; // Break out of loop after the first match
+            break // Break out of loop after the first match
           }
         }
-        return shouldAddEmoji ? v : { ...v }; // If emoji should not be added, return original, otherwise return modified proxy
-      });
+        return shouldAddEmoji ? v : { ...v } // If emoji should not be added, return original, otherwise return modified proxy
+      })
     } else if (appName.toLowerCase().includes('clash')) {
       // 修改代理数组，根据节点名称添加对应的 emoji
       proxies = proxies.map((v, i) => {
-        const lowercaseName = v.name.toLowerCase();
-        let shouldAddEmoji = true; // Flag to track whether emoji should be added
+        const lowercaseName = v.name.toLowerCase()
+        let shouldAddEmoji = true // Flag to track whether emoji should be added
         for (const keywords in SortedKeywordsToEmoji) {
-          const regex = new RegExp(keywords, 'i');
+          const regex = new RegExp(keywords, 'i')
           // Check if the proxy name matches any keywords
           if (regex.test(lowercaseName)) {
-            const emoji = SortedKeywordsToEmoji[keywords];
+            const emoji = SortedKeywordsToEmoji[keywords]
             // Check if the proxy name already starts with an emoji
             if (v.name.startsWith(emoji)) {
-              shouldAddEmoji = false; // If the proxy name already has an emoji, do not add another one
+              shouldAddEmoji = false // If the proxy name already has an emoji, do not add another one
             } else {
-              v.name = emoji + ' ' + v.name; // Add emoji and space before the proxy name
+              v.name = emoji + ' ' + v.name // Add emoji and space before the proxy name
             }
-            break; // Break out of loop after the first match
+            break // Break out of loop after the first match
           }
         }
-        return shouldAddEmoji ? v : { ...v }; // If emoji should not be added, return original, otherwise return modified proxy
-      });
+        return shouldAddEmoji ? v : { ...v } // If emoji should not be added, return original, otherwise return modified proxy
+      })
     }
-  };
+  }
 
   if (EnableRemoveKeywords == 1) {
     if (appName.toLowerCase().includes('singbox')) {
       proxies = proxies.map((v) => {
         return {
           ...v,
-          tag: v.tag.replace(RemoveKeywords, ""),
-        };
-      });
+          tag: v.tag.replace(RemoveKeywords, '')
+        }
+      })
     } else if (appName.toLowerCase().includes('clash')) {
       proxies = proxies.map((v) => {
         return {
           ...v,
-          name: v.name.replace(RemoveKeywords, ""),
-        };
-      });
+          name: v.name.replace(RemoveKeywords, '')
+        }
+      })
     }
-  };
+  }
 
   if (EnableIndexProxyName == 1) {
     if (appName.toLowerCase().includes('singbox')) {
@@ -259,40 +257,40 @@ const onSubscribe = async (proxies) => {
     } else if (appName.toLowerCase().includes('clash')) {
       proxies = proxies.map((v, i) => ({ ...v, name: v.name + ' ' + (i + 1) }))
     }
-  };
+  }
 
   if (EnableIndexProxyName == 2) {
-    let seenNames = {}; // 用于记录已经出现过的节点名称的集合
+    let seenNames = {} // 用于记录已经出现过的节点名称的集合
 
     if (appName.toLowerCase().includes('singbox')) {
       proxies = proxies.map((v, i) => {
         if (seenNames[v.tag]) {
-          seenNames[v.tag]++;
+          seenNames[v.tag]++
         } else {
-          seenNames[v.tag] = 1;
+          seenNames[v.tag] = 1
         }
         // 只有当节点名称重复时才添加标号
-        const tagWithIndex = seenNames[v.tag] > 1 ? v.tag + ' ' + seenNames[v.tag] : v.tag;
+        const tagWithIndex = seenNames[v.tag] > 1 ? v.tag + ' ' + seenNames[v.tag] : v.tag
         return {
           ...v,
           tag: tagWithIndex
-        };
-      });
+        }
+      })
     } else if (appName.toLowerCase().includes('clash')) {
       proxies = proxies.map((v, i) => {
         if (seenNames[v.name]) {
-          seenNames[v.name]++;
+          seenNames[v.name]++
         } else {
-          seenNames[v.name] = 1;
+          seenNames[v.name] = 1
         }
         // 只有当节点名称重复时才添加标号
-        const nameWithIndex = seenNames[v.name] > 1 ? v.name + ' ' + seenNames[v.name] : v.name;
+        const nameWithIndex = seenNames[v.name] > 1 ? v.name + ' ' + seenNames[v.name] : v.name
         return {
           ...v,
           name: nameWithIndex
-        };
-      });
+        }
+      })
     }
-  };
-  return proxies;
-};
+  }
+  return proxies
+}
