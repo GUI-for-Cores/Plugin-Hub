@@ -1,11 +1,11 @@
 const onRun = async () => {
   const res = await Plugins.prompt('请输入分享链接：', '', { placeholder: 'vmess://' })
-  const [schema, body] = res.split("://");
+  const [schema, body] = res.split('://')
 
   const handler = protocolHandler[schema.toLowerCase()]
   if (!handler) throw `未实现当前协议[ ${schema} ]`
 
-  const proxy = handler(body);
+  const proxy = handler(body)
   if (!proxy) throw '解析错误'
 
   const str = Plugins.YAML.stringify(proxy)
@@ -26,134 +26,134 @@ const protocolHandler = {
       port: Number(url.port),
       username: arr[0],
       password: arr[1],
-      udp: true,
+      udp: true
     }
     return socks
   },
   hysteria: (body) => {
-    const url = new URL('http://' + body);
-    const query = url.searchParams;
-    const up = query.get("up") || query.get("upmbps") || 100;
-    const down = query.get("down") || query.get("downmbps") || 100;
+    const url = new URL('http://' + body)
+    const query = url.searchParams
+    const up = query.get('up') || query.get('upmbps') || 100
+    const down = query.get('down') || query.get('downmbps') || 100
     const hysteria = {
       name: decodeURIComponent(url.hash.slice(1)),
-      type: "hysteria",
+      type: 'hysteria',
       server: url.hostname,
       port: url.port,
-      sni: query.get("peer"),
-      obfs: query.get("obfs"),
-      auth_str: query.get("auth"),
-      protocol: query.get("protocol"),
+      sni: query.get('peer'),
+      obfs: query.get('obfs'),
+      auth_str: query.get('auth'),
+      protocol: query.get('protocol'),
       up: Number(up),
       down: Number(down),
-      "skip-cert-verify": Boolean(query.get("insecure")),
-    };
-    if (query.get("alpn")) {
-      hysteria["alpn"] = query.get("alpn").split(",");
+      'skip-cert-verify': Boolean(query.get('insecure'))
     }
-    return hysteria;
+    if (query.get('alpn')) {
+      hysteria['alpn'] = query.get('alpn').split(',')
+    }
+    return hysteria
   },
   hysteria2: (body) => {
-    const url = new URL('http://' + body);
-    const query = url.searchParams;
+    const url = new URL('http://' + body)
+    const query = url.searchParams
     const hysteria2 = {
       name: decodeURIComponent(url.hash.slice(1)),
-      type: "hysteria2",
+      type: 'hysteria2',
       server: url.hostname,
       port: url.port || 443,
-      obfs: query.get("obfs"),
-      "obfs-password": query.get("obfs-password"),
-      sni: query.get("sni"),
-      "skip-cert-verify": Boolean(query.get("insecure")),
-      fingerprint: query.get("pinSHA256"),
-      down: query.get("down") || 100,
-      up: query.get("up") || 100,
-    };
-    if (query.get("alpn")) {
-      hysteria2["alpn"] = query.get("alpn").split(",");
+      obfs: query.get('obfs'),
+      'obfs-password': query.get('obfs-password'),
+      sni: query.get('sni'),
+      'skip-cert-verify': Boolean(query.get('insecure')),
+      fingerprint: query.get('pinSHA256'),
+      down: query.get('down') || 100,
+      up: query.get('up') || 100
+    }
+    if (query.get('alpn')) {
+      hysteria2['alpn'] = query.get('alpn').split(',')
     }
     if (url.username) {
-      hysteria2["password"] = url.username;
+      hysteria2['password'] = url.username
     }
-    return hysteria2;
+    return hysteria2
   },
   tuic: (body) => {
-    const url = new URL('http://' + body);
-    const query = url.searchParams;
+    const url = new URL('http://' + body)
+    const query = url.searchParams
     const tuic = {
       name: decodeURIComponent(url.hash.slice(1)),
-      type: "tuic",
+      type: 'tuic',
       server: url.hostname,
       port: Number(url.port),
       udp: true,
       uuid: url.username,
       password: url.password
-    };
+    }
     // token
-    if (query.get("congestion_control")) {
-      tuic["congestion-controller"] = query.get("congestion_control");
+    if (query.get('congestion_control')) {
+      tuic['congestion-controller'] = query.get('congestion_control')
     }
-    if (query.get("alpn")) {
-      tuic["alpn"] = query.get("alpn").split(",");
+    if (query.get('alpn')) {
+      tuic['alpn'] = query.get('alpn').split(',')
     }
-    if (query.get("sni")) {
-      tuic.sni = query.get("sni");
+    if (query.get('sni')) {
+      tuic.sni = query.get('sni')
     }
-    if (query.get("disable_sni") == 1) {
-      tuic["disable-sni"] = true;
+    if (query.get('disable_sni') == 1) {
+      tuic['disable-sni'] = true
     }
-    if (query.get("udp_relay_mode")) {
-      tuic["udp-relay-mode"] = query.get("udp_relay_mode");
+    if (query.get('udp_relay_mode')) {
+      tuic['udp-relay-mode'] = query.get('udp_relay_mode')
     }
-    return tuic;
+    return tuic
   },
   trojan: (body) => {
-    const url = new URL('http://' + body);
-    const query = url.searchParams;
+    const url = new URL('http://' + body)
+    const query = url.searchParams
     const trojan = {
       name: decodeURIComponent(url.hash.slice(1)),
-      type: "trojan",
+      type: 'trojan',
       server: url.hostname,
       port: Number(url.port),
       password: url.username,
       udp: true,
-      "skip-cert-verify": Boolean(query.get("allowInsecure")),
-    };
-    if (query.get("alpn")) {
-      trojan["alpn"] = query.get("alpn").split(",");
+      'skip-cert-verify': Boolean(query.get('allowInsecure'))
     }
-    if (query.get("sni")) {
-      trojan.sni = query.get("sni");
+    if (query.get('alpn')) {
+      trojan['alpn'] = query.get('alpn').split(',')
     }
-    const network = query.get("type")?.toLowerCase();
+    if (query.get('sni')) {
+      trojan.sni = query.get('sni')
+    }
+    const network = query.get('type')?.toLowerCase()
     if (network) {
-      trojan.network = network;
+      trojan.network = network
     }
     switch (network) {
-      case "ws": {
+      case 'ws': {
         const wsOpts = {
-          path: query.get("path"),
+          path: query.get('path'),
           headers: {
-            "User-Agent": "",
-          },
-        };
-        trojan["ws-opts"] = wsOpts;
-        break;
+            'User-Agent': ''
+          }
+        }
+        trojan['ws-opts'] = wsOpts
+        break
       }
-      case "grpc": {
-        trojan["grpc-opts"] = {
-          "grpc-service-name": query.get("serviceName"),
-        };
+      case 'grpc': {
+        trojan['grpc-opts'] = {
+          'grpc-service-name': query.get('serviceName')
+        }
         break
       }
     }
-    trojan["client-fingerprint"] = query.get("fp") || "chrome";
-    return trojan;
+    trojan['client-fingerprint'] = query.get('fp') || 'chrome'
+    return trojan
   },
   vless: (body) => {
-    const url = new URL('http://' + body);
-    const query = url.searchParams;
-    if (url.hostname == "") {
+    const url = new URL('http://' + body)
+    const query = url.searchParams
+    if (url.hostname == '') {
       throw 'hostname is empty'
     }
     if (url.port == '') {
@@ -244,7 +244,7 @@ const protocolHandler = {
       case 'ws': {
         const headers = {
           'User-Agent': 'chrome',
-          Host: query.get('host'),
+          Host: query.get('host')
         }
         const wsOpts = {
           path: query.get('path'),
@@ -262,7 +262,7 @@ const protocolHandler = {
       }
       case 'grpc': {
         vless['grpc-opts'] = {
-          "grpc-service-name": query.get('serviceName')
+          'grpc-service-name': query.get('serviceName')
         }
         break
       }
@@ -273,12 +273,12 @@ const protocolHandler = {
     return vless
   },
   vmess: (body) => {
-    const url = new URL('http://' + body);
-    const query = url.searchParams;
-    const json = JSON.parse(atob(body));
+    const url = new URL('http://' + body)
+    const query = url.searchParams
+    const json = JSON.parse(atob(body))
     const vmess = {
       name: decodeURIComponent(json.v || json.ps),
-      type: "vmess",
+      type: 'vmess',
       server: json.add,
       port: Number(json.port),
       uuid: json.id,
@@ -286,110 +286,111 @@ const protocolHandler = {
       udp: true,
       xudp: true,
       tls: false,
-      "skip-cert-verify": false,
-      cipher: query.get("encryption") || "auto",
-    };
-    let network = json.net?.toLowerCase();
-    if (json.type == "http") {
-      network = "http";
-    } else if (network == "http") {
-      network = "h2";
+      'skip-cert-verify': false,
+      cipher: query.get('encryption') || 'auto'
     }
-    vmess.network = network;
-    let tls = json.tls?.toLowerCase();
-    if (tls?.endsWith("tls")) {
-      vmess.tls = true;
+    let network = json.net?.toLowerCase()
+    if (json.type == 'http') {
+      network = 'http'
+    } else if (network == 'http') {
+      network = 'h2'
     }
-    const alpn = json.alpn;
+    vmess.network = network
+    let tls = json.tls?.toLowerCase()
+    if (tls?.endsWith('tls')) {
+      vmess.tls = true
+    }
+    const alpn = json.alpn
     if (alpn) {
-      vmess.alpn = alpn.split(",");
+      vmess.alpn = alpn.split(',')
     }
-    const headers = {};
-    const httpOpts = {};
+    const headers = {}
+    const httpOpts = {}
     switch (network) {
-      case "http": {
+      case 'http': {
         if (json.host) {
-          headers["Host"] = [json.host];
+          headers['Host'] = [json.host]
         }
-        httpOpts["path"] = ["/"];
+        httpOpts['path'] = ['/']
         if (json.path) {
-          httpOpts["path"] = [json.path];
+          httpOpts['path'] = [json.path]
         }
-        httpOpts["headers"] = headers;
-        vmess["http-opts"] = httpOpts;
-        break;
+        httpOpts['headers'] = headers
+        vmess['http-opts'] = httpOpts
+        break
       }
-      case "h2": {
-        const wsOpts = {};
+      case 'h2': {
+        const wsOpts = {}
         if (json.host) {
-          headers["Host"] = json.host;
+          headers['Host'] = json.host
         }
-        wsOpts["path"] = ["/"];
+        wsOpts['path'] = ['/']
         if (json.path) {
-          httpOpts["path"] = [json.path];
+          httpOpts['path'] = [json.path]
         }
-        httpOpts["headers"] = headers;
-        vmess["http-opts"] = httpOpts;
-        break;
+        httpOpts['headers'] = headers
+        vmess['http-opts'] = httpOpts
+        break
       }
     }
     return vmess
   },
   ss: (body) => {
-    let url = new URL('http://' + body);
+    let url = new URL('http://' + body)
     const query = url.searchParams
     const ss = {
       name: decodeURIComponent(url.hash.slice(1)),
-      type: "ss",
+      type: 'ss',
       server: url.hostname,
       port: Number(url.port),
-      udp: true,
-    };
+      udp: true
+    }
     const cipherRaw = url.username
     if (url.username) {
-      const dcStr = decodeURIComponent(url.host);
-      url = new URL("ss://" + dcStr);
+      const dcStr = decodeURIComponent(url.host)
+      url = new URL('ss://' + dcStr)
     }
-    let cipher = cipherRaw, password;
+    let cipher = cipherRaw,
+      password
     if (!url.password) {
-      const [_cipher, _password] = atob(cipherRaw).split(":")
+      const [_cipher, _password] = atob(cipherRaw).split(':')
       cipher = _cipher
       password = _password
     }
     ss.cipher = cipher
     ss.password = password
-    if (query.get("udp-over-tcp") == "true" || query.get("uot") == "1") {
-      ss["udp-over-tcp"] = true;
+    if (query.get('udp-over-tcp') == 'true' || query.get('uot') == '1') {
+      ss['udp-over-tcp'] = true
     }
-    const plugin = query.get("plugin");
-    if (plugin && plugin.includes(";")) {
-      pluginInfo = new sear();
+    const plugin = query.get('plugin')
+    if (plugin && plugin.includes(';')) {
+      pluginInfo = new sear()
     }
-    return ss;
+    return ss
   },
   ssr: (body) => {
-    const [before, after] = atob(body).split("/?");
-    const beforeArr = before.split(":");
-    const query = new URLSearchParams(after);
+    const [before, after] = atob(body).split('/?')
+    const beforeArr = before.split(':')
+    const query = new URLSearchParams(after)
     const ss = {
-      name: atob(query.get("remarks")),
-      type: "ssr",
+      name: atob(query.get('remarks')),
+      type: 'ssr',
       host: beforeArr[0],
       port: Number(beforeArr[1]),
       protocol: beforeArr[2],
       method: beforeArr[3],
       obfs: beforeArr[4],
       password: beforeArr[5],
-      udp: true,
-    };
-    const obfsParam = query.get("obfsparam");
-    const protocolParam = query.get("protoparam");
+      udp: true
+    }
+    const obfsParam = query.get('obfsparam')
+    const protocolParam = query.get('protoparam')
     if (obfsParam) {
-      ss["obfs-param"] = obfsParam;
+      ss['obfs-param'] = obfsParam
     }
     if (protocolParam) {
-      ssr["protocol-param"] = protocolParam;
+      ssr['protocol-param'] = protocolParam
     }
-    return ss;
-  },
-};
+    return ss
+  }
+}

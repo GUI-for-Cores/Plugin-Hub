@@ -13,30 +13,34 @@ const startSubStoreService = () => {
     const { env } = Plugins.useEnvStore()
     let backendFlag = false
     let timeout = true
-    setTimeout(() => (timeout && reject('启动Sub-Store服务超时')), 5000)
-    const pid = await Plugins.ExecBackground('node', [
-      env.basePath + '\\' + SUB_STORE_BACKEND_PATH
-    ], out => {
-      if(out.includes('[sub-store] INFO: [BACKEND]')) {
-        backendFlag = true
+    setTimeout(() => timeout && reject('启动Sub-Store服务超时'), 5000)
+    const pid = await Plugins.ExecBackground(
+      'node',
+      [env.basePath + '\\' + SUB_STORE_BACKEND_PATH],
+      (out) => {
+        if (out.includes('[sub-store] INFO: [BACKEND]')) {
+          backendFlag = true
+        }
+        if (out.includes('[sub-store] INFO: [FRONTEND]') && backendFlag) {
+          Plugins.Writefile(PID_FILE, pid.toString())
+          timeout = false
+          resolve()
+        }
+      },
+      async () => {
+        await Plugins.Writefile(PID_FILE, '0')
+      },
+      {
+        env: {
+          SUB_STORE_BACKEND_API_HOST: Plugin.SUB_STORE_BACKEND_API_HOST,
+          SUB_STORE_FRONTEND_HOST: Plugin.SUB_STORE_FRONTEND_HOST,
+          SUB_STORE_FRONTEND_API_PORT: Plugin.SUB_STORE_FRONTEND_API_PORT,
+          SUB_STORE_BACKEND_API_PORT: Plugin.SUB_STORE_BACKEND_API_PORT,
+          SUB_STORE_FRONTEND_PATH: env.basePath + '\\' + SUB_STORE_FRONTEND_PATH,
+          SUB_STORE_DATA_BASE_PATH: env.basePath + '\\' + SUBSTORE_PATH
+        }
       }
-      if(out.includes('[sub-store] INFO: [FRONTEND]') && backendFlag) {
-        Plugins.Writefile(PID_FILE, pid.toString())
-        timeout = false
-        resolve()
-      }
-    }, async () => {
-      await Plugins.Writefile(PID_FILE, '0')
-    }, {
-      env: {
-        SUB_STORE_BACKEND_API_HOST: Plugin.SUB_STORE_BACKEND_API_HOST,
-        SUB_STORE_FRONTEND_HOST: Plugin.SUB_STORE_FRONTEND_HOST,
-        SUB_STORE_FRONTEND_API_PORT: Plugin.SUB_STORE_FRONTEND_API_PORT,
-        SUB_STORE_BACKEND_API_PORT: Plugin.SUB_STORE_BACKEND_API_PORT,
-        SUB_STORE_FRONTEND_PATH: env.basePath + '\\' + SUB_STORE_FRONTEND_PATH,
-        SUB_STORE_DATA_BASE_PATH: env.basePath + '\\' + SUBSTORE_PATH
-      } 
-    })
+    )
   })
 }
 
@@ -45,7 +49,7 @@ const startSubStoreService = () => {
  */
 const stopSubStoreService = async () => {
   const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
-  if(pid && pid !== '0') {
+  if (pid && pid !== '0') {
     await Plugins.ignoredError(Plugins.KillProcess, Number(pid))
     await Plugins.Writefile(PID_FILE, '0')
   }
@@ -81,7 +85,7 @@ const InstallSubStore = async () => {
     Plugins.message.update(id, '安装前端完成, 正在安装后端...')
     await Plugins.sleep(1000)
     await Plugins.Download(BackendUrl, SUB_STORE_BACKEND_PATH)
-    Plugins.message.update(id, '安装后端完成',  'success')
+    Plugins.message.update(id, '安装后端完成', 'success')
   } finally {
     await Plugins.sleep(1000)
     Plugins.message.destroy(id)
@@ -99,7 +103,7 @@ const onInstall = async () => {
  * 插件钩子 - 点击卸载按钮时
  */
 const onUninstall = async () => {
-  if(await isSubStoreRunning()) {
+  if (await isSubStoreRunning()) {
     throw '请先停止Sub-Store服务！'
   }
   await Plugins.confirm('确定要删除Sub-Store吗？', '配置文件将不会保留！')
@@ -110,8 +114,8 @@ const onUninstall = async () => {
  * 插件钩子 - 点击运行按钮时
  */
 const onRun = async () => {
-  if(!await isSubStoreRunning()) {
-    if(!await Plugins.ignoredError(Plugins.Exec, 'node', ['-v'])) {
+  if (!(await isSubStoreRunning())) {
+    if (!(await Plugins.ignoredError(Plugins.Exec, 'node', ['-v']))) {
       throw '检测到系统未安装Nodejs环境，请先安装。'
     }
     await startSubStoreService()
@@ -124,7 +128,7 @@ const onRun = async () => {
  * 插件钩子 - 启动APP时
  */
 const onStartup = async () => {
-  if(Plugin.AutoStartOrStop && !(await isSubStoreRunning())) {
+  if (Plugin.AutoStartOrStop && !(await isSubStoreRunning())) {
     await startSubStoreService()
   }
 }
@@ -133,7 +137,7 @@ const onStartup = async () => {
  * 插件钩子 - 关闭APP时
  */
 const onShutdown = async () => {
-  if(Plugin.AutoStartOrStop && await isSubStoreRunning()) {
+  if (Plugin.AutoStartOrStop && (await isSubStoreRunning())) {
     await stopSubStoreService()
   }
 }
@@ -142,10 +146,10 @@ const onShutdown = async () => {
  * 插件菜单项 - 启动服务
  */
 const Start = async () => {
-  if(await isSubStoreRunning()) {
+  if (await isSubStoreRunning()) {
     throw '当前服务已经在运行了'
   }
-  if(!await Plugins.ignoredError(Plugins.Exec, 'node', ['-v'])) {
+  if (!(await Plugins.ignoredError(Plugins.Exec, 'node', ['-v']))) {
     throw '检测到系统未安装Nodejs环境，请先安装。'
   }
   await startSubStoreService()
@@ -156,7 +160,7 @@ const Start = async () => {
  * 插件菜单项 - 停止服务
  */
 const Stop = async () => {
-  if(!await isSubStoreRunning()) {
+  if (!(await isSubStoreRunning())) {
     throw '当前服务并未在运行'
   }
   await stopSubStoreService()
