@@ -191,6 +191,7 @@ function getDefaultPlugin() {
     path: '',
     triggers: ['on::generate'],
     menus: {},
+    configuration: [],
     disabled: false,
     install: false,
     installed: false
