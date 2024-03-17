@@ -8,6 +8,7 @@
     "path": "data/plugins/plugin-add-rulesets.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "status": 0,
     "configuration": [],
     "disabled": false,
     "install": false,
@@ -22,6 +23,7 @@
     "path": "data/plugins/plugin-register-clash.js",
     "triggers": [],
     "menus": {},
+    "status": 0,
     "configuration": [],
     "disabled": false,
     "install": true,
@@ -36,6 +38,7 @@
     "path": "data/plugins/plugin-generate-puppet.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "status": 0,
     "configuration": [],
     "disabled": false,
     "install": false,
@@ -50,6 +53,7 @@
     "path": "data/plugins/plugin-node-convert.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "status": 0,
     "configuration": [],
     "disabled": false,
     "install": false,
@@ -66,6 +70,7 @@
     "menus": {
       "更新Sub-Store": "onUpdate"
     },
+    "status": 0,
     "configuration": [
       {
         "id": "ID_llsiold1",
