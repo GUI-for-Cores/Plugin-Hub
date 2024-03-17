@@ -8,6 +8,7 @@
     "path": "data/plugins/plugin-add-rulesets.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "status": 0,
     "configuration": [],
     "disabled": false,
     "install": false,
@@ -22,6 +23,7 @@
     "path": "data/plugins/plugin-register-sing-box.js",
     "triggers": [],
     "menus": {},
+    "status": 0,
     "configuration": [],
     "disabled": false,
     "install": true,
@@ -38,6 +40,7 @@
     "menus": {
       "更新Sub-Store": "onUpdate"
     },
+    "status": 0,
     "configuration": [
       {
         "id": "ID_llsiold1",

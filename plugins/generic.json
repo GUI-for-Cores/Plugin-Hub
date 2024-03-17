@@ -8,6 +8,7 @@
     "path": "data/plugins/plugin-configuration-example.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "status": 0,
     "configuration": [
       {
         "id": "ID_npthz66q",
@@ -98,6 +99,7 @@
     "path": "data/plugins/plugin-install-font.js",
     "triggers": [],
     "menus": {},
+    "status": 0,
     "configuration": [],
     "disabled": false,
     "install": true,
@@ -117,6 +119,7 @@
       "备份配置": "Backup",
       "恢复配置": "Restore"
     },
+    "status": 0,
     "configuration": [
       {
         "id": "ID_u55r5gfb",
@@ -153,6 +156,7 @@
       "启动服务": "Start",
       "停止服务": "Stop"
     },
+    "status": 0,
     "configuration": [
       {
         "id": "ID_ziwhcqmo",
@@ -222,6 +226,7 @@
     "path": "data/plugins/plugin-tv-helper.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "status": 0,
     "configuration": [
       {
         "id": "ID_5tshtljx",
@@ -264,6 +269,7 @@
     "path": "data/plugins/plugin-index-the-proxy-name.js",
     "triggers": ["on::subscribe"],
     "menus": {},
+    "status": 0,
     "configuration": [],
     "disabled": false,
     "install": false,
@@ -278,6 +284,7 @@
     "path": "data/plugins/plugin-uwp-loopback-exempt.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "status": 0,
     "configuration": [],
     "disabled": false,
     "install": false,
@@ -316,6 +323,7 @@
     "path": "data/plugins/plugin-modify-proxy-name.js",
     "triggers": ["on::subscribe"],
     "menus": {},
+    "status": 0,
     "configuration": [
       {
         "id": "ID_b6yfktzm",
@@ -367,6 +375,7 @@
     "path": "data/plugins/plugin-ip-geolocation.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "status": 0,
     "configuration": [],
     "disabled": false,
     "install": false,
@@ -381,6 +390,7 @@
     "path": "data/plugins/plugin-speedtest.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "status": 0,
     "configuration": [
       {
         "id": "ID_112j2shp",
@@ -405,6 +415,7 @@
     "path": "data/plugins/plugin-geoip-search.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "status": 0,
     "configuration": [],
     "disabled": false,
     "install": false,
@@ -421,6 +432,7 @@
     "menus": {
       "手动模式": "manual"
     },
+    "status": 0,
     "configuration": [
       {
         "id": "ID_z4ug0d5w",
@@ -463,6 +475,7 @@
     "path": "data/plugins/plugin-open-yacd-meta-dashboard.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "status": 0,
     "configuration": [],
     "disabled": false,
     "install": false,
@@ -477,6 +490,7 @@
     "path": "data/plugins/plugin-generate-report.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "status": 0,
     "configuration": [],
     "disabled": false,
     "install": false,
