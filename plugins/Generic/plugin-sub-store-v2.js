@@ -97,6 +97,7 @@ const InstallSubStore = async () => {
  */
 const onInstall = async () => {
   await InstallSubStore()
+  return 0
 }
 
 /**
@@ -108,6 +109,7 @@ const onUninstall = async () => {
   }
   await Plugins.confirm('确定要删除Sub-Store吗？', '配置文件将不会保留！')
   await Plugins.Removefile(SUBSTORE_PATH)
+  return 0
 }
 
 /**
@@ -122,6 +124,7 @@ const onRun = async () => {
   }
   const url = 'http://127.0.0.1:' + Plugin.SUB_STORE_FRONTEND_API_PORT + '?api=http://127.0.0.1:' + Plugin.SUB_STORE_BACKEND_API_PORT
   Plugin.useInternalBrowser ? open(url) : Plugins.BrowserOpenURL(url)
+  return 1
 }
 
 /**
@@ -130,6 +133,7 @@ const onRun = async () => {
 const onStartup = async () => {
   if (Plugin.AutoStartOrStop && !(await isSubStoreRunning())) {
     await startSubStoreService()
+    return 1
   }
 }
 
@@ -139,6 +143,7 @@ const onStartup = async () => {
 const onShutdown = async () => {
   if (Plugin.AutoStartOrStop && (await isSubStoreRunning())) {
     await stopSubStoreService()
+    return 2
   }
 }
 
@@ -154,6 +159,7 @@ const Start = async () => {
   }
   await startSubStoreService()
   Plugins.message.success('✨Sub-Store 启动成功!')
+  return 1
 }
 
 /**
@@ -165,4 +171,5 @@ const Stop = async () => {
   }
   await stopSubStoreService()
   Plugins.message.success('停止Sub-Store成功')
+  return 2
 }

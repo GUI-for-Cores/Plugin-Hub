@@ -110,13 +110,33 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-adguardhome.js",
     "path": "data/plugins/plugin-adguardhome.js",
-    "triggers": ["on::manual"],
+    "triggers": ["on::manual", "on::startup", "on::shutdown"],
     "menus": {
-      "管理界面": "openAdguardHome",
-      "备份配置": "backupConfig",
-      "恢复配置": "restoreConfig"
+      "运行服务": "Start",
+      "停止服务": "Stop",
+      "备份配置": "Backup",
+      "恢复配置": "Restore"
     },
-    "configuration": [],
+    "configuration": [
+      {
+        "id": "ID_u55r5gfb",
+        "title": "使用内部浏览器打开管理界面",
+        "description": "开启将使用内部浏览器打开管理界面，关闭则使用系统浏览器打开管理界面。",
+        "key": "UseInternalBrowser",
+        "component": "Switch",
+        "value": true,
+        "options": []
+      },
+      {
+        "id": "ID_gytm0oyf",
+        "title": "跟随GUI启动或停止",
+        "description": "开启后，AdGuardHome服务将随着GUI自动开启或停止。",
+        "key": "AutoStartOrStop",
+        "component": "Switch",
+        "value": false,
+        "options": []
+      }
+    ],
     "disabled": false,
     "install": true,
     "installed": false

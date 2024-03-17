@@ -1,141 +1,181 @@
-const data = 'data/third/AdGuardHome' // AdGuardHome主目录
-const pidfile = data + '/pid.txt' // 运行时PID
-const execfile = data + '/AdGuardHome.exe' // 主程序
-const execargs = [] // 运行时参数
-const version = 'v0.107.43' // 版本，可自行更改升级
-const cachefile = `data/.cache/adguard_${version}.zip` // 主程序压缩文件
-const backup_config_file = 'data/third/AdGuardHome.yaml.bak' // 备份的配置文件
+const ADGUARDHOME_PATH = 'data/third/AdGuardHome'
+const PID_FILE = ADGUARDHOME_PATH + '/AdGuardHome.pid'
+const BACKUP_FILE = 'data/third/AdGuardHome.yaml.bak'
+
 window.pluginAdguardHome = window.pluginAdguardHome || {
   admin_address: ''
 }
 
-const { arch } = await Plugins.GetEnv()
+const Log = (...msg) => console.log(`[${Plugin.name}]`, ...msg)
 
-const url = `https://github.com/AdguardTeam/AdGuardHome/releases/download/${version}/AdGuardHome_windows_${arch}.zip`
+/**
+ * 检测AdGuardHome是否在运行
+ */
+const isAdGuardHomeRunning = async () => {
+  const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
+  return pid && pid !== '0'
+}
 
-/* 停止运行AdGuardHome */
-const stopAdGuardHome = async () => {
-  const pid = await Plugins.Readfile(pidfile)
-  const name = await Plugins.ProcessInfo(Number(pid))
-  if (name.startsWith('AdGuardHome')) {
-    await Plugins.KillProcess(Number(pid))
+/**
+ * 停止AdGuardHome服务
+ */
+const stopAdGuardHomeService = async () => {
+  const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
+  if (pid && pid !== '0') {
+    await Plugins.ignoredError(Plugins.KillProcess, Number(pid))
+    await Plugins.Writefile(PID_FILE, '0')
   }
-  await Plugins.Removefile(pidfile)
 }
 
-/* 运行AdGuardHome */
-const runAdGuardHome = async () => {
-  const pid = await Plugins.ExecBackground(
-    execfile,
-    execargs,
-    (out) => {
-      if (out.includes('go to') && out.includes('127.0.0.1')) {
-        window.pluginAdguardHome.admin_address = out.split('go to')[1].trim()
-        Plugins.message.success('AdGuardHome管理地址：' + window.pluginAdguardHome.admin_address, 5_000)
+/**
+ * 启动AdGuardHome服务
+ */
+const startAdguardHomeService = async () => {
+  return new Promise(async (resolve, reject) => {
+    const pid = await Plugins.ExecBackground(
+      ADGUARDHOME_PATH + '/' + 'AdGuardHome.exe',
+      [],
+      async (out) => {
+        if (out.includes('go to') && out.includes('127.0.0.1')) {
+          window.pluginAdguardHome.admin_address = out.split('go to')[1].trim()
+          await Plugins.Writefile(PID_FILE, pid.toString())
+          resolve()
+        }
+      },
+      async () => {
+        await Plugins.Writefile(PID_FILE, '0')
       }
-      if (out.includes('dnsproxy: listening to')) {
-        Plugins.message.success('AdGuardHome服务地址：' + out.split('dnsproxy: listening to')[1], 5_000)
-      }
-    },
-    async () => {
-      console.log('AdGuardHome.exe stopped')
-      await Plugins.Removefile(pidfile)
-    }
-  )
-  await Plugins.Writefile(pidfile, pid.toString())
+    )
+  })
 }
 
-/* 安装AdGuardHome */
+/**
+ * 安装AdGuardHome
+ */
 const installAdGuardHome = async () => {
-  if (!(await Plugins.FileExists(cachefile))) {
-    const { id } = Plugins.message.info('下载AdGuardHome压缩包')
-    await Plugins.Download(url, cachefile, (progress, total) => {
+  const { env } = Plugins.useEnvStore()
+  const tmpZip = 'data/.cache/adguardhome.zip'
+  const url = `https://github.com/AdguardTeam/AdGuardHome/releases/download/v0.107.43/AdGuardHome_windows_${env.arch}.zip`
+  const { id } = Plugins.message.info('下载AdGuardHome压缩包')
+  try {
+    await Plugins.Download(url, tmpZip, (progress, total) => {
       Plugins.message.update(id, '下载AdGuardHome压缩包：' + ((progress / total) * 100).toFixed(2) + '%')
     })
-    console.log('下载AdGuardHome完成')
+    Log('下载AdGuardHome完成')
+    Log('解压AdGuardHome压缩包')
+    await Plugins.UnzipZIPFile(tmpZip, 'data/third')
+    Log('解压AdGuardHome完成')
+    Plugins.message.update(id, '安装AdGuardHome完成', 'success')
+  } finally {
+    await Plugins.sleep(1000)
+    Plugins.message.destroy(id)
   }
-  console.log('解压AdGuardHome压缩包')
-  await Plugins.UnzipZIPFile(cachefile, 'data/third')
-  console.log('解压AdGuardHome完成')
 }
 
 /* 卸载AdGuardHome */
 const uninstallAdGuardHome = async () => {
-  if (await Plugins.FileExists(pidfile)) {
-    throw '请先停止运行AdGuardHome'
-  }
-  await Plugins.Removefile(data)
+  await Plugins.Removefile(ADGUARDHOME_PATH)
 }
 
+/**
+ * 插件钩子 - 点击安装按钮时
+ */
 const onInstall = async () => {
   await installAdGuardHome()
+  return 0
 }
 
+/**
+ * 插件钩子 - 点击卸载按钮时
+ */
 const onUninstall = async () => {
+  if (await isAdGuardHomeRunning()) {
+    throw '请先停止运行AdguardHome服务！'
+  }
+  await Plugins.confirm('确定要删除AdGuardHome吗？', '请注意先备份配置文件！')
   await uninstallAdGuardHome()
+  return 0
 }
 
-// 默认不启用，请在插件编辑里勾选对应的触发器
+/**
+ * 插件钩子 - 启动APP时
+ */
 const onStartup = async () => {
-  if (await Plugins.FileExists(pidfile)) {
-    const pid = await Plugins.Readfile(pidfile)
-    try {
-      const name = await Plugins.ProcessInfo(Number(pid))
-      if (name.startsWith('AdGuardHome')) {
-        return
-      }
-      await Plugins.Removefile(pidfile)
-    } catch (error) {}
+  if (Plugin.AutoStartOrStop && !(await isAdGuardHomeRunning())) {
+    await startAdguardHomeService()
+    return 1
   }
-  await runAdGuardHome()
 }
 
-// 默认不启用，请在插件编辑里勾选对应的触发器
+/**
+ * 插件钩子 - 关闭APP时
+ */
 const onShutdown = async () => {
-  if (!(await Plugins.FileExists(pidfile))) {
-    return
+  if (Plugin.AutoStartOrStop && (await isAdGuardHomeRunning())) {
+    await stopAdGuardHomeService()
+    return 2
   }
-  await stopAdGuardHome()
 }
 
-/* 菜单项 - 访问管理界面 */
-const openAdguardHome = async () => {
-  if (!(await Plugins.FileExists(pidfile))) {
-    throw '请先运行AdGuardHome'
+/**
+ * 插件钩子 - 点击运行按钮时
+ */
+const onRun = async () => {
+  if (!(await isAdGuardHomeRunning())) {
+    await startAdguardHomeService()
   }
-  Plugins.BrowserOpenURL(window.pluginAdguardHome.admin_address || 'http://127.0.0.1:3000/')
+  const url = window.pluginAdguardHome.admin_address || 'http://127.0.0.1:3000/'
+  Plugin.UseInternalBrowser ? open(url) : Plugins.BrowserOpenURL(url)
+  return 1
 }
 
-/* 菜单项 - 备份配置 */
-const backupConfig = async () => {
-  if (!(await Plugins.FileExists(data + '/AdGuardHome.yaml'))) {
+/**
+ * 插件菜单项 - 启动服务
+ */
+const Start = async () => {
+  if (await isAdGuardHomeRunning()) {
+    throw '当前服务已经在运行了'
+  }
+  await startAdguardHomeService()
+  Plugins.message.success('✨AdguardHome 启动成功!')
+  return 1
+}
+
+/**
+ * 插件菜单项 - 停止服务
+ */
+const Stop = async () => {
+  if (!(await isAdGuardHomeRunning())) {
+    throw '当前服务并未在运行'
+  }
+  await stopAdGuardHomeService()
+  Plugins.message.success('停止AdguardHome成功')
+  return 2
+}
+
+/**
+ * 插件菜单项 - 备份配置
+ */
+const Backup = async () => {
+  if (!(await Plugins.FileExists(ADGUARDHOME_PATH + '/AdGuardHome.yaml'))) {
     throw '没有可备份的配置文件'
   }
-  // TODO: copy file
-  const config_content = await Plugins.Readfile(data + '/AdGuardHome.yaml')
-  await Plugins.Writefile(backup_config_file, config_content)
+  const config_content = await Plugins.Readfile(ADGUARDHOME_PATH + '/AdGuardHome.yaml')
+  await Plugins.Writefile(BACKUP_FILE, config_content)
   Plugins.message.success('配置文件备份成功')
 }
 
-/* 菜单项 - 恢复配置 */
-const restoreConfig = async () => {
-  if (!(await Plugins.FileExists(backup_config_file))) {
+/**
+ * 插件菜单项 - 恢复配置
+ */
+const Restore = async () => {
+  if (!(await Plugins.FileExists(BACKUP_FILE))) {
     throw '没有可恢复的配置文件'
   }
-  if (await Plugins.FileExists(pidfile)) {
+  if (await isAdGuardHomeRunning()) {
     throw '请先停止运行AdGuardHome'
   }
-  // TODO: copy file
-  const config_content = await Plugins.Readfile(backup_config_file)
-  await Plugins.Writefile(data + '/AdGuardHome.yaml', config_content)
+  const config_content = await Plugins.Readfile(BACKUP_FILE)
+  await Plugins.Writefile(ADGUARDHOME_PATH + '/AdGuardHome.yaml', config_content)
   Plugins.message.success('配置文件恢复成功')
-}
-
-const onRun = async () => {
-  if (await Plugins.FileExists(pidfile)) {
-    await stopAdGuardHome()
-    Plugins.message.success('AdGuardHome停止成功')
-  } else {
-    await runAdGuardHome()
-  }
 }
