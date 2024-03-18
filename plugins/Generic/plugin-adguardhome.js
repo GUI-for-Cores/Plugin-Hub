@@ -2,10 +2,6 @@ const ADGUARDHOME_PATH = 'data/third/AdGuardHome'
 const PID_FILE = ADGUARDHOME_PATH + '/AdGuardHome.pid'
 const BACKUP_FILE = 'data/third/AdGuardHome.yaml.bak'
 
-window.pluginAdguardHome = window.pluginAdguardHome || {
-  admin_address: ''
-}
-
 const Log = (...msg) => console.log(`[${Plugin.name}]`, ...msg)
 
 /**
@@ -32,14 +28,17 @@ const stopAdGuardHomeService = async () => {
  */
 const startAdguardHomeService = async () => {
   return new Promise(async (resolve, reject) => {
+    let isOK = false
     const pid = await Plugins.ExecBackground(
       ADGUARDHOME_PATH + '/' + 'AdGuardHome.exe',
-      [],
+      ['--web-addr', Plugin.Address, '--no-check-update'],
       async (out) => {
-        if (out.includes('go to') && out.includes('127.0.0.1')) {
-          window.pluginAdguardHome.admin_address = out.split('go to')[1].trim()
-          await Plugins.Writefile(PID_FILE, pid.toString())
-          resolve()
+        if (out.includes('go to')) {
+          if (!isOK) {
+            isOK = true
+            await Plugins.Writefile(PID_FILE, pid.toString())
+            resolve()
+          }
         }
       },
       async () => {
@@ -55,7 +54,7 @@ const startAdguardHomeService = async () => {
 const installAdGuardHome = async () => {
   const { env } = Plugins.useEnvStore()
   const tmpZip = 'data/.cache/adguardhome.zip'
-  const url = `https://github.com/AdguardTeam/AdGuardHome/releases/download/v0.107.43/AdGuardHome_windows_${env.arch}.zip`
+  const url = `https://github.com/AdguardTeam/AdGuardHome/releases/download/v0.107.45/AdGuardHome_windows_${env.arch}.zip`
   const { id } = Plugins.message.info('下载AdGuardHome压缩包')
   try {
     await Plugins.Download(url, tmpZip, (progress, total) => {
@@ -124,7 +123,7 @@ const onRun = async () => {
   if (!(await isAdGuardHomeRunning())) {
     await startAdguardHomeService()
   }
-  const url = window.pluginAdguardHome.admin_address || 'http://127.0.0.1:3000/'
+  const url = 'http://127.0.0.1:' + Plugin.Address.split(':')[1]
   Plugin.UseInternalBrowser ? open(url) : Plugins.BrowserOpenURL(url)
   return 1
 }
