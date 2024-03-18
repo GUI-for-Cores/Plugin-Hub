@@ -122,6 +122,15 @@
     "status": 0,
     "configuration": [
       {
+        "id": "ID_9mzd7h3y",
+        "title": "WEB管理地址",
+        "description": "默认 127.0.0.1:3000，可设置为 0.0.0.0:3000",
+        "key": "Address",
+        "component": "Input",
+        "value": "127.0.0.1:3000",
+        "options": []
+      },
+      {
         "id": "ID_u55r5gfb",
         "title": "使用内部浏览器打开管理界面",
         "description": "开启将使用内部浏览器打开管理界面，关闭则使用系统浏览器打开管理界面。",
