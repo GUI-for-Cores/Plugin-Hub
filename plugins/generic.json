@@ -227,6 +227,33 @@
     "installed": false
   },
   {
+    "id": "plugin-sub-store",
+    "name": "Sub-Store",
+    "description": "高级订阅管理工具",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sub-store.js",
+    "path": "data/plugins/plugin-sub-store.js",
+    "triggers": ["on::manual", "on::startup", "on::shutdown"],
+    "menus": {
+      "更新Sub-Store": "onUpdate"
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_llsiold1",
+        "title": "SubStore Port(端口)",
+        "description": "服务端口号",
+        "key": "port",
+        "component": "Input",
+        "value": "20433",
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": true,
+    "installed": false
+  },
+  {
     "id": "plugin-tv-helper",
     "name": "电视盒子助手",
     "description": "电视盒子助手，使用ADB工具对电视盒子进行方便的操作！",
