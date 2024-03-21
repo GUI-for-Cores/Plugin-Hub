@@ -5,7 +5,7 @@ const getUWPList = async () => {
   const res = await Plugins.Exec(
     'Reg',
     ['Query', 'HKCU\\Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\CurrentVersion\\AppContainer\\Mappings'],
-    true
+    { convert: true }
   )
 
   const sids = res
@@ -16,7 +16,7 @@ const getUWPList = async () => {
   const list = []
 
   const promises = sids.map(async (sid) => {
-    const detail = await Plugins.Exec('Reg', ['Query', sid, '/v', 'DisplayName', '/t', 'REG_SZ'], true)
+    const detail = await Plugins.Exec('Reg', ['Query', sid, '/v', 'DisplayName', '/t', 'REG_SZ'], { convert: true })
     const match = detail.match(pattern)
     if (!match || !match[1]) return
     if (match[1].includes('ms-resource')) return
@@ -31,14 +31,14 @@ const getUWPList = async () => {
 /* 添加到解除列表 */
 const addLoopbackExempt = async (sids) => {
   for (let i = 0; i < sids.length; i++) {
-    await Plugins.Exec('CheckNetIsolation', ['LoopbackExempt', '-a', '-p=' + sids[i]], true)
+    await Plugins.Exec('CheckNetIsolation', ['LoopbackExempt', '-a', '-p=' + sids[i]], { convert: true })
   }
 }
 
 /* 从解除列表中移除 */
 const removeLoopbackExempt = async (sids) => {
   for (let i = 0; i < sids.length; i++) {
-    await Plugins.Exec('CheckNetIsolation', ['LoopbackExempt', '-d', '-p=' + sids[i]], true)
+    await Plugins.Exec('CheckNetIsolation', ['LoopbackExempt', '-d', '-p=' + sids[i]], { convert: true })
   }
 }
 
@@ -47,7 +47,7 @@ const onRun = async () => {
   const list = await getUWPList()
 
   // 已解除的列表
-  const exemptList = await Plugins.Exec('CheckNetIsolation', ['LoopbackExempt', '-s'], true)
+  const exemptList = await Plugins.Exec('CheckNetIsolation', ['LoopbackExempt', '-s'], { convert: true })
   const initialValue = list.filter((v) => exemptList.includes(v.value)).map((v) => v.value)
   console.log('已解除的列表：', initialValue)
 

@@ -24,7 +24,7 @@ if (Plugin.EnableDownloadAdb && !(await Plugins.FileExists('data/third/platform-
 const killAdbServer = () => Plugins.Exec(adb, ['kill-server'])
 
 const getDevices = async () => {
-  const res = await Plugins.Exec(adb, ['devices'], !true)
+  const res = await Plugins.Exec(adb, ['devices'], { convert: true })
   return res
     .trim()
     .split('\n')
@@ -33,17 +33,17 @@ const getDevices = async () => {
 }
 
 const sendText = async (text) => {
-  const res = await Plugins.Exec(adb, ['shell', 'input', 'text', text], !true)
+  const res = await Plugins.Exec(adb, ['shell', 'input', 'text', text], { convert: true })
   console.log(res)
 }
 
 const viewApp = async () => {
-  const res = await Plugins.Exec(adb, ['shell', 'pm', 'list', 'packages'], !true)
+  const res = await Plugins.Exec(adb, ['shell', 'pm', 'list', 'packages'], { convert: true })
   return res.trim().split('\n')
 }
 
 const viewApp3 = async () => {
-  const res = await Plugins.Exec(adb, ['shell', 'pm', 'list', 'packages', '-3'], !true)
+  const res = await Plugins.Exec(adb, ['shell', 'pm', 'list', 'packages', '-3'], { convert: true })
   return res.trim().split('\n')
 }
 
@@ -52,7 +52,7 @@ const connectDevice = async (address) => {
   if (!address) throw '请提供设备的IP，例如：192.168.0.100:5037'
   for (let i = 0; i < 3; i++) {
     try {
-      const res = await Plugins.Exec(adb, ['connect', address], true)
+      const res = await Plugins.Exec(adb, ['connect', address], { convert: true })
       if (res.includes('connected to') || res.includes('already connected')) {
         console.log('连接到设备成功：', address)
         return
@@ -68,7 +68,7 @@ const connectDevice = async (address) => {
 
 // 断开设备
 const disconnectDevice = async (address) => {
-  const res = await Plugins.Exec(adb, ['disconnect', address], true)
+  const res = await Plugins.Exec(adb, ['disconnect', address], { convert: true })
   if (!res.includes('disconnected') && !res.includes('no such device')) throw '断开连接失败'
 }
 
