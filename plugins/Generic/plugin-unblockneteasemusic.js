@@ -33,14 +33,6 @@ const ENV = {
 const Log = (...msg) => console.log('[解锁网易云音乐]', ...msg)
 
 /**
- * 重启内核
- */
-const restartKernel = () => {
-  const kernelApi = Plugins.useKernelApiStore()
-  kernelApi.restartKernel()
-}
-
-/**
  * 启动服务
  */
 const startUnblockMusicService = () => {
@@ -57,7 +49,6 @@ const startUnblockMusicService = () => {
       },
       async () => {
         await Plugins.Writefile(PID_FILE, '0')
-        restartKernel()
       },
       {
         env: ENV
@@ -135,7 +126,6 @@ const onRun = async () => {
   }
   await startUnblockMusicService()
   Plugins.message.success('✨ 插件启动成功!')
-  restartKernel()
   return 1
 }
 
@@ -145,7 +135,6 @@ const onRun = async () => {
 const onStartup = async () => {
   if (Plugin.AutoStartOrStop && !(await isUnblockMusicRunning())) {
     await startUnblockMusicService()
-    restartKernel()
     return 1
   }
 }
@@ -156,40 +145,8 @@ const onStartup = async () => {
 const onShutdown = async () => {
   if (Plugin.AutoStartOrStop && (await isUnblockMusicRunning())) {
     await stopUnblockMusicService()
-    restartKernel()
     return 2
   }
-}
-
-/**
- * 插件钩子 - 生成配置时
- */
-const onGenerate = async (config) => {
-  if (!(await isUnblockMusicRunning())) {
-    Log('服务未启用，该插件将不会生效。')
-    return config
-  }
-
-  Log('注入本地代理')
-
-  config.proxies.push({
-    name: '🎶 本地解锁',
-    type: 'http',
-    server: '127.0.0.1',
-    port: Number(Plugin.Port)
-  })
-
-  Log('注入代理组')
-
-  config['proxy-groups'].unshift({
-    name: '🎶 网易音乐',
-    type: 'select',
-    filter: '',
-    proxies: ['DIRECT', '🎶 本地解锁'],
-    'disable-udp': false
-  })
-
-  return config
 }
 
 /**
@@ -201,7 +158,6 @@ const Start = async () => {
   }
   await startUnblockMusicService()
   Plugins.message.success('✨ 插件启动成功!')
-  restartKernel()
   return 1
 }
 
@@ -214,6 +170,5 @@ const Stop = async () => {
   }
   await stopUnblockMusicService()
   Plugins.message.success('✨ 插件停止成功')
-  restartKernel()
   return 2
 }

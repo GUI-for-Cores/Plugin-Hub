@@ -260,7 +260,7 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-unblockneteasemusic.js",
     "path": "data/plugins/plugin-unblockneteasemusic.js",
-    "triggers": ["on::manual", "on::generate"],
+    "triggers": ["on::manual"],
     "menus": {
       "运行服务": "Start",
       "停止服务": "Stop"
