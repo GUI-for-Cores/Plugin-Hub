@@ -254,6 +254,52 @@
     "installed": false
   },
   {
+    "id": "plugin-unblockneteasemusic",
+    "name": "解锁网易云音乐",
+    "description": "解锁网易云音乐插件，服务运行成功后，请手动设置网易云音乐客户端内代理。",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-unblockneteasemusic.js",
+    "path": "data/plugins/plugin-unblockneteasemusic.js",
+    "triggers": ["on::manual", "on::generate"],
+    "menus": {
+      "运行服务": "Start",
+      "停止服务": "Stop"
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_nf183eae",
+        "title": "监听端口",
+        "description": "服务监听端口，默认为 15200",
+        "key": "Port",
+        "component": "Input",
+        "value": "15200",
+        "options": []
+      },
+      {
+        "id": "ID_t8k6f92c",
+        "title": "监听地址",
+        "description": "服务监听地址，默认 127.0.0.1",
+        "key": "Address",
+        "component": "Input",
+        "value": "127.0.0.1",
+        "options": []
+      },
+      {
+        "id": "ID_8aiktkuq",
+        "title": "音源",
+        "description": "选择有兴趣的音源",
+        "key": "Source",
+        "component": "CheckBox",
+        "value": ["kugou", "kuwo", "bilibili"],
+        "options": ["酷狗音乐,kugou", "酷我音乐,kuwo", "咪咕音乐,migu", "YouTube,ytdlp", "B 站音乐,bilibili"]
+      }
+    ],
+    "disabled": false,
+    "install": true,
+    "installed": false
+  },
+  {
     "id": "plugin-tv-helper",
     "name": "电视盒子助手",
     "description": "电视盒子助手，使用ADB工具对电视盒子进行方便的操作！",
