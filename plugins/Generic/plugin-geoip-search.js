@@ -508,19 +508,20 @@ const onRun = async () => {
   const { id } = Plugins.message.info('查询中...', 1000000)
 
   try {
-    const { json } = await Plugins.HttpGetJSON(url)
+    const { header, body } = await Plugins.HttpGet(url)
 
-    if (json.error) {
-      Plugins.confirm('Error❗❗❗', `💥 ${json.reason} 💥`)
+    if (body.error) {
+      Plugins.confirm('Error❗❗❗', `                      💥 ${body.reason} 💥`)
       return
     }
 
     // 根据 country 的值获取对应的 emoji
-    const emoji = flags.get(json.country) || '❓' // 默认值为❓
+    const emoji = flags.get(body.country) || '❓' // 默认值为❓
 
-    const message = `${emoji} ${json.region} ${json.city}
-🌐 IP: ${json.ip}
-🕗 时区: ${json.timezone}`
+    const message = `
+    ${emoji} ${body.region} ${body.city}
+    🌐 IP: ${body.ip}
+    🕗 时区: ${body.timezone}`
 
     Plugins.alert('IP 信息', message)
   } catch (error) {
