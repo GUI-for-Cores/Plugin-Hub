@@ -1,18 +1,18 @@
 const checkIpFraudRisk = async (ip) => {
   const url = `https://${Plugin.hostname}/${Plugin.username}/?ip=${ip}&key=${Plugin.key}&test=0`
-  const { json } = await Plugins.HttpGetJSON(url)
+  const { header, body } = await Plugins.HttpGet(url)
 
-  let status = json.status
-  let error = json.error
+  let status = body.status
+  let error = body.error
 
-  let score = json.score
-  let risk = json.risk
+  let score = body.score
+  let risk = body.risk
 
   if (status === 'error') {
     const text1 = `💥 ${error} 💥`
 
     const message = `
-        ${text1}`
+                      ${text1}`
 
     Plugins.alert('Error❗❗❗', message)
   } else {
@@ -29,21 +29,23 @@ const checkIpFraudRisk = async (ip) => {
       riskemoji = '🟢' // 代表低风险
     }
 
-    const text1 = `🌐 IP: ${ip} ${scoreemoji} Risk score: ${score}`
-    const text2 = `${riskemoji} Discrete risk level: ${risk}`
+    const text1 = `🌐 IP: ${ip}`
+    const text2 = `${scoreemoji} Risk score: ${score}`
+    const text3 = `${riskemoji} Discrete risk level: ${risk}`
 
     const message = `
-        ${text1}
-        ${text2}`
+    ${text1}
+    ${text2}
+    ${text3}`
 
     Plugins.alert('Scamalytics IP 欺诈风险', message)
   }
 }
 
 const getip = async () => {
-  const { json } = await Plugins.HttpGetJSON('https://ipapi.co/json')
+  const { header, body } = await Plugins.HttpGet('https://ipapi.co/json')
   // 将 json 中的值赋给不同的变量
-  let ip = json.ip
+  let ip = body.ip
   return ip
 }
 

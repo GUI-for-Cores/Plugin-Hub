@@ -4,14 +4,14 @@ const onRun = async () => {
 
   const url = 'https://ipapi.co/json'
 
-  const { json } = await Plugins.HttpGetJSON('https://ipapi.co/json')
+  const { header, body } = await Plugins.HttpGet(url)
 
   // 将 json 中的值赋给不同的变量
-  let ip = json.ip
-  let country = json.country
-  let region = json.region
-  let city = json.city
-  let timezone = json.timezone
+  let ip = body.ip
+  let country = body.country
+  let region = body.region
+  let city = body.city
+  let timezone = body.timezone
 
   // 根据 country 的值获取对应的 emoji
   const emoji = flags.get(country) || '❓' // 默认值为❓
