@@ -57,7 +57,7 @@ const installAdGuardHome = async () => {
   const url = `https://github.com/AdguardTeam/AdGuardHome/releases/download/v0.107.45/AdGuardHome_windows_${env.arch}.zip`
   const { id } = Plugins.message.info('下载AdGuardHome压缩包')
   try {
-    await Plugins.Download(url, tmpZip, (progress, total) => {
+    await Plugins.Download(url, tmpZip, {}, (progress, total) => {
       Plugins.message.update(id, '下载AdGuardHome压缩包：' + ((progress / total) * 100).toFixed(2) + '%')
     })
     Log('下载AdGuardHome完成')

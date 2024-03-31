@@ -7,7 +7,7 @@ if (Plugin.EnableDownloadAdb && !(await Plugins.FileExists('data/third/platform-
     if (!(await Plugins.FileExists('data/.cache/adb.zip'))) {
       console.log('未检测到adb缓存，将重新下载')
       id = Plugins.message.info('您已开启自动下载ADB工具，正在下载ADB工具', 200000).id
-      await Plugins.Download('https://dl.google.com/android/repository/platform-tools-latest-windows.zip', 'data/.cache/adb.zip', (p, t) => {
+      await Plugins.Download('https://dl.google.com/android/repository/platform-tools-latest-windows.zip', 'data/.cache/adb.zip', {}, (p, t) => {
         Plugins.message.update(id, '您已开启自动下载ADB工具，正在下载ADB工具：' + ((p / t) * 100).toFixed(1) + '%')
       })
     }

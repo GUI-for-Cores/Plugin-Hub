@@ -87,7 +87,7 @@ const InstallUnblockMusic = async () => {
   const { id } = Plugins.message.info('正在下载...', 999999)
   try {
     await Plugins.Makedir(MUSIC_PATH)
-    await Plugins.Download(BinaryFileUrl, MUSIC_PATH + '/unblockneteasemusic.exe', (c, t) => {
+    await Plugins.Download(BinaryFileUrl, MUSIC_PATH + '/unblockneteasemusic.exe', {}, (c, t) => {
       Plugins.message.update(id, '正在下载...' + ((c / t) * 100).toFixed(2) + '%')
     })
     Plugins.message.update(id, '下载完成')

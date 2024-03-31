@@ -72,7 +72,7 @@ const InstallSubStore = async () => {
   const tmpDir = 'data/.cache/sub-store-frontend'
   try {
     Plugins.message.update(id, '正在下载前端资源')
-    await Plugins.Download(FrontendUrl, tmpZip, (c, t) => {
+    await Plugins.Download(FrontendUrl, tmpZip, {}, (c, t) => {
       Plugins.message.update(id, '正在下载前端资源...' + ((c / t) * 100).toFixed(2) + '%')
     })
     Plugins.message.update(id, '前端资源下载完成，正在解压...')
