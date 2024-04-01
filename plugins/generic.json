@@ -6,7 +6,9 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-configuration-example.js",
     "path": "data/plugins/plugin-configuration-example.js",
-    "triggers": ["on::manual"],
+    "triggers": [
+      "on::manual"
+    ],
     "menus": {},
     "status": 0,
     "configuration": [
@@ -16,8 +18,18 @@
         "description": "这是一个多选示例，返回值是一个字符串数组，例如：['vmess', 'vless', 'shadowsocks']，已经勾选了一些默认值。",
         "key": "checkbox",
         "component": "CheckBox",
-        "value": ["vless", "shadowsocks"],
-        "options": ["vmess", "vless", "trojan", "shadowsocks", "hysteria", "tuic"]
+        "value": [
+          "vless",
+          "shadowsocks"
+        ],
+        "options": [
+          "vmess",
+          "vless",
+          "trojan",
+          "shadowsocks",
+          "hysteria",
+          "tuic"
+        ]
       },
       {
         "id": "ID_xwfe0u0h",
@@ -43,7 +55,11 @@
         "description": "这是一个输入数组示例，返回值是一个字符串数组：['字符串1', '字符串2']",
         "key": "inputlist",
         "component": "InputList",
-        "value": ["google.com", "openai.com", "youtube.com"],
+        "value": [
+          "google.com",
+          "openai.com",
+          "youtube.com"
+        ],
         "options": []
       },
       {
@@ -65,7 +81,12 @@
         "key": "radio",
         "component": "Radio",
         "value": "mihomo",
-        "options": ["sing-box", "mihomo", "xray", "v2ray"]
+        "options": [
+          "sing-box",
+          "mihomo",
+          "xray",
+          "v2ray"
+        ]
       },
       {
         "id": "ID_d0rgw5vn",
@@ -74,7 +95,11 @@
         "key": "select",
         "component": "Select",
         "value": "option2",
-        "options": ["google.com", "baidu.com", "bing.com"]
+        "options": [
+          "google.com",
+          "baidu.com",
+          "bing.com"
+        ]
       },
       {
         "id": "ID_sgnvsolc",
@@ -106,13 +131,35 @@
     "installed": false
   },
   {
+    "id": "plugin-live2d-widget",
+    "name": "Live2D 看板娘",
+    "description": "把萌萌哒的看板娘抱回家 (ノ≧∇≦)ノ",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-live2d-widget.js",
+    "path": "data/plugins/plugin-live2d-widget.js",
+    "triggers": [
+      "on::manual",
+      "on::startup"
+    ],
+    "menus": {},
+    "status": 0,
+    "configuration": [],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-adguardhome",
     "name": "AdGuardHome",
     "description": "集成AdGuardHome程序。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-adguardhome.js",
     "path": "data/plugins/plugin-adguardhome.js",
-    "triggers": ["on::manual", "on::startup", "on::shutdown"],
+    "triggers": [
+      "on::manual",
+      "on::startup",
+      "on::shutdown"
+    ],
     "menus": {
       "运行服务": "Start",
       "停止服务": "Stop",
@@ -160,7 +207,11 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sub-store-v2.js",
     "path": "data/plugins/plugin-sub-store-v2.js",
-    "triggers": ["on::manual", "on::startup", "on::shutdown"],
+    "triggers": [
+      "on::manual",
+      "on::startup",
+      "on::shutdown"
+    ],
     "menus": {
       "启动服务": "Start",
       "停止服务": "Stop"
@@ -233,7 +284,11 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sub-store.js",
     "path": "data/plugins/plugin-sub-store.js",
-    "triggers": ["on::manual", "on::startup", "on::shutdown"],
+    "triggers": [
+      "on::manual",
+      "on::startup",
+      "on::shutdown"
+    ],
     "menus": {
       "更新Sub-Store": "onUpdate"
     },
@@ -260,7 +315,9 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-unblockneteasemusic.js",
     "path": "data/plugins/plugin-unblockneteasemusic.js",
-    "triggers": ["on::manual"],
+    "triggers": [
+      "on::manual"
+    ],
     "menus": {
       "运行服务": "Start",
       "停止服务": "Stop"
@@ -291,8 +348,18 @@
         "description": "选择有兴趣的音源",
         "key": "Source",
         "component": "CheckBox",
-        "value": ["kugou", "kuwo", "bilibili"],
-        "options": ["酷狗音乐,kugou", "酷我音乐,kuwo", "咪咕音乐,migu", "YouTube,ytdlp", "B 站音乐,bilibili"]
+        "value": [
+          "kugou",
+          "kuwo",
+          "bilibili"
+        ],
+        "options": [
+          "酷狗音乐,kugou",
+          "酷我音乐,kuwo",
+          "咪咕音乐,migu",
+          "YouTube,ytdlp",
+          "B 站音乐,bilibili"
+        ]
       }
     ],
     "disabled": false,
@@ -306,7 +373,9 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-tv-helper.js",
     "path": "data/plugins/plugin-tv-helper.js",
-    "triggers": ["on::manual"],
+    "triggers": [
+      "on::manual"
+    ],
     "menus": {},
     "status": 0,
     "configuration": [
@@ -349,7 +418,9 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-index-the-proxy-name.js",
     "path": "data/plugins/plugin-index-the-proxy-name.js",
-    "triggers": ["on::subscribe"],
+    "triggers": [
+      "on::subscribe"
+    ],
     "menus": {},
     "status": 0,
     "configuration": [],
@@ -364,7 +435,9 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-uwp-loopback-exempt.js",
     "path": "data/plugins/plugin-uwp-loopback-exempt.js",
-    "triggers": ["on::manual"],
+    "triggers": [
+      "on::manual"
+    ],
     "menus": {},
     "status": 0,
     "configuration": [],
@@ -379,7 +452,9 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-terminal-proxy.js",
     "path": "data/plugins/plugin-terminal-proxy.js",
-    "triggers": ["on::manual"],
+    "triggers": [
+      "on::manual"
+    ],
     "menus": {},
     "configuration": [
       {
@@ -403,7 +478,9 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-modify-proxy-name.js",
     "path": "data/plugins/plugin-modify-proxy-name.js",
-    "triggers": ["on::subscribe"],
+    "triggers": [
+      "on::subscribe"
+    ],
     "menus": {},
     "status": 0,
     "configuration": [
@@ -432,7 +509,11 @@
         "key": "EnableIndexProxyName",
         "component": "Radio",
         "value": "0",
-        "options": ["否,0", "所有节点按顺序标号,1", "仅对相同节点进行标号,2"]
+        "options": [
+          "否,0",
+          "所有节点按顺序标号,1",
+          "仅对相同节点进行标号,2"
+        ]
       },
       {
         "id": "ID_oqfaqveh",
@@ -455,7 +536,9 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-ip-geolocation.js",
     "path": "data/plugins/plugin-ip-geolocation.js",
-    "triggers": ["on::manual"],
+    "triggers": [
+      "on::manual"
+    ],
     "menus": {},
     "status": 0,
     "configuration": [],
@@ -470,7 +553,9 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-speedtest.js",
     "path": "data/plugins/plugin-speedtest.js",
-    "triggers": ["on::manual"],
+    "triggers": [
+      "on::manual"
+    ],
     "menus": {},
     "status": 0,
     "configuration": [
@@ -481,7 +566,16 @@
         "key": "testFileSize",
         "component": "Select",
         "value": "10",
-        "options": ["5MB,5", "10MB,10", "20MB,20", "40MB,40", "100MB,100", "200MB,200", "0.5GB,512", "1GB,1024"]
+        "options": [
+          "5MB,5",
+          "10MB,10",
+          "20MB,20",
+          "40MB,40",
+          "100MB,100",
+          "200MB,200",
+          "0.5GB,512",
+          "1GB,1024"
+        ]
       }
     ],
     "disabled": false,
@@ -495,7 +589,9 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-geoip-search.js",
     "path": "data/plugins/plugin-geoip-search.js",
-    "triggers": ["on::manual"],
+    "triggers": [
+      "on::manual"
+    ],
     "menus": {},
     "status": 0,
     "configuration": [],
@@ -510,7 +606,9 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-scamalytics-ip-fraud-risk.js",
     "path": "data/plugins/plugin-scamalytics-ip-fraud-risk.js",
-    "triggers": ["on::manual"],
+    "triggers": [
+      "on::manual"
+    ],
     "menus": {
       "手动模式": "manual"
     },
@@ -555,7 +653,9 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-open-yacd-meta-dashboard.js",
     "path": "data/plugins/plugin-open-yacd-meta-dashboard.js",
-    "triggers": ["on::manual"],
+    "triggers": [
+      "on::manual"
+    ],
     "menus": {},
     "status": 0,
     "configuration": [],
@@ -570,7 +670,9 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-generate-report.js",
     "path": "data/plugins/plugin-generate-report.js",
-    "triggers": ["on::manual"],
+    "triggers": [
+      "on::manual"
+    ],
     "menus": {},
     "status": 0,
     "configuration": [],
@@ -585,7 +687,10 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-custom-theme.js",
     "path": "data/plugins/plugin-custom-theme.js",
-    "triggers": ["on::manual", "on::startup"],
+    "triggers": [
+      "on::manual",
+      "on::startup"
+    ],
     "menus": {},
     "status": 0,
     "configuration": [
