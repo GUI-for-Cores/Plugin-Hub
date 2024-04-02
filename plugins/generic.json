@@ -143,7 +143,26 @@
     ],
     "menus": {},
     "status": 0,
-    "configuration": [],
+    "configuration": [
+      {
+        "id": "ID_qfyj3c1a",
+        "title": "让看板娘闭嘴",
+        "description": "",
+        "key": "DisableMessage",
+        "component": "Switch",
+        "value": true,
+        "options": []
+      },
+      {
+        "id": "ID_gytm0oyf",
+        "title": "自动运行看板娘",
+        "description": "",
+        "key": "AutoStart",
+        "component": "Switch",
+        "value": true,
+        "options": []
+      }
+    ],
     "disabled": false,
     "install": false,
     "installed": false
