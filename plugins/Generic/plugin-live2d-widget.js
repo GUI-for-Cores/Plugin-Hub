@@ -3,7 +3,7 @@
  * 另外：插件系统不推荐动态载入js、css，因此此插件并不符合规范！
  */
 
-const loadLive2DWidget = () => {
+const loadLive2DWidget = async () => {
   const scritp = document.createElement('script')
   scritp.innerHTML = /* javascript */ `
   // live2d_path 参数建议使用绝对路径
@@ -52,6 +52,36 @@ const loadLive2DWidget = () => {
   }
   `
   document.body.appendChild(scritp)
+
+  // 循环查找dom
+  let changeModelBtn = null
+  let tryCount = 0
+  while (!changeModelBtn && tryCount < 10) {
+    changeModelBtn = document.getElementById('waifu-tool-switch-model')
+    tryCount += 1
+    await Plugins.sleep(1000)
+  }
+
+  // 点击切换模型按钮时，获取模型ID，然后APP换肤
+  const colorMap = {
+    5: 'rgb(166,131,216)',
+    6: 'rgb(212,224,236)',
+    0: 'rgb(80,60,83)',
+    1: 'rgb(250,245,132)',
+    2: 'rgb(93,147,219)',
+    3: 'rgba(116,194,255)',
+    4: 'rgb(209,122,83)'
+  }
+
+  if (changeModelBtn) {
+    changeModelBtn.onclick = () => {
+      const modelId = localStorage.getItem('modelId')
+      const modelTexturesId = localStorage.getItem('modelTexturesId')
+      console.log(modelId, modelTexturesId)
+      document.documentElement.style.setProperty('--primary-color', colorMap[modelId])
+      document.documentElement.style.setProperty('--secondary-color', colorMap[modelId])
+    }
+  }
 }
 
 const onRun = () => {
