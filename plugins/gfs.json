@@ -1,11 +1,11 @@
 [
   {
-    "id": "plugin-sub-conveter",
+    "id": "plugin-sub-converter",
     "name": "Sing-Box 订阅转换",
     "description": "Sing-Box订阅转换工具，支持Clash订阅转Sing-Box。",
     "type": "Http",
-    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-sub-conveter.js",
-    "path": "data/plugins/plugin-sub-conveter.js",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-sub-converter.js",
+    "path": "data/plugins/plugin-sub-converter.js",
     "triggers": ["on::subscribe"],
     "menus": {},
     "status": 0,
