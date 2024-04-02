@@ -18,16 +18,11 @@ async function updateAccesssToken(refreshToken) {
       refresh_token: refreshToken
     }
   )
-  console.log('updateAccesssToken =>', body)
-  const { code, message, nick_name, refresh_token, access_token } = body
+  const { code, message, refresh_token, access_token } = body
   if (code) {
-    if (code === 'RefreshTokenExpired' || code === 'InvalidParameter.RefreshToken') {
-      throw 'refresh_token 已过期或无效'
-    } else {
-      throw message
-    }
+    throw message
   }
-  return { nick_name, refresh_token, access_token }
+  return { refresh_token, access_token }
 }
 
 //签到列表
@@ -44,37 +39,22 @@ async function sign_in(access_token) {
     }
   )
 
-  console.log('sign_in =>', body)
-
-  if (!body.success) {
+  if (body.code) {
     throw body.message
   }
 
   const { signInLogs, signInCount } = body.result
-  const currentSignInfo = signInLogs[signInCount - 1] // 当天签到信息
-
-  console.log(`本月累计签到 ${signInCount} 天`)
 
   // 未领取奖励列表
   const rewards = signInLogs.filter((v) => v.status === 'normal' && !v.isReward)
 
   for await (reward of rewards) {
-    const signInDay = reward.day
-    try {
-      const rewardInfo = await getReward(access_token, signInDay)
-      console.log(`第${signInDay}天奖励领取成功: 获得${rewardInfo.name || ''}${rewardInfo.description || ''}`)
-    } catch (e) {
-      console.log(`第${signInDay}天奖励领取失败:`, e)
-    }
+    await getReward(access_token, reward.day).catch((err) => {
+      console.log('领取奖励失败：', err)
+    })
   }
 
-  if (currentSignInfo.isReward) {
-    const msg = `今日签到奖励：
-${currentSignInfo.calendarChinese}(${currentSignInfo.calendarMonth}${currentSignInfo.calendarDay})
-${currentSignInfo.reward.name}
-${currentSignInfo.reward.subNotice}
-`
-  }
+  return `累计签到${signInCount}天。`
 }
 
 // 领取奖励
@@ -97,24 +77,54 @@ async function getReward(access_token, signInDay) {
 }
 
 const SignIn = async () => {
-  if (!Plugin.RefreshTokenList) throw '未提供任何账号'
-  const res = []
-  for (let i = 0; i < Plugin.RefreshTokenList.length; i++) {
-    const refreshToken = Plugin.RefreshTokenList[i]
-    try {
-      // TODO: 保存 refresh_token 和 access_token 和过期时间
-      const { nick_name, refresh_token, access_token } = await updateAccesssToken(refreshToken)
-      await sign_in(access_token)
-      res.push(`账号【${nick_name}】签到成功`)
-    } catch (e) {
-      console.log(e)
-      res.push(`账号【${nick_name}】签到失败`)
+  if (!Plugin.RefreshTokenList?.length) throw '未提供任何账号'
+
+  const TOKEN_CONFIG = 'data/third/aliyunpan-signin/config.json'
+
+  const tokenConfig = (await Plugins.ignoredError(Plugins.Readfile, TOKEN_CONFIG)) || '{}'
+  const TokenMap = JSON.parse(tokenConfig)
+
+  async function refreshAccessToken(token, refreshToken) {
+    const { refresh_token, access_token } = await updateAccesssToken(refreshToken)
+    TokenMap[token] = {
+      refresh_token,
+      access_token
     }
   }
+
+  const res = []
+
+  for (let i = 0; i < Plugin.RefreshTokenList.length; i++) {
+    const token = Plugin.RefreshTokenList[i]
+    const { refresh_token: latestRefreshToken = token, access_token: latestAccessToken } = TokenMap[token] || {}
+
+    try {
+      if (!latestAccessToken) {
+        await refreshAccessToken(token, latestRefreshToken)
+      }
+      if (TokenMap[token]?.access_token) {
+        try {
+          const days = await sign_in(TokenMap[token].access_token)
+          res.push(`账号【${token.slice(0, 8)}】签到成功，` + days)
+        } catch (error) {
+          await refreshAccessToken(token, TokenMap[token]?.refresh_token || token)
+          const days = await sign_in(TokenMap[token].access_token)
+          res.push(`账号【${token.slice(0, 8)}】签到成功，` + days)
+        }
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  await Plugins.Writefile(TOKEN_CONFIG, JSON.stringify(TokenMap, null, 2))
+
+  return res
 }
 
 const onRun = async () => {
-  await SignIn()
+  const res = await SignIn()
+  Plugins.alert('签到信息', res.join('\n'))
 }
 
 const onTask = async () => {

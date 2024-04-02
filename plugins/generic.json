@@ -636,5 +636,30 @@
     "disabled": false,
     "install": false,
     "installed": false
+  },
+  {
+    "id": "plugin-aliyunpan-signin",
+    "name": "阿里云盘签到",
+    "description": "阿里云盘自动签到，可配合计划任务系统。",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-aliyunpan-signin.js",
+    "path": "data/plugins/plugin-aliyunpan-signin.js",
+    "triggers": ["on::manual"],
+    "menus": {},
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_635535xp",
+        "title": "RefreshToken列表",
+        "description": "",
+        "key": "RefreshTokenList",
+        "component": "InputList",
+        "value": [],
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
   }
 ]
