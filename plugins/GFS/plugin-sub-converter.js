@@ -6,13 +6,22 @@ const CONVERTER_PATH = 'data/third/subconverter'
 const CONVERTER_FILE = CONVERTER_PATH + '/sing-box-subconverter.exe'
 
 const onSubscribe = async (proxies, metadata) => {
-  if (proxies.some((proxy) => proxy.name && !proxy.tag)) {
-    const tmp = await Plugins.AbsolutePath(`data/.cache/conveter_${metadata.id}.yaml`)
+  const isClash = proxies.some((proxy) => proxy.name && !proxy.tag)
+  const isBase64 = proxies.length === 1 && proxies[0].base64
 
-    await Plugins.Writefile(tmp, Plugins.YAML.stringify({ proxies }))
+  if (isClash || isBase64) {
+    const tmp = await Plugins.AbsolutePath(`data/.cache/conveter_${metadata.id}.${isClash ? 'yaml' : 'txt'}`)
+
+    if (isClash) {
+      await Plugins.Writefile(tmp, Plugins.YAML.stringify({ proxies }))
+    } else {
+      await Plugins.Writefile(tmp, atob(proxies[0].base64))
+    }
+
     await Plugins.Exec(CONVERTER_FILE, ['--path', tmp, '--out', tmp])
 
     const str = await Plugins.Readfile(tmp)
+
     proxies = JSON.parse(str)
 
     await Plugins.Removefile(tmp)
