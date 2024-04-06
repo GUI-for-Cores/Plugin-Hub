@@ -58,6 +58,7 @@ const loadLive2DWidget = async () => {
   let tryCount = 0
   while (!changeModelBtn && tryCount < 10) {
     changeModelBtn = document.getElementById('waifu-tool-switch-model')
+    if (changeModelBtn) break
     tryCount += 1
     await Plugins.sleep(1000)
   }
