@@ -150,13 +150,13 @@ const onRun = async () => {
     }
   }
 
-  if (!(await Plugins.FileExists('data/rulesets/direct.json')) && ids.includes('direct')) {
+  if (ids.includes('direct') && !(await Plugins.FileExists('data/rulesets/direct.json'))) {
     Plugins.Writefile('data/rulesets/direct.json', '{\n  "version": 1,\n  "rules": []\n}')
   }
-  if (!(await Plugins.FileExists('data/rulesets/reject.json')) && ids.includes('reject')) {
+  if (ids.includes('reject') && !(await Plugins.FileExists('data/rulesets/reject.json'))) {
     Plugins.Writefile('data/rulesets/reject.json', '{\n  "version": 1,\n  "rules": []\n}')
   }
-  if (!(await Plugins.FileExists('data/rulesets/proxy.json')) && ids.includes('proxy')) {
+  if (ids.includes('proxy') && !(await Plugins.FileExists('data/rulesets/proxy.json'))) {
     Plugins.Writefile('data/rulesets/proxy.json', '{\n  "version": 1,\n  "rules": []\n}')
   }
 

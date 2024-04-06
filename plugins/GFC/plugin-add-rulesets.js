@@ -215,13 +215,13 @@ const onRun = async () => {
     }
   }
 
-  if (!(await Plugins.FileExists('data/rulesets/direct.yaml')) && ids.includes('direct')) {
+  if (ids.includes('direct') && !(await Plugins.FileExists('data/rulesets/direct.yaml'))) {
     Plugins.Writefile('data/rulesets/direct.yaml', 'payload: []')
   }
-  if (!(await Plugins.FileExists('data/rulesets/reject.yaml')) && ids.includes('reject')) {
+  if (ids.includes('reject') && !(await Plugins.FileExists('data/rulesets/reject.yaml'))) {
     Plugins.Writefile('data/rulesets/reject.yaml', 'payload: []')
   }
-  if (!(await Plugins.FileExists('data/rulesets/proxy.yaml')) && ids.includes('proxy')) {
+  if (ids.includes('proxy') && !(await Plugins.FileExists('data/rulesets/proxy.yaml'))) {
     Plugins.Writefile('data/rulesets/proxy.yaml', 'payload: []')
   }
 
