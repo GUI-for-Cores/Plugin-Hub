@@ -1,3 +1,7 @@
+/**
+ * 本插件使用项目：https://github.com/sub-store-org/Sub-Store
+ */
+
 const BackendUrl = 'https://github.com/sub-store-org/Sub-Store/releases/latest/download/sub-store.bundle.js'
 const FrontendUrl = 'https://github.com/sub-store-org/Sub-Store-Front-End/releases/latest/download/dist.zip'
 const SUBSTORE_PATH = 'data/third/sub-store'

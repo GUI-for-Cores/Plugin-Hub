@@ -1,3 +1,7 @@
+/**
+ * 本插件参考项目：https://github.com/MetaCubeX/mihomo/blob/Alpha/common/convert/converter.go
+ */
+
 const onRun = async () => {
   const res = await Plugins.prompt('请输入分享链接：', '', { placeholder: 'vmess://' })
   const [schema, body] = res.split('://')

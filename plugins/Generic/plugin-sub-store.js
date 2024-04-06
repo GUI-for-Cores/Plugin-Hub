@@ -1,3 +1,7 @@
+/**
+ * 本插件使用项目：https://github.com/sub-store-org/Sub-Store
+ */
+
 const subStoreDir = 'data/plugins/assets/plugin-sub-store-assets'
 const subStoreConfigPath = 'data/plugins/assets/sub-store-config'
 const subStoreSrcPath = subStoreDir + '/sub-store.min.js'
