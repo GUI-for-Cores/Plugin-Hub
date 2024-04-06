@@ -188,6 +188,43 @@
     "installed": false
   },
   {
+    "id": "plugin-frp-client",
+    "name": "frp 内网穿透",
+    "description": "FRP内网穿透客户端程序。",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-frp-client.js",
+    "path": "data/plugins/plugin-frp-client.js",
+    "triggers": ["on::manual", "on::startup", "on::shutdown"],
+    "menus": {
+      "启动服务": "Start",
+      "停止服务": "Stop"
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_k5ppluon",
+        "title": "frpc 配置",
+        "description": "TOML格式",
+        "key": "Config",
+        "component": "CodeViewer",
+        "value": "# frpc.toml\nserverAddr = \"x.x.x.x\"\nserverPort = 7000\n\n[[proxies]]\nname = \"http\"\ntype = \"tcp\"\nlocalIP = \"127.0.0.1\"\nlocalPort = 8080\nremotePort = 8090",
+        "options": []
+      },
+      {
+        "id": "ID_1glttoka",
+        "title": "跟随GUI启动或停止",
+        "description": "",
+        "key": "AutoStartOrStop",
+        "component": "Switch",
+        "value": false,
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": true,
+    "installed": false
+  },
+  {
     "id": "plugin-sub-store-v2",
     "name": "Sub-Store V2",
     "description": "高级订阅管理工具",
