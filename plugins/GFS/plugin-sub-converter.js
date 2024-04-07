@@ -22,7 +22,7 @@ const onSubscribe = async (proxies, metadata) => {
 
     const str = await Plugins.Readfile(tmp)
 
-    proxies = JSON.parse(str)
+    proxies = JSON.parse(str).filter((proxy) => !['selector', 'urltest', 'direct', 'block', 'dns'].includes(proxy.type))
 
     await Plugins.Removefile(tmp)
   }
