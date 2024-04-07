@@ -22,12 +22,12 @@ const onSubscribe = async (proxies, metadata) => {
 
     const str = await Plugins.Readfile(tmp)
 
-    proxies = JSON.parse(str).filter((proxy) => !['selector', 'urltest', 'direct', 'block', 'dns'].includes(proxy.type))
+    proxies = JSON.parse(str)
 
     await Plugins.Removefile(tmp)
   }
 
-  return proxies
+  return proxies.filter((proxy) => !['selector', 'urltest', 'direct', 'block', 'dns'].includes(proxy.type))
 }
 
 const onInstall = async () => {
