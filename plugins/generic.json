@@ -325,6 +325,52 @@
     "installed": false
   },
   {
+    "id": "plugin-sync-configuration",
+    "name": "配置同步",
+    "description": "如果你有一台服务器...",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sync-configuration.js",
+    "path": "data/plugins/plugin-sync-configuration.js",
+    "triggers": ["on::manual", "on::startup"],
+    "menus": {
+      "立即备份": "Backup",
+      "同步至本地": "Sync"
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_u3272842",
+        "title": "服务器地址",
+        "description": "",
+        "key": "ServerAddress",
+        "component": "Input",
+        "value": "127.0.0.1:8080",
+        "options": []
+      },
+      {
+        "id": "ID_imjlb4rx",
+        "title": "密钥",
+        "description": "加密、解密使用的密钥",
+        "key": "Secret",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_4hhfojgk",
+        "title": "认证 TOKEN",
+        "description": "Authorization，需要和服务端保持一致。",
+        "key": "Authorization",
+        "component": "Input",
+        "value": "",
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": true,
+    "installed": false
+  },
+  {
     "id": "plugin-unblockneteasemusic",
     "name": "解锁网易云音乐",
     "description": "解锁网易云音乐插件，服务运行成功后，请手动设置网易云音乐客户端内代理。",
