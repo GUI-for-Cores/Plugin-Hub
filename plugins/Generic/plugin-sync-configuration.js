@@ -199,6 +199,7 @@ async function httpGet(url) {
   if (!Plugin.Authorization) throw '未配置TOKEN'
   const { body } = await Plugins.HttpGet(`http://${Plugin.ServerAddress}${url}`, {
     'User-Agent': 'GUI.for.Cores',
+    Connection: 'close',
     Authorization: 'Bearer ' + Plugin.Authorization
   })
   // 因为GUI封装的网络请求没有处理响应码为非200的情况
@@ -215,6 +216,7 @@ function httpPost(url, data) {
     {
       'User-Agent': 'GUI.for.Cores',
       'Content-Type': 'application/json',
+      Connection: 'close',
       Authorization: 'Bearer ' + Plugin.Authorization
     },
     data
@@ -226,6 +228,7 @@ function httpDelete(url) {
   return Plugins.HttpDelete(`http://${Plugin.ServerAddress}${url}`, {
     'User-Agent': 'GUI.for.Cores',
     'Content-Type': 'application/json',
+    Connection: 'close',
     Authorization: 'Bearer ' + Plugin.Authorization
   })
 }
