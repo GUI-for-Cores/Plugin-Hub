@@ -25,8 +25,9 @@ const onRun = async () => {
  */
 const Sync = async () => {
   const list = await httpGet('/gists')
-  if (list.length === 0) throw '没有可同步的备份'
-  const gistId = await Plugins.picker.single('Gists 备份列表如下：', filterList(list), [])
+  const _list = filterList(list)
+  if (_list.length === 0) throw '没有可同步的备份'
+  const gistId = await Plugins.picker.single('Gists 备份列表如下：', _list, [])
 
   const files = Object.values(list.find((v) => v.id === gistId).files)
 
@@ -47,6 +48,10 @@ const Sync = async () => {
   }
 
   Plugins.message.update(id, '同步完成，即将重载界面', 'success')
+
+  const kernelApiStore = Plugins.useKernelApiStore()
+  kernelApiStore.stopKernel()
+
   await Plugins.sleep(1500).then(() => Plugins.message.destroy(id))
   await Plugins.WindowReloadApp()
 }
@@ -75,18 +80,21 @@ const Backup = async () => {
     const file = files[i]
     Plugins.message.update(id, `正在创建备份...[ ${i + 1}/${files.length} ]`)
     try {
-      const text = await Plugins.Readfile(file)
-      filesMap[file.replaceAll('/', '\\')] = { content: encrypt(text) }
+      const text = await Plugins.ignoredError(Plugins.Readfile, file)
+      if (text) {
+        filesMap[file.replaceAll('/', '\\')] = { content: encrypt(text) }
+      }
     } catch (error) {
       console.log(error)
-      Plugins.message.update(id, `[${file}] 创建备份失败`, 'error')
-      await Plugins.sleep(1000)
+      Plugins.message.destroy(id)
+      throw error
     } finally {
       await Plugins.sleep(100)
     }
   }
 
   try {
+    if (Object.keys(filesMap).length === 0) throw '缺少备份文件'
     Plugins.message.update(id, '正在备份...', 'info')
     await httpPost('/gists', {
       description: getPrefix() + '_' + new Date().toLocaleString() + '_备份',
@@ -95,7 +103,7 @@ const Backup = async () => {
     })
     Plugins.message.update(id, '备份完成', 'success')
   } catch (error) {
-    Plugins.message.update(id, `[${file}] 备份失败`, 'error')
+    Plugins.message.update(id, `备份失败:` + (error.message || error), 'error')
   }
 
   await Plugins.sleep(1500).then(() => Plugins.message.destroy(id))
@@ -103,14 +111,16 @@ const Backup = async () => {
 
 const List = async () => {
   const list = await httpGet('/gists')
-  if (list.length === 0) throw '备份列表为空'
-  await Plugins.picker.single('Gists 备份列表如下：', filterList(list), [])
+  const _list = filterList(list)
+  if (_list.length === 0) throw '备份列表为空'
+  await Plugins.picker.single('Gists 备份列表如下：', _list, [])
 }
 
 const Remove = async () => {
   const list = await httpGet('/gists')
-  if (list.length === 0) throw '没有可管理的备份'
-  const ids = await Plugins.picker.multi('请勾选要删除的备份', filterList(list), [])
+  const _list = filterList(list)
+  if (_list.length === 0) throw '没有可管理的备份'
+  const ids = await Plugins.picker.multi('请勾选要删除的备份', _list, [])
   for (let i = 0; i < ids.length; i++) {
     await httpDelete('/gists/' + ids[i])
     Plugins.message.success('删除成功: ' + ids[i])
@@ -170,6 +180,7 @@ function loadDependence() {
  */
 function encrypt(data) {
   if (!Plugin.Secret) throw '未配置密钥'
+  if (!window.CryptoJS) throw '加密套件未加载，请卸载并重新安装插件'
   return window.CryptoJS.AES.encrypt(data, Plugin.Secret).toString()
 }
 
@@ -178,6 +189,7 @@ function encrypt(data) {
  */
 function decrypt(data) {
   if (!Plugin.Secret) throw '未配置密钥'
+  if (!window.CryptoJS) throw '加密套件未加载，请卸载并重新安装插件'
   return window.CryptoJS.AES.decrypt(data, Plugin.Secret).toString(CryptoJS.enc.Utf8)
 }
 
@@ -190,12 +202,15 @@ async function httpGet(url) {
     Connection: 'close',
     Authorization: 'Bearer ' + Plugin.Authorization
   })
+  if (body.message) {
+    throw body
+  }
   return body
 }
 
-function httpPost(url, data) {
+async function httpPost(url, data) {
   if (!Plugin.Authorization) throw '未配置TOKEN'
-  return Plugins.HttpPost(
+  const { body } = await Plugins.HttpPost(
     `https://api.github.com${url}`,
     {
       'User-Agent': 'GUI.for.Cores',
@@ -207,11 +222,15 @@ function httpPost(url, data) {
     },
     data
   )
+  if (body.message) {
+    throw body
+  }
+  return body
 }
 
-function httpDelete(url) {
+async function httpDelete(url) {
   if (!Plugin.Authorization) throw '未配置TOKEN'
-  return Plugins.HttpDelete(`https://api.github.com${url}`, {
+  const { body } = await Plugins.HttpDelete(`https://api.github.com${url}`, {
     'User-Agent': 'GUI.for.Cores',
     'Content-Type': 'application/json',
     'X-GitHub-Api-Version': '2022-11-28',
@@ -219,4 +238,8 @@ function httpDelete(url) {
     Connection: 'close',
     Authorization: 'Bearer ' + Plugin.Authorization
   })
+  if (body.message) {
+    throw body
+  }
+  return body
 }

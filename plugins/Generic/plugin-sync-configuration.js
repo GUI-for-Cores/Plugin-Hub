@@ -59,6 +59,10 @@ const Sync = async () => {
   }
 
   Plugins.message.update(id, '同步完成，即将重载界面', 'success')
+
+  const kernelApiStore = Plugins.useKernelApiStore()
+  kernelApiStore.stopKernel()
+
   await Plugins.sleep(1500).then(() => Plugins.message.destroy(id))
   await Plugins.WindowReloadApp()
 }
