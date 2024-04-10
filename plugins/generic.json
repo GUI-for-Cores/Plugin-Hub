@@ -371,6 +371,43 @@
     "installed": false
   },
   {
+    "id": "plugin-sync-configuration-gists",
+    "name": "同步配置 - Gists",
+    "description": "使用Gists同步GUI配置。",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sync-configuration-gists.js",
+    "path": "data/plugins/plugin-sync-configuration-gists.js",
+    "triggers": ["on::manual", "on::startup"],
+    "menus": {
+      "立即备份": "Backup",
+      "同步至本地": "Sync"
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_u3272842",
+        "title": "TOKEN",
+        "description": "拥有Gists访问权限的 token",
+        "key": "Authorization",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_imjlb4rx",
+        "title": "密钥",
+        "description": "加密、解密使用的密钥",
+        "key": "Secret",
+        "component": "Input",
+        "value": "",
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": true,
+    "installed": false
+  },
+  {
     "id": "plugin-unblockneteasemusic",
     "name": "解锁网易云音乐",
     "description": "解锁网易云音乐插件，服务运行成功后，请手动设置网易云音乐客户端内代理。",
