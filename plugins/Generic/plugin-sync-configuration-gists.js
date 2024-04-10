@@ -202,8 +202,9 @@ async function httpGet(url) {
     Connection: 'close',
     Authorization: 'Bearer ' + Plugin.Authorization
   })
+  console.log(body)
   if (body.message) {
-    throw body
+    throw body.message
   }
   return body
 }
@@ -223,7 +224,7 @@ async function httpPost(url, data) {
     data
   )
   if (body.message) {
-    throw body
+    throw body.message
   }
   return body
 }
@@ -239,7 +240,7 @@ async function httpDelete(url) {
     Authorization: 'Bearer ' + Plugin.Authorization
   })
   if (body.message) {
-    throw body
+    throw body.message
   }
   return body
 }

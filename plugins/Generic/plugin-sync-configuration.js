@@ -25,21 +25,9 @@ const onRun = async () => {
  */
 const Sync = async () => {
   const list = await httpGet('/backup')
-  if (list.length === 0) throw '没有可同步的备份'
-  const backupId = await Plugins.picker.single(
-    '请选择要同步至本地的备份',
-    list.reverse().map((v) => {
-      const date = new Date(Number(v))
-      const YYYY = date.getFullYear()
-      const MM = date.getMonth() + 1
-      const DD = date.getDate()
-      const hh = date.getHours()
-      const mm = date.getMinutes()
-      const ss = date.getSeconds()
-      return { label: `${YYYY}/${MM}/${DD} ${hh}:${mm}:${ss}`, value: v }
-    }),
-    [list.shift()]
-  )
+  const _list = filterList(list)
+  if (_list.length === 0) throw '没有可同步的备份'
+  const backupId = await Plugins.picker.single('请选择要同步至本地的备份', _list, [list.shift()])
 
   const files = await httpGet('/backup?id=' + backupId)
 
@@ -110,40 +98,16 @@ const Backup = async () => {
 
 const List = async () => {
   const list = await httpGet('/backup')
-  if (list.length === 0) throw '备份列表为空'
-  await Plugins.picker.single(
-    '服务器备份列表如下：',
-    list.reverse().map((v) => {
-      const date = new Date(Number(v))
-      const YYYY = date.getFullYear()
-      const MM = date.getMonth() + 1
-      const DD = date.getDate()
-      const hh = date.getHours()
-      const mm = date.getMinutes()
-      const ss = date.getSeconds()
-      return { label: `${YYYY}/${MM}/${DD} ${hh}:${mm}:${ss}`, value: v }
-    }),
-    []
-  )
+  const _list = filterList(list)
+  if (_list.length === 0) throw '备份列表为空'
+  await Plugins.picker.single('服务器备份列表如下：', _list, [])
 }
 
 const Remove = async () => {
   const list = await httpGet('/backup')
-  if (list.length === 0) throw '没有可管理的备份'
-  const ids = await Plugins.picker.multi(
-    '请勾选要删除的备份',
-    list.reverse().map((v) => {
-      const date = new Date(Number(v))
-      const YYYY = date.getFullYear()
-      const MM = date.getMonth() + 1
-      const DD = date.getDate()
-      const hh = date.getHours()
-      const mm = date.getMinutes()
-      const ss = date.getSeconds()
-      return { label: `${YYYY}/${MM}/${DD} ${hh}:${mm}:${ss}`, value: v }
-    }),
-    []
-  )
+  const _list = filterList(list)
+  if (_list.length === 0) throw '没有可管理的备份'
+  const ids = await Plugins.picker.multi('请勾选要删除的备份', _list, [])
   await httpDelete('/backup?ids=' + ids.join(','))
   Plugins.message.success('删除成功')
 }
@@ -163,6 +127,19 @@ const onStartup = async () => {
   if (Plugin.installed) {
     await loadDependence()
   }
+}
+
+const filterList = (list) => {
+  return list.reverse().map((v) => {
+    const date = new Date(Number(v))
+    const YYYY = date.getFullYear()
+    const MM = date.getMonth() + 1
+    const DD = date.getDate()
+    const hh = date.getHours()
+    const mm = date.getMinutes()
+    const ss = date.getSeconds()
+    return { label: `${YYYY}/${MM}/${DD} ${hh}:${mm}:${ss}`, value: v }
+  })
 }
 
 /**
