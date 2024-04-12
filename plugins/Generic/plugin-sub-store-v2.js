@@ -20,7 +20,7 @@ const startSubStoreService = () => {
     setTimeout(() => timeout && reject('启动Sub-Store服务超时'), 5000)
     const pid = await Plugins.ExecBackground(
       'node',
-      [env.basePath + '\\' + SUB_STORE_BACKEND_PATH],
+      [env.basePath + '/' + SUB_STORE_BACKEND_PATH],
       (out) => {
         if (out.includes('[sub-store] INFO: [BACKEND]')) {
           backendFlag = true
@@ -40,8 +40,8 @@ const startSubStoreService = () => {
           SUB_STORE_FRONTEND_HOST: Plugin.SUB_STORE_FRONTEND_HOST,
           SUB_STORE_FRONTEND_API_PORT: Plugin.SUB_STORE_FRONTEND_API_PORT,
           SUB_STORE_BACKEND_API_PORT: Plugin.SUB_STORE_BACKEND_API_PORT,
-          SUB_STORE_FRONTEND_PATH: env.basePath + '\\' + SUB_STORE_FRONTEND_PATH,
-          SUB_STORE_DATA_BASE_PATH: env.basePath + '\\' + SUBSTORE_PATH
+          SUB_STORE_FRONTEND_PATH: env.basePath + '/' + SUB_STORE_FRONTEND_PATH,
+          SUB_STORE_DATA_BASE_PATH: env.basePath + '/' + SUBSTORE_PATH
         }
       }
     )
