@@ -28,10 +28,10 @@ const onRun = async () => {
 分配的IP: ${res.ip_addresses.join('、')}
 物理位置: ${res.node_location}
 IPv6支持: ${res.location_ipv6_ready ? '支持' : '不支持'}
-磁盘总计: ${res.plan_disk / 1024 / 1024 / 1024} GB
-内存总计: ${res.plan_ram / 1024 / 1024 / 1024} GB
+磁盘总计: ${Plugins.formatBytes(res.plan_disk)}
+内存总计: ${Plugins.formatBytes(res.plan_ram)}
 操作系统: ${res.os}
-月流量配额: ${(res.data_counter / 1024 / 1024 / 1024) * res.monthly_data_multiplier} / ${(res.plan_monthly_data / 1024 / 1024 / 1024) * res.monthly_data_multiplier} GB
+月流量配额: ${Plugins.formatBytes(res.data_counter * res.monthly_data_multiplier)} / ${Plugins.formatBytes(res.plan_monthly_data * res.monthly_data_multiplier)}
 流量下次重置日期: ${new Date(res.data_next_reset * 1000).toLocaleString()}
 流量计费系数: ${res.monthly_data_multiplier}
       `

@@ -33,22 +33,26 @@ const stopAdGuardHomeService = async () => {
 const startAdguardHomeService = async () => {
   return new Promise(async (resolve, reject) => {
     let isOK = false
-    const pid = await Plugins.ExecBackground(
-      ADGUARDHOME_PATH + '/' + 'AdGuardHome.exe',
-      ['--web-addr', Plugin.Address, '--no-check-update'],
-      async (out) => {
-        if (out.includes('go to')) {
-          if (!isOK) {
-            isOK = true
-            await Plugins.Writefile(PID_FILE, pid.toString())
-            resolve()
+    try {
+      const pid = await Plugins.ExecBackground(
+        ADGUARDHOME_PATH + '/' + 'AdGuardHome.exe',
+        ['--web-addr', Plugin.Address, '--no-check-update'],
+        async (out) => {
+          if (out.includes('go to')) {
+            if (!isOK) {
+              isOK = true
+              await Plugins.Writefile(PID_FILE, pid.toString())
+              resolve()
+            }
           }
+        },
+        async () => {
+          await Plugins.Writefile(PID_FILE, '0')
         }
-      },
-      async () => {
-        await Plugins.Writefile(PID_FILE, '0')
-      }
-    )
+      )
+    } catch (error) {
+      reject(error.message || error)
+    }
   })
 }
 
