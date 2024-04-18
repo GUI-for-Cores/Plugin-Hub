@@ -106,9 +106,10 @@ const chooseVPS = async () => {
 const httpGet = async (url, params) => {
   params = { ...params, veid: currentVPS[1], api_key: currentVPS[2] }
   const query = new URLSearchParams(params).toString()
-  const { body } = await Plugins.HttpGet(`https://api.64clouds.com/v1${url}?${query}`)
+  const { body } = await Plugins.HttpGet(`https://api.64clouds.com/v1${url}?${query}`, {
+    Connection: 'close'
+  })
   const json = JSON.parse(body)
-  console.log(json)
   if (json.error !== 0) throw '出现错误'
   return json
 }
