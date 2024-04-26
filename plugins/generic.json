@@ -435,11 +435,11 @@
   {
     "id": "plugin-unblockneteasemusic",
     "name": "解锁网易云音乐",
-    "description": "解锁网易云音乐插件，服务运行成功后，请手动设置网易云音乐客户端内代理。",
+    "description": "解锁网易云音乐插件，需要安装CA证书。服务启动后网易云音乐客户端不需要任何设置。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-unblockneteasemusic.js",
     "path": "data/plugins/plugin-unblockneteasemusic.js",
-    "triggers": ["on::manual"],
+    "triggers": ["on::generate", "on::manual", "on::startup", "on::shutdown"],
     "menus": {
       "运行服务": "Start",
       "停止服务": "Stop"
@@ -456,15 +456,6 @@
         "options": []
       },
       {
-        "id": "ID_t8k6f92c",
-        "title": "监听地址",
-        "description": "服务监听地址，默认 127.0.0.1",
-        "key": "Address",
-        "component": "Input",
-        "value": "127.0.0.1",
-        "options": []
-      },
-      {
         "id": "ID_8aiktkuq",
         "title": "音源",
         "description": "选择有兴趣的音源",
@@ -472,6 +463,42 @@
         "component": "CheckBox",
         "value": ["kugou", "kuwo", "bilibili"],
         "options": ["酷狗音乐,kugou", "酷我音乐,kuwo", "咪咕音乐,migu", "YouTube,ytdlp", "B 站音乐,bilibili"]
+      },
+      {
+        "id": "ID_yl8s60lj",
+        "title": "代理组名称",
+        "description": "",
+        "key": "ProxyGroup",
+        "component": "Input",
+        "value": "🎶 网易云",
+        "options": []
+      },
+      {
+        "id": "ID_x6oim1t0",
+        "title": "代理名称",
+        "description": "",
+        "key": "Proxy",
+        "component": "Input",
+        "value": "🎶 本地解锁",
+        "options": []
+      },
+      {
+        "id": "ID_o37f5t9o",
+        "title": "网易云音乐进程名",
+        "description": "",
+        "key": "Process",
+        "component": "Input",
+        "value": "cloudmusic.exe",
+        "options": []
+      },
+      {
+        "id": "ID_0irevk02",
+        "title": "跟随GUI启动或停止",
+        "description": "",
+        "key": "AutoStartOrStop",
+        "component": "Switch",
+        "value": false,
+        "options": []
       }
     ],
     "disabled": false,

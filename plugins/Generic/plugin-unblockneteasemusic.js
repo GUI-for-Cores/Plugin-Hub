@@ -7,13 +7,13 @@ const PID_FILE = MUSIC_PATH + '/unblock-netease-music.pid'
 // 1、环境变量太多了就不写入UI了，按需修改
 // 2、配置里只列出了默认启用的音源，如需更多请第42行添加
 const ENV = {
-  LOG_LEVEL: 'info' //	日志输出等级。请见〈日志等级〉部分。	LOG_LEVEL=debug  info  error
+  LOG_LEVEL: 'info', //	日志输出等级。请见〈日志等级〉部分。	LOG_LEVEL=debug  info  error
   // BLOCK_ADS: 'false' // 屏蔽应用内部分广告
-  // ENABLE_FLAC: 'true', // 激活无损音质获取
-  // ENABLE_LOCAL_VIP: 'true', // 激活本地黑胶 VIP，可选值：true（等同于 CVIP）、cvip 和 svip
+  ENABLE_FLAC: 'true', // 激活无损音质获取
+  ENABLE_LOCAL_VIP: 'true', // 激活本地黑胶 VIP，可选值：true（等同于 CVIP）、cvip 和 svip
   // LOCAL_VIP_UID: '', // 仅对这些 UID 激活本地黑胶 VIP，默认为对全部用户生效 LOCAL_VIP_UID=123456789,1234,123456
   // ENABLE_HTTPDNS: false, // 激活故障的 Netease HTTPDNS 查询（不建议）
-  // DISABLE_UPGRADE_CHECK: 'true', // 禁用更新检测
+  DISABLE_UPGRADE_CHECK: 'true' // 禁用更新检测
   // FOLLOW_SOURCE_ORDER: 'true', // 严格按照配置音源的顺序进行查询
   // JSON_LOG: 'true' // 输出机器可读的 JSON 记录格式
   // NO_CACHE: 'true', // 停用 cache
@@ -30,7 +30,7 @@ const ENV = {
   // NETEASE_COOKIE: '' //	网易云 Cookie	MUSIC_U=007554xxx
 }
 
-const Log = (...msg) => console.log('[解锁网易云音乐]', ...msg)
+const Log = (...msg) => console.log(`[${Plugin.name}]`, ...msg)
 
 /**
  * 启动服务
@@ -39,7 +39,7 @@ const startUnblockMusicService = () => {
   return new Promise(async (resolve) => {
     const pid = await Plugins.ExecBackground(
       MUSIC_PATH + '/' + 'unblockneteasemusic.exe',
-      ['-p', Plugin.Port, '-a', Plugin.Addres, '-o', ...Plugin.Source],
+      ['-p', Plugin.Port + ':' + (Number(Plugin.Port) + 1), '-a', '127.0.0.1', '-o', ...Plugin.Source],
       async (out) => {
         Log(out)
         if (out.includes('HTTP Server running')) {
@@ -55,6 +55,32 @@ const startUnblockMusicService = () => {
       }
     )
   })
+}
+
+/**
+ * 插件钩子 - 生成配置时
+ */
+const onGenerate = async (config) => {
+  if (await isUnblockMusicRunning()) {
+    const group = config['proxy-groups']
+    const direct = (group.find((v) => v.name === '🎯 全球直连') || group.find((v) => v.name === '🎯 Direct'))?.name || 'DIRECT'
+
+    config.proxies.unshift({
+      name: Plugin.Proxy,
+      type: 'http',
+      server: '127.0.0.1',
+      port: Plugin.Port
+    })
+
+    group.unshift({
+      name: Plugin.ProxyGroup,
+      type: 'select',
+      proxies: [Plugin.Proxy, direct]
+    })
+
+    config.rules.unshift(`PROCESS-NAME,${Plugin.Process},${Plugin.ProxyGroup}`)
+  }
+  return config
 }
 
 /**
@@ -81,6 +107,7 @@ const isUnblockMusicRunning = async () => {
  */
 const InstallUnblockMusic = async () => {
   const { env } = Plugins.useEnvStore()
+  if (env.os !== 'windows') throw '该插件暂不支持此操作系统'
   const BinaryFileUrl = `https://github.com/UnblockNeteaseMusic/server/releases/download/v0.27.6/unblockneteasemusic-win-${
     { amd64: 'x64' }[env.arch] || env.arch
   }.exe`
@@ -95,6 +122,10 @@ const InstallUnblockMusic = async () => {
     await Plugins.sleep(1000)
     Plugins.message.destroy(id)
   }
+
+  const ca = 'data/.cache/ca.crt'
+  await Plugins.Download('https://raw.githubusercontent.com/UnblockNeteaseMusic/server/enhanced/ca.crt', ca)
+  await Plugins.alert('最后一步', '请手动安装CA证书。\n\n证书路径：' + ca + '\n\n安装教程：https://github.com/UnblockNeteaseMusic/server/discussions/426')
 }
 
 /**
@@ -112,7 +143,7 @@ const onUninstall = async () => {
   if (await isUnblockMusicRunning()) {
     throw '请先停止插件服务！'
   }
-  await Plugins.confirm('确定要卸载吗', '将删除插件资源：' + MUSIC_PATH)
+  await Plugins.confirm('确定要卸载吗', '将删除插件资源：' + MUSIC_PATH + '\n\n若已安装CA证书，记得手动卸载哦')
   await Plugins.Removefile(MUSIC_PATH)
   return 0
 }
