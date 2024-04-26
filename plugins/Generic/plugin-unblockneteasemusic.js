@@ -62,23 +62,46 @@ const startUnblockMusicService = () => {
  */
 const onGenerate = async (config) => {
   if (await isUnblockMusicRunning()) {
-    const group = config['proxy-groups']
-    const direct = (group.find((v) => v.name === '🎯 全球直连') || group.find((v) => v.name === '🎯 Direct'))?.name || 'DIRECT'
+    const isClash = !!config.mode
 
-    config.proxies.unshift({
-      name: Plugin.Proxy,
-      type: 'http',
-      server: '127.0.0.1',
-      port: Plugin.Port
-    })
+    const group = isClash ? config['proxy-groups'] : config['outbounds']
+    const flag = isClash ? 'name' : 'tag'
+    const direct = (group.find((v) => v[flag] === '🎯 全球直连') || group.find((v) => v[flag] === '🎯 Direct'))?.[flag] || 'DIRECT'
 
-    group.unshift({
-      name: Plugin.ProxyGroup,
-      type: 'select',
-      proxies: [Plugin.Proxy, direct]
-    })
+    if (isClash) {
+      config.proxies.unshift({
+        name: Plugin.Proxy,
+        type: 'http',
+        server: '127.0.0.1',
+        port: Plugin.Port
+      })
 
-    config.rules.unshift(`PROCESS-NAME,${Plugin.Process},${Plugin.ProxyGroup}`)
+      group.unshift({
+        name: Plugin.ProxyGroup,
+        type: 'select',
+        proxies: [Plugin.Proxy, direct]
+      })
+
+      config.rules.unshift(`PROCESS-NAME,${Plugin.Process},${Plugin.ProxyGroup}`)
+    } else {
+      group.unshift({
+        tag: Plugin.Proxy,
+        type: 'http',
+        server: '127.0.0.1',
+        server_port: Number(Plugin.Port)
+      })
+
+      group.unshift({
+        tag: Plugin.ProxyGroup,
+        type: 'selector',
+        outbounds: [Plugin.Proxy, direct]
+      })
+
+      config.route.rules.unshift({
+        process_name: Plugin.Process,
+        outbound: Plugin.ProxyGroup
+      })
+    }
   }
   return config
 }
