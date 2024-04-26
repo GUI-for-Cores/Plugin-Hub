@@ -36,7 +36,7 @@ const onInstall = async () => {
   const { id } = Plugins.message.info('安装中...', 10 * 60 * 1_000)
 
   await Plugins.Download(
-    `https://github.com/GUI-for-Cores/sing-box-subconverter-offline/releases/download/v1.1.6/sing-box-subconverter-windows-${env.arch}.exe`,
+    `https://github.com/GUI-for-Cores/sing-box-subconverter-offline/releases/download/v1.1.8/sing-box-subconverter-windows-${env.arch}.exe`,
     CONVERTER_FILE,
     {},
     (progress, total) => {
