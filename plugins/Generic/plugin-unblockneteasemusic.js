@@ -61,48 +61,47 @@ const startUnblockMusicService = () => {
  * 插件钩子 - 生成配置时
  */
 const onGenerate = async (config) => {
-  if (await isUnblockMusicRunning()) {
-    const isClash = !!config.mode
+  const isClash = !!config.mode
 
-    const group = isClash ? config['proxy-groups'] : config['outbounds']
-    const flag = isClash ? 'name' : 'tag'
-    const direct = (group.find((v) => v[flag] === '🎯 全球直连') || group.find((v) => v[flag] === '🎯 Direct'))?.[flag] || 'DIRECT'
+  const group = isClash ? config['proxy-groups'] : config['outbounds']
+  const flag = isClash ? 'name' : 'tag'
+  const direct = (group.find((v) => v[flag] === '🎯 全球直连') || group.find((v) => v[flag] === '🎯 Direct'))?.[flag] || 'DIRECT'
 
-    if (isClash) {
-      config.proxies.unshift({
-        name: Plugin.Proxy,
-        type: 'http',
-        server: '127.0.0.1',
-        port: Plugin.Port
-      })
+  if (isClash) {
+    config.proxies.unshift({
+      name: Plugin.Proxy,
+      type: 'http',
+      server: '127.0.0.1',
+      port: Plugin.Port
+    })
 
-      group.unshift({
-        name: Plugin.ProxyGroup,
-        type: 'select',
-        proxies: [Plugin.Proxy, direct]
-      })
+    group.unshift({
+      name: Plugin.ProxyGroup,
+      type: 'select',
+      proxies: [direct, Plugin.Proxy]
+    })
 
-      config.rules.unshift(`PROCESS-NAME,${Plugin.Process},${Plugin.ProxyGroup}`)
-    } else {
-      group.unshift({
-        tag: Plugin.Proxy,
-        type: 'http',
-        server: '127.0.0.1',
-        server_port: Number(Plugin.Port)
-      })
+    config.rules.unshift(`PROCESS-NAME,${Plugin.Process},${Plugin.ProxyGroup}`)
+  } else {
+    group.unshift({
+      tag: Plugin.Proxy,
+      type: 'http',
+      server: '127.0.0.1',
+      server_port: Number(Plugin.Port)
+    })
 
-      group.unshift({
-        tag: Plugin.ProxyGroup,
-        type: 'selector',
-        outbounds: [Plugin.Proxy, direct]
-      })
+    group.unshift({
+      tag: Plugin.ProxyGroup,
+      type: 'selector',
+      outbounds: [direct, Plugin.Proxy]
+    })
 
-      config.route.rules.unshift({
-        process_name: Plugin.Process,
-        outbound: Plugin.ProxyGroup
-      })
-    }
+    config.route.rules.unshift({
+      process_name: Plugin.Process,
+      outbound: Plugin.ProxyGroup
+    })
   }
+
   return config
 }
 
