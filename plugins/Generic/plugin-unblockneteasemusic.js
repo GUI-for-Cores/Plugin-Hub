@@ -65,7 +65,7 @@ const onGenerate = async (config) => {
 
   const group = isClash ? config['proxy-groups'] : config['outbounds']
   const flag = isClash ? 'name' : 'tag'
-  const direct = (group.find((v) => v[flag] === '🎯 全球直连') || group.find((v) => v[flag] === '🎯 Direct'))?.[flag] || 'DIRECT'
+  const direct = (group.find((v) => v[flag] === '🎯 全球直连') || group.find((v) => v[flag] === '🎯 Direct'))?.[flag] || (isClash ? 'DIRECT' : 'direct')
 
   if (isClash) {
     config.proxies.unshift({
