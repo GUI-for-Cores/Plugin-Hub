@@ -734,9 +734,22 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-custom-theme.js",
     "path": "data/plugins/plugin-custom-theme.js",
     "triggers": ["on::manual", "on::startup"],
-    "menus": {},
+    "menus": {
+      "渐变背景": "Random",
+      "清除主题": "Clear"
+    },
     "status": 0,
-    "configuration": [],
+    "configuration": [
+      {
+        "id": "ID_k9j7lfd9",
+        "title": "我更希望使用的背景ID",
+        "description": "填写时，【渐变背景】将固定，不填时，将随机。范围：0~25",
+        "key": "Index",
+        "component": "Input",
+        "value": "",
+        "options": []
+      }
+    ],
     "disabled": false,
     "install": false,
     "installed": false

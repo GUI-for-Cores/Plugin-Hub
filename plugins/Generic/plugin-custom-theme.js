@@ -9,7 +9,7 @@ const THEME = {
   '--color-dark': '#fff',
 
   // 背景颜色
-  '--bg-color-light': 'rgba(255, 255, 255, 0.85)',
+  '--bg-color-light': 'rgba(246, 246, 246, 0.85)',
   '--bg-color-dark': 'rgba(0, 0, 0, 0.85)',
 
   // 滚动条颜色
@@ -174,6 +174,7 @@ const setCustomTheme = () => {
   Object.entries(THEME).forEach(([property, value]) => {
     document.body.style.setProperty(property, value)
   })
+  Random()
 }
 
 const onStartup = () => {
@@ -182,4 +183,57 @@ const onStartup = () => {
 
 const onRun = () => {
   setCustomTheme()
+}
+
+/**
+ * 插件钩子 - 右键：渐变背景
+ */
+const Random = () => {
+  const theme = [
+    ['#4158D0', 'linear-gradient(43deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%)'],
+    ['#0093E9', 'linear-gradient(160deg, #0093E9 0%, #80D0C7 100%)'],
+    ['#0093E9', 'linear-gradient(160deg, #0093E9 0%, #80D0C7 100%)'],
+    ['#0093E9', 'linear-gradient(160deg, #0093E9 0%, #80D0C7 100%)'],
+    ['#0093E9', 'linear-gradient(160deg, #0093E9 0%, #80D0C7 100%)'],
+    ['#00DBDE', 'linear-gradient(90deg, #00DBDE 0%, #FC00FF 100%)'],
+    ['#FBAB7E', 'linear-gradient(62deg, #FBAB7E 0%, #F7CE68 100%)'],
+    ['#85FFBD', 'linear-gradient(45deg, #85FFBD 0%, #FFFB7D 100%)'],
+    ['#8BC6EC', 'linear-gradient(135deg, #8BC6EC 0%, #9599E2 100%)'],
+    ['#FFDEE9', 'linear-gradient(0deg, #FFDEE9 0%, #B5FFFC 100%)'],
+    ['#08AEEA', 'linear-gradient(0deg, #08AEEA 0%, #2AF598 100%)'],
+    ['#52ACFF', 'linear-gradient(180deg, #52ACFF 25%, #FFE32C 100%)'],
+    ['#FFE53B', 'linear-gradient(147deg, #FFE53B 0%, #FF2525 74%)'],
+    ['#21D4FD', 'linear-gradient(19deg, #21D4FD 0%, #B721FF 100%)'],
+    ['#21D4FD', 'linear-gradient(19deg, #21D4FD 0%, #B721FF 100%)'],
+    ['#FA8BFF', 'linear-gradient(45deg, #FA8BFF 0%, #2BD2FF 52% #2BFF88 90%)'],
+    ['#FF9A8B', 'linear-gradient(90deg, #FF9A8B 0%, #FF6A88 55% #FF99AC 100%)'],
+    ['#FBDA61', 'linear-gradient(45deg, #FBDA61 0%, #FF5ACD 100%)'],
+    ['#FBDA61', 'linear-gradient(45deg, #FBDA61 0%, #FF5ACD 100%)'],
+    ['#A9C9FF', 'linear-gradient(180deg, #A9C9FF 0%, #FFBBEC 100%)'],
+    ['#74EBD5', 'linear-gradient(90deg, #74EBD5 0%, #9FACE6 100%)'],
+    ['#FAACA8', 'linear-gradient(19deg, #FAACA8 0%, #DDD6F3 100%)'],
+    ['#FAD961', 'linear-gradient(90deg, #FAD961 0%, #F76B1C 100%)'],
+    ['#FAD961', 'linear-gradient(90deg, #FAD961 0%, #F76B1C 100%)'],
+    ['#FAD961', 'linear-gradient(90deg, #FAD961 0%, #F76B1C 100%)']
+  ]
+
+  const index = Plugin.Index !== '' ? Plugin.Index : Math.floor(Math.random() * theme.length)
+  if (!theme[index]) throw '背景ID配置错误，范围为：0~' + (theme.length - 1)
+
+  const [color, gradientImage] = theme[index]
+  document.body.style.backgroundColor = color
+  document.body.style.backgroundImage = gradientImage
+
+  Plugins.message.success('当前背景ID为：' + index)
+}
+
+/**
+ * 插件钩子 - 右键：清除主题
+ */
+const Clear = () => {
+  Object.entries(THEME).forEach(([property]) => {
+    document.body.style.removeProperty(property)
+  })
+  document.body.style.backgroundColor = ''
+  document.body.style.backgroundImage = ''
 }
