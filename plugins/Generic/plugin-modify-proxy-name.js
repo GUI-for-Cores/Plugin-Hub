@@ -165,8 +165,6 @@ const KeywordsToEmoji = {
   // 添加更多的国家关键词和对应的 Emoji
 }
 
-const { appName } = await Plugins.GetEnv()
-
 const onSubscribe = async (proxies) => {
   const EnableAddEmoji = Plugin.EnableAddEmoji
   const EnableRemoveKeywords = Plugin.EnableRemoveKeywords
@@ -188,7 +186,11 @@ const onSubscribe = async (proxies) => {
         return b[0].length - a[0].length // 按照长度从长到短排序
       })
     )
-    if (appName.toLowerCase().includes('singbox')) {
+
+    const isGFS = Plugins.APP_TITLE.includes('SingBox')
+    const isGFC = Plugins.APP_TITLE.includes('Clash')
+
+    if (isGFS) {
       // 修改代理数组，根据节点名称添加对应的 emoji
       proxies = proxies.map((v, i) => {
         const lowercasetag = v.tag.toLowerCase()
@@ -209,7 +211,7 @@ const onSubscribe = async (proxies) => {
         }
         return shouldAddEmoji ? v : { ...v } // If emoji should not be added, return original, otherwise return modified proxy
       })
-    } else if (appName.toLowerCase().includes('clash')) {
+    } else if (isGFC) {
       // 修改代理数组，根据节点名称添加对应的 emoji
       proxies = proxies.map((v, i) => {
         const lowercaseName = v.name.toLowerCase()
@@ -234,14 +236,14 @@ const onSubscribe = async (proxies) => {
   }
 
   if (EnableRemoveKeywords == 1) {
-    if (appName.toLowerCase().includes('singbox')) {
+    if (isGFS) {
       proxies = proxies.map((v) => {
         return {
           ...v,
           tag: v.tag.replace(RemoveKeywords, '')
         }
       })
-    } else if (appName.toLowerCase().includes('clash')) {
+    } else if (isGFC) {
       proxies = proxies.map((v) => {
         return {
           ...v,
@@ -252,9 +254,9 @@ const onSubscribe = async (proxies) => {
   }
 
   if (EnableIndexProxyName == 1) {
-    if (appName.toLowerCase().includes('singbox')) {
+    if (isGFS) {
       proxies = proxies.map((v, i) => ({ ...v, tag: v.tag + ' ' + (i + 1) }))
-    } else if (appName.toLowerCase().includes('clash')) {
+    } else if (isGFC) {
       proxies = proxies.map((v, i) => ({ ...v, name: v.name + ' ' + (i + 1) }))
     }
   }
@@ -262,7 +264,7 @@ const onSubscribe = async (proxies) => {
   if (EnableIndexProxyName == 2) {
     let seenNames = {} // 用于记录已经出现过的节点名称的集合
 
-    if (appName.toLowerCase().includes('singbox')) {
+    if (isGFS) {
       proxies = proxies.map((v, i) => {
         if (seenNames[v.tag]) {
           seenNames[v.tag]++
@@ -276,7 +278,7 @@ const onSubscribe = async (proxies) => {
           tag: tagWithIndex
         }
       })
-    } else if (appName.toLowerCase().includes('clash')) {
+    } else if (isGFC) {
       proxies = proxies.map((v, i) => {
         if (seenNames[v.name]) {
           seenNames[v.name]++

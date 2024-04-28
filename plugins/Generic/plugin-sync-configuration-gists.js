@@ -145,16 +145,12 @@ const onStartup = async () => {
 }
 
 const getPrefix = () => {
-  const envStore = Plugins.useEnvStore()
-  return envStore.env.appName.toLowerCase().includes('clash') ? 'GUI.for.Clash' : 'GUI.for.SingBox'
+  return Plugins.APP_TITLE.includes('Clash') ? 'GUI.for.Clash' : 'GUI.for.SingBox'
 }
 
 const filterList = (list) => {
   const prefix = getPrefix()
-  return list
-    .reverse()
-    .filter((v) => v.description.startsWith(prefix))
-    .map((v) => ({ label: v.description, value: v.id }))
+  return list.filter((v) => v.description.startsWith(prefix)).map((v) => ({ label: v.description, value: v.id }))
 }
 
 /**

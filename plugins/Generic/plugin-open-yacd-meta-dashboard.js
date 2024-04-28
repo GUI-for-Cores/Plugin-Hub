@@ -1,8 +1,7 @@
 const openClashYacdDashboard = async () => {
-  const { appName } = await Plugins.GetEnv()
   let url
 
-  if (appName.toLowerCase().includes('singbox')) {
+  if (Plugins.APP_TITLE.includes('SingBox')) {
     const configpath = './data/sing-box/config.json'
 
     // 读取 JSON 文件
@@ -20,7 +19,7 @@ const openClashYacdDashboard = async () => {
 
     // 构建URL
     url = `https://yacd.metacubex.one/?hostname=${host}&port=${port}&secret=${secret}`
-  } else if (appName.toLowerCase().includes('clash')) {
+  } else if (Plugins.APP_TITLE.includes('Clash')) {
     const configpath = './data/mihomo/config.yaml'
 
     // 读取 YAML 文件
