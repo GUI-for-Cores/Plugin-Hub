@@ -1,6 +1,5 @@
-const { appName } = await Plugins.GetEnv()
-
 const openClashYacdDashboard = async () => {
+  const { appName } = await Plugins.GetEnv()
   let url
 
   if (appName.toLowerCase().includes('singbox')) {

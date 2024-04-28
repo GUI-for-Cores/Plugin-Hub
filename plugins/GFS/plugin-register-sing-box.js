@@ -1,10 +1,8 @@
-const envStore = Plugins.useEnvStore()
-
-const path = (envStore.env.basePath + '\\' + envStore.env.appName).replaceAll('\\', '\\\\')
-
-const file = 'data/.cache/register_singbox_protocol.reg'
-
 const onInstall = async () => {
+  const envStore = Plugins.useEnvStore()
+  const path = (envStore.env.basePath + '\\' + envStore.env.appName).replaceAll('\\', '\\\\')
+  const file = 'data/.cache/register_singbox_protocol.reg'
+
   const reg = `Windows Registry Editor Version 5.00
 [HKEY_CLASSES_ROOT\\sing-box]
 "URL Protocol"="${path}"
@@ -18,10 +16,10 @@ const onInstall = async () => {
 
   await Plugins.Writefile(file, reg)
   await Plugins.Exec('reg', ['import', file])
-  Plugins.message.info('注册完成')
+  Plugins.message.success('注册完成')
 }
 
 const onUninstall = async () => {
   await Plugins.Exec('reg', ['delete', `HKEY_CLASSES_ROOT\\sing-box`, '/f'])
-  Plugins.message.info('卸载完成')
+  Plugins.message.success('卸载完成')
 }

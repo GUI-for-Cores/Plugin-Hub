@@ -177,9 +177,9 @@ const setCustomTheme = () => {
 }
 
 const onStartup = () => {
-  Plugin.Enabled && setCustomTheme()
+  setCustomTheme()
 }
 
 const onRun = () => {
-  Plugin.Enabled && setCustomTheme()
+  setCustomTheme()
 }

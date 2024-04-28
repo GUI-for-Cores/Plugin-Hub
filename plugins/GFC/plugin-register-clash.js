@@ -1,10 +1,8 @@
-const envStore = Plugins.useEnvStore()
-
-const path = (envStore.env.basePath + '\\' + envStore.env.appName).replaceAll('\\', '\\\\')
-
-const file = 'data/.cache/register_clash_protocol.reg'
-
 const onInstall = async () => {
+  const envStore = Plugins.useEnvStore()
+  const path = (envStore.env.basePath + '\\' + envStore.env.appName).replaceAll('\\', '\\\\')
+  const file = 'data/.cache/register_clash_protocol.reg'
+
   const reg = `Windows Registry Editor Version 5.00
 [HKEY_CLASSES_ROOT\\clash]
 "URL Protocol"="${path}"

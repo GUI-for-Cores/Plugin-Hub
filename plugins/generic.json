@@ -736,17 +736,7 @@
     "triggers": ["on::manual", "on::startup"],
     "menus": {},
     "status": 0,
-    "configuration": [
-      {
-        "id": "ID_ezdi3vj4",
-        "title": "是否启用",
-        "description": "",
-        "key": "Enabled",
-        "component": "Switch",
-        "value": true,
-        "options": []
-      }
-    ],
+    "configuration": [],
     "disabled": false,
     "install": false,
     "installed": false

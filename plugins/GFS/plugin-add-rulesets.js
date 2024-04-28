@@ -160,5 +160,5 @@ const onRun = async () => {
     Plugins.Writefile('data/rulesets/proxy.json', '{\n  "version": 1,\n  "rules": []\n}')
   }
 
-  Plugins.message.info('添加完毕')
+  Plugins.message.success('添加完毕')
 }

@@ -85,8 +85,8 @@ const loadLive2DWidget = async () => {
   }
 }
 
-const onRun = () => {
-  loadLive2DWidget()
+const onRun = async () => {
+  await loadLive2DWidget()
 }
 
 const onStartup = () => {
