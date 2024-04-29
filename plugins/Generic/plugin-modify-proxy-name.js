@@ -170,6 +170,9 @@ const onSubscribe = async (proxies) => {
   const EnableRemoveKeywords = Plugin.EnableRemoveKeywords
   const EnableIndexProxyName = Plugin.EnableIndexProxyName
 
+  const isGFS = Plugins.APP_TITLE.includes('SingBox')
+  const isGFC = Plugins.APP_TITLE.includes('Clash')
+
   if (EnableAddEmoji == 1) {
     const SubKeywordsToEmoji = {}
     for (const keyword in KeywordsToEmoji) {
@@ -186,9 +189,6 @@ const onSubscribe = async (proxies) => {
         return b[0].length - a[0].length // 按照长度从长到短排序
       })
     )
-
-    const isGFS = Plugins.APP_TITLE.includes('SingBox')
-    const isGFC = Plugins.APP_TITLE.includes('Clash')
 
     if (isGFS) {
       // 修改代理数组，根据节点名称添加对应的 emoji
