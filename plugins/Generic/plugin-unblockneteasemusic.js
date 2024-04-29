@@ -3,6 +3,7 @@
  */
 const MUSIC_PATH = 'data/third/unblock-netease-music'
 const PID_FILE = MUSIC_PATH + '/unblock-netease-music.pid'
+const PROCESS_NAME = 'unblockneteasemusic.exe'
 
 // 1、环境变量太多了就不写入UI了，按需修改
 // 2、配置里只列出了默认启用的音源，如需更多请第42行添加
@@ -36,24 +37,28 @@ const Log = (...msg) => console.log(`[${Plugin.name}]`, ...msg)
  * 启动服务
  */
 const startUnblockMusicService = () => {
-  return new Promise(async (resolve) => {
-    const pid = await Plugins.ExecBackground(
-      MUSIC_PATH + '/' + 'unblockneteasemusic.exe',
-      ['-p', Plugin.Port + ':' + (Number(Plugin.Port) + 1), '-a', '127.0.0.1', '-o', ...Plugin.Source],
-      async (out) => {
-        Log(out)
-        if (out.includes('HTTP Server running')) {
-          Plugins.Writefile(PID_FILE, pid.toString())
-          resolve()
+  return new Promise(async (resolve, reject) => {
+    try {
+      const pid = await Plugins.ExecBackground(
+        MUSIC_PATH + '/' + PROCESS_NAME,
+        ['-p', Plugin.Port + ':' + (Number(Plugin.Port) + 1), '-a', '127.0.0.1', '-o', ...Plugin.Source],
+        async (out) => {
+          Log(out)
+          if (out.includes('HTTP Server running')) {
+            Plugins.Writefile(PID_FILE, pid.toString())
+            resolve()
+          }
+        },
+        async () => {
+          await Plugins.Writefile(PID_FILE, '0')
+        },
+        {
+          env: ENV
         }
-      },
-      async () => {
-        await Plugins.Writefile(PID_FILE, '0')
-      },
-      {
-        env: ENV
-      }
-    )
+      )
+    } catch (error) {
+      reject(error.message || message)
+    }
   })
 }
 
@@ -111,7 +116,7 @@ const onGenerate = async (config) => {
 const stopUnblockMusicService = async () => {
   const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
   if (pid && pid !== '0') {
-    await Plugins.ignoredError(Plugins.KillProcess, Number(pid))
+    await Plugins.KillProcess(Number(pid))
     await Plugins.Writefile(PID_FILE, '0')
   }
 }
@@ -121,7 +126,11 @@ const stopUnblockMusicService = async () => {
  */
 const isUnblockMusicRunning = async () => {
   const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
-  return pid && pid !== '0'
+  if (pid && pid !== '0') {
+    const name = await Plugins.ignoredError(Plugins.ProcessInfo, Number(pid))
+    return name === PROCESS_NAME
+  }
+  return false
 }
 
 /**

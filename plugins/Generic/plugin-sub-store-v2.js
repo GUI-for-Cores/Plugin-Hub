@@ -18,33 +18,37 @@ const startSubStoreService = () => {
     let backendFlag = false
     let timeout = true
     setTimeout(() => timeout && reject('启动Sub-Store服务超时'), 5000)
-    const pid = await Plugins.ExecBackground(
-      'node',
-      [env.basePath + '/' + SUB_STORE_BACKEND_PATH],
-      (out) => {
-        if (out.includes('[sub-store] INFO: [BACKEND]')) {
-          backendFlag = true
+    try {
+      const pid = await Plugins.ExecBackground(
+        'node',
+        [env.basePath + '/' + SUB_STORE_BACKEND_PATH],
+        (out) => {
+          if (out.includes('[sub-store] INFO: [BACKEND]')) {
+            backendFlag = true
+          }
+          if (out.includes('[sub-store] INFO: [FRONTEND]') && backendFlag) {
+            Plugins.Writefile(PID_FILE, pid.toString())
+            timeout = false
+            resolve()
+          }
+        },
+        async () => {
+          await Plugins.Writefile(PID_FILE, '0')
+        },
+        {
+          env: {
+            SUB_STORE_BACKEND_API_HOST: Plugin.SUB_STORE_BACKEND_API_HOST,
+            SUB_STORE_FRONTEND_HOST: Plugin.SUB_STORE_FRONTEND_HOST,
+            SUB_STORE_FRONTEND_API_PORT: Plugin.SUB_STORE_FRONTEND_API_PORT,
+            SUB_STORE_BACKEND_API_PORT: Plugin.SUB_STORE_BACKEND_API_PORT,
+            SUB_STORE_FRONTEND_PATH: env.basePath + '/' + SUB_STORE_FRONTEND_PATH,
+            SUB_STORE_DATA_BASE_PATH: env.basePath + '/' + SUBSTORE_PATH
+          }
         }
-        if (out.includes('[sub-store] INFO: [FRONTEND]') && backendFlag) {
-          Plugins.Writefile(PID_FILE, pid.toString())
-          timeout = false
-          resolve()
-        }
-      },
-      async () => {
-        await Plugins.Writefile(PID_FILE, '0')
-      },
-      {
-        env: {
-          SUB_STORE_BACKEND_API_HOST: Plugin.SUB_STORE_BACKEND_API_HOST,
-          SUB_STORE_FRONTEND_HOST: Plugin.SUB_STORE_FRONTEND_HOST,
-          SUB_STORE_FRONTEND_API_PORT: Plugin.SUB_STORE_FRONTEND_API_PORT,
-          SUB_STORE_BACKEND_API_PORT: Plugin.SUB_STORE_BACKEND_API_PORT,
-          SUB_STORE_FRONTEND_PATH: env.basePath + '/' + SUB_STORE_FRONTEND_PATH,
-          SUB_STORE_DATA_BASE_PATH: env.basePath + '/' + SUBSTORE_PATH
-        }
-      }
-    )
+      )
+    } catch (error) {
+      reject(error.message || error)
+    }
   })
 }
 
@@ -54,7 +58,7 @@ const startSubStoreService = () => {
 const stopSubStoreService = async () => {
   const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
   if (pid && pid !== '0') {
-    await Plugins.ignoredError(Plugins.KillProcess, Number(pid))
+    await Plugins.KillProcess(Number(pid))
     await Plugins.Writefile(PID_FILE, '0')
   }
 }
@@ -64,7 +68,11 @@ const stopSubStoreService = async () => {
  */
 const isSubStoreRunning = async () => {
   const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
-  return pid && pid !== '0'
+  if (pid && pid !== '0') {
+    const name = await Plugins.ignoredError(Plugins.ProcessInfo, Number(pid))
+    return name === 'node.exe'
+  }
+  return false
 }
 
 /**

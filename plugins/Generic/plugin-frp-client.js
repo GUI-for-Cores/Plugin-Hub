@@ -3,7 +3,8 @@
  */
 
 const FRP_PATH = 'data/third/frpc'
-const FRP_FILE = FRP_PATH + '/frpc.exe'
+const PROCESS_NAME = 'frpc.exe'
+const FRP_FILE = FRP_PATH + '/' + PROCESS_NAME
 const PID_FILE = FRP_PATH + '/frpc.pid'
 
 /**
@@ -11,7 +12,11 @@ const PID_FILE = FRP_PATH + '/frpc.pid'
  */
 const isFRPRunning = async () => {
   const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
-  return pid && pid !== '0'
+  if (pid && pid !== '0') {
+    const name = await Plugins.ignoredError(Plugins.ProcessInfo, Number(pid))
+    return name === PROCESS_NAME
+  }
+  return false
 }
 
 /**
@@ -20,7 +25,7 @@ const isFRPRunning = async () => {
 const stopFRPService = async () => {
   const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
   if (pid && pid !== '0') {
-    await Plugins.ignoredError(Plugins.KillProcess, Number(pid))
+    await Plugins.KillProcess(Number(pid))
     await Plugins.Writefile(PID_FILE, '0')
   }
 }
@@ -32,21 +37,25 @@ const startFRPService = async () => {
   const config = await Plugins.AbsolutePath(FRP_PATH + '/frpc.toml')
   await Plugins.Writefile(config, Plugin.Config)
   return new Promise(async (resolve, reject) => {
-    const pid = await Plugins.ExecBackground(
-      FRP_FILE,
-      ['-c', config],
-      async (out) => {
-        if (out.includes('login to server success')) {
-          await Plugins.Writefile(PID_FILE, pid.toString())
-          resolve()
-        } else if (out.includes('login to the server failed')) {
-          reject(out)
+    try {
+      const pid = await Plugins.ExecBackground(
+        FRP_FILE,
+        ['-c', config],
+        async (out) => {
+          if (out.includes('login to server success')) {
+            await Plugins.Writefile(PID_FILE, pid.toString())
+            resolve()
+          } else if (out.includes('login to the server failed')) {
+            reject(out)
+          }
+        },
+        async () => {
+          await Plugins.Writefile(PID_FILE, '0')
         }
-      },
-      async () => {
-        await Plugins.Writefile(PID_FILE, '0')
-      }
-    )
+      )
+    } catch (error) {
+      reject(error.message || error)
+    }
   })
 }
 

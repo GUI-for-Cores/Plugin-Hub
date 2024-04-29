@@ -3,6 +3,7 @@
  */
 
 const ADGUARDHOME_PATH = 'data/third/AdGuardHome'
+const PROCESS_NAME = 'AdGuardHome.exe'
 const PID_FILE = ADGUARDHOME_PATH + '/AdGuardHome.pid'
 const BACKUP_FILE = 'data/third/AdGuardHome.yaml.bak'
 
@@ -13,7 +14,11 @@ const Log = (...msg) => console.log(`[${Plugin.name}]`, ...msg)
  */
 const isAdGuardHomeRunning = async () => {
   const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
-  return pid && pid !== '0'
+  if (pid && pid !== '0') {
+    const name = await Plugins.ignoredError(Plugins.ProcessInfo, Number(pid))
+    return name === PROCESS_NAME
+  }
+  return false
 }
 
 /**
@@ -22,7 +27,7 @@ const isAdGuardHomeRunning = async () => {
 const stopAdGuardHomeService = async () => {
   const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
   if (pid && pid !== '0') {
-    await Plugins.ignoredError(Plugins.KillProcess, Number(pid))
+    await Plugins.KillProcess(Number(pid))
     await Plugins.Writefile(PID_FILE, '0')
   }
 }
@@ -35,7 +40,7 @@ const startAdguardHomeService = async () => {
     let isOK = false
     try {
       const pid = await Plugins.ExecBackground(
-        ADGUARDHOME_PATH + '/' + 'AdGuardHome.exe',
+        ADGUARDHOME_PATH + '/' + PROCESS_NAME,
         ['--web-addr', Plugin.Address, '--no-check-update'],
         async (out) => {
           if (out.includes('go to')) {
