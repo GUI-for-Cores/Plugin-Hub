@@ -27,7 +27,7 @@ const Sync = async () => {
   const list = await httpGet('/gists')
   const _list = filterList(list)
   if (_list.length === 0) throw '没有可同步的备份'
-  const gistId = await Plugins.picker.single('Gists 备份列表如下：', _list, [])
+  const gistId = await Plugins.picker.single('Gists 备份列表如下：', _list, [_list[0].value])
 
   const files = Object.values(list.find((v) => v.id === gistId).files)
 
