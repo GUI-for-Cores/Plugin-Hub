@@ -733,7 +733,7 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-custom-theme.js",
     "path": "data/plugins/plugin-custom-theme.js",
-    "triggers": ["on::manual", "on::startup"],
+    "triggers": ["on::manual", "on::ready"],
     "menus": {
       "渐变背景": "Random",
       "清除主题": "Clear"

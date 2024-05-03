@@ -177,7 +177,7 @@ const setCustomTheme = () => {
   Random()
 }
 
-const onStartup = () => {
+const onReady = () => {
   setCustomTheme()
 }
 
