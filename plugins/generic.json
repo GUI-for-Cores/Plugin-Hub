@@ -112,7 +112,7 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-live2d-widget.js",
     "path": "data/plugins/plugin-live2d-widget.js",
-    "triggers": ["on::manual", "on::startup"],
+    "triggers": ["on::manual", "on::ready"],
     "menus": {},
     "status": 0,
     "configuration": [

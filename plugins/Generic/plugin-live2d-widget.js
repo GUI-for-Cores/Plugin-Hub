@@ -89,6 +89,6 @@ const onRun = async () => {
   await loadLive2DWidget()
 }
 
-const onStartup = () => {
+const onReady = () => {
   Plugin.AutoStart && loadLive2DWidget()
 }
