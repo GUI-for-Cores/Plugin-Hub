@@ -70,7 +70,7 @@ const isSubStoreRunning = async () => {
   const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
   if (pid && pid !== '0') {
     const name = await Plugins.ignoredError(Plugins.ProcessInfo, Number(pid))
-    return name === 'node.exe'
+    return ['node.exe', 'node'].includes(name)
   }
   return false
 }
