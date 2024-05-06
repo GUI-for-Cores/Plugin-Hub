@@ -544,6 +544,7 @@
     "path": "data/plugins/plugin-terminal-proxy.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "status": 0,
     "configuration": [
       {
         "id": "ID_9jz1jc9c",
