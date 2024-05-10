@@ -1,3 +1,6 @@
+const PATH = 'data/third/sync-gui-gists'
+const JS_FILE = PATH + '/crypto-js.js'
+
 const onRun = async () => {
   const action = await Plugins.picker.single(
     '请选择操作',
@@ -24,6 +27,8 @@ const onRun = async () => {
  * 插件钩子：右键 - 同步至本地
  */
 const Sync = async () => {
+  if (!window.CryptoJS) throw '请先安装插件或重新安装插件'
+
   const list = await httpGet('/gists')
   const _list = filterList(list)
   if (_list.length === 0) throw '没有可同步的备份'
@@ -60,6 +65,8 @@ const Sync = async () => {
  * 插件钩子：右键 - 立即备份
  */
 const Backup = async () => {
+  if (!window.CryptoJS) throw '请先安装插件或重新安装插件'
+
   const files = ['data/user.yaml', 'data/profiles.yaml', 'data/subscribes.yaml', 'data/rulesets.yaml', 'data/plugins.yaml', 'data/scheduledtasks.yaml']
 
   const subscribesStore = Plugins.useSubscribesStore()
@@ -128,7 +135,9 @@ const Remove = async () => {
 }
 
 const onInstall = async () => {
+  await Plugins.Download('https://unpkg.com/crypto-js@latest/crypto-js.js', JS_FILE)
   await loadDependence()
+  return 0
 }
 
 const onUninstall = async () => {
@@ -136,12 +145,12 @@ const onUninstall = async () => {
   dom && dom.remove()
   window.CryptoJS = null
   delete window.CryptoJS
+  await Plugins.Removefile(PATH)
+  return 0
 }
 
-const onStartup = async () => {
-  if (Plugin.installed) {
-    await loadDependence()
-  }
+const onReady = async () => {
+  await loadDependence()
 }
 
 const getPrefix = () => {
@@ -157,17 +166,22 @@ const filterList = (list) => {
  * 动态引入依赖
  */
 function loadDependence() {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     if (window.CryptoJS) {
       resolve()
       return
     }
-    const script = document.createElement('script')
-    script.id = Plugin.id
-    script.src = 'https://unpkg.com/crypto-js@latest/crypto-js.js'
-    script.onload = resolve
-    script.onerror = () => reject('加载加密套件失败')
-    document.body.appendChild(script)
+    try {
+      const text = await Plugins.Readfile(JS_FILE)
+      const script = document.createElement('script')
+      script.id = Plugin.id
+      script.text = text
+      document.body.appendChild(script)
+      resolve()
+    } catch (error) {
+      console.error(error)
+      reject('加载加密套件失败，请重新安装本插件')
+    }
   })
 }
 

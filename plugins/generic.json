@@ -331,7 +331,7 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sync-configuration.js",
     "path": "data/plugins/plugin-sync-configuration.js",
-    "triggers": ["on::manual", "on::startup"],
+    "triggers": ["on::manual", "on::ready"],
     "menus": {
       "立即备份": "Backup",
       "同步至本地": "Sync"
@@ -377,7 +377,7 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sync-configuration-gists.js",
     "path": "data/plugins/plugin-sync-configuration-gists.js",
-    "triggers": ["on::manual", "on::startup"],
+    "triggers": ["on::manual", "on::ready"],
     "menus": {
       "立即备份": "Backup",
       "同步至本地": "Sync"
