@@ -93,7 +93,7 @@
   {
     "id": "plugin-install-font",
     "name": "Twemoji.Mozilla",
-    "description": "下载并安装字体“Twemoji.Mozilla.ttf”，你的节点将正常显示国旗图标。",
+    "description": "下载并安装字体“Twemoji.Mozilla.ttf”，你的节点将正常显示国旗图标。（Twemoji font in COLR/CPAL layered format）",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-install-font.js",
     "path": "data/plugins/plugin-install-font.js",
@@ -142,7 +142,7 @@
   {
     "id": "plugin-adguardhome",
     "name": "AdGuardHome",
-    "description": "集成AdGuardHome程序。",
+    "description": "集成AdGuardHome程序。（Network-wide ads & trackers blocking DNS server）",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-adguardhome.js",
     "path": "data/plugins/plugin-adguardhome.js",
@@ -165,18 +165,9 @@
         "options": []
       },
       {
-        "id": "ID_u55r5gfb",
-        "title": "使用内部浏览器打开管理界面",
-        "description": "开启将使用内部浏览器打开管理界面，关闭则使用系统浏览器打开管理界面。",
-        "key": "UseInternalBrowser",
-        "component": "Switch",
-        "value": true,
-        "options": []
-      },
-      {
         "id": "ID_gytm0oyf",
         "title": "跟随GUI启动或停止",
-        "description": "开启后，AdGuardHome服务将随着GUI自动开启或停止。",
+        "description": "",
         "key": "AutoStartOrStop",
         "component": "Switch",
         "value": false,
@@ -190,7 +181,7 @@
   {
     "id": "plugin-frp-client",
     "name": "frp 内网穿透",
-    "description": "FRP内网穿透客户端程序。",
+    "description": "FRP内网穿透客户端程序。（A fast reverse proxy to help you expose a local server behind a NAT or firewall to the internet.）",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-frp-client.js",
     "path": "data/plugins/plugin-frp-client.js",
@@ -227,7 +218,7 @@
   {
     "id": "plugin-sub-store-v2",
     "name": "Sub-Store V2",
-    "description": "高级订阅管理工具",
+    "description": "高级订阅管理工具，Node.js直接运行版，无需编译。（Advanced Subscription Manager for QX, Loon, Surge, Stash and Shadowrocket!）",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sub-store-v2.js",
     "path": "data/plugins/plugin-sub-store-v2.js",
@@ -275,18 +266,9 @@
         "options": []
       },
       {
-        "id": "ID_8twu1xoj",
-        "title": "使用内部浏览器",
-        "description": "开启将使用内部浏览器打开管理界面，关闭则使用系统浏览器打开管理界面。",
-        "key": "useInternalBrowser",
-        "component": "Switch",
-        "value": true,
-        "options": []
-      },
-      {
         "id": "ID_qenehz06",
         "title": "跟随GUI启动或停止",
-        "description": "开启后，Sub-Store服务将随着GUI自动开启或停止。",
+        "description": "",
         "key": "AutoStartOrStop",
         "component": "Switch",
         "value": false,
@@ -300,7 +282,7 @@
   {
     "id": "plugin-sub-store",
     "name": "Sub-Store",
-    "description": "高级订阅管理工具",
+    "description": "高级订阅管理工具，Node.js源码版，从源码编译并运行。（Advanced Subscription Manager for QX, Loon, Surge, Stash and Shadowrocket!）",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sub-store.js",
     "path": "data/plugins/plugin-sub-store.js",
@@ -327,7 +309,7 @@
   {
     "id": "plugin-sync-configuration",
     "name": "配置同步",
-    "description": "如果你有一台服务器...",
+    "description": "使用自建服务同步GUI配置。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sync-configuration.js",
     "path": "data/plugins/plugin-sync-configuration.js",
@@ -435,7 +417,7 @@
   {
     "id": "plugin-unblockneteasemusic",
     "name": "解锁网易云音乐",
-    "description": "解锁网易云音乐插件，需要安装CA证书。服务启动后网易云音乐客户端不需要任何设置。",
+    "description": "解锁网易云音乐插件，需要安装CA证书。请在音乐客户端内开启：使用IE代理设置。（Revive unavailable songs for Netease Cloud Music (Refactored & Enhanced version)）",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-unblockneteasemusic.js",
     "path": "data/plugins/plugin-unblockneteasemusic.js",
@@ -670,7 +652,7 @@
   {
     "id": "plugin-scamalytics-ip-fraud-risk",
     "name": "Scamalytics IP 欺诈风险查询",
-    "description": "查询当前节点落地 IP 的欺诈风险，也可以通过右键的方式手动输入需查询的 IP 地址 （注：Scamalytics API Key 需在 https://scamalytics.com/ip/api/pricing 申请）。Supported by: QiChaiQiChai",
+    "description": "查询当前节点落地 IP 的欺诈风险。Supported by: QiChaiQiChai",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-scamalytics-ip-fraud-risk.js",
     "path": "data/plugins/plugin-scamalytics-ip-fraud-risk.js",
@@ -701,7 +683,7 @@
       {
         "id": "ID_njkakwg1",
         "title": "请输入 Scamalytics API KEY",
-        "description": "",
+        "description": "需在 https://scamalytics.com/ip/api/pricing 申请",
         "key": "key",
         "component": "Input",
         "value": "",

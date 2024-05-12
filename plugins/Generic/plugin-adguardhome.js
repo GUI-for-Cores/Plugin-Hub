@@ -137,7 +137,7 @@ const onRun = async () => {
     await startAdguardHomeService()
   }
   const url = 'http://127.0.0.1:' + Plugin.Address.split(':')[1]
-  Plugin.UseInternalBrowser ? open(url) : Plugins.BrowserOpenURL(url)
+  Plugins.BrowserOpenURL(url)
   return 1
 }
 

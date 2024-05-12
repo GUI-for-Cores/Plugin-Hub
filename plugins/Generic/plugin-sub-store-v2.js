@@ -135,7 +135,7 @@ const onRun = async () => {
     await startSubStoreService()
   }
   const url = 'http://127.0.0.1:' + Plugin.SUB_STORE_FRONTEND_API_PORT + '?api=http://127.0.0.1:' + Plugin.SUB_STORE_BACKEND_API_PORT
-  Plugin.useInternalBrowser ? open(url) : Plugins.BrowserOpenURL(url)
+  Plugins.BrowserOpenURL(url)
   return 1
 }
 
