@@ -14,14 +14,14 @@ const startSubStoreService = async () => {
   const SUBSTORE_SOURCE_CODE = await Plugins.Readfile(BACKEND_FILE)
 
   const syncMemory = Plugins.debounce(() => {
-    Plugins.Writefile(USER_PROFILE, JSON.stringify(Plugins.$memory.data, null, 2))
+    Plugins.Writefile(USER_PROFILE, JSON.stringify(Plugins.SubStoreCache.data, null, 2))
   }, 1000)
 
   /**
    * 提供此方法供Sub-Store进行类似localStorage.setItem/getItem/removeItem的操作
    * 此方法必须是同步的; 同时加入防抖进行性能优化:)
    */
-  Plugins.$memory = {
+  Plugins.SubStoreCache = {
     data: JSON.parse((await Plugins.ignoredError(Plugins.Readfile, USER_PROFILE)) || '{}'),
     get(key) {
       return this.data[key]
@@ -75,10 +75,23 @@ const isSubStoreRunning = async () => {
 }
 
 /**
+ * 插件钩子 - APP就绪时
+ */
+const onReady = async () => {
+  if (await isSubStoreRunning()) {
+    // 重启服务，恢复web服务的处理程序
+    await stopSubStoreService()
+    await startSubStoreService()
+    return 1
+  }
+  return 2
+}
+
+/**
  * 插件钩子 - 点击安装按钮时
  */
 const onInstall = async () => {
-  await Plugins.Download('https://github.com/sub-store-org/Sub-Store/releases/latest/download/sub-store.bundle.js', BACKEND_FILE)
+  await Plugins.Download('https://github.com/sub-store-org/Sub-Store/releases/latest/download/sub-store.min.js', BACKEND_FILE)
   return 0
 }
 
@@ -133,5 +146,13 @@ const Stop = async () => {
  * 插件菜单项 - 更新程序
  */
 const Update = async () => {
+  const isRunning = await isSubStoreRunning()
+  if (isRunning) {
+    await stopSubStoreService()
+  }
+  await onInstall()
+  if (isRunning) {
+    await startSubStoreService()
+  }
   Plugins.message.success('更新成功')
 }
