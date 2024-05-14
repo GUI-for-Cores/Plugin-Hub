@@ -508,7 +508,7 @@ const onRun = async () => {
   const { id } = Plugins.message.info('查询中...', 1000000)
 
   try {
-    const { header, body } = await Plugins.HttpGet(url)
+    const { body } = await Plugins.HttpGet(url)
 
     if (body.error) {
       Plugins.confirm('Error❗❗❗', `                      💥 ${body.reason} 💥`)

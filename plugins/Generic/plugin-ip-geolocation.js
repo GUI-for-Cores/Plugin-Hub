@@ -4,7 +4,7 @@ const onRun = async () => {
 
   const url = 'https://ipapi.co/json'
 
-  const { header, body } = await Plugins.HttpGet(url)
+  const { body } = await Plugins.HttpGet(url)
 
   // 将 json 中的值赋给不同的变量
   let ip = body.ip

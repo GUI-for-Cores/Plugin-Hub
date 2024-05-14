@@ -1,6 +1,6 @@
 const checkIpFraudRisk = async (ip) => {
   const url = `https://${Plugin.hostname}/${Plugin.username}/?ip=${ip}&key=${Plugin.key}&test=0`
-  const { header, body } = await Plugins.HttpGet(url)
+  const { body } = await Plugins.HttpGet(url)
 
   let status = body.status
   let error = body.error
@@ -43,7 +43,7 @@ const checkIpFraudRisk = async (ip) => {
 }
 
 const getip = async () => {
-  const { header, body } = await Plugins.HttpGet('https://ipapi.co/json')
+  const { body } = await Plugins.HttpGet('https://ipapi.co/json')
   // 将 json 中的值赋给不同的变量
   let ip = body.ip
   return ip
