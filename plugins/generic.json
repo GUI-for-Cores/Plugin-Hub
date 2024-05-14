@@ -747,23 +747,33 @@
     "path": "data/plugins/plugin-custom-theme.js",
     "triggers": ["on::manual", "on::ready"],
     "menus": {
-      "渐变背景": "Random",
-      "清除主题": "Clear"
+      "下个背景": "Next",
+      "清除主题": "Clear",
+      "重置配置": "Reset"
     },
     "status": 0,
     "configuration": [
       {
-        "id": "ID_k9j7lfd9",
-        "title": "我更希望使用的背景ID",
-        "description": "填写时，【渐变背景】将固定，不填时，将随机。范围：0~25",
-        "key": "Index",
+        "id": "ID_oboyphgx",
+        "title": "主要颜色",
+        "description": "--primary-color",
+        "key": "PrimaryColor",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_avpo639p",
+        "title": "次要颜色",
+        "description": "--secondary-color",
+        "key": "SecondaryColor",
         "component": "Input",
         "value": "",
         "options": []
       }
     ],
     "disabled": false,
-    "install": false,
+    "install": true,
     "installed": false
   },
   {
