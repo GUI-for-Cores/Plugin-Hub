@@ -13,26 +13,25 @@ const startSubStoreService = async () => {
   const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor
   const SUBSTORE_SOURCE_CODE = await Plugins.Readfile(BACKEND_FILE)
 
-  const syncMemory = Plugins.debounce(() => {
-    Plugins.Writefile(USER_PROFILE, JSON.stringify(Plugins.SubStoreCache.data, null, 2))
-  }, 1000)
-
   /**
    * 提供此方法供Sub-Store进行类似localStorage.setItem/getItem/removeItem的操作
    * 此方法必须是同步的; 同时加入防抖进行性能优化:)
    */
   Plugins.SubStoreCache = {
     data: JSON.parse((await Plugins.ignoredError(Plugins.Readfile, USER_PROFILE)) || '{}'),
+    sync: Plugins.debounce(() => {
+      Plugins.Writefile(USER_PROFILE, JSON.stringify(this.data, null, 2))
+    }, 1000),
     get(key) {
       return this.data[key]
     },
     set(key, value) {
       this.data[key] = value
-      syncMemory()
+      this.sync()
     },
     remove(key) {
       delete this.data[key]
-      syncMemory()
+      this.sync()
     }
   }
 
