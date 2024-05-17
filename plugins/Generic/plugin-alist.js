@@ -5,15 +5,17 @@
 const PATH = 'data/third/alist'
 const PID_FILE = PATH + '/alist.pid'
 
+const { env } = Plugins.useEnvStore()
+const BIN_FILE = PATH + '/alist' + { linux: '', windows: '.exe', darwin: '' }[env.os]
+
 /**
  * 插件钩子 - 点击安装按钮时
  */
 const onInstall = async () => {
   await installAlist()
-  const res = await Plugins.Exec(PATH + '/alist.exe', ['admin'])
-  const username = res.match(/Admin user's username: (\w+)/)?.[1]
-  const password = res.match(/initial password is: (\w+)/)?.[1]
-  console.log(username, password)
+  const res = await Plugins.Exec(BIN_FILE, ['admin', ...(await defaultArgs())])
+  const password = res.match(/password is: (\w+)/)?.[1]
+  await Plugins.alert('账号信息', `用户名：admin\n初始密码：${password}\n\n如果你忘记了密码，可点击菜单项【管理员】-【重置密码】。`)
   return 0
 }
 
@@ -56,8 +58,8 @@ const onRun = async () => {
   if (!(await isAlistRunning())) {
     await startAlistService()
   }
-  const url = 'http://127.0.0.1:' + Plugin.Address.split(':')[1]
-  Plugins.BrowserOpenURL(url)
+  const config = JSON.parse(await Plugins.Readfile(PATH + '/config.json'))
+  Plugins.BrowserOpenURL(`http://127.0.0.1:${config.scheme.http_port}`)
   return 1
 }
 
@@ -86,25 +88,45 @@ const Stop = async () => {
 }
 
 /**
- * 插件菜单项 - Web界面
+ * 插件菜单项 - 配置文件
  */
-const Web = async () => {}
+const Config = async () => {
+  Plugins.BrowserOpenURL(await Plugins.AbsolutePath(PATH + '/config.json'))
+}
 
 /**
- * 插件菜单项 - 配置管理
+ * 插件菜单项 - 管理员
  */
 const More = async () => {
   const action = await Plugins.picker.single(
     '请选择操作',
     [
-      { label: '重置密码', value: 'admin:random' },
-      { label: '设置密码', value: 'admin:set' },
-      { label: '', value: '' },
-      { label: '', value: '' },
-      { label: '', value: '' }
+      { label: '重置密码', value: 'admin:random:password' },
+      { label: '设置密码', value: 'admin:set:password' },
+      { label: '删除两步验证', value: 'admin:cancel2fa' }
     ],
     []
   )
+
+  switch (action) {
+    case 'admin:random:password': {
+      const res = await Plugins.Exec(BIN_FILE, ['admin', 'random', ...(await defaultArgs())])
+      Plugins.alert('密码已重置', res.match(/password: (\w+)/)?.[1])
+      break
+    }
+    case 'admin:set:password': {
+      const password = await Plugins.prompt('请输入新的密码')
+      const res = await Plugins.Exec(BIN_FILE, ['admin', 'set', password, ...(await defaultArgs())])
+      console.log(res)
+      Plugins.alert('密码已设置', res.match(/password: (\w+)/)?.[1])
+      break
+    }
+    case 'admin:cancel2fa': {
+      await Plugins.Exec(BIN_FILE, ['cancel2fa', ...(await defaultArgs())])
+      Plugins.message.success('已取消两步验证')
+      break
+    }
+  }
 }
 
 /**
@@ -133,17 +155,18 @@ const stopAlistService = async () => {
 /**
  * 启动alist服务
  */
-const startAlistService = async () => {
+const startAlistService = () => {
   return new Promise(async (resolve, reject) => {
     try {
-      const envStore = Plugins.useEnvStore()
       const pid = await Plugins.ExecBackground(
-        PATH + { linux: '', windows: '', darwin: '' }[envStore.env.os],
-        [],
+        BIN_FILE,
+        ['server', ...(await defaultArgs())],
         async (out) => {
           console.log(out)
-          await Plugins.Writefile(PID_FILE, pid)
-          resolve()
+          if (out.includes('start HTTP server')) {
+            await Plugins.Writefile(PID_FILE, String(pid))
+            resolve()
+          }
         },
         () => Plugins.Writefile(PID_FILE, '0')
       )
@@ -157,7 +180,6 @@ const startAlistService = async () => {
  * 安装alist
  */
 const installAlist = async () => {
-  const { env } = Plugins.useEnvStore()
   const suffix = env.os === 'windows' ? '.zip' : '.tar.gz'
   const tmp_file = 'data/.cache/alist' + suffix
   const { id } = Plugins.message.info('获取alist下载地址', 999999999)
@@ -189,4 +211,8 @@ const installAlist = async () => {
 /* 卸载alist */
 const uninstallAlist = async () => {
   await Plugins.Removefile(PATH)
+}
+
+const defaultArgs = async () => {
+  return ['--data', await Plugins.AbsolutePath(PATH)]
 }

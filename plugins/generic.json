@@ -179,6 +179,36 @@
     "installed": false
   },
   {
+    "id": "plugin-alist",
+    "name": "Alist",
+    "description": "🗂️A file list/WebDAV program that supports multiple storages, powered by Gin and Solidjs. / 一个支持多存储的文件列表/WebDAV程序，使用 Gin 和 Solidjs。",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-alist.js",
+    "path": "data/plugins/plugin-alist.js",
+    "triggers": ["on::manual", "on::startup", "on::shutdown"],
+    "menus": {
+      "运行服务": "Start",
+      "停止服务": "Stop",
+      "配置文件": "Config",
+      "管理员": "More"
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_gytm0oyf",
+        "title": "跟随GUI启动或停止",
+        "description": "",
+        "key": "AutoStartOrStop",
+        "component": "Switch",
+        "value": false,
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": true,
+    "installed": false
+  },
+  {
     "id": "plugin-frp-client",
     "name": "frp 内网穿透",
     "description": "FRP内网穿透客户端程序。（A fast reverse proxy to help you expose a local server behind a NAT or firewall to the internet.）",
