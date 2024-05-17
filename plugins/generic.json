@@ -247,7 +247,7 @@
   },
   {
     "id": "plugin-sub-store-v3",
-    "name": "Sub-Store V3",
+    "name": "Sub-Store 纯净版",
     "description": "高级订阅管理工具。无Node.js、无MITM，优雅。（Advanced Subscription Manager for QX, Loon, Surge, Stash and Shadowrocket!）",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sub-store-v3.js",
@@ -276,8 +276,8 @@
   },
   {
     "id": "plugin-sub-store-v2",
-    "name": "Sub-Store V2",
-    "description": "高级订阅管理工具，Node.js直接运行版，无需编译。（Advanced Subscription Manager for QX, Loon, Surge, Stash and Shadowrocket!）",
+    "name": "Sub-Store Nodejs版",
+    "description": "高级订阅管理工具，Node.js版，无需编译。（Advanced Subscription Manager for QX, Loon, Surge, Stash and Shadowrocket!）",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sub-store-v2.js",
     "path": "data/plugins/plugin-sub-store-v2.js",
@@ -331,33 +331,6 @@
         "key": "AutoStartOrStop",
         "component": "Switch",
         "value": false,
-        "options": []
-      }
-    ],
-    "disabled": false,
-    "install": true,
-    "installed": false
-  },
-  {
-    "id": "plugin-sub-store",
-    "name": "Sub-Store",
-    "description": "高级订阅管理工具，Node.js源码版，从源码编译并运行。（Advanced Subscription Manager for QX, Loon, Surge, Stash and Shadowrocket!）",
-    "type": "Http",
-    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sub-store.js",
-    "path": "data/plugins/plugin-sub-store.js",
-    "triggers": ["on::manual", "on::startup", "on::shutdown"],
-    "menus": {
-      "更新Sub-Store": "onUpdate"
-    },
-    "status": 0,
-    "configuration": [
-      {
-        "id": "ID_llsiold1",
-        "title": "SubStore Port(端口)",
-        "description": "服务端口号",
-        "key": "port",
-        "component": "Input",
-        "value": "20433",
         "options": []
       }
     ],
