@@ -117,7 +117,6 @@ const More = async () => {
     case 'admin:set:password': {
       const password = await Plugins.prompt('请输入新的密码')
       const res = await Plugins.Exec(BIN_FILE, ['admin', 'set', password, ...(await defaultArgs())])
-      console.log(res)
       Plugins.alert('密码已设置', res.match(/password: (\w+)/)?.[1])
       break
     }
@@ -162,7 +161,6 @@ const startAlistService = () => {
         BIN_FILE,
         ['server', ...(await defaultArgs())],
         async (out) => {
-          console.log(out)
           if (out.includes('start HTTP server')) {
             await Plugins.Writefile(PID_FILE, String(pid))
             resolve()
