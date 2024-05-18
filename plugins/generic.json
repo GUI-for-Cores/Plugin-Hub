@@ -218,8 +218,7 @@
     "triggers": ["on::manual", "on::startup", "on::shutdown"],
     "menus": {
       "运行服务": "Start",
-      "停止服务": "Stop",
-      "更新程序": "Update"
+      "停止服务": "Stop"
     },
     "status": 0,
     "configuration": [
@@ -285,7 +284,8 @@
     "triggers": ["on::manual", "on::startup", "on::shutdown"],
     "menus": {
       "运行服务": "Start",
-      "停止服务": "Stop"
+      "停止服务": "Stop",
+      "更新程序": "Update"
     },
     "status": 0,
     "configuration": [
