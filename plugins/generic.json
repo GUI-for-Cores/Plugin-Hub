@@ -217,8 +217,9 @@
     "path": "data/plugins/plugin-frp-client.js",
     "triggers": ["on::manual", "on::startup", "on::shutdown"],
     "menus": {
-      "启动服务": "Start",
-      "停止服务": "Stop"
+      "运行服务": "Start",
+      "停止服务": "Stop",
+      "更新程序": "Update"
     },
     "status": 0,
     "configuration": [
@@ -254,7 +255,7 @@
     "path": "data/plugins/plugin-sub-store-v3.js",
     "triggers": ["on::manual", "on::ready"],
     "menus": {
-      "启动服务": "Start",
+      "运行服务": "Start",
       "停止服务": "Stop",
       "更新程序": "Update"
     },
@@ -283,7 +284,7 @@
     "path": "data/plugins/plugin-sub-store-v2.js",
     "triggers": ["on::manual", "on::startup", "on::shutdown"],
     "menus": {
-      "启动服务": "Start",
+      "运行服务": "Start",
       "停止服务": "Stop"
     },
     "status": 0,
