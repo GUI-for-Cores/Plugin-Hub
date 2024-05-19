@@ -179,6 +179,43 @@
     "installed": false
   },
   {
+    "id": "file-transfer-assistant",
+    "name": "文件互传助手",
+    "description": "文件互传助手，支持Siri快捷指令。",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/file-transfer-assistant.js",
+    "path": "data/plugins/file-transfer-assistant.js",
+    "triggers": ["on::manual", "on::ready"],
+    "menus": {
+      "运行服务": "Start",
+      "停止服务": "Stop"
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_ufqxympi",
+        "title": "文件保存位置",
+        "description": "要将接收到的文件保存到哪里？",
+        "key": "SavePath",
+        "component": "Input",
+        "value": "data/third/file-transfer-assistant/Saved",
+        "options": []
+      },
+      {
+        "id": "ID_th803wig",
+        "title": "共享文件夹",
+        "description": "要将共享哪个目录给其他设备？",
+        "key": "SharePath",
+        "component": "Input",
+        "value": "data/third/file-transfer-assistant/Share",
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-alist",
     "name": "Alist",
     "description": "🗂️A file list/WebDAV program that supports multiple storages, powered by Gin and Solidjs. / 一个支持多存储的文件列表/WebDAV程序，使用 Gin 和 Solidjs。",
