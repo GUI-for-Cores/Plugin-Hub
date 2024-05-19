@@ -182,6 +182,8 @@ const startService = async () => {
     }
   }
 
+  const _share = await Plugins.AbsolutePath(Plugin.SharePath)
+
   await Plugins.StartServer('0.0.0.0:5233', Plugin.id, async (req, res) => {
     if (req.url == '/' || req.url == '/index.html') {
       return res.end(200, { 'Content-Type': MIME_MAPPING.html }, INDEX_TEMPLATE)
@@ -189,7 +191,8 @@ const startService = async () => {
 
     if (req.url.startsWith('/download')) {
       const path = new URLSearchParams(req.url.slice(req.url.indexOf('?'))).get('path')
-      if (path?.startsWith(Plugin.SharePath)) {
+      const _path = await Plugins.AbsolutePath(path)
+      if (_path?.startsWith(_share)) {
         const suffix = path.split('.').pop().toLowerCase()
         const file = await Plugins.Readfile(path, { Mode: 'Binary' })
         res.end(200, { 'Content-Type': MIME_MAPPING[suffix] || MIME_MAPPING.txt }, file, { Mode: 'Binary' })
@@ -199,8 +202,9 @@ const startService = async () => {
 
     if (req.url.startsWith('/dir')) {
       const path = new URLSearchParams(req.url.slice(5)).get('path')
-      if (path?.startsWith(Plugin.SharePath)) {
-        const dirs = await Plugins.Readdir(path)
+      const _path = await Plugins.AbsolutePath(path)
+      if (_path?.startsWith(_share)) {
+        const dirs = await Plugins.Readdir(_path)
         res.end(200, { 'Content-Type': MIME_MAPPING.json }, JSON.stringify(dirs.map((v) => ({ ...v, size: Plugins.formatBytes(v.size) }))))
       }
       return res.end(403, { 'Content-Type': MIME_MAPPING.txt }, '禁止访问此目录:' + path)
