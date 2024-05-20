@@ -100,7 +100,8 @@ const startSubStoreService = async () => {
   Plugins.SubStoreCache = {
     data: JSON.parse((await Plugins.ignoredError(Plugins.Readfile, USER_PROFILE)) || '{}'),
     sync: Plugins.debounce(() => {
-      Plugins.Writefile(USER_PROFILE, JSON.stringify(this.data, null, 2))
+      // FIXME: this.data不存在，大大滴有问题
+      Plugins.Writefile(USER_PROFILE, JSON.stringify(Plugins.SubStoreCache.data, null, 2))
     }, 1000),
     get(key) {
       return this.data[key]
