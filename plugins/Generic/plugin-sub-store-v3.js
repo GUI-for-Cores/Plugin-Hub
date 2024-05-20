@@ -135,7 +135,7 @@ const startSubStoreService = async () => {
           var $Plugin = ${JSON.stringify(Plugin)};
           var $done;
           var $donePromise = new Promise((resolve) => ($done = resolve));
-          var $request = ${JSON.stringify({ ...req, url: `http://127.0.0.1${req.url}` })};
+          var $request = ${JSON.stringify({ ...req, url: `http://127.0.0.1${req.url}`, body: atob(req.body) })};
           /* Code snippet injected by GUI.for.Cores . end */
           
           ${SUBSTORE_SOURCE_CODE}
