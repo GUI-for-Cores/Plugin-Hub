@@ -116,6 +116,18 @@ const startSubStoreService = async () => {
   }
 
   await Plugins.StartServer(Plugin.Address, Plugin.id, async (req, res) => {
+    if (req.method === 'OPTIONS') {
+      return res.end(
+        204,
+        {
+          'Content-Type': 'text/plain; charset=utf-8',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, GET, OPTIONS, PATCH, PUT, DELETE',
+          'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
+        },
+        ''
+      )
+    }
     if (/^\/api|^\/download/.test(req.url)) {
       const response = await new AsyncFunction(/* javascript */ `
           /* Code snippet injected by GUI.for.Cores . start */
@@ -132,8 +144,7 @@ const startSubStoreService = async () => {
           return await $donePromise;
           /* Code snippet injected by GUI.for.Cores . end */
       `)()
-      res.end(response.status, response.headers, response.body)
-      return
+      return res.end(response.status, response.headers, response.body)
     }
     res.end(200, { 'Content-Type': 'text/html; charset=utf-8' }, 'The Sub-Store Backend is running... Have a nice day :)')
   })
