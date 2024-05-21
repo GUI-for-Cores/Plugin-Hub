@@ -209,6 +209,15 @@
         "component": "Input",
         "value": "data/third/file-transfer-assistant/Share",
         "options": []
+      },
+      {
+        "id": "ID_or2prycz",
+        "title": "自动启动",
+        "description": "自动跟随GUI启动？（注：该服务总是跟随GUI自动停止）",
+        "key": "AutoStart",
+        "component": "Switch",
+        "value": false,
+        "options": []
       }
     ],
     "disabled": false,
@@ -304,6 +313,15 @@
         "key": "Address",
         "component": "Input",
         "value": "127.0.0.1:3002",
+        "options": []
+      },
+      {
+        "id": "ID_or2prycz",
+        "title": "自动启动",
+        "description": "自动跟随GUI启动？（注：该服务总是跟随GUI自动停止）",
+        "key": "AutoStart",
+        "component": "Switch",
+        "value": false,
         "options": []
       }
     ],

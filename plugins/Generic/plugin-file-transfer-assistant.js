@@ -13,6 +13,10 @@ const onRun = async () => {
  * 插件钩子 - APP就绪时
  */
 const onReady = async () => {
+  if (Plugin.AutoStart) {
+    await startService()
+    return 1
+  }
   if (await isRunning()) {
     // 重启服务，恢复web服务的处理程序
     await stopService()
