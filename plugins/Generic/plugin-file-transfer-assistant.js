@@ -188,6 +188,11 @@ const startService = async () => {
 
   const _share = await Plugins.AbsolutePath(Plugin.SharePath)
 
+  if (!(await Plugins.FileExists(_share))) {
+    await Plugins.Makedir(_share)
+    Plugins.message.info('已自动创建共享文件夹')
+  }
+
   await Plugins.StartServer('0.0.0.0:5233', Plugin.id, async (req, res) => {
     if (req.url == '/' || req.url == '/index.html') {
       return res.end(200, { 'Content-Type': MIME_MAPPING.html }, INDEX_TEMPLATE)
