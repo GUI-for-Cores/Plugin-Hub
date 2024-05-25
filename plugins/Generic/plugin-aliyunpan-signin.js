@@ -46,13 +46,13 @@ async function sign_in(access_token) {
   const { signInLogs, signInCount } = body.result
 
   // 未领取奖励列表
-  const rewards = signInLogs.filter((v) => v.status === 'normal' && !v.isReward)
+  // const rewards = signInLogs.filter((v) => v.status === 'normal' && !v.isReward)
 
-  for await (reward of rewards) {
-    await getReward(access_token, reward.day).catch((err) => {
-      console.log('领取奖励失败：', err)
-    })
-  }
+  // for await (reward of rewards) {
+  //   await getReward(access_token, reward.day).catch((err) => {
+  //     console.log('领取奖励失败：', err)
+  //   })
+  // }
 
   return `累计签到${signInCount}天。`
 }
