@@ -28,20 +28,5 @@
     "disabled": false,
     "install": true,
     "installed": false
-  },
-  {
-    "id": "plugin-node-convert",
-    "name": "节点转换-Beta版",
-    "description": "节点转换插件，支持v2ray分享的链接转换为clash格式。目前为测试阶段，请积极反馈，反馈时请提供脱敏后的分享链接。",
-    "type": "Http",
-    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFC/plugin-node-convert.js",
-    "path": "data/plugins/plugin-node-convert.js",
-    "triggers": ["on::manual"],
-    "menus": {},
-    "status": 0,
-    "configuration": [],
-    "disabled": false,
-    "install": false,
-    "installed": false
   }
 ]
