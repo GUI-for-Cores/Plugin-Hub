@@ -91,6 +91,21 @@
     "installed": false
   },
   {
+    "id": "plugin-node-convert",
+    "name": "节点转换",
+    "description": "节点格式转换插件，支持v2Ray格式转clash、clash格式转sing-box。",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-node-convert.js",
+    "path": "data/plugins/plugin-node-convert.js",
+    "triggers": ["on::subscribe"],
+    "menus": {},
+    "status": 0,
+    "configuration": [],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-install-font",
     "name": "Twemoji.Mozilla",
     "description": "下载并安装字体“Twemoji.Mozilla.ttf”，你的节点将正常显示国旗图标。（Twemoji font in COLR/CPAL layered format）",
