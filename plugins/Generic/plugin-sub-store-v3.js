@@ -41,7 +41,7 @@ const onRun = async () => {
  * 插件钩子 - APP就绪时
  */
 const onReady = async () => {
-  if (Plugin.AutoStart) {
+  if (Plugin.AutoStart && !(await isSubStoreRunning())) {
     await startSubStoreService()
     return 1
   }
