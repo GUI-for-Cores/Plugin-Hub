@@ -171,7 +171,17 @@ const isRunning = async () => {
 }
 
 const getAvailablePorts = async (count) => {
-  const out = await Plugins.Exec('netstat', ['-n'], { convert: true })
+  let cmd = 'netstat'
+  let args = ['-n']
+
+  const { env } = Plugins.useEnvStore()
+
+  if (env.os !== 'windows') {
+    cmd = 'netstat'
+    args = ['-tunlp']
+  }
+
+  const out = await Plugins.Exec(cmd, args, { convert: env.os === 'windows' })
 
   const regex = /(?:[\d\.]+):(\d+)/g
   const occupiedPorts = new Set()
