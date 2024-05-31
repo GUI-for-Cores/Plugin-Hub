@@ -12,8 +12,40 @@ const onRun = async () => {
 /* Trigger Install */
 const onInstall = async () => {
   await Plugins.Makedir(PATH)
-  // TODO: 下载对应平台的clash内核
-  await Plugins.Copyfile('data/mihomo/mihomo-windows-amd64.exe', PATH + '/meta.exe')
+  const { body } = await Plugins.HttpGet('https://api.github.com/repos/MetaCubeX/mihomo/releases/latest', {
+    Authorization: Plugins.getGitHubApiAuthorization?.() || ''
+  })
+  const { assets, tag_name, message: msg } = body
+  if (msg) throw msg
+  const {
+    env: { os, arch, x64Level }
+  } = Plugins.useEnvStore()
+  const amd64Compatible = arch === 'amd64' && x64Level < 3 ? '-compatible' : ''
+  const suffix = { windows: '.zip', linux: '.gz', darwin: '.gz' }[os]
+  const binSuffix = { windows: '.exe', linux: '', darwin: '' }[os]
+  const binName = `mihomo-${os}-${arch}${amd64Compatible}${binSuffix}`
+  const assetName = `mihomo-${os}-${arch}${amd64Compatible}-${tag_name}${suffix}`
+  const asset = assets.find((v) => v.name === assetName)
+  if (!asset) throw 'Asset Not Found:' + assetName
+  const tmp = PATH + `/core${suffix}`
+  const { id } = Plugins.message.info('Downloading...', 10 * 60 * 1_000)
+  await Plugins.Download(asset.browser_download_url, tmp, {}, (progress, total) => {
+    Plugins.message.update(id, 'Downloading...' + ((progress / total) * 100).toFixed(2) + '%')
+  }).catch((err) => {
+    Plugins.message.destroy(id)
+    throw err
+  })
+  Plugins.message.destroy(id)
+  if (suffix === '.zip') {
+    await Plugins.UnzipZIPFile(tmp, PATH)
+  } else {
+    await Plugins.UnzipGZFile(tmp, PATH)
+  }
+  await Plugins.Movefile(PATH + '/' + binName, PATH + '/meta.exe')
+  await Plugins.Removefile(tmp)
+  if (['darwin', 'linux'].includes(os)) {
+    await Plugins.ignoredError(Plugins.Exec, 'chmod', ['+x', await Plugins.AbsolutePath(PATH + '/meta.exe')])
+  }
   return 0
 }
 
@@ -27,7 +59,7 @@ const onUninstall = async () => {
 }
 
 const onReady = async () => {
-  if (Plugin.AutoStart) {
+  if (Plugin.AutoStart && !(await isRunning())) {
     await startService()
     return 1
   }
