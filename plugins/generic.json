@@ -410,6 +410,34 @@
     "installed": false
   },
   {
+    "id": "plugin-sub-store-script-support",
+    "name": "Sub-Store 脚本支持",
+    "description": "安装后Sub-Store可正常使用测落地的相关脚本。",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sub-store-script-support.js",
+    "path": "data/plugins/plugin-sub-store-script-support.js",
+    "triggers": ["on::manual", "on::ready"],
+    "menus": {
+      "运行服务": "Start",
+      "停止服务": "Stop"
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_or2prycz",
+        "title": "自动启动",
+        "description": "自动跟随GUI启动？（注：该服务总是跟随GUI自动停止）",
+        "key": "AutoStart",
+        "component": "Switch",
+        "value": false,
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": true,
+    "installed": false
+  },
+  {
     "id": "plugin-sync-configuration",
     "name": "配置同步",
     "description": "使用自建服务同步GUI配置。",

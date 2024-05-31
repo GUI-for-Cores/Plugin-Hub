@@ -6,6 +6,7 @@ const onRun = async () => {
     throw '该服务已经在运行了'
   }
   await startService()
+  return 1
 }
 
 /* Trigger Install */
@@ -18,8 +19,24 @@ const onInstall = async () => {
 
 /* Trigger Uninstall */
 const onUninstall = async () => {
+  if (await isRunning()) {
+    throw '请先停止该服务'
+  }
   await Plugins.Removefile(PATH)
   return 0
+}
+
+const onReady = async () => {
+  if (Plugin.AutoStart) {
+    await startService()
+    return 1
+  }
+  if (await isRunning()) {
+    await stopService()
+    await startService()
+    return 1
+  }
+  return 2
 }
 
 const Start = async () => {
@@ -27,10 +44,12 @@ const Start = async () => {
     throw '该服务已经在运行了'
   }
   await startService()
+  return 1
 }
 
 const Stop = async () => {
-  await Plugins.StopServer(Plugin.id)
+  await stopService()
+  return 2
 }
 
 const startService = async () => {
@@ -109,6 +128,10 @@ const startService = async () => {
     }
     res.end(200, { 'Content-Type': 'application/json' }, 'Server is running...')
   })
+}
+
+const stopService = async () => {
+  await Plugins.StopServer(Plugin.id)
 }
 
 const isRunning = async () => {
