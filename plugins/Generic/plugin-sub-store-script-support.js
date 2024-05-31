@@ -2,13 +2,16 @@ const PATH = 'data/third/sub-store-script-support'
 
 /* Trigger on::manual */
 const onRun = async () => {
-  if ((await Plugins.ListServer()).includes(Plugin.id)) return
+  if (await isRunning()) {
+    throw '该服务已经在运行了'
+  }
   await startService()
 }
 
 /* Trigger Install */
 const onInstall = async () => {
   await Plugins.Makedir(PATH)
+  // TODO: 下载对应平台的clash内核
   await Plugins.Copyfile('data/mihomo/mihomo-windows-amd64.exe', PATH + '/meta.exe')
   return 0
 }
@@ -20,7 +23,9 @@ const onUninstall = async () => {
 }
 
 const Start = async () => {
-  if ((await Plugins.ListServer()).includes(Plugin.id)) return
+  if (await isRunning()) {
+    throw '该服务已经在运行了'
+  }
   await startService()
 }
 
@@ -43,10 +48,9 @@ const startService = async () => {
 
     if (req.url === '/start') {
       const body = JSON.parse(Plugins.base64Decode(req.body))
+      const ports = await getAvailablePorts(body.proxies.length)
       const config = {
-        'bind-address': '127.0.0.1',
         port: 9092,
-        'external-controller': '127.0.0.1:54342',
         'allow-lan': false,
         'log-level': 'info',
         ipv6: true,
@@ -56,9 +60,7 @@ const startService = async () => {
         },
         dns: {
           enable: true,
-          'prefer-h3': false,
           ipv6: true,
-          'use-hosts': true,
           'enhanced-mode': 'fake-ip',
           'fake-ip-range': '28.0.0.1/8',
           nameserver: ['https://223.5.5.5/dns-query']
@@ -71,7 +73,17 @@ const startService = async () => {
             type: 'select',
             proxies: body.proxies.map((v) => v.name)
           }
-        ]
+        ],
+        listeners: body.proxies.map((p, index) => {
+          return {
+            name: `listener-${p.name}`,
+            type: 'mixed',
+            port: ports[index],
+            listen: '127.0.0.1',
+            proxy: p.name,
+            udp: true
+          }
+        })
       }
 
       await Plugins.Writefile(PATH + '/config.yaml', Plugins.YAML.stringify(config))
@@ -80,22 +92,49 @@ const startService = async () => {
         PATH + '/meta.exe',
         ['-d', ABS_PATH, '-f', ABS_PATH + '/config.yaml'],
         async (out) => {
-          console.log(`meta: `, out)
+          // console.log(`meta: `, out)
         },
         async () => {
-          console.log(`meta: `, 'end')
+          // console.log(`meta: `, 'end')
         }
       )
       return res.end(
         200,
         { 'Content-Type': 'application/json' },
         JSON.stringify({
-          // TODO: 所有请求目前都只使用第一个代理，这是不对的，但是SubStore的脚本发出测试请求的间隙没有机会调用clash的RestfulApi来切换节点，得想个优雅的法子:)
-          ports: new Array(body.proxies.length).fill(9092),
+          ports,
           pid: meta_pid
         })
       )
     }
     res.end(200, { 'Content-Type': 'application/json' }, 'Server is running...')
   })
+}
+
+const isRunning = async () => {
+  return (await Plugins.ListServer()).includes(Plugin.id)
+}
+
+const getAvailablePorts = async (count) => {
+  const out = await Plugins.Exec('netstat', ['-n'], { convert: true })
+
+  const regex = /(?:[\d\.]+):(\d+)/g
+  const occupiedPorts = new Set()
+  let match
+
+  while ((match = regex.exec(out)) !== null) {
+    occupiedPorts.add(parseInt(match[1], 10))
+  }
+
+  const availablePorts = []
+  const minPort = 1024
+  const maxPort = 65535
+
+  for (let port = minPort; port <= maxPort && availablePorts.length < count; port++) {
+    if (!occupiedPorts.has(port)) {
+      availablePorts.push(port)
+    }
+  }
+
+  return availablePorts
 }
