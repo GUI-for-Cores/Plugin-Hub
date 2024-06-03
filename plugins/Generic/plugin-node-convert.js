@@ -90,10 +90,10 @@ const onSubscribe = async (proxies) => {
         continue
       }
       try {
-        const proxy = protocol.parse(line)
+        const proxy = protocol.parse(line.trim())
         _proxies.push(proxy)
       } catch (error) {
-        console.log('解析Clash节点错误', error)
+        console.log('解析Clash节点发生错误', error)
       }
     }
     proxies = _proxies
@@ -110,11 +110,10 @@ const onSubscribe = async (proxies) => {
         const _proxy = protocolForSingBoxMap[proxy.type](proxy)
         _proxies.push(_proxy)
       } catch (error) {
-        console.log('解析错误SingBox节点', error)
+        console.log('解析SingBox节点发生错误', error)
       }
     }
-    // 过不过滤没差别，因为protocolForSingBoxMap没有实现这几种协议
-    proxies = _proxies.filter((proxy) => !['selector', 'urltest', 'direct', 'block', 'dns'].includes(proxy.type))
+    proxies = _proxies
   }
 
   return proxies
