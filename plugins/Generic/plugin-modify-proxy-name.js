@@ -193,44 +193,46 @@ const onSubscribe = async (proxies) => {
     if (isGFS) {
       // 修改代理数组，根据节点名称添加对应的 emoji
       proxies = proxies.map((v, i) => {
-        const lowercasetag = v.tag.toLowerCase()
-        let shouldAddEmoji = true // Flag to track whether emoji should be added
-        for (const keywords in SortedKeywordsToEmoji) {
-          const regex = new RegExp(keywords, 'i')
-          // Check if the proxy tag matches any keywords
-          if (regex.test(lowercasetag)) {
-            const emoji = SortedKeywordsToEmoji[keywords]
-            // Check if the proxy tag already starts with an emoji
-            if (v.tag.startsWith(emoji)) {
-              shouldAddEmoji = false // If the proxy tag already has an emoji, do not add another one
-            } else {
-              v.tag = emoji + ' ' + v.tag // Add emoji and space before the proxy tag
-            }
-            break // Break out of loop after the first match
-          }
-        }
-        return shouldAddEmoji ? v : { ...v } // If emoji should not be added, return original, otherwise return modified proxy
+        return { ...v, tag: '🇵🇸 ' + v.tag }
+        // const lowercasetag = v.tag.toLowerCase()
+        // let shouldAddEmoji = true // Flag to track whether emoji should be added
+        // for (const keywords in SortedKeywordsToEmoji) {
+        //   const regex = new RegExp(keywords, 'i')
+        //   // Check if the proxy tag matches any keywords
+        //   if (regex.test(lowercasetag)) {
+        //     const emoji = SortedKeywordsToEmoji[keywords]
+        //     // Check if the proxy tag already starts with an emoji
+        //     if (v.tag.startsWith(emoji)) {
+        //       shouldAddEmoji = false // If the proxy tag already has an emoji, do not add another one
+        //     } else {
+        //       v.tag = emoji + ' ' + v.tag // Add emoji and space before the proxy tag
+        //     }
+        //     break // Break out of loop after the first match
+        //   }
+        // }
+        // return shouldAddEmoji ? v : { ...v } // If emoji should not be added, return original, otherwise return modified proxy
       })
     } else if (isGFC) {
       // 修改代理数组，根据节点名称添加对应的 emoji
       proxies = proxies.map((v, i) => {
-        const lowercaseName = v.name.toLowerCase()
-        let shouldAddEmoji = true // Flag to track whether emoji should be added
-        for (const keywords in SortedKeywordsToEmoji) {
-          const regex = new RegExp(keywords, 'i')
-          // Check if the proxy name matches any keywords
-          if (regex.test(lowercaseName)) {
-            const emoji = SortedKeywordsToEmoji[keywords]
-            // Check if the proxy name already starts with an emoji
-            if (v.name.startsWith(emoji)) {
-              shouldAddEmoji = false // If the proxy name already has an emoji, do not add another one
-            } else {
-              v.name = emoji + ' ' + v.name // Add emoji and space before the proxy name
-            }
-            break // Break out of loop after the first match
-          }
-        }
-        return shouldAddEmoji ? v : { ...v } // If emoji should not be added, return original, otherwise return modified proxy
+        return { ...v, name: '🇵🇸 ' + v.name }
+        // const lowercaseName = v.name.toLowerCase()
+        // let shouldAddEmoji = true // Flag to track whether emoji should be added
+        // for (const keywords in SortedKeywordsToEmoji) {
+        //   const regex = new RegExp(keywords, 'i')
+        //   // Check if the proxy name matches any keywords
+        //   if (regex.test(lowercaseName)) {
+        //     const emoji = SortedKeywordsToEmoji[keywords]
+        //     // Check if the proxy name already starts with an emoji
+        //     if (v.name.startsWith(emoji)) {
+        //       shouldAddEmoji = false // If the proxy name already has an emoji, do not add another one
+        //     } else {
+        //       v.name = emoji + ' ' + v.name // Add emoji and space before the proxy name
+        //     }
+        //     break // Break out of loop after the first match
+        //   }
+        // }
+        // return shouldAddEmoji ? v : { ...v } // If emoji should not be added, return original, otherwise return modified proxy
       })
     }
   }
