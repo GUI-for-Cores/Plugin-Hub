@@ -256,9 +256,33 @@ const setVariable = async (config) => {
 }
 
 /**
- * 设置渐变背景
+ * 设置背景
  */
 const setBackground = async (config) => {
+  if (Plugin.EnableBgImage) {
+    if (!Plugin.BgImagePath) {
+      console.log(`[${Plugin.name}]`, '未提供背景图片地址，跳过。')
+      return
+    }
+
+    const isFromNetwork = Plugin.BgImagePath.startsWith('http') || Plugin.BgImagePath.startsWith('//:')
+    if (isFromNetwork) {
+      document.body.style.backgroundImage = `url(${Plugin.BgImagePath})`
+      document.body.style.backgroundSize = '100% 100%'
+      return
+    }
+
+    const base64 = await Plugins.ignoredError(Plugins.Readfile, Plugin.BgImagePath, { Mode: 'Binary' })
+    if (!base64) {
+      console.log(`[${Plugin.name}]`, '读取背景图片失败，跳过。')
+      return
+    }
+
+    const suffix = Plugin.BgImagePath.split('.').pop() || 'jpg'
+    document.body.style.backgroundImage = `url(data:image/${suffix};base64,${base64})`
+    return
+  }
+
   const [color, gradientImage] = BackgroundList[config.backgroundIndex]
   document.body.style.backgroundColor = color
   document.body.style.backgroundImage = gradientImage
