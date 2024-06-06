@@ -259,13 +259,8 @@ const setVariable = async (config) => {
  * 设置背景
  */
 const setBackground = async (config) => {
-  if (Plugin.EnableBgImage) {
-    if (!Plugin.BgImagePath) {
-      console.log(`[${Plugin.name}]`, '未提供背景图片地址，跳过。')
-      return
-    }
-
-    const isFromNetwork = Plugin.BgImagePath.startsWith('http') || Plugin.BgImagePath.startsWith('//:')
+  if (Plugin.BgImagePath) {
+    const isFromNetwork = Plugin.BgImagePath.startsWith('http') || Plugin.BgImagePath.startsWith('//')
     if (isFromNetwork) {
       document.body.style.backgroundImage = `url(${Plugin.BgImagePath})`
       document.body.style.backgroundSize = '100% 100%'
