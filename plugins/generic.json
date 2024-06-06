@@ -874,18 +874,9 @@
         "options": []
       },
       {
-        "id": "ID_qh4zkx04",
-        "title": "使用自定义背景图片",
-        "description": "关闭时将使用渐变背景，开启后可设置自定义背景图片",
-        "key": "EnableBgImage",
-        "component": "Switch",
-        "value": false,
-        "options": []
-      },
-      {
         "id": "ID_pew8wwt6",
         "title": "自定义背景图片",
-        "description": "可使用本地图片和远程图片，例如：http://xxx.png、C:\\xxx.png",
+        "description": "不填时将禁用，填写后启用；可使用本地图片和远程图片，例如：http://xxx.png、C:\\xxx.png",
         "key": "BgImagePath",
         "component": "Input",
         "value": "",
