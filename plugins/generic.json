@@ -91,6 +91,21 @@
     "installed": false
   },
   {
+    "id": "plugin-mmdb-example",
+    "name": "GeoLite2 操作示例",
+    "description": "插件API MMDB操作示例",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-mmdb-example.js",
+    "path": "data/plugins/plugin-mmdb-example.js",
+    "triggers": ["on::manual"],
+    "menus": {},
+    "status": 0,
+    "configuration": [],
+    "disabled": false,
+    "install": true,
+    "installed": false
+  },
+  {
     "id": "plugin-node-convert",
     "name": "节点转换",
     "description": "节点格式转换插件，支持v2Ray格式转clash、clash格式转sing-box。",
