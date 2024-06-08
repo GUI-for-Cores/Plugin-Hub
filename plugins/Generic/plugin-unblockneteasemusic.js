@@ -46,11 +46,13 @@ const startUnblockMusicService = () => {
           Log(out)
           if (out.includes('HTTP Server running')) {
             Plugins.Writefile(PID_FILE, pid.toString())
+            await switchTo(1) // 切换为代理
             resolve()
           }
         },
         async () => {
           await Plugins.Writefile(PID_FILE, '0')
+          await switchTo(0) // 切换为直连
         },
         {
           env: ENV
@@ -118,6 +120,22 @@ const stopUnblockMusicService = async () => {
   if (pid && pid !== '0') {
     await Plugins.KillProcess(Number(pid))
     await Plugins.Writefile(PID_FILE, '0')
+    // 切换为直连
+    await switchTo(0)
+  }
+}
+
+/*
+ * 切换网易云代理，index是onGenerate时添加的顺序
+ * index: 0切换为直连
+ * index: 1切换为代理
+ */
+const switchTo = async (index) => {
+  const kernelApiStore = Plugins.useKernelApiStore()
+  const group = kernelApiStore.proxies[Plugin.ProxyGroup]
+  const proxy = group?.all[index]
+  if (group && proxy) {
+    await Plugins.ignoredError(Plugins.handleUseProxy, group, { name: proxy })
   }
 }
 
@@ -197,6 +215,10 @@ const onRun = async () => {
 const onStartup = async () => {
   if (Plugin.AutoStartOrStop && !(await isUnblockMusicRunning())) {
     await startUnblockMusicService()
+    // 再切换一次，因为GUI启动后没来得及获取内核信息，插件就调用了switchTo，导致获取不到group和proxy，没有切换成功
+    setTimeout(() => {
+      switchTo(1)
+    }, 3000)
     return 1
   }
 }
