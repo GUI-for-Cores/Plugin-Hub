@@ -843,7 +843,7 @@
   {
     "id": "plugin-open-yacd-meta-dashboard",
     "name": "Yacd-meta 仪表板",
-    "description": "启动 Yacd-meta 仪表板，若需关闭 GUI 程序时启动，可手动在“编辑”中开启对应的触发器。Supported by: QiChaiQiChai",
+    "description": "启动 Yacd-meta 仪表板。Supported by: QiChaiQiChai",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-open-yacd-meta-dashboard.js",
     "path": "data/plugins/plugin-open-yacd-meta-dashboard.js",
