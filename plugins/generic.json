@@ -577,7 +577,7 @@
       {
         "id": "ID_nf183eae",
         "title": "监听端口",
-        "description": "服务监听端口，默认为 15200",
+        "description": "Http监听端口，默认为 15200，https监听端口自动+1。",
         "key": "Port",
         "component": "Input",
         "value": "15200",
@@ -586,11 +586,11 @@
       {
         "id": "ID_8aiktkuq",
         "title": "音源",
-        "description": "选择有兴趣的音源",
+        "description": "选择有兴趣的音源，咪咕、QQ需要填写Cookie，Youtube需要yt-dlp。",
         "key": "Source",
         "component": "CheckBox",
         "value": ["kugou", "kuwo", "bilibili"],
-        "options": ["酷狗音乐,kugou", "酷我音乐,kuwo", "咪咕音乐,migu", "YouTube,ytdlp", "B 站音乐,bilibili"]
+        "options": ["酷狗音乐,kugou", "酷我音乐,kuwo", "咪咕音乐,migu", "YouTube,ytdlp", "B 站音乐,bilibili", "QQ音乐,qq", "第三方网易云,pyncmd"]
       },
       {
         "id": "ID_yl8s60lj",
@@ -624,6 +624,96 @@
         "title": "跟随GUI启动或停止",
         "description": "",
         "key": "AutoStartOrStop",
+        "component": "Switch",
+        "value": false,
+        "options": []
+      },
+      {
+        "id": "ID_6k7ywtwh",
+        "title": "QQ音乐Cookie",
+        "description": "格式：uin=<your_uin>; qm_keyst=<your_qm_keyst>",
+        "key": "QQ_COOKIE",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_j278znb7",
+        "title": "网易云音乐Cookie",
+        "description": "格式：MUSIC_U=007554xxx",
+        "key": "NETEASE_COOKIE",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_fjap2br3",
+        "title": "咪咕音源的 aversionid cookie",
+        "description": "格式：<your_aversionid>",
+        "key": "MIGU_COOKIE",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_6n0tgftx",
+        "title": "激活本地黑胶 VIP",
+        "description": "",
+        "key": "ENABLE_LOCAL_VIP",
+        "component": "Radio",
+        "value": "不激活",
+        "options": ["不激活,", "cvip,cvip", "svip,svip"]
+      },
+      {
+        "id": "ID_vvfg93pm",
+        "title": "激活无损音质获取",
+        "description": "",
+        "key": "ENABLE_FLAC",
+        "component": "Switch",
+        "value": false,
+        "options": []
+      },
+      {
+        "id": "ID_v48ayal3",
+        "title": "屏蔽应用内部分广告",
+        "description": "",
+        "key": "BLOCK_ADS",
+        "component": "Switch",
+        "value": true,
+        "options": []
+      },
+      {
+        "id": "ID_6g4mvtlr",
+        "title": "禁用更新检测",
+        "description": "",
+        "key": "DISABLE_UPGRADE_CHECK",
+        "component": "Switch",
+        "value": false,
+        "options": []
+      },
+      {
+        "id": "ID_2mfxvepu",
+        "title": "停用缓存",
+        "description": "",
+        "key": "NO_CACHE",
+        "component": "Switch",
+        "value": false,
+        "options": []
+      },
+      {
+        "id": "ID_5duhnvux",
+        "title": "允许的最低源音质",
+        "description": "小于该值将被替换",
+        "key": "MIN_BR",
+        "component": "Input",
+        "value": "320000",
+        "options": []
+      },
+      {
+        "id": "ID_2423810w",
+        "title": "最高码率",
+        "description": "选择所有音源中的最高码率替换音频",
+        "key": "SELECT_MAX_BR",
         "component": "Switch",
         "value": false,
         "options": []
