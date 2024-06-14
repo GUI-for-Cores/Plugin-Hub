@@ -6,7 +6,7 @@ const onRun = async () => {
 
   const bytes = mb * 1024 * 1024
   const url = `https://speed.cloudflare.com/__down?bytes=${bytes}`
-  const path = './data/plugins/plugins-configs/speedtest'
+  const path = 'data/.cache/speedtest.file'
 
   const pingurl = 'http://connectivitycheck.gstatic.com/generate_204'
 
