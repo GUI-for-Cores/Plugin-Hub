@@ -94,7 +94,6 @@ const Update = async () => {
  * 启动Sub-Store服务
  */
 const startSubStoreService = async () => {
-  const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor
   const SUBSTORE_SOURCE_CODE = await Plugins.Readfile(BACKEND_FILE)
 
   /**
@@ -140,7 +139,7 @@ const startSubStoreService = async () => {
           var $Plugin = ${JSON.stringify(Plugin)};
           var $done;
           var $donePromise = new Promise((resolve) => ($done = resolve));
-          var $request = ${JSON.stringify({ ...req, url: `http://127.0.0.1${req.url}`, body: base64Decode(req.body) })};
+          var $request = ${JSON.stringify({ ...req, url: `http://127.0.0.1${req.url}`, body: Plugins.base64Decode(req.body) })};
           /* Code snippet injected by GUI.for.Cores . end */
           
           ${SUBSTORE_SOURCE_CODE}
@@ -167,13 +166,4 @@ const stopSubStoreService = async () => {
  */
 const isSubStoreRunning = async () => {
   return (await Plugins.ListServer()).includes(Plugin.id)
-}
-
-const base64Decode = (str) => {
-  return decodeURIComponent(
-    atob(str)
-      .split('')
-      .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-      .join('')
-  )
 }
