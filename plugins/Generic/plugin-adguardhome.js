@@ -3,11 +3,8 @@
  */
 
 const ADGUARDHOME_PATH = 'data/third/AdGuardHome'
-const PROCESS_NAME = 'AdGuardHome.exe'
 const PID_FILE = ADGUARDHOME_PATH + '/AdGuardHome.pid'
 const BACKUP_FILE = 'data/third/AdGuardHome.yaml.bak'
-
-const Log = (...msg) => console.log(`[${Plugin.name}]`, ...msg)
 
 /**
  * 检测AdGuardHome是否在运行
@@ -16,7 +13,7 @@ const isAdGuardHomeRunning = async () => {
   const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
   if (pid && pid !== '0') {
     const name = await Plugins.ignoredError(Plugins.ProcessInfo, Number(pid))
-    return name === PROCESS_NAME
+    return ['AdGuardHome.exe', 'AdGuardHome'].includes(name)
   }
   return false
 }
@@ -40,7 +37,7 @@ const startAdguardHomeService = async () => {
     let isOK = false
     try {
       const pid = await Plugins.ExecBackground(
-        ADGUARDHOME_PATH + '/' + PROCESS_NAME,
+        ADGUARDHOME_PATH + '/AdGuardHome.exe',
         ['--web-addr', Plugin.Address, '--no-check-update'],
         async (out) => {
           if (out.includes('go to')) {
@@ -67,16 +64,13 @@ const startAdguardHomeService = async () => {
 const installAdGuardHome = async () => {
   const { env } = Plugins.useEnvStore()
   const tmpZip = 'data/.cache/adguardhome.zip'
-  const url = `https://github.com/AdguardTeam/AdGuardHome/releases/download/v0.107.48/AdGuardHome_windows_${env.arch}.zip`
+  const url = `https://github.com/AdguardTeam/AdGuardHome/releases/download/v0.107.51/AdGuardHome_windows_${env.arch}.zip`
   const { id } = Plugins.message.info('下载AdGuardHome压缩包')
   try {
     await Plugins.Download(url, tmpZip, {}, (progress, total) => {
       Plugins.message.update(id, '下载AdGuardHome压缩包：' + ((progress / total) * 100).toFixed(2) + '%')
     })
-    Log('下载AdGuardHome完成')
-    Log('解压AdGuardHome压缩包')
     await Plugins.UnzipZIPFile(tmpZip, 'data/third')
-    Log('解压AdGuardHome完成')
     Plugins.message.update(id, '安装AdGuardHome完成', 'success')
   } finally {
     await Plugins.sleep(1000)
