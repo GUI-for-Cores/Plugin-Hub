@@ -1016,5 +1016,68 @@
     "disabled": false,
     "install": false,
     "installed": false
+  },
+  {
+    "id": "plugin-screen-recorder",
+    "name": "屏幕录制",
+    "description": "使用浏览器提供的API录制屏幕。",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-screen-recorder.js",
+    "path": "data/plugins/plugin-screen-recorder.js",
+    "triggers": ["on::manual"],
+    "menus": {
+      "打开目录": "OpenFolder"
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_1lhkbkow",
+        "title": "捕获鼠标",
+        "description": "",
+        "key": "CursorMode",
+        "component": "Radio",
+        "value": "always",
+        "options": ["从不,never", "移动时,motion", "总是,always"]
+      },
+      {
+        "id": "ID_hd6pzknh",
+        "title": "延迟录制",
+        "description": "默认不延迟录制，如想延迟3s，可填写：3",
+        "key": "DelayTime",
+        "component": "Input",
+        "value": "0",
+        "options": []
+      },
+      {
+        "id": "ID_i9nwzhat",
+        "title": "保存文件名",
+        "description": "时间格式：YYYY-MM-DD HH:mm:ss",
+        "key": "FileNameFormat",
+        "component": "Input",
+        "value": "screen_YYYY-MM-DD_HHmmss.webm",
+        "options": []
+      },
+      {
+        "id": "ID_i0akr31x",
+        "title": "文件保存方式",
+        "description": "浏览器方式会下载到默认下载目录，GUI方式可指定保存位置",
+        "key": "FileSaveMode",
+        "component": "Radio",
+        "value": "client",
+        "options": ["浏览器下载方式,browser", "GUI写入方式,client"]
+      },
+      {
+        "id": "ID_cc0twpit",
+        "title": "文件保存位置",
+        "description": "采用GUI方式保存时才起作用",
+        "key": "FileSavePath",
+        "component": "Input",
+        "value": "data/third/screen-record",
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
   }
 ]
