@@ -15,7 +15,7 @@ Plugin Hub
 
 ## How to Use
 
-Simply add them in the plugin center of the client. For detailed instructions, please visit: [Plugin System Usage Tutorial](https://gui-for-cores.github.io/gfc/plugins.html)
+Simply add them in the plugin center of the client. For detailed instructions, please visit: [Plugin System Usage Tutorial](https://gui-for-cores.github.io/guide/04-plugins.html)
 
 ## How to Contribute Plugins
 
