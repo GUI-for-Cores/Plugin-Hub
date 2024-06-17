@@ -7,7 +7,8 @@ const onRun = async () => {
   const displayMediaOptions = {
     video: {
       cursor: Plugin.CursorMode
-    }
+    },
+    audio: true
   }
 
   try {
