@@ -193,6 +193,14 @@ const onUninstall = async () => {
   return 0
 }
 
+/* 插件钩子 - 配置插件时 */
+const onConfigure = async (config, old) => {
+  if (await isUnblockMusicRunning()) {
+    await stopUnblockMusicService()
+    await startUnblockMusicService()
+  }
+}
+
 /**
  * 插件钩子 - 点击运行按钮时
  */
