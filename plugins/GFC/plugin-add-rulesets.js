@@ -97,7 +97,7 @@ const onRun = async () => {
     },
     {
       id: 'remote-apple',
-      name: 'Apple 在中国大陆可直连的域名列表',
+      name: 'Apple在中国大陆可直连的域名列表',
       updateTime: '',
       behavior: 'domain',
       type: 'Http',
@@ -110,7 +110,7 @@ const onRun = async () => {
     },
     {
       id: 'remote-icloud',
-      name: 'iCloud 域名列表',
+      name: 'iCloud域名列表',
       updateTime: '',
       behavior: 'domain',
       type: 'Http',
@@ -123,7 +123,7 @@ const onRun = async () => {
     },
     {
       id: 'remote-gfw',
-      name: 'GFWList 域名列表',
+      name: 'GFWList域名列表',
       updateTime: '',
       behavior: 'domain',
       type: 'Http',
@@ -149,7 +149,7 @@ const onRun = async () => {
     },
     {
       id: 'remote-telegramcidr',
-      name: 'Telegram 使用的 IP 地址列表',
+      name: 'Telegram使用的IP地址列表',
       updateTime: '',
       behavior: 'ipcidr',
       type: 'Http',
@@ -162,7 +162,7 @@ const onRun = async () => {
     },
     {
       id: 'remote-lancidr',
-      name: '局域网 IP 及保留 IP 地址列表',
+      name: '局域网IP及保留IP地址列表',
       updateTime: '',
       behavior: 'ipcidr',
       type: 'Http',
@@ -175,7 +175,7 @@ const onRun = async () => {
     },
     {
       id: 'remote-cncidr',
-      name: '中国大陆 IP 地址列表',
+      name: '中国大陆IP地址列表',
       updateTime: '',
       behavior: 'ipcidr',
       type: 'Http',
