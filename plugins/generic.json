@@ -121,6 +121,33 @@
     "installed": false
   },
   {
+    "id": "plugin-system-proxy-guard",
+    "name": "代理守卫",
+    "description": "谁动了我的系统代理？",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-system-proxy-guard.js",
+    "path": "data/plugins/plugin-system-proxy-guard.js",
+    "triggers": ["on::manual", "on::ready"],
+    "menus": {
+      "关闭守卫": "Stop"
+    },
+    "configuration": [
+      {
+        "id": "ID_9mc9z6m0",
+        "title": "设置守卫间隔",
+        "description": "取值范围：10~60，即每10s-60s设置一次系统代理",
+        "key": "Interval",
+        "component": "Input",
+        "value": "30",
+        "options": []
+      }
+    ],
+    "status": 0,
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-install-font",
     "name": "Twemoji.Mozilla",
     "description": "下载并安装字体“Twemoji.Mozilla.ttf”，你的节点将正常显示国旗图标。（Twemoji font in COLR/CPAL layered format）",
