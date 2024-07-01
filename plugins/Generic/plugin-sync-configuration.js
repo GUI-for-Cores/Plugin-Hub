@@ -33,30 +33,35 @@ const onRun = async () => {
 const Sync = async () => {
   if (!window.CryptoJS) throw '请先安装插件或重新安装插件'
 
-  const list = await httpGet('/backup')
-  const _list = filterList(list)
-  if (_list.length === 0) throw '没有可同步的备份'
-  const backupId = await Plugins.picker.single('请选择要同步至本地的备份', _list, [list.shift()])
+  const list = await httpGet('/backup?tag=' + getTag())
+  if (list.length === 0) throw '没有可同步的备份'
+  const backupId = await Plugins.picker.single(
+    '请选择要同步至本地的备份',
+    list.map((v) => ({ label: v, value: v })),
+    [list.shift()]
+  )
 
-  const files = await httpGet('/backup?id=' + backupId)
+  const { update, destroy, success } = Plugins.message.info('获取备份文件...', 60 * 60 * 1000)
 
-  const { id } = Plugins.message.info('正在同步...', 60 * 60 * 1000)
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i]
-    Plugins.message.update(id, `正在同步...[ ${i + 1}/${files.length} ]`)
+  const { files } = await httpGet(`/sync?tag=${getTag()}&id=${backupId}`)
+
+  const _files = Object.keys(files)
+  for (let i = 0; i < _files.length; i++) {
+    const file = _files[i]
+    const encrypted = files[file]
+    update(`正在恢复文件...[ ${i + 1}/${_files.length} ]`, 'info')
     try {
-      const encrypted = await httpGet(`/file?path=${backupId}/${file}`)
       await Plugins.Writefile(file, decrypt(encrypted))
     } catch (error) {
       console.log(error)
-      Plugins.message.update(id, `[${file}] 同步失败`, 'error')
+      Plugins.message.error(`恢复文件失败：` + file)
     } finally {
       await Plugins.sleep(100)
     }
   }
 
-  Plugins.message.update(id, '同步完成，即将重载界面', 'success')
-  await Plugins.sleep(1500).then(() => Plugins.message.destroy(id))
+  success('同步完成，即将重载界面')
+  await Plugins.sleep(1500).then(() => destroy())
 
   const kernelApiStore = Plugins.useKernelApiStore()
   await kernelApiStore.stopKernel()
@@ -82,44 +87,59 @@ const Backup = async () => {
 
   files.push(...l1, ...l2, ...l3)
 
-  const { id } = Plugins.message.info('正在备份...', 60 * 60 * 1000)
-  const backupId = Date.now().toString()
+  const { destroy, update } = Plugins.message.info('正在创建备份...', 60 * 60 * 1000)
+
+  const data = {
+    id: Plugins.formatDate(Date.now(), 'YYYY-MM-DD_HHmmss'),
+    tag: getTag(),
+    files: {}
+  }
+
   for (let i = 0; i < files.length; i++) {
     const file = files[i]
-    Plugins.message.update(id, `正在备份...[ ${i + 1}/${files.length} ]`)
+    update(`正在加密文件...[ ${i + 1}/${files.length} ]`, 'info')
     try {
       const text = await Plugins.Readfile(file)
-      const encrypted = encrypt(text)
-      await httpPost('/file', {
-        id: backupId,
-        file: file,
-        body: encrypted
-      })
+      data.files[file] = encrypt(text)
     } catch (error) {
       console.log(error)
-      Plugins.message.update(id, `[${file}] 备份失败`, 'error')
+      Plugins.message.error(`[${file}] 加密失败，跳过`)
     } finally {
       await Plugins.sleep(100)
     }
   }
 
-  Plugins.message.update(id, '备份完成', 'success')
-  await Plugins.sleep(1500).then(() => Plugins.message.destroy(id))
+  await httpPost('/backup', data)
+
+  update('备份完成', 'success')
+  await Plugins.sleep(1500).then(() => destroy())
+}
+
+const getTag = () => {
+  if (Plugins.APP_TITLE.includes('Clash')) return 'gfc'
+  if (Plugins.APP_TITLE.includes('SingBox')) return 'gfs'
+  return ''
 }
 
 const List = async () => {
-  const list = await httpGet('/backup')
-  const _list = filterList(list)
-  if (_list.length === 0) throw '备份列表为空'
-  await Plugins.picker.single('服务器备份列表如下：', _list, [])
+  const list = await httpGet('/backup?tag=' + getTag())
+  if (list.length === 0) throw '备份列表为空'
+  await Plugins.picker.single(
+    '服务器备份列表如下：',
+    list.map((v) => ({ label: v, value: v })),
+    []
+  )
 }
 
 const Remove = async () => {
-  const list = await httpGet('/backup')
-  const _list = filterList(list)
-  if (_list.length === 0) throw '没有可管理的备份'
-  const ids = await Plugins.picker.multi('请勾选要删除的备份', _list, [])
-  await httpDelete('/backup?ids=' + ids.join(','))
+  const list = await httpGet('/backup?tag=' + getTag())
+  if (list.length === 0) throw '没有可管理的备份'
+  const ids = await Plugins.picker.multi(
+    '请勾选要删除的备份',
+    list.map((v) => ({ label: v, value: v })),
+    []
+  )
+  await httpDelete(`/backup?tag=${getTag()}&ids=${ids.join(',')}`)
   Plugins.message.success('删除成功')
 }
 
@@ -140,19 +160,6 @@ const onUninstall = async () => {
 
 const onReady = async () => {
   await loadDependence()
-}
-
-const filterList = (list) => {
-  return list.reverse().map((v) => {
-    const date = new Date(Number(v))
-    const YYYY = date.getFullYear()
-    const MM = date.getMonth() + 1
-    const DD = date.getDate()
-    const hh = date.getHours()
-    const mm = date.getMinutes()
-    const ss = date.getSeconds()
-    return { label: `${YYYY}/${MM}/${DD} ${hh}:${mm}:${ss}`, value: v }
-  })
 }
 
 /**
@@ -196,14 +203,15 @@ function decrypt(data) {
 
 async function httpGet(url) {
   if (!Plugin.Authorization) throw '未配置TOKEN'
-  const { body } = await Plugins.HttpGet(`http://${Plugin.ServerAddress}${url}`, {
+  const { status, body } = await Plugins.HttpGet(`http://${Plugin.ServerAddress}${url}`, {
     'User-Agent': 'GUI.for.Cores',
     Connection: 'close',
     Authorization: 'Bearer ' + Plugin.Authorization
   })
-  // 因为GUI封装的网络请求没有处理响应码为非200的情况
-  if (typeof body === 'string' && ['Faild', 'Unauthorized', 'Error', 'Method not allowed'].some((v) => body.startsWith(v))) {
-    throw body
+  if (status !== 200) {
+    if (body.includes('The system cannot find the file specified')) {
+      throw '似乎是第一次使用，先备份一次吧!'
+    }
   }
   return body
 }
