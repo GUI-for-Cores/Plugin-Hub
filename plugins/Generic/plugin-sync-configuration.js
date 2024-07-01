@@ -35,11 +35,7 @@ const Sync = async () => {
 
   const list = await httpGet('/backup?tag=' + getTag())
   if (list.length === 0) throw '没有可同步的备份'
-  const backupId = await Plugins.picker.single(
-    '请选择要同步至本地的备份',
-    list.map((v) => ({ label: v, value: v })),
-    [list.shift()]
-  )
+  const backupId = await Plugins.picker.single('请选择要同步至本地的备份', list.map((v) => ({ label: v, value: v })).reverse(), [list.shift()])
 
   const { update, destroy, success } = Plugins.message.info('获取备份文件...', 60 * 60 * 1000)
 
@@ -124,21 +120,13 @@ const getTag = () => {
 const List = async () => {
   const list = await httpGet('/backup?tag=' + getTag())
   if (list.length === 0) throw '备份列表为空'
-  await Plugins.picker.single(
-    '服务器备份列表如下：',
-    list.map((v) => ({ label: v, value: v })),
-    []
-  )
+  await Plugins.picker.single('服务器备份列表如下：', list.map((v) => ({ label: v, value: v })).reverse(), [])
 }
 
 const Remove = async () => {
   const list = await httpGet('/backup?tag=' + getTag())
   if (list.length === 0) throw '没有可管理的备份'
-  const ids = await Plugins.picker.multi(
-    '请勾选要删除的备份',
-    list.map((v) => ({ label: v, value: v })),
-    []
-  )
+  const ids = await Plugins.picker.multi('请勾选要删除的备份', list.map((v) => ({ label: v, value: v })).reverse(), [])
   await httpDelete(`/backup?tag=${getTag()}&ids=${ids.join(',')}`)
   Plugins.message.success('删除成功')
 }
@@ -208,17 +196,18 @@ async function httpGet(url) {
     Connection: 'close',
     Authorization: 'Bearer ' + Plugin.Authorization
   })
-  if (status !== 200) {
+  if (status !== 200 && status !== 201) {
     if (body.includes('The system cannot find the file specified')) {
       throw '似乎是第一次使用，先备份一次吧!'
     }
+    throw body
   }
   return body
 }
 
-function httpPost(url, data) {
+async function httpPost(url, data) {
   if (!Plugin.Authorization) throw '未配置TOKEN'
-  return Plugins.HttpPost(
+  const { status, body } = await Plugins.HttpPost(
     `http://${Plugin.ServerAddress}${url}`,
     {
       'User-Agent': 'GUI.for.Cores',
@@ -228,14 +217,18 @@ function httpPost(url, data) {
     },
     data
   )
+  if (status !== 200 && status !== 201) throw body
+  return body
 }
 
-function httpDelete(url) {
+async function httpDelete(url) {
   if (!Plugin.Authorization) throw '未配置TOKEN'
-  return Plugins.HttpDelete(`http://${Plugin.ServerAddress}${url}`, {
+  const { status, body } = await Plugins.HttpDelete(`http://${Plugin.ServerAddress}${url}`, {
     'User-Agent': 'GUI.for.Cores',
     'Content-Type': 'application/json',
     Connection: 'close',
     Authorization: 'Bearer ' + Plugin.Authorization
   })
+  if (status !== 200 && status !== 201) throw body
+  return body
 }
