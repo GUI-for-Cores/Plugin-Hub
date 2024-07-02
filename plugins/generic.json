@@ -123,7 +123,7 @@
   {
     "id": "plugin-system-proxy-guard",
     "name": "代理守卫",
-    "description": "谁动了我的系统代理？",
+    "description": "谁动了我的系统代理？防止系统代理被篡改",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-system-proxy-guard.js",
     "path": "data/plugins/plugin-system-proxy-guard.js",
@@ -808,7 +808,7 @@
   {
     "id": "plugin-modify-proxy-name",
     "name": "更好的代理名称显示",
-    "description": "功能如下：1、在节点名称前加上对应的国家地区的 Emoji；2、移除节点名称中的一些关键词；3、对节点名称进行标号。Supported by: QiChaiQiChai",
+    "description": "在节点名称前加上对应的国家地区的 Emoji；移除节点名称中的一些关键词；对节点名称进行标号。Supported by: QiChaiQiChai",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-modify-proxy-name.js",
     "path": "data/plugins/plugin-modify-proxy-name.js",
