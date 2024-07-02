@@ -14,7 +14,7 @@ const onRun = async () => {
       { label: '查看备份列表', value: 'list' },
       { label: '管理备份列表', value: 'remove' }
     ],
-    []
+    ['list']
   )
 
   const handler = {
@@ -32,14 +32,17 @@ const onRun = async () => {
  */
 const Sync = async () => {
   if (!window.CryptoJS) throw '请先安装插件或重新安装插件'
+  if (!Plugin.Secret) throw '为了数据安全，请先配置文件加密密钥'
 
   const list = await httpGet('/backup?tag=' + getTag())
   if (list.length === 0) throw '没有可同步的备份'
   const backupId = await Plugins.picker.single('请选择要同步至本地的备份', list.map((v) => ({ label: v, value: v })).reverse(), [list.shift()])
 
-  const { update, destroy, success } = Plugins.message.info('获取备份文件...', 60 * 60 * 1000)
+  const { update, destroy, success, error } = Plugins.message.info('获取备份文件...', 60 * 60 * 1000)
 
   const { files } = await httpGet(`/sync?tag=${getTag()}&id=${backupId}`)
+
+  let failed = false
 
   const _files = Object.keys(files)
   for (let i = 0; i < _files.length; i++) {
@@ -49,11 +52,20 @@ const Sync = async () => {
     try {
       await Plugins.Writefile(file, decrypt(encrypted))
     } catch (error) {
-      console.log(error)
-      Plugins.message.error(`恢复文件失败：` + file)
+      if (error === '解密失败') {
+        failed = true
+      }
+      console.log(file + ' ： ' + error)
+      Plugins.message.error(`恢复文件失败：` + error)
     } finally {
       await Plugins.sleep(100)
     }
+  }
+
+  if (failed) {
+    error('有文件解密失败，考虑是否是密钥配置错误')
+    await Plugins.sleep(3000).then(() => destroy())
+    return
   }
 
   success('同步完成，即将重载界面')
@@ -70,6 +82,7 @@ const Sync = async () => {
  */
 const Backup = async () => {
   if (!window.CryptoJS) throw '请先安装插件或重新安装插件'
+  if (!Plugin.Secret) throw '为了数据安全，请先配置文件加密密钥'
 
   const files = ['data/user.yaml', 'data/profiles.yaml', 'data/subscribes.yaml', 'data/rulesets.yaml', 'data/plugins.yaml', 'data/scheduledtasks.yaml']
 
@@ -83,7 +96,7 @@ const Backup = async () => {
 
   files.push(...l1, ...l2, ...l3)
 
-  const { destroy, update } = Plugins.message.info('正在创建备份...', 60 * 60 * 1000)
+  const { destroy, update, success, error } = Plugins.message.info('正在创建备份...', 60 * 60 * 1000)
 
   const data = {
     id: Plugins.formatDate(Date.now(), 'YYYY-MM-DD_HHmmss'),
@@ -105,9 +118,14 @@ const Backup = async () => {
     }
   }
 
-  await httpPost('/backup', data)
+  try {
+    await httpPost('/backup', data)
+    success('备份完成')
+  } catch (err) {
+    console.log(`[${Plugin.name}]`, err)
+    error('备份失败：' + err)
+  }
 
-  update('备份完成', 'success')
   await Plugins.sleep(1500).then(() => destroy())
 }
 
@@ -177,7 +195,6 @@ function loadDependence() {
  * 加密
  */
 function encrypt(data) {
-  if (!Plugin.Secret) throw '未配置密钥'
   return window.CryptoJS.AES.encrypt(data, Plugin.Secret).toString()
 }
 
@@ -185,8 +202,11 @@ function encrypt(data) {
  *解密
  */
 function decrypt(data) {
-  if (!Plugin.Secret) throw '未配置密钥'
-  return window.CryptoJS.AES.decrypt(data, Plugin.Secret).toString(CryptoJS.enc.Utf8)
+  try {
+    return window.CryptoJS.AES.decrypt(data, Plugin.Secret).toString(CryptoJS.enc.Utf8)
+  } catch (error) {
+    throw '解密失败'
+  }
 }
 
 async function httpGet(url) {
@@ -196,6 +216,7 @@ async function httpGet(url) {
     Connection: 'close',
     Authorization: 'Bearer ' + Plugin.Authorization
   })
+  if (status === 502) throw 'Bad Gateway'
   if (status !== 200 && status !== 201) {
     if (body.includes('The system cannot find the file specified')) {
       throw '似乎是第一次使用，先备份一次吧!'
@@ -217,6 +238,7 @@ async function httpPost(url, data) {
     },
     data
   )
+  if (status === 502) throw 'Bad Gateway'
   if (status !== 200 && status !== 201) throw body
   return body
 }
@@ -229,6 +251,7 @@ async function httpDelete(url) {
     Connection: 'close',
     Authorization: 'Bearer ' + Plugin.Authorization
   })
+  if (status === 502) throw 'Bad Gateway'
   if (status !== 200 && status !== 201) throw body
   return body
 }
