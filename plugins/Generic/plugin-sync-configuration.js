@@ -36,7 +36,7 @@ const Sync = async () => {
 
   const list = await httpGet('/backup?tag=' + getTag())
   if (list.length === 0) throw '没有可同步的备份'
-  const backupId = await Plugins.picker.single('请选择要同步至本地的备份', list.map((v) => ({ label: v, value: v })).reverse(), [list.shift()])
+  const backupId = await Plugins.picker.single('请选择要同步至本地的备份', list.map((v) => ({ label: v, value: v })).reverse(), [list.pop()])
 
   const { update, destroy, success, error } = Plugins.message.info('获取备份文件...', 60 * 60 * 1000)
 
