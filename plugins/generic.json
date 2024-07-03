@@ -121,6 +121,34 @@
     "installed": false
   },
   {
+    "id": "plugin-rolling-release",
+    "name": "滚动发行",
+    "description": "提升GUI升级体验，获取更快、更新、更稳定的版本更新。",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-rolling-release.js",
+    "path": "data/plugins/plugin-rolling-release.js",
+    "triggers": ["on::manual", "on::ready", "on::startup"],
+    "menus": {
+      "滚动版本": "Rolling",
+      "恢复版本": "Recovery"
+    },
+    "configuration": [
+      {
+        "id": "ID_wqicvdoc",
+        "title": "自动更新策略",
+        "description": "自动滚动至最新版本",
+        "key": "AutoRollingMode",
+        "component": "Radio",
+        "value": "disabled",
+        "options": ["不自动更新,disabled", "启动APP时,onStartup", "APP就绪时,onReady"]
+      }
+    ],
+    "status": 0,
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-system-proxy-guard",
     "name": "代理守卫",
     "description": "谁动了我的系统代理？防止系统代理被篡改",
