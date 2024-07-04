@@ -4,13 +4,7 @@
 
 /* 触发器 手动触发 */
 const onRun = async () => {
-  // const action = await Plugins.picker.single(Plugin.name, [
-  //   {label: '', value: ''},
-  //   {label: '', value: ''},
-  //   {label: '', value: ''},
-  //   {label: '', value: ''},
-  // ], [''])
-  throw '这里什么也没有，请使用右键操作'
+  await Rolling()
 }
 
 /* 触发器 启动APP时 */
@@ -35,7 +29,6 @@ const onReady = async () => {
  */
 const Rolling = async (confirm = true) => {
   await checkRollingReleaseEnabled()
-  confirm && (await Plugins.confirm(Plugin.name, '确认滚动版本至最新吗？'))
 
   const GFC_URL = 'https://api.github.com/repos/GUI-for-Cores/GUI.for.Clash/releases/tags/rolling-release'
   const GFS_URL = 'https://api.github.com/repos/GUI-for-Cores/GUI.for.SingBox/releases/tags/rolling-release'
@@ -83,6 +76,8 @@ const Rolling = async (confirm = true) => {
     destroy()
     return
   }
+
+  confirm && (await Plugins.confirm(Plugin.name, '确认滚动版本至最新吗？'))
 
   try {
     await Plugins.Download(ZipUrl, ZipFile, {}, (progress, total) => {
