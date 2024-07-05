@@ -10,16 +10,16 @@ const onRun = async () => {
 /* 触发器 启动APP时 */
 const onStartup = async () => {
   if (Plugin.AutoRollingMode === 'onStartup') {
-    // 不await，不阻塞后面插件执行
-    Rolling(false)
+    // 延迟检测，确保内核已经启动
+    setTimeout(() => Rolling(false), 5000)
   }
 }
 
 /* 触发器 APP就绪后 */
 const onReady = async () => {
   if (Plugin.AutoRollingMode === 'onReady') {
-    // 不await，不阻塞后面插件执行
-    Rolling(false)
+    // 延迟检测，确保内核已经启动
+    setTimeout(() => Rolling(false), 5000)
   }
 }
 
