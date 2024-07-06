@@ -176,6 +176,53 @@
     "installed": false
   },
   {
+    "id": "plugin-hosts-management",
+    "name": "Hosts管理",
+    "description": "在三种预设Hosts中自由切换",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-hosts-management.js",
+    "path": "data/plugins/plugin-hosts-management.js",
+    "triggers": ["on::manual"],
+    "menus": {
+      "普通配置": "Normal",
+      "开发配置": "Development",
+      "生产配置": "Production"
+    },
+    "configuration": [
+      {
+        "id": "ID_usw41mx9",
+        "title": "普通配置",
+        "description": "",
+        "key": "NormalHosts",
+        "component": "CodeViewer",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_v7b5eni5",
+        "title": "开发配置",
+        "description": "",
+        "key": "DevHosts",
+        "component": "CodeViewer",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_jfhlewa2",
+        "title": "生产配置",
+        "description": "",
+        "key": "ProdHosts",
+        "component": "CodeViewer",
+        "value": "",
+        "options": []
+      }
+    ],
+    "status": 0,
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-install-font",
     "name": "Twemoji.Mozilla",
     "description": "下载并安装字体“Twemoji.Mozilla.ttf”，你的节点将正常显示国旗图标。（Twemoji font in COLR/CPAL layered format）",
