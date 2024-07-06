@@ -56,22 +56,22 @@ const Rolling = async (confirm = true) => {
   }
 
   let localVersion = ''
-  let removeVersion = ''
+  let remoteVersion = ''
 
   try {
     const { body } = await Plugins.HttpGet(VersionUrl)
-    removeVersion = body
+    remoteVersion = body
 
     const res = await fetch('/version.txt')
     localVersion = await res.text()
   } catch (err) {}
 
-  if (!removeVersion) {
+  if (!remoteVersion) {
     destroy()
     throw '无法获取远程版本信息'
   }
 
-  if (localVersion === removeVersion) {
+  if (localVersion === remoteVersion) {
     Plugins.message.success(`[${Plugin.name}] 当前版本已是最新`)
     destroy()
     return
