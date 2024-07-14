@@ -1,6 +1,6 @@
 /* 获取UWP应用列表 */
 const getUWPList = async () => {
-  const pattern = /REG_SZ\s+(.+)/
+  const pattern = /REG_SZ\s+(.+)/g
 
   const res = await Plugins.Exec(
     'Reg',
@@ -16,11 +16,11 @@ const getUWPList = async () => {
   const list = []
 
   const promises = sids.map(async (sid) => {
-    const detail = await Plugins.Exec('Reg', ['Query', sid, '/v', 'DisplayName', '/t', 'REG_SZ'], { convert: true })
+    const detail = await Plugins.Exec('Reg', ['Query', sid, '/t', 'REG_SZ'], { convert: true })
     const match = detail.match(pattern)
-    if (!match || !match[1]) return
-    if (match[1].includes('ms-resource')) return
-    list.push({ label: match[1], value: sid.split('\\').pop() })
+    if (!match || !match[0]) return
+    if (match[0].includes('ms-resource')) return
+    list.push({ label: match[0].replace('REG_SZ', ''), description: match[1].replace('REG_SZ', ''), value: sid.split('\\').pop() })
   })
 
   await Promise.all(promises)
