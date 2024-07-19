@@ -216,13 +216,13 @@ const onRun = async () => {
   }
 
   if (ids.includes('direct') && !(await Plugins.FileExists('data/rulesets/direct.yaml'))) {
-    Plugins.Writefile('data/rulesets/direct.yaml', 'payload: []')
+    Plugins.Writefile('data/rulesets/direct.yaml', 'payload: []\n')
   }
   if (ids.includes('reject') && !(await Plugins.FileExists('data/rulesets/reject.yaml'))) {
-    Plugins.Writefile('data/rulesets/reject.yaml', 'payload: []')
+    Plugins.Writefile('data/rulesets/reject.yaml', 'payload: []\n')
   }
   if (ids.includes('proxy') && !(await Plugins.FileExists('data/rulesets/proxy.yaml'))) {
-    Plugins.Writefile('data/rulesets/proxy.yaml', 'payload: []')
+    Plugins.Writefile('data/rulesets/proxy.yaml', 'payload: []\n')
   }
 
   Plugins.message.success('添加完毕')
