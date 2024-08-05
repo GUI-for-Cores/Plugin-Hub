@@ -112,7 +112,7 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-node-convert.js",
     "path": "data/plugins/plugin-node-convert.js",
-    "triggers": ["on::subscribe"],
+    "triggers": ["on::manual", "on::subscribe"],
     "menus": {},
     "status": 0,
     "configuration": [],

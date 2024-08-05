@@ -32,10 +32,14 @@ const protocolForSingBox = () => ({
  * 插件钩子：点击运行按钮时
  */
 const onRun = async () => {
-  let arr = await Plugins.prompt('请输入分享链接：', '', { placeholder: '(ss|ssr|vmess|vless|hysteria2|hysteria|tuic|wireguard|trojan)://' })
+  let arr = await Plugins.prompt('请输入分享链接：', '', { placeholder: '(ss|ssr|vmess|vless|hysteria2|hysteria|tuic|wireguard|trojan)://', type: 'code' })
 
   if (Plugins.isValidBase64(arr)) {
-    arr = Plugins.base64Decode(arr).split('\n')
+    arr = Plugins.base64Decode(arr)
+      .split('\n')
+      .filter((v) => v)
+  } else {
+    arr = arr.split('\n').filter((v) => v)
   }
 
   const proxies = []
@@ -72,6 +76,13 @@ const onRun = async () => {
   }
 
   console.log('singbox', proxies2)
+
+  const result = Plugins.APP_TITLE.includes('SingBox') ? JSON.stringify(proxies2, null, 2) : Plugins.YAML.stringify(proxies)
+
+  await Plugins.confirm('转换结果如下', result)
+
+  await Plugins.ClipboardSetText(result)
+  Plugins.message.success('已复制')
 }
 
 /**
