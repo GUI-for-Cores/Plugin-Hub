@@ -320,7 +320,9 @@
     "triggers": ["on::manual", "on::ready"],
     "menus": {
       "运行服务": "Start",
-      "停止服务": "Stop"
+      "停止服务": "Stop",
+      "已接收文件": "Saved",
+      "共享的文件": "Share"
     },
     "status": 0,
     "configuration": [

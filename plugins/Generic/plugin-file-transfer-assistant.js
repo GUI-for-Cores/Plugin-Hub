@@ -49,6 +49,22 @@ const Stop = async () => {
 }
 
 /**
+ * 插件菜单项 - 已保存
+ */
+const Saved = async () => {
+  const path = await Plugins.AbsolutePath(Plugin.SavePath)
+  Plugins.BrowserOpenURL(path)
+}
+
+/**
+ * 插件菜单项 - 共享中
+ */
+const Share = async () => {
+  const path = await Plugins.AbsolutePath(Plugin.SharePath)
+  Plugins.BrowserOpenURL(path)
+}
+
+/**
  * 启动服务
  */
 const startService = async () => {
