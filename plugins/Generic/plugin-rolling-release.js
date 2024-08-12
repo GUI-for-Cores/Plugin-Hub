@@ -11,7 +11,7 @@ const onRun = async () => {
 const onStartup = async () => {
   if (Plugin.AutoRollingMode === 'onStartup') {
     // 延迟检测，确保内核已经启动
-    setTimeout(() => Rolling(false), 5000)
+    setTimeout(() => Rolling(false), (Plugin.AutoRollingDelay || 10) * 1000)
   }
 }
 
@@ -19,7 +19,7 @@ const onStartup = async () => {
 const onReady = async () => {
   if (Plugin.AutoRollingMode === 'onReady') {
     // 延迟检测，确保内核已经启动
-    setTimeout(() => Rolling(false), 5000)
+    setTimeout(() => Rolling(false), (Plugin.AutoRollingDelay || 10) * 1000)
   }
 }
 

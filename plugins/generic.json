@@ -141,6 +141,15 @@
         "component": "Radio",
         "value": "disabled",
         "options": ["不自动更新,disabled", "启动APP时,onStartup", "APP就绪时,onReady"]
+      },
+      {
+        "id": "ID_vognsfjh",
+        "title": "自动更新策略延迟",
+        "description": "延迟一段时间再执行更新检测，单位秒",
+        "key": "AutoRollingDelay",
+        "component": "Input",
+        "value": "10",
+        "options": []
       }
     ],
     "status": 0,
