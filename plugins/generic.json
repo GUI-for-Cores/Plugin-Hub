@@ -158,6 +158,21 @@
     "installed": false
   },
   {
+    "id": "plugin-tun-assistant",
+    "name": "TUN模式助手",
+    "description": "TUN模式食用指南！",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-tun-assistant.js",
+    "path": "data/plugins/plugin-tun-assistant.js",
+    "triggers": ["on::manual"],
+    "menus": {},
+    "configuration": [],
+    "status": 0,
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-system-proxy-guard",
     "name": "代理守卫",
     "description": "谁动了我的系统代理？防止系统代理被篡改",
