@@ -5,7 +5,7 @@ const onRun = async () => {
 
   const common = ['常见问题：', ' - 没有网络：请更换tun堆栈', ' - 出现ssl错误：请手动设置系统dns为223.5.5.5或8.8.8.8']
 
-  if (os === 'windows1') {
+  if (os === 'windows') {
     const arr = ['1、请转至设置，开启已管理员身份运行', '2、退出程序，重新打开（不要使用重启）', '3、修改配置，开启TUN模式', '4、启动内核\n'].concat(common)
     await Plugins.alert(Plugin.name, arr.join('\n'))
     return
