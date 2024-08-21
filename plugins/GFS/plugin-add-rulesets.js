@@ -11,6 +11,7 @@ const onRun = async () => {
       format: 'source',
       url: '',
       path: 'data/rulesets/direct.json',
+      count: 0,
       disabled: false
     },
     {
@@ -21,6 +22,7 @@ const onRun = async () => {
       format: 'source',
       url: '',
       path: 'data/rulesets/reject.json',
+      count: 0,
       disabled: false
     },
     {
@@ -31,6 +33,7 @@ const onRun = async () => {
       format: 'source',
       url: '',
       path: 'data/rulesets/proxy.json',
+      count: 0,
       disabled: false
     },
     // https://github.com/MetaCubeX/meta-rules-dat/tree/sing
@@ -42,6 +45,7 @@ const onRun = async () => {
       format: 'binary',
       url: 'https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/category-ads-all.srs',
       path: 'data/rulesets/remote-category-ads-all.srs',
+      count: 0,
       disabled: false
     },
     {
@@ -52,6 +56,7 @@ const onRun = async () => {
       format: 'binary',
       url: 'https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/private.srs',
       path: 'data/rulesets/remote-private.srs',
+      count: 0,
       disabled: false
     },
     {
@@ -62,6 +67,7 @@ const onRun = async () => {
       format: 'binary',
       url: 'https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/apple-cn.srs',
       path: 'data/rulesets/remote-apple-cn.srs',
+      count: 0,
       disabled: false
     },
     {
@@ -72,6 +78,7 @@ const onRun = async () => {
       format: 'binary',
       url: 'https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/icloud@cn.srs',
       path: 'data/rulesets/remote-icloud-cn.srs',
+      count: 0,
       disabled: false
     },
     {
@@ -82,6 +89,7 @@ const onRun = async () => {
       format: 'binary',
       url: 'https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/gfw.srs',
       path: 'data/rulesets/remote-gfw.srs',
+      count: 0,
       disabled: false
     },
     {
@@ -92,6 +100,7 @@ const onRun = async () => {
       format: 'binary',
       url: 'https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/tld-!cn.srs',
       path: 'data/rulesets/remote-tld-not-cn.srs',
+      count: 0,
       disabled: false
     },
     {
@@ -102,6 +111,7 @@ const onRun = async () => {
       format: 'binary',
       url: 'https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geoip/telegram.srs',
       path: 'data/rulesets/remote-telegram-cidr.srs',
+      count: 0,
       disabled: false
     },
     {
@@ -112,6 +122,7 @@ const onRun = async () => {
       format: 'binary',
       url: 'https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geoip/private.srs',
       path: 'data/rulesets/remote-private-cidr.srs',
+      count: 0,
       disabled: false
     },
     {
@@ -122,6 +133,7 @@ const onRun = async () => {
       format: 'binary',
       url: 'https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geoip/cn.srs',
       path: 'data/rulesets/remote-cn-cidr.srs',
+      count: 0,
       disabled: false
     },
     {
@@ -132,6 +144,7 @@ const onRun = async () => {
       format: 'binary',
       url: 'https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/cn.srs',
       path: 'data/rulesets/remote-cn.srs',
+      count: 0,
       disabled: false
     }
   ]
