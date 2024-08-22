@@ -33,8 +33,8 @@ const onRun = async () => {
     const arr = [
       '1、复制下列命令',
       '',
-      `osascript -e 'do shell script "chown root:admin ${stable}\nchmod +sx ${stable}" with administrator privileges'`,
-      `osascript -e 'do shell script "chown root:admin ${alpha}\nchmod +sx ${alpha}" with administrator privileges'`,
+      `osascript -e 'do shell script "chown root:admin ${stable}\\nchmod +sx ${stable}" with administrator privileges'`,
+      `osascript -e 'do shell script "chown root:admin ${alpha}\\nchmod +sx ${alpha}" with administrator privileges'`,
       '',
       '2、打开终端并执行上面命令',
       '3、修改配置，开启TUN模式',
