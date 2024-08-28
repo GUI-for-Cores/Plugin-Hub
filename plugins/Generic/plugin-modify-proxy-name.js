@@ -24,13 +24,13 @@ const KeywordsToEmoji = {
   '台湾|台灣|臺灣|台北|台中|新北|彰化|台|CHT|HINET|TW|Taiwan|TAIWAN': '🇹🇼',
   '澳门|澳門|CTM|MAC|Macao|Macau': '🇲🇴',
   '新加坡|狮城|獅城|沪新|京新|泉新|穗新|深新|杭新|广新|廣新|滬新|SG|Singapore|SINGAPORE': '🇸🇬',
-  '日本|东京|大阪|埼玉|京日|苏日|沪日|广日|上日|穗日|川日|中日|泉日|杭日|深日|JP|Japan|JAPAN': '🇯🇵',
-  '美国|美國|京美|硅谷|凤凰城|洛杉矶|西雅图|圣何塞|芝加哥|哥伦布|纽约|广美|USA|America|United States': '🇺🇸',
+  '日本|东京|大阪|埼玉|京日|苏日|沪日|广日|上日|穗日|川日|中日|泉日|杭日|深日|JP|Japan|JAPAN|Osaka|Tokyo': '🇯🇵',
+  '美国|美國|京美|硅谷|凤凰城|洛杉矶|西雅图|圣何塞|芝加哥|哥伦布|纽约|广美|USA|America|United States|US|Virginia': '🇺🇸',
   '韩国|韓國|首尔|韩|韓|春川|KOR|KR|Kr|Korea': '🇰🇷',
   '朝鲜|KP|North Korea': '🇰🇵',
   '俄罗斯|俄羅斯|毛子|俄国|RU|RUS|Russia': '🇷🇺',
   '印度|孟买|IN|IND|India|INDIA|Mumbai': '🇮🇳',
-  '印尼|印度尼西亚|雅加达|ID|IDN|Indonesia': '🇮🇩',
+  '印尼|印度尼西亚|雅加达|ID|IDN|Indonesia|Jakarta': '🇮🇩',
   '英国|英國|伦敦|UK|England|United Kingdom|Britain': '🇬🇧',
   '德国|德國|法兰克福|🇩🇪|German|GERMAN': '🇩🇪',
   '法国|法國|巴黎|FR|France': '🇫🇷',
@@ -41,7 +41,7 @@ const KeywordsToEmoji = {
   '比利时|比利時|Belgium': '🇧🇪',
   '澳大利亚|澳洲|墨尔本|悉尼|Australia|Sydney': '🇦🇺',
   '加拿大|蒙特利尔|温哥华|多伦多|滑铁卢|楓葉|枫叶|CA|CAN|Waterloo|Canada|CANADA': '🇨🇦',
-  '马来西亚|马来|馬來|MY|Malaysia|MALAYSIA': '🇲🇾',
+  '马来西亚|马来|馬來|MY|Malaysia|MALAYSIA|KualaLumpur': '🇲🇾',
   '马尔代夫|馬爾代夫|Maldives': '🇲🇻',
   '土耳其|伊斯坦布尔|TR_|TUR|Turkey': '🇹🇷',
   '菲律宾|菲律賓|Philippines': '🇵🇭',
@@ -180,6 +180,7 @@ const onSubscribe = async (proxies) => {
       const Keywords = keyword.split('|')
       Keywords.forEach((word) => (SubKeywordsToEmoji[word] = emoji))
     }
+
     // 按子关键词长度从长到短排序
     const SortedKeywordsToEmoji = Object.fromEntries(
       Object.entries(SubKeywordsToEmoji).sort((a, b) => {
@@ -196,13 +197,17 @@ const onSubscribe = async (proxies) => {
         const lowercasetag = v.tag.toLowerCase()
         let shouldAddEmoji = true // Flag to track whether emoji should be added
         for (const keywords in SortedKeywordsToEmoji) {
-          const regex = new RegExp(keywords, 'i')
+          const regex = new RegExp('\\b' + keywords + '\\b', 'i')
           // Check if the proxy tag matches any keywords
           if (regex.test(lowercasetag)) {
             const emoji = SortedKeywordsToEmoji[keywords]
             // Check if the proxy tag already starts with an emoji
             if (v.tag.startsWith(emoji)) {
-              shouldAddEmoji = false // If the proxy tag already has an emoji, do not add another one
+              if (v.tag[emoji.length] == ' ') {
+                shouldAddEmoji = false // If the proxy tag already has an emoji, do not add another one
+              } else {
+                v.tag = emoji + ' ' + v.tag.slice(emoji.length)
+              }
             } else {
               v.tag = emoji + ' ' + v.tag // Add emoji and space before the proxy tag
             }
