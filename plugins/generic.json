@@ -200,6 +200,24 @@
     "installed": false
   },
   {
+    "id": "plugin-systemproxy-external",
+    "name": "外接网卡系统代理",
+    "description": "为macOS的外接网卡设置系统代理。",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-systemproxy-external.js",
+    "path": "data/plugins/plugin-systemproxy-external.js",
+    "triggers": ["on::manual"],
+    "menus": {
+      "设置代理": "Set",
+      "清除代理": "Clear"
+    },
+    "configuration": [],
+    "status": 0,
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-hosts-management",
     "name": "Hosts管理",
     "description": "在三种预设Hosts中自由切换",
