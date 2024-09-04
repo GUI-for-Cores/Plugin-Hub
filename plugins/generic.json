@@ -575,6 +575,33 @@
         "options": []
       },
       {
+        "id": "ID_ozf0uhpk",
+        "title": "定时恢复配置",
+        "description": "5位cron表达式",
+        "key": "SUB_STORE_BACKEND_DOWNLOAD_CRON",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_r9i77br5",
+        "title": "定时备份配置",
+        "description": "5位cron表达式",
+        "key": "SUB_STORE_BACKEND_UPLOAD_CRON",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_zbofamjg",
+        "title": "定时同步订阅/文件",
+        "description": "5位cron表达式",
+        "key": "SUB_STORE_BACKEND_SYNC_CRON",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
         "id": "ID_qenehz06",
         "title": "跟随GUI启动或停止",
         "description": "",
