@@ -557,6 +557,24 @@
         "options": []
       },
       {
+        "id": "ID_s30xrqyn",
+        "title": "自定义前端显示名称",
+        "description": "",
+        "key": "SUB_STORE_BACKEND_CUSTOM_NAME",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_nra4uiaa",
+        "title": "自定义前端显示图标",
+        "description": "",
+        "key": "SUB_STORE_BACKEND_CUSTOM_ICON",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
         "id": "ID_qenehz06",
         "title": "跟随GUI启动或停止",
         "description": "",
