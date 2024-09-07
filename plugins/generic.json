@@ -1270,5 +1270,60 @@
     "disabled": false,
     "install": false,
     "installed": false
+  },
+  {
+    "id": "plugin-gui-restful-api-v1",
+    "name": "RESTful-Api v1",
+    "description": "GUI RESTful-Api，可通过HTTP协议控制GUI。",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-gui-restful-api-v1.js",
+    "path": "data/plugins/plugin-gui-restful-api.js",
+    "triggers": ["on::manual"],
+    "menus": {
+      "启动服务": "Start",
+      "停止服务": "Stop"
+    },
+    "status": 1,
+    "configuration": [
+      {
+        "id": "ID_ehoyef2w",
+        "title": "监听端口",
+        "description": "RESTful-Api监听端口",
+        "key": "ApiPort",
+        "component": "Input",
+        "value": "20234",
+        "options": []
+      },
+      {
+        "id": "ID_zjh3a0en",
+        "title": "监听地址",
+        "description": "RESTful-Api监听地址",
+        "key": "ApiAddress",
+        "component": "Input",
+        "value": "0.0.0.0",
+        "options": []
+      },
+      {
+        "id": "ID_w3ak83an",
+        "title": "服务密钥",
+        "description": "RESTful-Api请求密钥",
+        "key": "ApiSecret",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_mi5dynzi",
+        "title": "跟随GUI启动或停止",
+        "description": "注：该服务总是跟随GUI自动停止",
+        "key": "AutoStartOrStop",
+        "component": "Switch",
+        "value": false,
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
   }
 ]
