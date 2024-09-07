@@ -1277,13 +1277,13 @@
     "description": "GUI RESTful-Api，可通过HTTP协议控制GUI。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-gui-restful-api-v1.js",
-    "path": "data/plugins/plugin-gui-restful-api.js",
+    "path": "data/plugins/plugin-gui-restful-api-v1.js",
     "triggers": ["on::manual"],
     "menus": {
       "启动服务": "Start",
       "停止服务": "Stop"
     },
-    "status": 1,
+    "status": 0,
     "configuration": [
       {
         "id": "ID_ehoyef2w",
