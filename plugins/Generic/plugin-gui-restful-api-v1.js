@@ -178,6 +178,23 @@ function registerProfiles(router) {
       res.json(204, 'No Content')
     }
   )
+
+  router.get(
+    '/v1/profiles/:id/config',
+    {
+      description: {
+        zh: '获取由一个配置生成的核心配置'
+      }
+    },
+    async (req, res, { id }) => {
+      const profile = store.getProfileById(id)
+      if (!profile) {
+        return res.json(404, '配置不存在')
+      }
+      const config = await Plugins.generateConfig(profile)
+      res.json(200, config)
+    }
+  )
 }
 
 /**
@@ -219,7 +236,10 @@ function registerSubscriptions(router) {
         zh: '添加一个订阅'
       }
     },
-    (req, res, params) => {}
+    async (req, res, params) => {
+      await store.addSubscribe(req.body)
+      res.json(201, 'OK')
+    }
   )
 
   router.put(
@@ -229,7 +249,15 @@ function registerSubscriptions(router) {
         zh: '修改一个订阅'
       }
     },
-    (req, res, params) => {}
+    async (req, res, params) => {
+      const subscription = store.getSubscribeById(req.body.id)
+      if (!subscription) {
+        return res.json(404, '订阅不存在')
+      }
+      const _subscription = Plugins.deepAssign(subscription, req.body)
+      await store.editSubscribe(req.body.id, _subscription)
+      res.json(201, _subscription)
+    }
   )
 
   router.delete(
@@ -239,7 +267,14 @@ function registerSubscriptions(router) {
         zh: '删除一个订阅'
       }
     },
-    (req, res, params) => {}
+    async (req, res, { id }) => {
+      const subscription = store.getSubscribeById(id)
+      if (!subscription) {
+        return res.json(404, '订阅不存在')
+      }
+      await store.deleteSubscribe(id)
+      res.json(204, 'No Content')
+    }
   )
 
   router.get(
@@ -249,17 +284,36 @@ function registerSubscriptions(router) {
         zh: '获取一个订阅内所有代理'
       }
     },
-    (req, res, params) => {}
+    async (req, res, { id }) => {
+      const subscription = store.getSubscribeById(id)
+      if (!subscription) {
+        return res.json(404, '订阅不存在')
+      }
+      let proxies = await Plugins.Readfile(subscription.path)
+      if (Plugins.APP_TITLE.includes('Clash')) {
+        proxies = Plugins.YAML.parse(proxies)
+      } else {
+        proxies = JSON.parse(proxies)
+      }
+      res.json(200, proxies)
+    }
   )
 
   router.post(
-    '/v1/subscriptions/:id/proxies',
+    '/v1/subscriptions/:id/update',
     {
       description: {
         zh: '更新一个订阅内所有代理'
       }
     },
-    (req, res, params) => {}
+    async (req, res, { id }) => {
+      const subscription = store.getSubscribeById(id)
+      if (!subscription) {
+        return res.json(404, '订阅不存在')
+      }
+      await store.updateSubscribe(id)
+      res.json(200, subscription)
+    }
   )
 }
 
@@ -302,7 +356,10 @@ function registerRulesets(router) {
         zh: '添加一个规则集'
       }
     },
-    (req, res, params) => {}
+    async (req, res, params) => {
+      await store.addRuleset(req.body)
+      res.json(200, 'No Content')
+    }
   )
 
   router.put(
@@ -312,7 +369,15 @@ function registerRulesets(router) {
         zh: '修改一个规则集'
       }
     },
-    (req, res, params) => {}
+    async (req, res, params) => {
+      const ruleset = store.getRulesetById(req.body.id)
+      if (!ruleset) {
+        return res.json(404, '规则集不存在')
+      }
+      const _ruleset = Plugins.deepAssign(ruleset, req.body)
+      await store.editRuleset(req.body.id, _ruleset)
+      res.json(201, _ruleset)
+    }
   )
 
   router.delete(
@@ -322,17 +387,31 @@ function registerRulesets(router) {
         zh: '删除一个规则集'
       }
     },
-    (req, res, params) => {}
+    async (req, res, { id }) => {
+      const ruleset = store.getRulesetById(id)
+      if (!ruleset) {
+        return res.json(404, '规则集不存在')
+      }
+      await store.deleteRuleset(id)
+      res.json(204, 'No Content')
+    }
   )
 
   router.post(
-    '/v1/rulesets/:id',
+    '/v1/rulesets/:id/update',
     {
       description: {
         zh: '更新一个规则集'
       }
     },
-    (req, res, params) => {}
+    async (req, res, { id }) => {
+      const ruleset = store.getRulesetById(id)
+      if (!ruleset) {
+        return res.json(404, '规则集不存在')
+      }
+      await store.updateRuleset(id)
+      res.json(200, ruleset)
+    }
   )
 }
 
