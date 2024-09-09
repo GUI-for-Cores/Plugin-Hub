@@ -170,7 +170,8 @@ const BackgroundList = [
   ['#FAACA8', 'linear-gradient(19deg, #FAACA8 0%, #DDD6F3 100%)'],
   ['#FAD961', 'linear-gradient(90deg, #FAD961 0%, #F76B1C 100%)'],
   ['#FEE140', 'linear-gradient(90deg, #FEE140 0%, #FA709A 100%)'],
-  ['#FF3CAC', 'linear-gradient(225deg, #FF3CAC 0%, #784BA0 50%, #2B86C5 100%)']
+  ['#FF3CAC', 'linear-gradient(225deg, #FF3CAC 0%, #784BA0 50%, #2B86C5 100%)'],
+  ['#00000000', 'none']
 ]
 
 const onInstall = async () => {
