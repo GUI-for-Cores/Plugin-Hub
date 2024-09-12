@@ -368,7 +368,7 @@ function URI_SSR() {
       for (const item of line) {
         let [key, val] = item.split('=')
         val = val.trim()
-        if (val.length > 0) {
+        if (val.length > 0 && val !== '(null)') {
           other_params[key] = val
         }
       }
@@ -529,6 +529,7 @@ function URI_VMess() {
             transportPath = '/'
           }
         }
+        // 传输层应该有配置, 暂时不考虑兼容不给配置的节点
         if (transportPath || transportHost) {
           if (['grpc'].includes(proxy.network)) {
             proxy[`${proxy.network}-opts`] = {
@@ -711,12 +712,28 @@ function URI_Hysteria2() {
   }
   const parse = (line) => {
     line = line.split(/(hysteria2|hy2):\/\//)[2]
-    // eslint-disable-next-line no-unused-vars
-    let [__, password, server, ___, port, ____, addons = '', name] = /^(.*?)@(.*?)(:(\d+))?\/?(\?(.*?))?(?:#(.*?))?$/.exec(line)
-    port = parseInt(`${port}`, 10)
-    if (isNaN(port)) {
+    // 端口跳跃有两种写法:
+    // 1. 服务器的地址和可选端口。如果省略端口，则默认为 443。
+    // 端口部分支持 端口跳跃 的「多端口地址格式」。
+    // https://hysteria.network/zh/docs/advanced/Port-Hopping
+    // 2. 参数 mport
+    let ports
+    /* eslint-disable no-unused-vars */
+    let [__, password, server, ___, port, ____, _____, ______, _______, ________, addons = '', name] =
+      /^(.*?)@(.*?)(:((\d+(-\d+)?)([,;]\d+(-\d+)?)*))?\/?(\?(.*?))?(?:#(.*?))?$/.exec(line)
+    /* eslint-enable no-unused-vars */
+    if (/^\d+$/.test(port)) {
+      port = parseInt(`${port}`, 10)
+      if (isNaN(port)) {
+        port = 443
+      }
+    } else if (port) {
+      ports = port
+      port = getRandomPort(ports)
+    } else {
       port = 443
     }
+
     password = decodeURIComponent(password)
     if (name != null) {
       name = decodeURIComponent(name)
@@ -728,6 +745,7 @@ function URI_Hysteria2() {
       name,
       server,
       port,
+      ports,
       password
     }
 
@@ -1151,16 +1169,17 @@ const tlsParser = (proxy, parsedProxy) => {
   if (proxy.ca) parsedProxy.tls.certificate_path = `${proxy.ca}`
   if (proxy.ca_str) parsedProxy.tls.certificate = [proxy.ca_str]
   if (proxy['ca-str']) parsedProxy.tls.certificate = [proxy['ca-str']]
+  if (proxy['reality-opts']) {
+    parsedProxy.tls.reality = { enabled: true }
+    if (proxy['reality-opts']['public-key']) parsedProxy.tls.reality.public_key = proxy['reality-opts']['public-key']
+    if (proxy['reality-opts']['short-id']) parsedProxy.tls.reality.short_id = proxy['reality-opts']['short-id']
+    parsedProxy.tls.utls = { enabled: true }
+  }
   if (proxy['client-fingerprint'] && proxy['client-fingerprint'] !== '')
     parsedProxy.tls.utls = {
       enabled: true,
       fingerprint: proxy['client-fingerprint']
     }
-  if (proxy['reality-opts']) {
-    parsedProxy.tls.reality = { enabled: true }
-    if (proxy['reality-opts']['public-key']) parsedProxy.tls.reality.public_key = proxy['reality-opts']['public-key']
-    if (proxy['reality-opts']['short-id']) parsedProxy.tls.reality.short_id = proxy['reality-opts']['short-id']
-  }
   if (!parsedProxy.tls.enabled) delete parsedProxy.tls
 }
 
