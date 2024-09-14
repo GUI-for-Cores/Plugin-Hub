@@ -1278,7 +1278,7 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-gui-restful-api-v1.js",
     "path": "data/plugins/plugin-gui-restful-api-v1.js",
-    "triggers": ["on::manual"],
+    "triggers": ["on::manual", "on::ready"],
     "menus": {
       "启动服务": "Start",
       "停止服务": "Stop"
