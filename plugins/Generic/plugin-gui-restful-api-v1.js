@@ -1,23 +1,35 @@
 /* Trigger on::manual */
 const onRun = async () => {
   await Plugins.ignoredError(Stop, false)
-  await Start()
+  await Start({ feedback: true, ...Plugin })
   return 1
 }
 
 /* Trigger on::configure */
 const onConfigure = async (config, old) => {
   if (config.ApiAddress !== old.ApiAddress || config.ApiPort !== old.ApiPort || config.ApiSecret !== old.ApiSecret) {
-    await onRun()
+    if (await isRunning()) {
+      await Stop(false)
+      await Start({ feedback: false, ...config })
+    }
   }
 }
 
-const Start = async (feedback = true) => {
+/* Trigger on::ready */
+const onReady = async () => {
+  if (Plugin.AutoStartOrStop) {
+    return await onRun()
+  }
+}
+
+const Start = async (params = Plugin) => {
+  if (params.ApiAddress === '0.0.0.0' && !params.ApiSecret) throw '请先配置密钥'
+
   const router = new Router()
 
   router.use(jsonMiddleware)
   router.use(withRequestBodyMiddleWare)
-  Plugin.ApiSecret && router.use(authMiddleware)
+  params.ApiSecret && router.use(authMiddleware)
 
   registerAppSettings(router)
   registerProfiles(router)
@@ -28,18 +40,22 @@ const Start = async (feedback = true) => {
 
   registerDocument(router)
 
-  await Plugins.StartServer(Plugin.ApiAddress + ':' + Plugin.ApiPort, Plugin.id, async (req, res) => {
+  await Plugins.StartServer(params.ApiAddress + ':' + params.ApiPort, Plugin.id, async (req, res) => {
     router.match(req, res)
   })
 
-  feedback && (await Plugins.message.success('RESTful Api 启动成功'))
+  params.feedback && (await Plugins.message.success('RESTful Api 启动成功'))
   return 1
 }
 
 const Stop = async (feedback = true) => {
-  await Plugins.StopServer(Plugin.id)
+  await Plugins.ignoredError(Plugins.StopServer, Plugin.id)
   feedback && (await Plugins.message.success('RESTful Api 停止成功'))
   return 2
+}
+
+const isRunning = async () => {
+  return (await Plugins.ListServer()).includes(Plugin.id)
 }
 
 function registerDocument(router) {
@@ -126,7 +142,7 @@ function registerProfiles(router) {
       }
     },
     (req, res, { id }) => {
-      const profile = store.profiles.find((v) => v.name === id || v.id === id)
+      const profile = store.getProfileById(id)
       res.json(profile ? 200 : 404, profile)
     }
   )
@@ -140,24 +156,24 @@ function registerProfiles(router) {
     },
     async (req, res, params) => {
       await store.addProfile(req.body)
-      res.json(201, 'OK')
+      res.json(201, '已创建')
     }
   )
 
   router.put(
-    '/v1/profiles',
+    '/v1/profiles/:id',
     {
       description: {
         zh: '修改一个配置'
       }
     },
-    async (req, res, params) => {
-      const profile = store.getProfileById(req.body.id)
+    async (req, res, { id }) => {
+      const profile = store.getProfileById(id)
       if (!profile) {
         return res.json(404, '配置不存在')
       }
       const _profile = Plugins.deepAssign(profile, req.body)
-      await store.editProfile(req.body.id, _profile)
+      await store.editProfile(id, _profile)
       res.json(201, _profile)
     }
   )
@@ -192,6 +208,9 @@ function registerProfiles(router) {
         return res.json(404, '配置不存在')
       }
       const config = await Plugins.generateConfig(profile)
+      if (Plugins.APP_TITLE.includes('Clash')) {
+        return res.end(200, { 'Content-Type': 'text/plain' }, Plugins.YAML.stringify(config))
+      }
       res.json(200, config)
     }
   )
@@ -224,7 +243,7 @@ function registerSubscriptions(router) {
       }
     },
     (req, res, { id }) => {
-      const subscription = store.subscribes.find((v) => v.name === id || v.id === id)
+      const subscription = store.getSubscribeById(id)
       res.json(subscription ? 200 : 404, subscription)
     }
   )
@@ -238,24 +257,24 @@ function registerSubscriptions(router) {
     },
     async (req, res, params) => {
       await store.addSubscribe(req.body)
-      res.json(201, 'OK')
+      res.json(201, '已创建')
     }
   )
 
   router.put(
-    '/v1/subscriptions',
+    '/v1/subscriptions/:id',
     {
       description: {
         zh: '修改一个订阅'
       }
     },
-    async (req, res, params) => {
-      const subscription = store.getSubscribeById(req.body.id)
+    async (req, res, { id }) => {
+      const subscription = store.getSubscribeById(id)
       if (!subscription) {
         return res.json(404, '订阅不存在')
       }
       const _subscription = Plugins.deepAssign(subscription, req.body)
-      await store.editSubscribe(req.body.id, _subscription)
+      await store.editSubscribe(id, _subscription)
       res.json(201, _subscription)
     }
   )
@@ -291,7 +310,7 @@ function registerSubscriptions(router) {
       }
       let proxies = await Plugins.Readfile(subscription.path)
       if (Plugins.APP_TITLE.includes('Clash')) {
-        proxies = Plugins.YAML.parse(proxies)
+        proxies = Plugins.YAML.parse(proxies).proxies
       } else {
         proxies = JSON.parse(proxies)
       }
@@ -358,7 +377,7 @@ function registerRulesets(router) {
     },
     async (req, res, params) => {
       await store.addRuleset(req.body)
-      res.json(200, 'No Content')
+      res.json(201, 'No Content')
     }
   )
 
@@ -369,13 +388,13 @@ function registerRulesets(router) {
         zh: '修改一个规则集'
       }
     },
-    async (req, res, params) => {
-      const ruleset = store.getRulesetById(req.body.id)
+    async (req, res, { id }) => {
+      const ruleset = store.getRulesetById(id)
       if (!ruleset) {
         return res.json(404, '规则集不存在')
       }
       const _ruleset = Plugins.deepAssign(ruleset, req.body)
-      await store.editRuleset(req.body.id, _ruleset)
+      await store.editRuleset(id, _ruleset)
       res.json(201, _ruleset)
     }
   )
@@ -454,7 +473,10 @@ function registerPlugins(router) {
         zh: '添加一个插件'
       }
     },
-    (req, res, params) => {}
+    async (req, res, params) => {
+      await store.addPlugin(req.body)
+      res.json(201, '已创建')
+    }
   )
 
   router.put(
@@ -464,7 +486,15 @@ function registerPlugins(router) {
         zh: '修改一个插件'
       }
     },
-    (req, res, params) => {}
+    async (req, res, { id }) => {
+      const plugin = store.getPluginById(id)
+      if (!plugin) {
+        return res.json(404, '插件不存在')
+      }
+      const _plugin = Plugins.deepAssign(plugin, req.body)
+      await store.editPlugin(id, _plugin)
+      res.json(201, _plugin)
+    }
   )
 
   router.delete(
@@ -474,17 +504,31 @@ function registerPlugins(router) {
         zh: '删除一个插件'
       }
     },
-    (req, res, params) => {}
+    async (req, res, { id }) => {
+      const plugin = store.getPluginById(id)
+      if (!plugin) {
+        return res.json(404, '插件不存在')
+      }
+      await store.deletePlugin(id)
+      res.json(204, 'No Content')
+    }
   )
 
   router.post(
-    '/v1/plugins/:id',
+    '/v1/plugins/:id/update',
     {
       description: {
         zh: '更新一个插件'
       }
     },
-    (req, res, params) => {}
+    async (req, res, { id }) => {
+      const plugin = store.getPluginById(id)
+      if (!plugin) {
+        return res.json(404, '插件不存在')
+      }
+      await store.updatePlugin(id)
+      res.json(204, 'No Content')
+    }
   )
 }
 
@@ -515,7 +559,7 @@ function registerScheduledTasks(router) {
       }
     },
     (req, res, { id }) => {
-      const task = store.scheduledtasks.find((v) => v.name === id || v.id === id)
+      const task = store.getScheduledTaskById(id)
       res.json(task ? 200 : 404, task)
     }
   )
@@ -527,7 +571,10 @@ function registerScheduledTasks(router) {
         zh: '添加一个计划任务'
       }
     },
-    (req, res, params) => {}
+    async (req, res, params) => {
+      await store.addScheduledTask(req.body)
+      res.json(201, '已创建')
+    }
   )
 
   router.put(
@@ -537,7 +584,15 @@ function registerScheduledTasks(router) {
         zh: '修改一个计划任务'
       }
     },
-    (req, res, params) => {}
+    async (req, res, { id }) => {
+      const task = store.getScheduledTaskById(id)
+      if (!task) {
+        return res.json(404, '计划任务不存在')
+      }
+      const _task = Plugins.deepAssign(task, req.body)
+      await store.editScheduledTask(id, _task)
+      res.json(201, _task)
+    }
   )
 
   router.delete(
@@ -547,17 +602,31 @@ function registerScheduledTasks(router) {
         zh: '删除一个计划任务'
       }
     },
-    (req, res, params) => {}
+    async (req, res, { id }) => {
+      const task = store.getScheduledTaskById(id)
+      if (!task) {
+        return res.json(404, '计划任务不存在')
+      }
+      await store.deleteScheduledTask(id)
+      res.json(204, 'No Content')
+    }
   )
 
   router.post(
-    '/v1/tasks/:id',
+    '/v1/tasks/:id/run',
     {
       description: {
-        zh: '更新一个计划任务'
+        zh: '执行一个计划任务'
       }
     },
-    (req, res, params) => {}
+    async (req, res, { id }) => {
+      const task = store.getScheduledTaskById(id)
+      if (!task) {
+        return res.json(404, '计划任务不存在')
+      }
+      const result = await store.runScheduledTask(id)
+      res.json(200, result)
+    }
   )
 }
 
@@ -614,7 +683,12 @@ class Router {
           acc[key] = decodeURIComponent(match[index + 1])
           return acc
         }, {})
-        return await route.handler(req, res, params)
+        try {
+          await route.handler(req, res, params)
+        } catch (error) {
+          res.json(500, error.message || error)
+        }
+        return
       }
     }
     res.json(404, 'Not Found')
