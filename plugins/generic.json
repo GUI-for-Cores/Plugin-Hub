@@ -691,7 +691,7 @@
   },
   {
     "id": "plugin-sync-configuration-gists",
-    "name": "同步配置 - Gists",
+    "name": "配置同步 - Gists",
     "description": "使用Gists同步GUI配置。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sync-configuration-gists.js",

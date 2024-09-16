@@ -158,8 +158,6 @@ const onInstall = async () => {
 const onUninstall = async () => {
   const dom = document.getElementById(Plugin.id)
   dom && dom.remove()
-  window.CryptoJS = null
-  delete window.CryptoJS
   await Plugins.Removefile(PATH)
   return 0
 }
