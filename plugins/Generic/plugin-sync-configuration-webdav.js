@@ -3,7 +3,6 @@ const JS_FILE = PATH + '/crypto-js.js'
 
 /* 触发器 手动触发 */
 const onRun = async () => {
-  await Plugins.alert('', Plugin)
   const action = await Plugins.picker.single(
     '请选择操作',
     [
