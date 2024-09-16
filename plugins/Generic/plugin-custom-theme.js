@@ -146,6 +146,8 @@ const VariableList = [
 ]
 
 const BackgroundList = [
+  ['#00000000', 'none'],
+  ['#FFDEE9', 'linear-gradient(0deg, #FFDEE9 0%, #B5FFFC 100%)'],
   ['#4158D0', 'linear-gradient(43deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%)'],
   ['#0093E9', 'linear-gradient(160deg, #0093E9 0%, #80D0C7 100%)'],
   ['#8EC5FC', 'linear-gradient(62deg, #8EC5FC 0%, #E0C3FC 100%)'],
@@ -155,7 +157,6 @@ const BackgroundList = [
   ['#FBAB7E', 'linear-gradient(62deg, #FBAB7E 0%, #F7CE68 100%)'],
   ['#85FFBD', 'linear-gradient(45deg, #85FFBD 0%, #FFFB7D 100%)'],
   ['#8BC6EC', 'linear-gradient(135deg, #8BC6EC 0%, #9599E2 100%)'],
-  ['#FFDEE9', 'linear-gradient(0deg, #FFDEE9 0%, #B5FFFC 100%)'],
   ['#08AEEA', 'linear-gradient(0deg, #08AEEA 0%, #2AF598 100%)'],
   ['#52ACFF', 'linear-gradient(180deg, #52ACFF 25%, #FFE32C 100%)'],
   ['#FFE53B', 'linear-gradient(147deg, #FFE53B 0%, #FF2525 74%)'],
@@ -170,8 +171,7 @@ const BackgroundList = [
   ['#FAACA8', 'linear-gradient(19deg, #FAACA8 0%, #DDD6F3 100%)'],
   ['#FAD961', 'linear-gradient(90deg, #FAD961 0%, #F76B1C 100%)'],
   ['#FEE140', 'linear-gradient(90deg, #FEE140 0%, #FA709A 100%)'],
-  ['#FF3CAC', 'linear-gradient(225deg, #FF3CAC 0%, #784BA0 50%, #2B86C5 100%)'],
-  ['#00000000', 'none']
+  ['#FF3CAC', 'linear-gradient(225deg, #FF3CAC 0%, #784BA0 50%, #2B86C5 100%)']
 ]
 
 const onInstall = async () => {
@@ -231,7 +231,7 @@ const Clear = () => {
 const Reset = async (isReset = true) => {
   isReset && (await Plugins.confirm('提示', '主题文件将被替换为默认！'))
 
-  const config = { variable: {}, backgroundIndex: 9 }
+  const config = { variable: {}, backgroundIndex: 0 }
 
   const theme = getComputedStyle(document.documentElement)
   VariableList.forEach((property) => {
