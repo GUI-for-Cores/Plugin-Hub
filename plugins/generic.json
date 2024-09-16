@@ -727,6 +727,70 @@
     "installed": false
   },
   {
+    "id": "plugin-sync-configuration-webdav",
+    "name": "配置同步 - WebDAV",
+    "description": "使用webDAV协议同步GUI配置。",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sync-configuration-webdav.js",
+    "path": "data/plugins/plugin-sync-configuration-webdav.js",
+    "triggers": ["on::manual", "on::ready"],
+    "menus": {
+      "立即备份": "Backup",
+      "同步至本地": "Sync"
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_rx5ee7jd",
+        "title": "WebDAV地址",
+        "description": "格式：http://127.0.0.1:5244",
+        "key": "Address",
+        "component": "Input",
+        "value": "http://127.0.0.1:5244",
+        "options": []
+      },
+      {
+        "id": "ID_e24q3j0c",
+        "title": "用户名",
+        "description": "",
+        "key": "Username",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_2v45ffki",
+        "title": "密码",
+        "description": "",
+        "key": "Password",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_66w4psyd",
+        "title": "保存路径",
+        "description": "例如：/dav/gui-for-cores",
+        "key": "DataPath",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_1w6ddaf1",
+        "title": "密钥",
+        "description": "加密、解密使用的密钥",
+        "key": "Secret",
+        "component": "Input",
+        "value": "",
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": true,
+    "installed": false
+  },
+  {
     "id": "plugin-bandwagon-vps",
     "name": "搬瓦工 VPS 管理",
     "description": "管理你的搬瓦工VPS。",
