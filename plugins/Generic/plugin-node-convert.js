@@ -61,23 +61,25 @@ const onRun = async () => {
     }
   }
 
-  console.log('clash', proxies)
+  const clash_proxies = ClashMeta_Producer().produce(proxies, 'internal', {})
 
-  const proxies2 = []
+  console.log('clash', clash_proxies)
+
+  const singbox_proxies = []
 
   const protocolForSingBoxMap = protocolForSingBox()
   for (let proxy of proxies) {
     try {
       const _proxy = protocolForSingBoxMap[proxy.type](proxy)
-      proxies2.push(_proxy)
+      singbox_proxies.push(_proxy)
     } catch (error) {
       console.log('解析错误SingBox节点', error)
     }
   }
 
-  console.log('singbox', proxies2)
+  console.log('singbox', singbox_proxies)
 
-  const result = Plugins.APP_TITLE.includes('SingBox') ? JSON.stringify(proxies2, null, 2) : Plugins.YAML.stringify(proxies)
+  const result = Plugins.APP_TITLE.includes('SingBox') ? JSON.stringify(singbox_proxies, null, 2) : Plugins.YAML.stringify(clash_proxies)
 
   await Plugins.confirm('转换结果如下', result)
 
@@ -109,7 +111,7 @@ const onSubscribe = async (proxies) => {
         console.log('解析Clash节点发生错误', error)
       }
     }
-    proxies = _proxies
+    proxies = ClashMeta_Producer().produce(_proxies, 'internal', {})
   }
 
   const isClashProxies = proxies.some((proxy) => proxy.name && !proxy.tag)
@@ -192,8 +194,8 @@ const getTrojanURIParser = () => {
 
 // =======================================================================================================================
 //                                      以下是Sub-Store仓库中关于解析节点uri的相关源码
-//                                      1、添加了一些注释，记录从哪个文件而来
-//                                      2、未修改Sub-Store的任何一处源码，也不应该修改
+//                                      1、添加了一些注释，记录从哪个文件而来、以及是否做了一些修改
+//                                      2、修改了Sub-Store的一些源码...
 // =======================================================================================================================
 
 /**
@@ -235,6 +237,9 @@ function getIfPresent(obj, defaultValue) {
 /**
  * 说明：解析节点uri的相关方法
  * 来源：https://github.com/sub-store-org/Sub-Store/blob/master/backend/src/core/proxy-utils/parsers/index.js
+ * 修改：URI_VMESS
+ * - if (proxy.tls && proxy.sni) {
+ * + if (proxy.tls && params.sni) {
  */
 
 // Parse SS URI format (only supports new SIP002, legacy format is depreciated).
@@ -488,7 +493,9 @@ function URI_VMess() {
         proxy['skip-cert-verify'] = /(TRUE)|1/i.test(params.allowInsecure)
       }
       // https://github.com/2dust/v2rayN/wiki/%E5%88%86%E4%BA%AB%E9%93%BE%E6%8E%A5%E6%A0%BC%E5%BC%8F%E8%AF%B4%E6%98%8E(ver-2)
-      if (proxy.tls && proxy.sni) {
+      // - if (proxy.tls && proxy.sni) {
+      // + if (proxy.tls && params.sni) {
+      if (proxy.tls && params.sni) {
         proxy.sni = params.sni
       }
       let httpupgrade = false
@@ -1588,4 +1595,158 @@ const wireguardParser = (proxy = {}) => {
   detourParser(proxy, parsedProxy)
   smuxParser(proxy.smux, parsedProxy)
   return parsedProxy
+}
+
+/**
+ * 说明：用于处理clash.meta代理
+ * 来源：https://github.com/sub-store-org/Sub-Store/blob/cc556b641d32f5af571101cd825d76f8506a0855/backend/src/core/proxy-utils/producers/clashmeta.js
+ * 修改：+  const isPresent = (obj, expr) => {
+ *      +    return expr.split('.').reduce((value, key) => {
+ *      +      return value?.[key]
+ *      +      }, obj)
+ *      +  }
+ */
+function ClashMeta_Producer() {
+  const isPresent = (obj, expr) => {
+    return expr.split('.').reduce((value, key) => {
+      return value?.[key]
+    }, obj)
+  }
+  const type = 'ALL'
+  const produce = (proxies, type, opts = {}) => {
+    const list = proxies
+      .filter((proxy) => {
+        if (opts['include-unsupported-proxy']) return true
+        if (proxy.type === 'snell' && String(proxy.version) === '4') {
+          return false
+        }
+        return true
+      })
+      .map((proxy) => {
+        if (proxy.type === 'vmess') {
+          // handle vmess aead
+          if (isPresent(proxy, 'aead')) {
+            if (proxy.aead) {
+              proxy.alterId = 0
+            }
+            delete proxy.aead
+          }
+          if (isPresent(proxy, 'sni')) {
+            proxy.servername = proxy.sni
+            delete proxy.sni
+          }
+          // https://github.com/MetaCubeX/Clash.Meta/blob/Alpha/docs/config.yaml#L400
+          // https://stash.wiki/proxy-protocols/proxy-types#vmess
+          if (isPresent(proxy, 'cipher') && !['auto', 'aes-128-gcm', 'chacha20-poly1305', 'none'].includes(proxy.cipher)) {
+            proxy.cipher = 'auto'
+          }
+        } else if (proxy.type === 'tuic') {
+          if (isPresent(proxy, 'alpn')) {
+            proxy.alpn = Array.isArray(proxy.alpn) ? proxy.alpn : [proxy.alpn]
+          } else {
+            proxy.alpn = ['h3']
+          }
+          if (isPresent(proxy, 'tfo') && !isPresent(proxy, 'fast-open')) {
+            proxy['fast-open'] = proxy.tfo
+          }
+          // https://github.com/MetaCubeX/Clash.Meta/blob/Alpha/adapter/outbound/tuic.go#L197
+          if ((!proxy.token || proxy.token.length === 0) && !isPresent(proxy, 'version')) {
+            proxy.version = 5
+          }
+        } else if (proxy.type === 'hysteria') {
+          // auth_str 将会在未来某个时候删除 但是有的机场不规范
+          if (isPresent(proxy, 'auth_str') && !isPresent(proxy, 'auth-str')) {
+            proxy['auth-str'] = proxy['auth_str']
+          }
+          if (isPresent(proxy, 'alpn')) {
+            proxy.alpn = Array.isArray(proxy.alpn) ? proxy.alpn : [proxy.alpn]
+          }
+          if (isPresent(proxy, 'tfo') && !isPresent(proxy, 'fast-open')) {
+            proxy['fast-open'] = proxy.tfo
+          }
+        } else if (proxy.type === 'wireguard') {
+          proxy.keepalive = proxy.keepalive ?? proxy['persistent-keepalive']
+          proxy['persistent-keepalive'] = proxy.keepalive
+          proxy['preshared-key'] = proxy['preshared-key'] ?? proxy['pre-shared-key']
+          proxy['pre-shared-key'] = proxy['preshared-key']
+        } else if (proxy.type === 'vless') {
+          if (isPresent(proxy, 'sni')) {
+            proxy.servername = proxy.sni
+            delete proxy.sni
+          }
+        } else if (proxy.type === 'ss') {
+          if (isPresent(proxy, 'shadow-tls-password') && !isPresent(proxy, 'plugin')) {
+            proxy.plugin = 'shadow-tls'
+            proxy['plugin-opts'] = {
+              host: proxy['shadow-tls-sni'],
+              password: proxy['shadow-tls-password'],
+              version: proxy['shadow-tls-version']
+            }
+          }
+        }
+
+        if (['vmess', 'vless'].includes(proxy.type) && proxy.network === 'http') {
+          let httpPath = proxy['http-opts']?.path
+          if (isPresent(proxy, 'http-opts.path') && !Array.isArray(httpPath)) {
+            proxy['http-opts'].path = [httpPath]
+          }
+          let httpHost = proxy['http-opts']?.headers?.Host
+          if (isPresent(proxy, 'http-opts.headers.Host') && !Array.isArray(httpHost)) {
+            proxy['http-opts'].headers.Host = [httpHost]
+          }
+        }
+        if (['vmess', 'vless'].includes(proxy.type) && proxy.network === 'h2') {
+          let path = proxy['h2-opts']?.path
+          if (isPresent(proxy, 'h2-opts.path') && Array.isArray(path)) {
+            proxy['h2-opts'].path = path[0]
+          }
+          let host = proxy['h2-opts']?.headers?.host
+          if (isPresent(proxy, 'h2-opts.headers.Host') && !Array.isArray(host)) {
+            proxy['h2-opts'].headers.host = [host]
+          }
+        }
+
+        if (proxy['plugin-opts']?.tls) {
+          if (isPresent(proxy, 'skip-cert-verify')) {
+            proxy['plugin-opts']['skip-cert-verify'] = proxy['skip-cert-verify']
+          }
+        }
+        if (['trojan', 'tuic', 'hysteria', 'hysteria2', 'juicity'].includes(proxy.type)) {
+          delete proxy.tls
+        }
+
+        if (proxy['tls-fingerprint']) {
+          proxy.fingerprint = proxy['tls-fingerprint']
+        }
+        delete proxy['tls-fingerprint']
+
+        if (proxy['underlying-proxy']) {
+          proxy['dialer-proxy'] = proxy['underlying-proxy']
+        }
+        delete proxy['underlying-proxy']
+
+        if (isPresent(proxy, 'tls') && typeof proxy.tls !== 'boolean') {
+          delete proxy.tls
+        }
+        delete proxy.subName
+        delete proxy.collectionName
+        delete proxy.id
+        delete proxy.resolved
+        delete proxy['no-resolve']
+        if (type !== 'internal') {
+          for (const key in proxy) {
+            if (proxy[key] == null || /^_/i.test(key)) {
+              delete proxy[key]
+            }
+          }
+        }
+        if (['grpc'].includes(proxy.network) && proxy[`${proxy.network}-opts`]) {
+          delete proxy[`${proxy.network}-opts`]['_grpc-type']
+        }
+        return proxy
+      })
+
+    return type === 'internal' ? list : 'proxies:\n' + list.map((proxy) => '  - ' + JSON.stringify(proxy) + '\n').join('')
+  }
+  return { type, produce }
 }
