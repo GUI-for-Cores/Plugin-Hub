@@ -1,3 +1,23 @@
+const getProxyServer = async () => {
+  const appSettings = Plugins.useAppSettingsStore()
+  if (!appSettings.app.kernel.running) throw '请先启动内核程序'
+
+  const kernelStore = Plugins.useKernelApiStore()
+
+  let isHttp = true
+  let port = kernelStore.config['mixed-port'] || kernelStore.config['port']
+
+  if (!port) {
+    isHttp = false
+    port = kernelStore.config['socks-port']
+  }
+
+  if (!port) throw '请先开启一个代理端口'
+
+  const server = (isHttp ? 'http://127.0.0.1:' : 'socks5://127.0.0.1:') + port
+  return server
+}
+
 const onRun = async () => {
   const { env } = Plugins.useEnvStore()
 
@@ -63,22 +83,7 @@ const onRun = async () => {
     options.filter((v) => v.os.includes(env.os))
   )
 
-  const appSettings = Plugins.useAppSettingsStore()
-  if (!appSettings.app.kernel.running) throw '请先启动内核程序'
-
-  const kernelStore = Plugins.useKernelApiStore()
-
-  let isHttp = true
-  let port = kernelStore.config['mixed-port'] || kernelStore.config['port']
-
-  if (!port) {
-    isHttp = false
-    port = kernelStore.config['socks-port']
-  }
-
-  if (!port) throw '请先开启一个代理端口'
-
-  const server = (isHttp ? 'http://127.0.0.1:' : 'socks5://127.0.0.1:') + port
+  const server = await getProxyServer()
 
   switch (target) {
     case 'cmd::copy': {
@@ -133,4 +138,19 @@ const onRun = async () => {
       break
     }
   }
+}
+
+const copyBashEnv = async () => {
+  const server = await getProxyServer()
+  await Plugins.ClipboardSetText(`export http_proxy="${server}"; export https_proxy="${server}"`)
+}
+
+const copyPowerShellEnv = async () => {
+  const server = await getProxyServer()
+  await Plugins.ClipboardSetText(`$env:http_proxy="${server}"; $env:https_proxy="${server}"`)
+}
+
+const copyCMDEnv = async () => {
+  const server = await getProxyServer()
+  await Plugins.ClipboardSetText(`set HTTP_PROXY=${server} && set HTTPS_PROXY=${server}`)
 }

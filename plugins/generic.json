@@ -1016,7 +1016,11 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-terminal-proxy.js",
     "path": "data/plugins/plugin-terminal-proxy.js",
     "triggers": ["on::manual"],
-    "menus": {},
+    "menus": {
+      "复制 Bash 环境变量": "copyBashEnv",
+      "复制 PowerShell 环境变量": "copyPowerShellEnv",
+      "复制 CMD 环境变量": "copyCMDEnv"
+    },
     "status": 0,
     "configuration": [
       {
