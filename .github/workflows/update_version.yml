@@ -1,0 +1,35 @@
+name: Update
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "plugins/**"
+
+  workflow_dispatch:
+
+jobs:
+  Build:
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Calculate the hash value
+        run: |
+          zip -r plugins.zip plugins
+          openssl dgst -sha256 plugins.zip | sed 's/([^)]*)//g' > version.txt
+
+      - name: Create Release and Upload Assets
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: version.txt
+          file_glob: true
+          tag: latest
+          release_name: latest
+          overwrite: true
+          draft: false
+          prerelease: false
+          body: ""
