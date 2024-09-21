@@ -1213,7 +1213,7 @@
     "path": "data/plugins/plugin-custom-theme.js",
     "triggers": ["on::manual", "on::ready"],
     "menus": {
-      "下个背景": "Next",
+      "选择背景": "Select",
       "清除主题": "Clear",
       "重置配置": "Reset"
     },

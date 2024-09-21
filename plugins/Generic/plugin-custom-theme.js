@@ -200,18 +200,35 @@ const onRun = async () => {
 }
 
 /**
- * 插件钩子 - 右键：下个背景
+ * 插件钩子 - 右键：选取背景
  */
-const Next = async () => {
+const Select = async () => {
   const config = JSON.parse(await Plugins.Readfile(THEME_FILE))
-
-  if (config.backgroundIndex++ >= BackgroundList.length - 1) {
-    config.backgroundIndex = 0
+  const backgroundColor = document.body.style.backgroundColor
+  const backgroundImage = document.body.style.backgroundImage
+  try {
+    const { index } = await Plugins.picker.single(
+      '请选择背景',
+      BackgroundList.map((theme, index) => {
+        return {
+          label: '背景' + (index + 1),
+          value: { theme, index },
+          background: theme[1],
+          onSelect: ({ value }) => {
+            document.body.style.backgroundColor = value.theme[0]
+            document.body.style.backgroundImage = value.theme[1]
+          }
+        }
+      }),
+      []
+    )
+    config.backgroundIndex = index
+    await Plugins.Writefile(THEME_FILE, JSON.stringify(config, null, 2))
+    await setBackground(config)
+  } catch (error) {
+    document.body.style.backgroundColor = backgroundColor
+    document.body.style.backgroundImage = backgroundImage
   }
-
-  await Plugins.Writefile(THEME_FILE, JSON.stringify(config, null, 2))
-
-  await setBackground(config)
 }
 
 /**
