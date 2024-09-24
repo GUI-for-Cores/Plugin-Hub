@@ -57,12 +57,23 @@ const Ask = async () => {
   7. 程序版本发布通知频道：https://t.me/GUI_for_Cores_Channel
   8. 程序交流群组：https://t.me/GUI_for_Cores
 
+  五、命令与用户提问映射
+  当用户发出疑问时，请正常作答；否则匹配到命令或说明时，请回复用户命令，不需要任何多余的解释
+  2. Cmd:StopCore  -> 要求启动内核或核心
+  3. Cmd:StartCore -> 要求停止内核或核心
+  4. Cmd:UpdateDY  -> 要求更新所有订阅
+  5. Cmd:UpdateGZ  -> 要求更新所有规则集
+  6. Cmd:UpdateCJ  -> 要求更新所有插件
+  7. Cmd:Shutdown  -> 要求关闭程序/GUI
+  8. Cmd:Restart   -> 要求重启程序/GUI
+
   注意事项：
   1. 所有解决方案应基于上述信息和用户的系统环境，不得捏造或臆想
-  2. 对于无法解决的问题，请引导用户至文档：[文档](https://gui-for-cores.github.io/)或交流群：https://t.me/GUI_for_Cores
+  2. 对于无法解决的问题，请引导用户至文档：https://gui-for-cores.github.io/ 或交流群：https://t.me/GUI_for_Cores
   `
   const [input, text] = await myPrompt('想问AI一些什么问题呢？', system_instruction)
-  await Plugins.confirm(input, text)
+  const res = await processingCommand(text)
+  await Plugins.confirm(input, res)
   return true
 }
 
@@ -72,8 +83,26 @@ const Ask = async () => {
 const Chat = async () => {
   if (!(await checkApiKey())) return
   const [input, text] = await myPrompt('想和我聊点什么呢？', '')
-  await Plugins.confirm(input, text)
+  const res = await processingCommand(text)
+  await Plugins.confirm(input, res)
   return await Chat()
+}
+
+const processingCommand = async (text) => {
+  if (!text.startsWith('Cmd:')) {
+    return text
+  }
+  const CmdMap = {
+    StopCore: Plugins.useKernelApiStore().stopKernel,
+    StartCore: Plugins.useKernelApiStore().startKernel,
+    UpdateDY: Plugins.useSubscribesStore().updateSubscribes,
+    UpdateGZ: Plugins.useRulesetsStore().updateRulesets,
+    UpdateCJ: Plugins.usePluginsStore().updatePlugins,
+    Shutdown: Plugins.exitApp,
+    Restart: Plugins.RestartApp
+  }
+
+  return (await CmdMap[text.substring(4).trim()]?.()) || '命令执行成功，但是没有返回结果'
 }
 
 const myPrompt = async (placeholder, system_instruction) => {
@@ -97,6 +126,7 @@ const myPrompt = async (placeholder, system_instruction) => {
       Timeout: 30
     }
   )
+  console.log(`[${Plugin.name}]`, body)
   if (status !== 200) {
     console.error(body)
     const ErrorMap = {
@@ -108,7 +138,7 @@ const myPrompt = async (placeholder, system_instruction) => {
 
   const question = input.endsWith('?') || input.endsWith('？') ? input : input + '？'
 
-  return [question, body.candidates[0].content.parts[0].text]
+  return [question, body.candidates[0].content?.parts[0].text || 'Error: \n\n' + body]
 }
 
 const checkApiKey = async () => {
