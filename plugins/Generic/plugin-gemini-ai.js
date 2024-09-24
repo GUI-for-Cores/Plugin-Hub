@@ -62,7 +62,7 @@ const Ask = async () => {
   2. 对于无法解决的问题，请引导用户至文档：[文档](https://gui-for-cores.github.io/)或交流群：https://t.me/GUI_for_Cores
   `
   const [input, text] = await myPrompt('想问AI一些什么问题呢？', system_instruction)
-  await Plugins.alert(input, text)
+  await Plugins.confirm(input, text)
   return true
 }
 
@@ -72,7 +72,7 @@ const Ask = async () => {
 const Chat = async () => {
   if (!(await checkApiKey())) return
   const [input, text] = await myPrompt('想和我聊点什么呢？', '')
-  await Plugins.alert(input, text)
+  await Plugins.confirm(input, text)
   return await Chat()
 }
 
