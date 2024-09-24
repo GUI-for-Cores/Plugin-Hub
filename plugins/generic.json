@@ -158,6 +158,34 @@
     "installed": false
   },
   {
+    "id": "plugin-gemini-ai",
+    "name": "Gemini助手",
+    "description": "使用Gemini，GUI高高手！",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-gemini-ai.js",
+    "path": "data/plugins/plugin-gemini-ai.js",
+    "triggers": ["on::manual"],
+    "menus": {
+      "开始提问": "Ask",
+      "随意对话": "Chat"
+    },
+    "configuration": [
+      {
+        "id": "ID_d16le0dy",
+        "title": "API_KEY",
+        "description": "获取API_KEY：https://aistudio.google.com/app/apikey",
+        "key": "API_KEY",
+        "component": "Input",
+        "value": "",
+        "options": []
+      }
+    ],
+    "status": 0,
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-tun-assistant",
     "name": "TUN模式助手",
     "description": "TUN模式食用指南！",
