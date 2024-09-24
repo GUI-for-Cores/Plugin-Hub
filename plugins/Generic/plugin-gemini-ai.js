@@ -25,7 +25,7 @@ const Ask = async () => {
   5. 程序不依赖Node.js或Electron，但需依赖WebView2
   6. 插件系统在浏览器中执行，而非Node.js
   7. 项目开源地址：https://github.com/GUI-for-Cores
-  8. 计划任务采用6位cron表达式，例如：* * * * *
+  8. 计划任务采用6位cron表达式，例如：* * * * * *
   9. 滚动发行的原理是仅编译分发前端文件，存放在data/rolling-release目录，程序启动后将读取该目录
 
   二、当前用户的系统环境
@@ -61,8 +61,8 @@ const Ask = async () => {
   1. 所有解决方案应基于上述信息和用户的系统环境，不得捏造或臆想
   2. 对于无法解决的问题，请引导用户至文档：[文档](https://gui-for-cores.github.io/)或交流群：https://t.me/GUI_for_Cores
   `
-  const text = await myPrompt('想问AI一些什么问题呢？', system_instruction)
-  await Plugins.alert(Plugin.name, text)
+  const [input, text] = await myPrompt('想问AI一些什么问题呢？', system_instruction)
+  await Plugins.alert(input, text)
   return true
 }
 
@@ -71,8 +71,8 @@ const Ask = async () => {
  */
 const Chat = async () => {
   if (!(await checkApiKey())) return
-  const text = await myPrompt('想和我聊点什么呢？', '')
-  await Plugins.alert(Plugin.name, text)
+  const [input, text] = await myPrompt('想和我聊点什么呢？', '')
+  await Plugins.alert(input, text)
   return await Chat()
 }
 
@@ -106,7 +106,9 @@ const myPrompt = async (placeholder, system_instruction) => {
     throw ErrorMap[body.error.status] || body.error.message
   }
 
-  return body.candidates[0].content.parts[0].text
+  const question = input.endsWith('?') || input.endsWith('？') ? input : input + '？'
+
+  return [question, body.candidates[0].content.parts[0].text]
 }
 
 const checkApiKey = async () => {
