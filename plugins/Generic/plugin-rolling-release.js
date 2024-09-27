@@ -50,6 +50,7 @@ const Rolling = async (confirm = true) => {
   const BackupFile = 'data/.cache/rolling-release.backup'
   const ZipUrl = body.assets.find((v) => v.name === 'rolling-release.zip')?.browser_download_url
   const VersionUrl = body.assets.find((v) => v.name === 'version.txt')?.browser_download_url
+  const ChangelogUrl = body.assets.find((v) => v.name === 'changelog.md')?.browser_download_url
 
   if (!ZipUrl || !VersionUrl) {
     destroy()
@@ -78,23 +79,33 @@ const Rolling = async (confirm = true) => {
     return
   }
 
-  confirm && (await Plugins.confirm(Plugin.name, '确认滚动版本至最新吗？'))
+  let changelog = '维护性更新'
 
+  if (ChangelogUrl && confirm) {
+    update('正在获取更新日志...')
+    const { body } = await Plugins.HttpGet(ChangelogUrl)
+    changelog = body
+  }
+  destroy()
+
+  confirm && (await Plugins.confirm(Plugin.name, changelog, { type: 'markdown' }))
+
+  const { update: update2, destroy: destroy2 } = Plugins.message.info('正在更新...')
   try {
     await Plugins.Download(ZipUrl, ZipFile, {}, (progress, total) => {
-      update('正在更新...' + ((progress / total) * 100).toFixed(2) + '%')
+      update2('正在更新...' + ((progress / total) * 100).toFixed(2) + '%')
     })
     await Plugins.ignoredError(Plugins.Movefile, 'data/rolling-release', BackupFile)
     await Plugins.UnzipZIPFile(ZipFile, 'data')
     await Plugins.Removefile(ZipFile)
     await Plugins.Removefile(BackupFile)
-    destroy()
+    destroy2()
     const ok = await Plugins.confirm(Plugin.name, '更新成功，是否立即重载界面？').catch(() => 0)
     ok && Plugins.WindowReloadApp()
   } catch (err) {
     error(err.message || err)
   } finally {
-    Plugins.sleep(1500).then(() => destroy())
+    Plugins.sleep(1500).then(() => destroy2())
   }
 }
 
