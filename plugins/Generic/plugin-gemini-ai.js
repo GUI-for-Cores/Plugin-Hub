@@ -46,6 +46,9 @@ const Ask = async () => {
   5. 首页只显示4个配置项？这是程序设计所致，您可以在配置页调整顺序，前四项将显示在首页。
   6. 订阅无流量信息？请修改订阅链接，添加&flag=clash.meta，或将订阅UA修改为clash.meta；若使用GUI.for.SingBox，还需安装节点转换插件。
   7. 出现403 API rate limit exceeded错误？请前往设置-通用，填写【向REST API进行身份验证】。
+  8. 更新订阅出现Not a valid subscription data？若使用GUI.for.Clash，修改订阅链接，添加&flag=clash.meta；若使用GUI.for.SingBox，修改订阅链接，添加&flag=clash.meta，同时安装【节点转换】插件，或更换为原生支持sing-box的链接。
+  9. 滚动发行提示无法跨大版本升级？大版本发布后，需要到设置-关于里更新，滚动发行插件只工作在最新大版本中。
+  10. 如何更换托盘图标？设置 - 打开应用程序文件夹，修改data/.cache/icons目录下的图标文件。
 
   四、参考文档
   1. 插件系统：[指南](https://gui-for-cores.github.io/zh/guide/04-plugins)
