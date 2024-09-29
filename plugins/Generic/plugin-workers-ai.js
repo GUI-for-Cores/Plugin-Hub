@@ -3,7 +3,6 @@
  */
 
 const onRun = async () => {
-  await Plugins.alert(1, Plugin)
   if (!(await checkApiKey())) return
   while (await Ask()) {}
 }
