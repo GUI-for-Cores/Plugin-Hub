@@ -130,7 +130,8 @@
     "triggers": ["on::manual", "on::ready", "on::startup"],
     "menus": {
       "滚动版本": "Rolling",
-      "恢复版本": "Recovery"
+      "恢复版本": "Recovery",
+      "更新日志": "Changelog"
     },
     "configuration": [
       {

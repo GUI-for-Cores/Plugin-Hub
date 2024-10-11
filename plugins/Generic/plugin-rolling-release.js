@@ -124,6 +124,15 @@ const Recovery = async () => {
   ok && (await Plugins.WindowReloadApp())
 }
 
+/**
+ * 右键菜单 - 更新日志
+ */
+const Changelog = async () => {
+  const url = `https://github.com/GUI-for-Cores/${Plugins.APP_TITLE}/releases/download/rolling-release/changelog.md`
+  const { body } = await Plugins.HttpGet(url)
+  await Plugins.alert(Plugin.name, body, { type: 'markdown' })
+}
+
 const checkRollingReleaseEnabled = async () => {
   const appSettings = Plugins.useAppSettingsStore()
   if (!appSettings.app.rollingRelease) {
