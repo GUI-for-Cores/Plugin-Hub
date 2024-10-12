@@ -53,7 +53,7 @@
         "id": "ID_b22adg38",
         "title": "GIST ID",
         "description": "已创建好的GistId",
-        "key": "Secret",
+        "key": "GistId",
         "component": "Input",
         "value": "",
         "options": []
