@@ -239,6 +239,21 @@
     "installed": false
   },
   {
+    "id": "plugin-check-certificate",
+    "name": "系统证书安全检测",
+    "description": "检测系统是否具有未经验证的证书！",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-check-certificate.js",
+    "path": "data/plugins/plugin-check-certificate.js",
+    "triggers": ["on::manual"],
+    "menus": {},
+    "configuration": [],
+    "status": 0,
+    "disabled": false,
+    "install": true,
+    "installed": false
+  },
+  {
     "id": "plugin-system-proxy-guard",
     "name": "代理守卫",
     "description": "谁动了我的系统代理？防止系统代理被篡改",
