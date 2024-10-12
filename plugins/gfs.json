@@ -28,5 +28,39 @@
     "disabled": false,
     "install": true,
     "installed": false
+  },
+  {
+    "id": "plugin-sync-singbox-configuration-gists",
+    "name": "同步singbox的配置 - Gists",
+    "description": "将sing-box的config.json同步到指定的Gist-Id下的config.json。Supported by: ccch",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-sync-singbox-configuration-gists.js",
+    "path": "data/plugins/plugin-sync-singbox-configuration-gists.js",
+    "triggers": ["on::manual"],
+    "menus": {},
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_z8ofmiru",
+        "title": "TOKEN",
+        "description": "拥有Gists访问权限的 token",
+        "key": "Authorization",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_b22adg38",
+        "title": "GIST ID",
+        "description": "已创建好的GistId",
+        "key": "Secret",
+        "component": "Input",
+        "value": "",
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
   }
 ]
