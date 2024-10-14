@@ -19,7 +19,7 @@
     "name": "共享配置到手机",
     "description": "专为手机sing-box应用生成的配置，支持二维码导入。",
     "type": "Http",
-    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-share-profile-to-phone",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-share-profile-to-phone.js",
     "path": "data/plugins/plugin-share-profile-to-phone.js",
     "triggers": ["on::manual"],
     "menus": {},
@@ -37,7 +37,7 @@
     ],
     "disabled": false,
     "install": true,
-    "installed": true
+    "installed": false
   },
   {
     "id": "plugin-register-sing-box",
