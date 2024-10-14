@@ -45,7 +45,7 @@ const onRun = async () => {
   const { close } = await Plugins.StartServer('0.0.0.0:' + Plugin.Port, Plugin.id, async (req, res) => {
     res.end(200, { 'Content-Type': 'application/json; charset=utf-8' }, JSON.stringify(config, null, 2))
   })
-  await Plugins.alert('信息', '|分享链接|二维码|\n|-|-|\n' + urls.map((url) => `|${url.raw}|![](${url.url})|`).join('\n'), { type: 'markdown' })
+  await Plugins.alert(Plugin.name, '|分享链接|二维码|\n|-|-|\n' + urls.map((url) => `|${url.raw}|![](${url.url})|`).join('\n'), { type: 'markdown' })
   close()
 }
 
