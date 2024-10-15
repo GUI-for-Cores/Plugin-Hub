@@ -40,10 +40,12 @@ const onRun = async () => {
   })
   const config = await Plugins.generateConfig(_profile)
   const ips = await getIPAddress()
-  const urls = await Promise.all(ips.map((ip) => {
-    const url = `http://${ip}:${Plugin.Port}`
-    return getQRCode(url, `sing-box://import-remote-profile?url=${encodeURIComponent(url)}#${_profile.name}`)
-  }))
+  const urls = await Promise.all(
+    ips.map((ip) => {
+      const url = `http://${ip}:${Plugin.Port}`
+      return getQRCode(url, `sing-box://import-remote-profile?url=${encodeURIComponent(url)}#${_profile.name}`)
+    })
+  )
   // await Plugins.StopServer(Plugin.id)
   const { close } = await Plugins.StartServer('0.0.0.0:' + Plugin.Port, Plugin.id, async (req, res) => {
     res.end(200, { 'Content-Type': 'application/json; charset=utf-8' }, JSON.stringify(config, null, 2))
@@ -70,7 +72,7 @@ const onUninstall = async () => {
  */
 function loadDependence() {
   return new Promise(async (resolve, reject) => {
-    if (window.qrcode) {
+    if (window.QRCode) {
       resolve()
       return
     }
