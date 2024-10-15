@@ -99,10 +99,18 @@ function getQRCode(rawUrl, rawStr) {
 }
 
 async function getIPAddress() {
-  const isWindows = Plugins.useEnvStore().env.os === 'windows'
-  const cmd = isWindows ? 'ipconfig' : 'ip'
-  const arg = isWindows ? [] : ['a']
-  const text = await Plugins.Exec(cmd, arg, { convert: isWindows })
+  const os = Plugins.useEnvStore().env.os
+  const cmd = {
+    windows: 'ipconfig',
+    linux: 'ip',
+    darwin: 'ifconfig'
+  }[os]
+  const arg = {
+    windows: [],
+    linux: ['a'],
+    darwin: []
+  }[os]
+  const text = await Plugins.Exec(cmd, arg, { convert: os === 'windows' })
   const ipv4Pattern = /\b(?:\d{1,3}\.){3}\d{1,3}\b/g
   let ips = text.match(ipv4Pattern) || []
   ips.unshift('127.0.0.1')
