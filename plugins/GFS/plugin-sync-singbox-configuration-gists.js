@@ -2,6 +2,11 @@ const onRun = async () => {
   await updateGist();
 };
 
+const onTask = async () => {
+  await updateGist();
+  return '更新 Gist.'
+};
+
 const updateGist = async () => {
   if (!Plugin.GistId) throw '未配置GIST ID';
   const { id: messageId } = Plugins.message.info('正在更新 Gist...', 60 * 60 * 1000);
