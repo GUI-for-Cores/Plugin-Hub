@@ -130,7 +130,8 @@
     "triggers": ["on::manual", "on::ready", "on::startup"],
     "menus": {
       "滚动版本": "Rolling",
-      "恢复版本": "Recovery"
+      "恢复版本": "Recovery",
+      "更新日志": "Changelog"
     },
     "configuration": [
       {
@@ -235,6 +236,21 @@
     "status": 0,
     "disabled": false,
     "install": false,
+    "installed": false
+  },
+  {
+    "id": "plugin-check-certificate",
+    "name": "系统证书安全检测",
+    "description": "检测系统是否具有未经验证的证书！",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-check-certificate.js",
+    "path": "data/plugins/plugin-check-certificate.js",
+    "triggers": ["on::manual"],
+    "menus": {},
+    "configuration": [],
+    "status": 0,
+    "disabled": false,
+    "install": true,
     "installed": false
   },
   {

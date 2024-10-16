@@ -157,7 +157,7 @@ const getPrefix = () => {
 
 const filterList = (list) => {
   const prefix = getPrefix()
-  return list.filter((v) => v.description.startsWith(prefix)).map((v) => ({ label: v.description, value: v.id }))
+  return list.filter((v) => v.description && v.description.startsWith(prefix)).map((v) => ({ label: v.description, value: v.id }))
 }
 
 /**

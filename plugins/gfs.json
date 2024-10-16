@@ -15,6 +15,31 @@
     "installed": false
   },
   {
+    "id": "plugin-share-profile-to-phone",
+    "name": "共享配置到手机",
+    "description": "专为手机sing-box应用生成的配置，支持二维码导入。",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-share-profile-to-phone.js",
+    "path": "data/plugins/plugin-share-profile-to-phone.js",
+    "triggers": ["on::manual"],
+    "menus": {},
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_dyo2te6b",
+        "title": "监听端口",
+        "description": "",
+        "key": "Port",
+        "component": "Input",
+        "value": "56789",
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": true,
+    "installed": false
+  },
+  {
     "id": "plugin-register-sing-box",
     "name": "注册SingBox协议到注册表",
     "description": "注册后，你可以使用机场的一键导入订阅功能。",
