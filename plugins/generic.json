@@ -1474,5 +1474,44 @@
     "disabled": false,
     "install": false,
     "installed": false
+  },
+  {
+    "id": "plugin-metacubexd-dashboard",
+    "name": "metacubexd 仪表板",
+    "description": "一个更好看的Mihomo仪表板",
+    "type": "File",
+    "url": "https://github.com/MetaCubeX/metacubexd",
+    "status": 0,
+    "path": "data/plugins/plugin-metacubexd-dashboard.js",
+    "triggers": [
+      "on::manual",
+      "on::ready"
+    ],
+    "menus": {
+      "XD Dashboard": "OnRun"
+    },
+    "configuration": [
+      {
+        "id": "ID_wdim4jvc",
+        "title": "启动时打开",
+        "description": "",
+        "key": "start_onboot",
+        "component": "Switch",
+        "value": false,
+        "options": []
+      },
+      {
+        "id": "ID_m7nubies",
+        "title": "自托管",
+        "description": "自定义metacubexd地址",
+        "key": "xd_url",
+        "component": "Input",
+        "value": "",
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
   }
 ]
