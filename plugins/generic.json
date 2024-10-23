@@ -1479,7 +1479,7 @@
     "id": "plugin-metacubexd-dashboard",
     "name": "metacubexd 仪表板",
     "description": "一个更好看的Mihomo仪表板",
-    "type": "File",
+    "type": "Http",
     "url": "https://github.com/MetaCubeX/metacubexd",
     "status": 0,
     "path": "data/plugins/plugin-metacubexd-dashboard.js",
