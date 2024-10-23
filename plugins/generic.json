@@ -1478,15 +1478,12 @@
   {
     "id": "plugin-metacubexd-dashboard",
     "name": "metacubexd 仪表板",
-    "description": "一个更好看的Mihomo仪表板",
+    "description": "一个更好看的Mihomo仪表板。Supported by: ColinZeb",
     "type": "Http",
-    "url": "https://github.com/MetaCubeX/metacubexd",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/refs/heads/main/plugins/Generic/plugin-metacubexd-dashboard.js",
     "status": 0,
     "path": "data/plugins/plugin-metacubexd-dashboard.js",
-    "triggers": [
-      "on::manual",
-      "on::ready"
-    ],
+    "triggers": ["on::manual", "on::ready"],
     "menus": {
       "XD Dashboard": "OnRun"
     },
