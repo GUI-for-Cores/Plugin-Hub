@@ -217,7 +217,7 @@ async function httpGet(url) {
       Authorization: 'Bearer ' + Plugin.Authorization
     },
     {
-      Insecure: !!Plugin.IgnoreInsecureSSL
+      Insecure: !!Plugin.IgnoreInsecureTLS
     }
   )
   if (status === 502) throw 'Bad Gateway'
@@ -242,7 +242,7 @@ async function httpPost(url, data) {
     },
     data,
     {
-      Insecure: !!Plugin.IgnoreInsecureSSL
+      Insecure: !!Plugin.IgnoreInsecureTLS
     }
   )
   if (status === 502) throw 'Bad Gateway'
@@ -261,7 +261,7 @@ async function httpDelete(url) {
       Authorization: 'Bearer ' + Plugin.Authorization
     },
     {
-      Insecure: !!Plugin.IgnoreInsecureSSL
+      Insecure: !!Plugin.IgnoreInsecureTLS
     }
   )
   if (status === 502) throw 'Bad Gateway'

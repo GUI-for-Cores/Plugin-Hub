@@ -741,7 +741,7 @@
       {
         "id": "ID_u3272842",
         "title": "服务器地址",
-        "description": "若启用了SSL请填写https://，否则填写http://，或直接填写IP:Port",
+        "description": "若启用了TLS请填写https://，否则填写http://，或直接填写IP:Port",
         "key": "ServerAddress",
         "component": "Input",
         "value": "https://127.0.0.1:8080",
@@ -749,9 +749,9 @@
       },
       {
         "id": "ID_8v1vyleh",
-        "title": "忽略不安全的SSL证书",
+        "title": "忽略不安全的TLS证书",
         "description": "自签证书，请打开此设置。",
-        "key": "IgnoreInsecureSSL",
+        "key": "IgnoreInsecureTLS",
         "component": "Switch",
         "value": false,
         "options": []
