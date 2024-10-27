@@ -741,10 +741,19 @@
       {
         "id": "ID_u3272842",
         "title": "服务器地址",
-        "description": "",
+        "description": "若启用了SSL请填写https://，否则填写http://，或直接填写IP:Port",
         "key": "ServerAddress",
         "component": "Input",
-        "value": "127.0.0.1:8080",
+        "value": "https://127.0.0.1:8080",
+        "options": []
+      },
+      {
+        "id": "ID_8v1vyleh",
+        "title": "忽略不安全的SSL证书",
+        "description": "自签证书，请打开此设置。",
+        "key": "IgnoreInsecureSSL",
+        "component": "Switch",
+        "value": false,
         "options": []
       },
       {
