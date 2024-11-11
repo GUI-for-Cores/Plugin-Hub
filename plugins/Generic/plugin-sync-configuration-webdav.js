@@ -39,19 +39,14 @@ const Sync = async () => {
   const files = JSON.parse(content)
 
   let failed = false
-  
-  const isWindows = navigator.userAgent.indexOf('Windows') !== -1
-  const separator = isWindows ? '\\' : '/'
 
   const _files = Object.keys(files)
   for (let i = 0; i < _files.length; i++) {
     const file = _files[i]
     const encrypted = files[file].content
-    const processedFile = file.replaceAll(/\//g, separator)
-                              .replaceAll(/\\/g, separator)
     update(`正在恢复文件...[ ${i + 1}/${_files.length} ]`, 'info')
     try {
-      await Plugins.Writefile(processedFile, decrypt(encrypted))
+      await Plugins.Writefile(file, decrypt(encrypted))
     } catch (error) {
       if (error === '解密失败') {
         failed = true
@@ -107,7 +102,7 @@ const Backup = async () => {
     try {
       const text = await Plugins.ignoredError(Plugins.Readfile, file)
       if (text) {
-        filesMap[file] = { content: encrypt(text) }
+        filesMap[file.replaceAll('/', '\\')] = { content: encrypt(text) }
       }
     } catch (error) {
       console.log(error)
