@@ -234,14 +234,24 @@ class WebDAV {
     const list = []
     const parser = new DOMParser()
     const xmlDoc = parser.parseFromString(body, 'application/xml')
-    const responses = xmlDoc.getElementsByTagName('D:response')
+    const responses = Array.from(xmlDoc.getElementsByTagName('*')).filter(node =>  node.tagName.toLowerCase() === 'd:response')
+    const getTextContent = (element, tagName) => {
+      const nodes = element.getElementsByTagName('*');
+      for (let node of nodes) {
+        if (node.tagName.toLowerCase() === tagName.toLowerCase()) {
+          return node.textContent;
+        }
+      }
+    }
     for (let i = 0; i < responses.length; i++) {
+      const isCollection = responses[i].getElementsByTagNameNS("DAV:", "resourcetype")[0]?.getElementsByTagNameNS("DAV:", "collection").length > 0;
+      if (isCollection) continue
       list.push({
-        href: responses[i].getElementsByTagName('D:href')[0].textContent,
-        displayname: responses[i].getElementsByTagName('D:displayname')[0]?.textContent || '',
-        lastModified: responses[i].getElementsByTagName('D:getlastmodified')[0]?.textContent || 'N/A',
-        creationDate: responses[i].getElementsByTagName('D:creationdate')[0]?.textContent || 'N/A'
-      })
+        href: getTextContent(responses[i], 'D:href'),
+        displayname: getTextContent(responses[i], 'D:displayname') || '',
+        lastModified: getTextContent(responses[i], 'D:getlastmodified') || 'N/A',
+        creationDate: getTextContent(responses[i], 'D:creationdate') || 'N/A'
+      });
     }
     return list
   }
