@@ -40,7 +40,7 @@ const Sync = async () => {
 
   let failed = false
   
-  const isWindows = navigator.userAgent.indexOf('Windows') !== -1
+  const isWindows = Plugins.useEnvStore().env.os == 'windows'
   const separator = isWindows ? '\\' : '/'
 
   const _files = Object.keys(files)
