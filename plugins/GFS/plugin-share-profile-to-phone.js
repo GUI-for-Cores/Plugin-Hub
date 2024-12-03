@@ -22,22 +22,60 @@ const onRun = async () => {
     )
   }
   const _profile = Plugins.deepClone(profile)
-  // * 开启TUN
-  _profile.tunConfig.enable = true
-  // * 替换本地规则集为远程规则集（仅从规则集中心添加的可替换）
-  ;[..._profile.dnsRulesConfig, ..._profile.rulesConfig].forEach((rule) => {
-    if (rule.type === 'rule_set') {
-      // 符合这一规则的说明是从规则集中心添加的，可以安全的转为远程规则集
-      if (rule.payload.startsWith('geosite_') || rule.payload.startsWith('geoip_')) {
-        rule.type = 'rule_set_url'
-        rule['ruleset-name'] = rule.payload
-        rule.payload = rule.payload.replace('geosite_', 'https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/')
-        rule.payload = rule.payload.replace('geoip_', 'https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geoip/')
-        rule.payload = rule.payload.replace('.binary', '.srs')
-        rule.payload = rule.payload.replace('.source', '.json')
+  // 旧配置
+  if (_profile.tunConfig) {
+    // * 开启TUN
+    _profile.tunConfig.enable = true
+    // * 替换本地规则集为远程规则集（仅从规则集中心添加的可替换）
+    ;[..._profile.dnsRulesConfig, ..._profile.rulesConfig].forEach((rule) => {
+      if (rule.type === 'rule_set') {
+        // 符合这一规则的说明是从规则集中心添加的，可以安全的转为远程规则集
+        if (rule.payload.startsWith('geosite_') || rule.payload.startsWith('geoip_')) {
+          rule.type = 'rule_set_url'
+          rule['ruleset-name'] = rule.payload
+          rule.payload = rule.payload.replace('geosite_', 'https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo-lite/geosite/')
+          rule.payload = rule.payload.replace('geoip_', 'https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo-lite/geoip/')
+          rule.payload = rule.payload.replace('.binary', '.srs')
+          rule.payload = rule.payload.replace('.source', '.json')
+        }
       }
+    })
+  }
+  // 新配置
+  else {
+    // * 开启TUN
+    const tun = _profile.inbounds.find((v) => v.type === 'tun')
+    if (tun) {
+      tun.enable = true
+    } else {
+      _profile.inbounds.push({
+        id: Plugins.sampleID(),
+        type: 'tun',
+        tag: 'tun-in',
+        enable: true,
+        tun: {
+          address: ['172.18.0.1/30', 'fdfe:dcba:9876::1/126'],
+          mtu: 9000,
+          auto_route: true,
+          strict_route: true,
+          route_address: ['0.0.0.0/1', '128.0.0.0/1', '::/1', '8000::/1'],
+          endpoint_independent_nat: false,
+          stack: 'mixed'
+        }
+      })
     }
-  })
+    // * 替换本地规则集为远程规则集（仅从规则集中心添加的可替换）
+    _profile.route.rule_set.forEach((ruleset) => {
+      if (ruleset.path.startsWith('geosite_') || ruleset.path.startsWith('geoip_')) {
+        ruleset.type = 'remote'
+        ruleset.url = ruleset.path.replace('geosite_', 'https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo-lite/geosite/')
+        ruleset.url = ruleset.url.replace('geoip_', 'https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo-lite/geoip/')
+        ruleset.url = ruleset.url.replace('.binary', '.srs')
+        ruleset.url = ruleset.url.replace('.source', '.json')
+      }
+    })
+  }
+
   const config = await Plugins.generateConfig(_profile)
   const ips = await getIPAddress()
   const urls = await Promise.all(
