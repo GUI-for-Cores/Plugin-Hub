@@ -44,11 +44,11 @@ const onRun = async () => {
   // 新配置
   else {
     // * 开启TUN
-    const tun = _profile.inbounds.find((v) => v.type === 'tun')
-    if (tun) {
-      tun.enable = true
-    } else {
-      _profile.inbounds.push({
+    let tun = _profile.inbounds.find((v) => v.type === 'tun')
+    const mixed = _profile.inbounds.find((v) => v.type === 'mixed')
+    const http = _profile.inbounds.find((v) => v.type === 'http')
+    if (!tun) {
+      tun = {
         id: Plugins.sampleID(),
         type: 'tun',
         tag: 'tun-in',
@@ -62,7 +62,26 @@ const onRun = async () => {
           endpoint_independent_nat: false,
           stack: 'mixed'
         }
-      })
+      }
+      _profile.inbounds.push(tun)
+    }
+    tun.enable = true
+    if (mixed) {
+      tun.tun.platform = {
+        http_proxy: {
+          enabled: false,
+          server: '127.0.0.1',
+          server_port: mixed.mixed.listen.listen_port
+        }
+      }
+    } else if (http) {
+      tun.tun.platform = {
+        http_proxy: {
+          enabled: false,
+          server: '127.0.0.1',
+          server_port: http.http.listen.listen_port
+        }
+      }
     }
     // * 替换本地规则集为远程规则集（仅从规则集中心添加的可替换）
     _profile.route.rule_set.forEach((ruleset) => {
