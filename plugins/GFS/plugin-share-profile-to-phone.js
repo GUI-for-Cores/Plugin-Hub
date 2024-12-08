@@ -83,16 +83,28 @@ const onRun = async () => {
         }
       }
     }
-    // * 替换本地规则集为远程规则集（仅从规则集中心添加的可替换）
-    _profile.route.rule_set.forEach((ruleset) => {
-      if (ruleset.path.startsWith('geosite_') || ruleset.path.startsWith('geoip_')) {
-        ruleset.type = 'remote'
-        ruleset.url = ruleset.path.replace('geosite_', 'https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo-lite/geosite/')
-        ruleset.url = ruleset.url.replace('geoip_', 'https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo-lite/geoip/')
-        ruleset.url = ruleset.url.replace('.binary', '.srs')
-        ruleset.url = ruleset.url.replace('.source', '.json')
+    // * 替换本地规则集为远程规则集
+    const rulesetsStore = Plugins.useRulesetsStore()
+    for (const ruleset of _profile.route.rule_set) {
+      if (ruleset.type === 'local') {
+        const _ruleset = rulesetsStore.getRulesetById(ruleset.path)
+        if (_ruleset) {
+          if (_ruleset.type === 'Http') {
+            ruleset.type = 'remote'
+            ruleset.url = _ruleset.url
+            ruleset.path = ''
+          } else if (_ruleset.type === 'File') {
+            if (_ruleset.format === 'source') {
+              const _rules = JSON.parse(await Plugins.Readfile(_ruleset.path)).rules
+              ruleset.type = 'inline'
+              ruleset.rules = JSON.stringify(_rules)
+              ruleset.url = ''
+              ruleset.path = ''
+            }
+          }
+        }
       }
-    })
+    }
   }
 
   const config = await Plugins.generateConfig(_profile)
