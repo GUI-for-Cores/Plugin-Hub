@@ -9,13 +9,27 @@ const onTask = async () => {
 
 const updateGist = async () => {
   if (!Plugin.GistId) throw '未配置GIST ID'
-  const { id: messageId } = Plugins.message.info('正在更新 Gist...', 60 * 60 * 1000)
+  const store = Plugins.useProfilesStore()
+  let profile = null
+  if (!Plugin.ProfileName) {
+    profile = await Plugins.picker.single(
+      '请选择要同步的配置',
+      store.profiles.map((v) => ({
+        label: v.name,
+        value: v
+      })),
+      []
+    )
+  } else {
+    profile = store.profiles.find(item => item.name === Plugin.ProfileName)
+    if (!profile)
+      throw "未找到配置：" + Plugin.ProfileName
+  }
+  const configJsonContent = await Plugins.generateConfig(profile)
+  const { id: messageId } = Plugins.message.info('正在更新 Gist...', 60 * 1000)
 
   try {
-    const configJsonContent = await Plugins.Readfile('data/sing-box/config.json')
-    if (!configJsonContent) throw 'config.json 文件不存在'
-
-    const updatedGist = await updateGistFile(Plugin.GistId, configJsonContent)
+    const updatedGist = await updateGistFile(Plugin.GistId, JSON.stringify(configJsonContent, null, 4))
     Plugins.message.update(messageId, `Gist 更新成功: ${updatedGist}`, 'success')
   } catch (error) {
     Plugins.message.update(messageId, `Gist 更新失败: ${error}`, 'error')
