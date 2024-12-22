@@ -10,6 +10,22 @@ const onRun = async () => {
   await Rolling()
 }
 
+/* 触发器 启动APP时 */
+const onStartup = async () => {
+  if (Plugin.AutoRollingMode === 'onStartup') {
+    // 延迟检测，确保内核已经启动
+    setTimeout(() => Rolling(false), (Plugin.AutoRollingDelay || 10) * 1000)
+  }
+}
+
+/* 触发器 APP就绪后 */
+const onReady = async () => {
+  if (Plugin.AutoRollingMode === 'onReady') {
+    // 延迟检测，确保内核已经启动
+    setTimeout(() => Rolling(false), (Plugin.AutoRollingDelay || 10) * 1000)
+  }
+}
+
 /*
  * 右键菜单 - 滚动版本
  * params: confirm 是否进行交互式确认
