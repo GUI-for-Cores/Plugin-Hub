@@ -195,26 +195,25 @@ const onSubscribe = async (proxies) => {
       // 修改代理数组，根据节点名称添加对应的 emoji
       proxies = proxies.map((v, i) => {
         const lowercasetag = v.tag.toLowerCase()
-        let shouldAddEmoji = true // Flag to track whether emoji should be added
+        // Check if the proxy tag already starts with an emoji
+        const codePoint = lowercasetag.codePointAt(0)
+        if (codePoint >= 0x1F1E6 && codePoint <= 0x1F1FF) {
+            const emoji = v.tag.slice(0, 4)
+            if (v.tag[emoji.length] != ' ') {
+              v.tag = emoji + ' ' + v.tag.slice(emoji.length)
+              return v
+            }
+        }
         for (const keywords in SortedKeywordsToEmoji) {
           const regex = new RegExp(keywords, 'i')
           // Check if the proxy tag matches any keywords
           if (regex.test(lowercasetag)) {
             const emoji = SortedKeywordsToEmoji[keywords]
-            // Check if the proxy tag already starts with an emoji
-            if (v.tag.startsWith(emoji)) {
-              if (v.tag[emoji.length] == ' ') {
-                shouldAddEmoji = false // If the proxy tag already has an emoji, do not add another one
-              } else {
-                v.tag = emoji + ' ' + v.tag.slice(emoji.length)
-              }
-            } else {
-              v.tag = emoji + ' ' + v.tag // Add emoji and space before the proxy tag
-            }
+            v.tag = emoji + ' ' + v.tag // Add emoji and space before the proxy tag
             break // Break out of loop after the first match
           }
         }
-        return shouldAddEmoji ? v : { ...v } // If emoji should not be added, return original, otherwise return modified proxy
+        return v
       })
     } else if (isGFC) {
       // 修改代理数组，根据节点名称添加对应的 emoji
