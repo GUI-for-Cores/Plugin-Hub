@@ -209,11 +209,17 @@ function decrypt(data) {
 
 async function httpGet(url) {
   if (!Plugin.Authorization) throw '未配置TOKEN'
-  const { status, body } = await Plugins.HttpGet(`http://${Plugin.ServerAddress}${url}`, {
-    'User-Agent': 'GUI.for.Cores',
-    Connection: 'close',
-    Authorization: 'Bearer ' + Plugin.Authorization
-  })
+  const { status, body } = await Plugins.HttpGet(
+    `${getServerAddress()}${url}`,
+    {
+      'User-Agent': 'GUI.for.Cores',
+      Connection: 'close',
+      Authorization: 'Bearer ' + Plugin.Authorization
+    },
+    {
+      Insecure: !!Plugin.IgnoreInsecureTLS
+    }
+  )
   if (status === 502) throw 'Bad Gateway'
   if (status !== 200 && status !== 201) {
     if (body.includes('The system cannot find the file specified')) {
@@ -227,14 +233,17 @@ async function httpGet(url) {
 async function httpPost(url, data) {
   if (!Plugin.Authorization) throw '未配置TOKEN'
   const { status, body } = await Plugins.HttpPost(
-    `http://${Plugin.ServerAddress}${url}`,
+    `${getServerAddress()}${url}`,
     {
       'User-Agent': 'GUI.for.Cores',
       'Content-Type': 'application/json',
       Connection: 'close',
       Authorization: 'Bearer ' + Plugin.Authorization
     },
-    data
+    data,
+    {
+      Insecure: !!Plugin.IgnoreInsecureTLS
+    }
   )
   if (status === 502) throw 'Bad Gateway'
   if (status !== 200 && status !== 201) throw body
@@ -243,13 +252,24 @@ async function httpPost(url, data) {
 
 async function httpDelete(url) {
   if (!Plugin.Authorization) throw '未配置TOKEN'
-  const { status, body } = await Plugins.HttpDelete(`http://${Plugin.ServerAddress}${url}`, {
-    'User-Agent': 'GUI.for.Cores',
-    'Content-Type': 'application/json',
-    Connection: 'close',
-    Authorization: 'Bearer ' + Plugin.Authorization
-  })
+  const { status, body } = await Plugins.HttpDelete(
+    `${getServerAddress()}${url}`,
+    {
+      'User-Agent': 'GUI.for.Cores',
+      'Content-Type': 'application/json',
+      Connection: 'close',
+      Authorization: 'Bearer ' + Plugin.Authorization
+    },
+    {
+      Insecure: !!Plugin.IgnoreInsecureTLS
+    }
+  )
   if (status === 502) throw 'Bad Gateway'
   if (status !== 200 && status !== 201) throw body
   return body
+}
+
+function getServerAddress() {
+  if (Plugin.ServerAddress.startsWith('http')) return Plugin.ServerAddress
+  return `http://${Plugin.ServerAddress}`
 }

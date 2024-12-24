@@ -40,13 +40,17 @@ const Sync = async () => {
 
   let failed = false
 
+  const isWindows = Plugins.useEnvStore().env.os == 'windows'
+  const separator = isWindows ? '\\' : '/'
+
   const _files = Object.keys(files)
   for (let i = 0; i < _files.length; i++) {
     const file = _files[i]
     const encrypted = files[file].content
+    const processedFile = file.replaceAll(/\//g, separator).replaceAll(/\\/g, separator)
     update(`正在恢复文件...[ ${i + 1}/${_files.length} ]`, 'info')
     try {
-      await Plugins.Writefile(file, decrypt(encrypted))
+      await Plugins.Writefile(processedFile, decrypt(encrypted))
     } catch (error) {
       if (error === '解密失败') {
         failed = true
@@ -102,7 +106,7 @@ const Backup = async () => {
     try {
       const text = await Plugins.ignoredError(Plugins.Readfile, file)
       if (text) {
-        filesMap[file.replaceAll('/', '\\')] = { content: encrypt(text) }
+        filesMap[file] = { content: encrypt(text) }
       }
     } catch (error) {
       console.log(error)
@@ -220,7 +224,8 @@ class WebDAV {
   constructor(address, username, password) {
     this.address = address
     this.headers = {
-      Authorization: 'Basic ' + Plugins.base64Encode(username + ':' + password)
+      Authorization: 'Basic ' + Plugins.base64Encode(username + ':' + password),
+      'Content-Type': 'application/xml; charset=utf-8'
     }
   }
 
@@ -234,13 +239,23 @@ class WebDAV {
     const list = []
     const parser = new DOMParser()
     const xmlDoc = parser.parseFromString(body, 'application/xml')
-    const responses = xmlDoc.getElementsByTagName('D:response')
+    const responses = Array.from(xmlDoc.getElementsByTagName('*')).filter((node) => node.tagName.toLowerCase() === 'd:response')
+    const getTextContent = (element, tagName) => {
+      const nodes = element.getElementsByTagName('*')
+      for (let node of nodes) {
+        if (node.tagName.toLowerCase() === tagName.toLowerCase()) {
+          return node.textContent
+        }
+      }
+    }
     for (let i = 0; i < responses.length; i++) {
+      const isCollection = responses[i].getElementsByTagNameNS('DAV:', 'resourcetype')[0]?.getElementsByTagNameNS('DAV:', 'collection').length > 0
+      if (isCollection) continue
       list.push({
-        href: responses[i].getElementsByTagName('D:href')[0].textContent,
-        displayname: responses[i].getElementsByTagName('D:displayname')[0]?.textContent || '',
-        lastModified: responses[i].getElementsByTagName('D:getlastmodified')[0]?.textContent || 'N/A',
-        creationDate: responses[i].getElementsByTagName('D:creationdate')[0]?.textContent || 'N/A'
+        href: getTextContent(responses[i], 'D:href'),
+        displayname: getTextContent(responses[i], 'D:displayname') || '',
+        lastModified: getTextContent(responses[i], 'D:getlastmodified') || 'N/A',
+        creationDate: getTextContent(responses[i], 'D:creationdate') || 'N/A'
       })
     }
     return list
@@ -257,8 +272,6 @@ class WebDAV {
   }
 
   async put(url, content) {
-    console.log(url)
-
     const { body, status } = await Plugins.Requests({
       method: 'PUT',
       url: this.address + url,

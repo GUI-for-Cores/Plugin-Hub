@@ -741,10 +741,19 @@
       {
         "id": "ID_u3272842",
         "title": "服务器地址",
-        "description": "",
+        "description": "若启用了TLS请填写https://，否则填写http://，或直接填写IP:Port",
         "key": "ServerAddress",
         "component": "Input",
-        "value": "127.0.0.1:8080",
+        "value": "https://127.0.0.1:8080",
+        "options": []
+      },
+      {
+        "id": "ID_8v1vyleh",
+        "title": "忽略不安全的TLS证书",
+        "description": "自签证书，请打开此设置。",
+        "key": "IgnoreInsecureTLS",
+        "component": "Switch",
+        "value": false,
         "options": []
       },
       {
@@ -1468,6 +1477,42 @@
         "key": "AutoStartOrStop",
         "component": "Switch",
         "value": false,
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
+    "id": "plugin-metacubexd-dashboard",
+    "name": "metacubexd 仪表板",
+    "description": "一个更好看的Mihomo仪表板。Supported by: ColinZeb",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/refs/heads/main/plugins/Generic/plugin-metacubexd-dashboard.js",
+    "status": 0,
+    "path": "data/plugins/plugin-metacubexd-dashboard.js",
+    "triggers": ["on::manual", "on::ready"],
+    "menus": {
+      "XD Dashboard": "OnRun"
+    },
+    "configuration": [
+      {
+        "id": "ID_wdim4jvc",
+        "title": "启动时打开",
+        "description": "",
+        "key": "start_onboot",
+        "component": "Switch",
+        "value": false,
+        "options": []
+      },
+      {
+        "id": "ID_m7nubies",
+        "title": "自托管",
+        "description": "自定义metacubexd地址",
+        "key": "xd_url",
+        "component": "Input",
+        "value": "",
         "options": []
       }
     ],

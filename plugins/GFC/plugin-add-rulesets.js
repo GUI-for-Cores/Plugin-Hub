@@ -1,4 +1,12 @@
 const onRun = async () => {
+  const ok = await Plugins.confirm('提示', '> 推荐使用规则集中心添加规则，请前往：`规则集` - `规则集中心`', {
+    type: 'markdown',
+    okText: '好的，我会试试',
+    cancelText: '不用了'
+  }).catch(() => false)
+
+  if (ok) return
+
   const rulesetsStore = Plugins.useRulesetsStore()
 
   const list = [

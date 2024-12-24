@@ -170,7 +170,14 @@ const InstallUnblockMusic = async () => {
 
   const ca = 'data/.cache/ca.crt'
   await Plugins.Download('https://raw.githubusercontent.com/UnblockNeteaseMusic/server/enhanced/ca.crt', ca)
-  await Plugins.alert('最后一步', '请手动安装CA证书。\n\n证书路径：' + ca + '\n\n安装教程：https://github.com/UnblockNeteaseMusic/server/discussions/426')
+  const path = await Plugins.AbsolutePath(ca)
+  await Plugins.alert(
+    '最后一步',
+    `请手动安装CA证书，该证书来自项目，但我们建议你使用自签证书。\n\n> 证书路径：${ca} [](${path.replaceAll('\\', '/')} "点击安装")\n\n安装教程：[](https://github.com/UnblockNeteaseMusic/server/discussions/426 "https://github.com/UnblockNeteaseMusic/server/discussions/426")`,
+    {
+      type: 'markdown'
+    }
+  )
 }
 
 /**
