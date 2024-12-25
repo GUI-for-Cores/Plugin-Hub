@@ -261,7 +261,15 @@ function URI_SS() {
     content = content.split('#')[0] // strip proxy name
     // handle IPV4 and IPV6
     let serverAndPortArray = content.match(/@([^/]*)(\/|$)/)
-    let userInfoStr = Base64.decode(content.split('@')[0])
+
+    let rawUserInfoStr = decodeURIComponent(content.split('@')[0]) // 其实应该分隔之后, 用户名和密码再 decodeURIComponent. 但是问题不大
+    let userInfoStr
+    if (rawUserInfoStr?.startsWith('2022-blake3-')) {
+      userInfoStr = rawUserInfoStr
+    } else {
+      userInfoStr = Base64.decode(rawUserInfoStr)
+    }
+
     let query = ''
     if (!serverAndPortArray) {
       if (content.includes('?')) {
@@ -284,14 +292,19 @@ function URI_SS() {
       userInfoStr = content.split('@')[0]
       serverAndPortArray = content.match(/@([^/]*)(\/|$)/)
     }
+
     const serverAndPort = serverAndPortArray[1]
     const portIdx = serverAndPort.lastIndexOf(':')
     proxy.server = serverAndPort.substring(0, portIdx)
     proxy.port = `${serverAndPort.substring(portIdx + 1)}`.match(/\d+/)?.[0]
-
-    const userInfo = userInfoStr.match(/(^.*?):(.*$)/)
-    proxy.cipher = userInfo[1]
-    proxy.password = userInfo[2]
+    let userInfo = userInfoStr.match(/(^.*?):(.*$)/)
+    proxy.cipher = userInfo?.[1]
+    proxy.password = userInfo?.[2]
+    // if (!proxy.cipher || !proxy.password) {
+    //     userInfo = rawUserInfoStr.match(/(^.*?):(.*$)/);
+    //     proxy.cipher = userInfo?.[1];
+    //     proxy.password = userInfo?.[2];
+    // }
 
     // handle obfs
     const idx = content.indexOf('?plugin=')
@@ -493,9 +506,7 @@ function URI_VMess() {
         proxy['skip-cert-verify'] = /(TRUE)|1/i.test(params.allowInsecure)
       }
       // https://github.com/2dust/v2rayN/wiki/%E5%88%86%E4%BA%AB%E9%93%BE%E6%8E%A5%E6%A0%BC%E5%BC%8F%E8%AF%B4%E6%98%8E(ver-2)
-      // - if (proxy.tls && proxy.sni) {
-      // + if (proxy.tls && params.sni) {
-      if (proxy.tls && params.sni) {
+      if (proxy.tls && params.sni && params.sni !== '') {
         proxy.sni = params.sni
       }
       let httpupgrade = false
@@ -512,6 +523,10 @@ function URI_VMess() {
       } else if (params.net === 'h2' || proxy.network === 'h2') {
         proxy.network = 'h2'
       }
+      // 暂不支持 tcp + host + path
+      // else if (params.net === 'tcp' || proxy.network === 'tcp') {
+      //     proxy.network = 'tcp';
+      // }
       if (proxy.network) {
         let transportHost = params.host ?? params.obfsParam
         try {
@@ -541,7 +556,8 @@ function URI_VMess() {
           if (['grpc'].includes(proxy.network)) {
             proxy[`${proxy.network}-opts`] = {
               'grpc-service-name': getIfNotBlank(transportPath),
-              '_grpc-type': getIfNotBlank(params.type)
+              '_grpc-type': getIfNotBlank(params.type),
+              '_grpc-authority': getIfNotBlank(params.authority)
             }
           } else {
             const opts = {
@@ -671,6 +687,9 @@ function URI_VLESS() {
       }
       if (params.serviceName) {
         opts[`${proxy.network}-service-name`] = params.serviceName
+        if (['grpc'].includes(proxy.network) && params.authority) {
+          opts['_grpc-authority'] = params.authority
+        }
       } else if (isShadowrocket && params.path) {
         if (!['ws', 'http', 'h2'].includes(proxy.network)) {
           opts[`${proxy.network}-service-name`] = params.path
@@ -972,6 +991,11 @@ function URI_Trojan() {
   }
 
   const parse = (line) => {
+    const matched = /^(trojan:\/\/.*?@.*?)(:(\d+))?\/?(\?.*?)?$/.exec(line)
+    const port = matched?.[2]
+    if (!port) {
+      line = line.replace(matched[1], `${matched[1]}:443`)
+    }
     let [newLine, name] = line.split(/#(.+)/, 2)
     const parser = getTrojanURIParser()
     const proxy = parser.parse(newLine)
@@ -993,7 +1017,7 @@ function URI_Trojan() {
  */
 
 const detourParser = (proxy, parsedProxy) => {
-  if (proxy['dialer-proxy']) parsedProxy.detour = proxy['dialer-proxy']
+  parsedProxy.detour = proxy['dialer-proxy'] || proxy.detour
 }
 const tfoParser = (proxy, parsedProxy) => {
   parsedProxy.tcp_fast_open = false
@@ -1175,7 +1199,7 @@ const tlsParser = (proxy, parsedProxy) => {
     if (proxy['reality-opts']['short-id']) parsedProxy.tls.reality.short_id = proxy['reality-opts']['short-id']
     parsedProxy.tls.utls = { enabled: true }
   }
-  if (proxy['client-fingerprint'] && proxy['client-fingerprint'] !== '')
+  if (!['hysteria', 'hysteria2', 'tuic'].includes(proxy.type) && proxy['client-fingerprint'] && proxy['client-fingerprint'] !== '')
     parsedProxy.tls.utls = {
       enabled: true,
       fingerprint: proxy['client-fingerprint']
