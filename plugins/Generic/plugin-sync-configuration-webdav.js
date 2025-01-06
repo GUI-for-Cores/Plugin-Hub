@@ -121,7 +121,7 @@ const Backup = async () => {
     if (Object.keys(filesMap).length === 0) throw '缺少备份文件'
     Plugins.message.update(id, '正在备份...', 'info')
     const dav = new WebDAV(Plugin.Address, Plugin.Username, Plugin.Password)
-    await dav.put(Plugin.DataPath + '/' + getPrefix() + '_' + Plugins.formatDate(Date.now(), 'YYYY-MM-DD_HH_mm_ss'), JSON.stringify(filesMap))
+    await dav.put(Plugin.DataPath + '/' + getBackupFilename(), JSON.stringify(filesMap))
     Plugins.message.update(id, '备份完成', 'success')
   } catch (error) {
     Plugins.message.update(id, `备份失败:` + (error.message || error), 'error')
@@ -169,6 +169,14 @@ const onReady = async () => {
 
 const getPrefix = () => {
   return Plugins.APP_TITLE.includes('Clash') ? 'GUI.for.Clash' : 'GUI.for.SingBox'
+}
+
+const getBackupFilename = () => {
+  return (
+      getPrefix() + '-' +
+      Plugins.APP_VERSION + '_' +
+      Plugins.formatDate(Date.now(), 'YYYYMMDD-HHmmss') + '_' +
+      'core-' + Plugins.useAppSettingsStore().app.kernel.branch)
 }
 
 const filterList = (list) => {
