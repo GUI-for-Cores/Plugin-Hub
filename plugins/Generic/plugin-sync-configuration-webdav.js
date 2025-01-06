@@ -178,16 +178,29 @@ const getBackupFilename = async () => {
     getPrefix() + '-' +
     Plugins.APP_VERSION + '_' +
     Plugins.formatDate(Date.now(), 'YYYYMMDD-HHmmss') + '_' +
-    'core-' + Plugins.useAppSettingsStore().app.kernel.branch
+    'core-' + await getKernelVersion()
 
-  Plugins.message.success('文件名必须以 ' + getPrefix() + ' 起始，禁止包含 \\ / : * ? " < > |')
   const input = await Plugins.prompt(Plugin.name, defaultFilename) || defaultFilename
-
   if (!input.startsWith(getPrefix()) || /[\\/:*?"<>|]/.test(input)) {
+    Plugins.message.error('文件名必须以 ' + getPrefix() + ' 起始，禁止包含 \\ / : * ? " < > |')
     throw '输入的文件名不合法，请重新输入并确保符合要求'
   }
 
   return input
+}
+
+const getKernelVersion = async () => {
+  const isClashApp = Plugins.APP_TITLE.includes('Clash')
+  const coreDir = isClashApp ? 'data/mihomo/' : 'data/sing-box/'
+  const fileSuffix = Plugins.useEnvStore().env.os == 'windows' ? '.exe' : ''
+  const branch = Plugins.useAppSettingsStore().app.kernel.branch
+
+  const coreFileName = await Plugins.getKernelFileName(branch != 'main') + fileSuffix
+  const kernelFilePath = await Plugins.AbsolutePath(coreDir + coreFileName)
+
+  const param = isClashApp ? '-v' : 'version'
+  const res = await Plugins.Exec(kernelFilePath, [param])
+  return res.split('\n')[0].split(' ')[2]
 }
 
 const filterList = (list) => {
