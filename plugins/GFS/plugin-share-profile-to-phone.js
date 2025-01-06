@@ -107,7 +107,15 @@ const onRun = async () => {
     }
   }
 
-  const config = await Plugins.generateConfig(_profile)
+  const type = await Plugins.picker.single(
+    '生成的配置类型',
+    [
+      { label: '稳定版', value: 'stable' },
+      { label: '内测版', value: 'alpha' }
+    ],
+    ['stable']
+  )
+  const config = await Plugins.generateConfig(_profile, type === 'stable')
   const ips = await getIPAddress()
   const urls = await Promise.all(
     ips.map((ip) => {
