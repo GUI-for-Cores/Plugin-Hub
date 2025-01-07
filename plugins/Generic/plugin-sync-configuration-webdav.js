@@ -192,11 +192,10 @@ const getBackupFilename = async () => {
 const getKernelVersion = async () => {
   const isClashApp = Plugins.APP_TITLE.includes('Clash')
   const coreDir = isClashApp ? 'data/mihomo/' : 'data/sing-box/'
-  const fileSuffix = Plugins.useEnvStore().env.os == 'windows' ? '.exe' : ''
   const branch = Plugins.useAppSettingsStore().app.kernel.branch
 
-  const coreFileName = await Plugins.getKernelFileName(branch != 'main') + fileSuffix
-  const kernelFilePath = await Plugins.AbsolutePath(coreDir + coreFileName)
+  const kernelFileName = await Plugins.getKernelFileName(branch != 'main')
+  const kernelFilePath = await Plugins.AbsolutePath(coreDir + kernelFileName)
 
   const param = isClashApp ? '-v' : 'version'
   const res = await Plugins.Exec(kernelFilePath, [param])
