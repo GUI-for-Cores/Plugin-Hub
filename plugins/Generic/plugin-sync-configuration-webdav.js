@@ -84,6 +84,8 @@ const Backup = async () => {
   if (!window.CryptoJS) throw '请先安装插件或重新安装插件'
   if (!Plugin.Secret) throw '为了数据安全，请先配置文件加密密钥'
 
+  const backupFilename = await getBackupFilename()
+
   const files = ['data/user.yaml', 'data/profiles.yaml', 'data/subscribes.yaml', 'data/rulesets.yaml', 'data/plugins.yaml', 'data/scheduledtasks.yaml']
 
   const subscribesStore = Plugins.useSubscribesStore()
@@ -121,7 +123,7 @@ const Backup = async () => {
     if (Object.keys(filesMap).length === 0) throw '缺少备份文件'
     Plugins.message.update(id, '正在备份...', 'info')
     const dav = new WebDAV(Plugin.Address, Plugin.Username, Plugin.Password)
-    await dav.put(Plugin.DataPath + '/' + getPrefix() + '_' + Plugins.formatDate(Date.now(), 'YYYY-MM-DD_HH_mm_ss'), JSON.stringify(filesMap))
+    await dav.put(Plugin.DataPath + '/' + backupFilename, JSON.stringify(filesMap))
     Plugins.message.update(id, '备份完成', 'success')
   } catch (error) {
     Plugins.message.update(id, `备份失败:` + (error.message || error), 'error')
@@ -169,6 +171,35 @@ const onReady = async () => {
 
 const getPrefix = () => {
   return Plugins.APP_TITLE.includes('Clash') ? 'GUI.for.Clash' : 'GUI.for.SingBox'
+}
+
+const getBackupFilename = async () => {
+  const defaultFilename =
+    getPrefix() + '-' +
+    Plugins.APP_VERSION + '_' +
+    Plugins.formatDate(Date.now(), 'YYYYMMDD-HHmmss') + '_' +
+    'core-' + await getKernelVersion()
+
+  const input = await Plugins.prompt(Plugin.name, defaultFilename) || defaultFilename
+  if (!input.startsWith(getPrefix()) || /[\\/:*?"<>|]/.test(input)) {
+    Plugins.message.error('文件名必须以 ' + getPrefix() + ' 起始，禁止包含 \\ / : * ? " < > |')
+    throw '输入的文件名不合法，请重新输入并确保符合要求'
+  }
+
+  return input
+}
+
+const getKernelVersion = async () => {
+  const isClashApp = Plugins.APP_TITLE.includes('Clash')
+  const coreDir = isClashApp ? 'data/mihomo/' : 'data/sing-box/'
+  const branch = Plugins.useAppSettingsStore().app.kernel.branch
+
+  const kernelFileName = await Plugins.getKernelFileName(branch != 'main')
+  const kernelFilePath = await Plugins.AbsolutePath(coreDir + kernelFileName)
+
+  const param = isClashApp ? '-v' : 'version'
+  const res = await Plugins.Exec(kernelFilePath, [param])
+  return res.split('\n')[0].split(' ')[2]
 }
 
 const filterList = (list) => {
