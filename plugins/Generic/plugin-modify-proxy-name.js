@@ -201,8 +201,8 @@ const onSubscribe = async (proxies) => {
             const emoji = v.tag.slice(0, 4)
             if (v.tag[emoji.length] != ' ') {
               v.tag = emoji + ' ' + v.tag.slice(emoji.length)
-              return v
             }
+            return v
         }
         for (const keywords in SortedKeywordsToEmoji) {
           const regex = new RegExp(keywords, 'i')
