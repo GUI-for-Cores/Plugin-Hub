@@ -127,6 +127,8 @@ const stopUnblockMusicService = async () => {
  * index: 1切换为代理
  */
 const switchTo = async (index) => {
+  const appSettings = Plugins.useAppSettingsStore()
+  if (!appSettings.app.kernel.running) return
   const kernelApiStore = Plugins.useKernelApiStore()
   const group = kernelApiStore.proxies[Plugin.ProxyGroup]
   const proxy = group?.all[index]
