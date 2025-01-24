@@ -4,43 +4,30 @@ const onRun = async () => {
 
 const onTask = async () => {
   await updateGist();
-  return '更新 Gist.'
+  return '更新配置config.json到Gist.'
 };
 
 const updateGist = async () => {
   if (!Plugin.GistId) throw '未配置GIST ID'
   const store = Plugins.useProfilesStore()
-  let profile = null
-  if (!Plugin.ProfileName) {
-    profile = await Plugins.picker.single(
-      '请选择要同步的配置',
-      store.profiles.map((v) => ({
-        label: v.name,
-        value: v
-      })),
-      []
-    )
-  } else {
-    profile = store.profiles.find(item => item.name === Plugin.ProfileName)
-    if (!profile)
-      throw "未找到配置：" + Plugin.ProfileName
-  }
-  const configJsonContent = await Plugins.generateConfig(profile)
-  const { id: messageId } = Plugins.message.info('正在更新 Gist...', 60 * 1000)
-
-  try {
-    const updatedGist = await updateGistFile(Plugin.GistId, JSON.stringify(configJsonContent, null, 4))
-    Plugins.message.update(messageId, `Gist 更新成功: ${updatedGist}`, 'success')
-  } catch (error) {
-    Plugins.message.update(messageId, `Gist 更新失败: ${error}`, 'error')
-  } finally {
-    await Plugins.sleep(1500).then(() => Plugins.message.destroy(messageId))
+  for (const profile of store.profiles)
+  {
+    const configJsonContent = await Plugins.generateConfig(profile)   
+    const { id: messageId } = Plugins.message.info(`正在更新 [ ${profile.name} ]`, 60 * 1000)
+    try {
+      const updatedGist = await updateGistFile(profile.name, Plugin.GistId, JSON.stringify(configJsonContent, null, 4))
+      Plugins.message.update(messageId, `更新 [ ${profile.name} ] ${updatedGist}`, 'success')
+    } catch (error) {
+      Plugins.message.update(messageId, `更新 [ ${profile.name} ] ${error}`, 'error')
+    } finally {
+      await Plugins.sleep(1500).then(() => Plugins.message.destroy(messageId))
+    }
   }
 }
 
-async function updateGistFile(gistId, configJsonContent) {
+async function updateGistFile(name, gistId, configJsonContent) {
   if (!Plugin.Authorization) throw '未配置TOKEN'
-
+  let jsonName = name + '.json'
   const { body } = await Plugins.HttpPatch(
     `https://api.github.com/gists/${gistId}`,
     {
@@ -53,7 +40,7 @@ async function updateGistFile(gistId, configJsonContent) {
     },
     {
       files: {
-        'config.json': {
+        [jsonName]: {
           content: configJsonContent
         }
       }
