@@ -132,8 +132,8 @@
   },
   {
     "id": "plugin-sync-singbox-configuration-gists",
-    "name": "同步config.json",
-    "description": "将指定的配置生成config.json后同步到Gists。Supported by: StarfishC",
+    "name": "一键同步config.json",
+    "description": "将所有配置生成的config.json一键同步到Gists。Supported by: StarfishC",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-sync-singbox-configuration-gists.js",
     "path": "data/plugins/plugin-sync-singbox-configuration-gists.js",
@@ -155,15 +155,6 @@
         "title": "GIST ID",
         "description": "已创建好的GistId",
         "key": "GistId",
-        "component": "Input",
-        "value": "",
-        "options": []
-      },
-      {
-        "id": "ID_ya7dggls",
-        "title": "PROFILE NAME",
-        "description": "[选填] 配置名。填写时不弹出配置选择框，否则弹出配置选择框",
-        "key": "ProfileName",
         "component": "Input",
         "value": "",
         "options": []
