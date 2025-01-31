@@ -58,7 +58,6 @@ const onRun = async () => {
           mtu: 9000,
           auto_route: true,
           strict_route: true,
-          route_address: ['0.0.0.0/1', '128.0.0.0/1', '::/1', '8000::/1'],
           endpoint_independent_nat: false,
           stack: 'mixed'
         }
@@ -110,12 +109,16 @@ const onRun = async () => {
   const type = await Plugins.picker.single(
     '生成的配置类型',
     [
+      { label: 'v1.11.0之前版本', value: 'legacy' },
       { label: '稳定版', value: 'stable' },
       { label: '内测版', value: 'alpha' }
     ],
     ['stable']
   )
   const config = await Plugins.generateConfig(_profile, type === 'stable')
+  if (type === 'legacy') {
+    _adaptToLegacy(config)
+  }
   const ips = await getIPAddress()
   const urls = await Promise.all(
     ips.map((ip) => {
@@ -144,6 +147,54 @@ const onUninstall = async () => {
   return 0
 }
 
+const _adaptToLegacy = (config) => {
+  config.outbounds.push(
+    {
+      type: 'direct',
+      tag: 'direct'
+    },
+    {
+      type: 'dns',
+      tag: 'dns-out'
+    },
+    {
+      type: 'block',
+      tag: 'block'
+    }
+  )
+  config.route.rules = config.route.rules.flatMap((rule) => {
+    if (rule.action === 'sniff') {
+      if (rule.inbound) {
+        const inbound = config.inbounds.find((v) => v.tag === rule.inbound)
+        if (inbound) {
+          inbound.sniff = true
+        }
+      }
+      return []
+    } else if (rule.action === 'resolve') {
+      if (rule.inbound) {
+        const inbound = config.inbounds.find((v) => v.tag === rule.inbound)
+        if (inbound) {
+          inbound.domain_strategy = rule.strategy
+        }
+      }
+      return []
+    } else if (rule.action === 'reject') {
+      rule.outbound = 'block'
+    } else if (rule.action === 'hijack-dns') {
+      rule.outbound = 'dns-out'
+    }
+    rule.action = undefined
+    return rule
+  })
+
+  config.dns.rules.forEach((rule) => {
+    if (rule.action === 'reject') {
+      rule.outbound = 'block'
+    }
+    rule.action = undefined
+  })
+}
 /**
  * 动态引入依赖
  */
