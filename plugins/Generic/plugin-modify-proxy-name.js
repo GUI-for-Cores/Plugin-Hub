@@ -25,7 +25,7 @@ const KeywordsToEmoji = {
   '🇲🇴|MO|澳门|澳門|CTM|MAC|Macao|Macau|MO': '🇲🇴',
   '🇸🇬|SG|新加坡|狮城|獅城|沪新|京新|泉新|穗新|深新|杭新|广新|廣新|滬新|Singapore|SINGAPORE': '🇸🇬',
   '🇯🇵|JP|日本|东京|大阪|埼玉|京日|苏日|沪日|广日|上日|穗日|川日|中日|泉日|杭日|深日|Japan|JAPAN|Osaka|Tokyo': '🇯🇵',
-  '🇺🇸|US|美国|美國|京美|硅谷|凤凰城|洛杉矶|西雅图|圣何塞|芝加哥|哥伦布|纽约|广美|USA|America|United States|Virginia|': '🇺🇸',
+  '🇺🇸|US|美国|美國|京美|硅谷|凤凰城|洛杉矶|西雅图|圣何塞|芝加哥|哥伦布|纽约|广美|USA|America|United States|Virginia': '🇺🇸',
   '🇰🇷|KR|韩国|韓國|首尔|韩|韓|春川|KOR|Kr|Korea': '🇰🇷',
   '🇰🇵|KP|朝鲜|North Korea': '🇰🇵',
   '🇷🇺|RU|俄罗斯|俄羅斯|毛子|俄国|RUS|Russia': '🇷🇺',
