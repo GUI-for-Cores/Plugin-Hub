@@ -3,26 +3,29 @@ const onRun = async () => {
 }
 
 const onTask = async () => {
-  await updateGist();
-  return '更新配置config.json到Gist.'
+  return updateGist();
 };
 
 const updateGist = async () => {
   if (!Plugin.GistId) throw '未配置GIST ID'
   const store = Plugins.useProfilesStore()
+  let str = ''
   for (const profile of store.profiles)
   {
     const configJsonContent = await Plugins.generateConfig(profile)   
-    const { id: messageId } = Plugins.message.info(`正在更新 [ ${profile.name} ]`, 60 * 1000)
+    const { id: messageId } = Plugins.message.info(`updating [ ${profile.name} ]`, 60 * 1000)
     try {
       const updatedGist = await updateGistFile(profile.name, Plugin.GistId, JSON.stringify(configJsonContent, null, 4))
-      Plugins.message.update(messageId, `更新 [ ${profile.name} ] ${updatedGist}`, 'success')
+      Plugins.message.update(messageId, `update [ ${profile.name} ] ${updatedGist}`, 'success')
+      str += `update [ ${profile.name} ] ${updatedGist}. `
     } catch (error) {
-      Plugins.message.update(messageId, `更新 [ ${profile.name} ] ${error}`, 'error')
+      Plugins.message.update(messageId, `update [ ${profile.name} ] ${error}`, 'error')
+      str += `update [ ${profile.name} ] ${error}. `
     } finally {
       await Plugins.sleep(1500).then(() => Plugins.message.destroy(messageId))
     }
   }
+  return str
 }
 
 async function updateGistFile(name, gistId, configJsonContent) {
@@ -49,5 +52,5 @@ async function updateGistFile(name, gistId, configJsonContent) {
   if (body.message) {
     throw body.message
   }
-  return 'ok'
+  return 'success'
 }
