@@ -14,8 +14,8 @@
 //    - EnableIndexProxyName = 2 对相同的节点名称进行标号，默认值为 2。
 
 // 移除关键词的正则表达式，匹配的关键词将被移除。
-let RemoveKeywords = new RegExp(Plugin.RemoveKeywords)
-// 正则表达式 /关键词1|关键词2|关键词3/ 将会匹配 proxy name 中的 关键词1、关键词2 和 关键词3，
+let RemoveKeywords = new RegExp(Plugin.RemoveKeywords, 'g')
+// 正则表达式 "关键词1|关键词2|关键词3" 将会匹配 proxy name 中的 "关键词1" "关键词2" 和 "关键词3"，
 // 并将其替换为一个空字符串。你可以根据自己的需求修改正则表达式，添加或删除需要匹配的关键词。
 
 // 使用正则表达式来表示国家地区关键词
