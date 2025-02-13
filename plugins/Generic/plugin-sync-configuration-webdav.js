@@ -282,9 +282,11 @@ class WebDAV {
     for (let i = 0; i < responses.length; i++) {
       const isCollection = responses[i].getElementsByTagNameNS('DAV:', 'resourcetype')[0]?.getElementsByTagNameNS('DAV:', 'collection').length > 0
       if (isCollection) continue
+      const href = getTextContent(responses[i], 'D:href')
+      const displayname = getTextContent(responses[i], 'D:displayname') || href.replace(Plugin.DataPath + '/', '')
       list.push({
-        href: getTextContent(responses[i], 'D:href'),
-        displayname: getTextContent(responses[i], 'D:displayname') || '',
+        href: href,
+        displayname:displayname,
         lastModified: getTextContent(responses[i], 'D:getlastmodified') || 'N/A',
         creationDate: getTextContent(responses[i], 'D:creationdate') || 'N/A'
       })
