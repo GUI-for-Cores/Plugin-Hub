@@ -683,6 +683,15 @@
         "options": []
       },
       {
+        "id": "ID_khjlx7w0",
+        "title": "Node可执行文件路径",
+        "description": "",
+        "key": "NODE_PATH",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
         "id": "ID_qenehz06",
         "title": "跟随GUI启动或停止",
         "description": "",

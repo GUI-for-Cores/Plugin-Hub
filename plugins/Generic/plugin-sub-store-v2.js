@@ -33,7 +33,7 @@ const onUninstall = async () => {
  */
 const onRun = async () => {
   if (!(await isSubStoreRunning())) {
-    if (!(await Plugins.ignoredError(Plugins.Exec, 'node', ['-v']))) {
+    if (!(await Plugins.ignoredError(Plugins.Exec, Plugin.NODE_PATH || 'node', ['-v']))) {
       throw '检测到系统未安装Nodejs环境，请先安装。'
     }
     await startSubStoreService()
@@ -70,7 +70,7 @@ const Start = async () => {
   if (await isSubStoreRunning()) {
     throw '当前服务已经在运行了'
   }
-  if (!(await Plugins.ignoredError(Plugins.Exec, 'node', ['-v']))) {
+  if (!(await Plugins.ignoredError(Plugins.Exec, Plugin.NODE_PATH || 'node', ['-v']))) {
     throw '检测到系统未安装Nodejs环境，请先安装。'
   }
   await startSubStoreService()
@@ -118,7 +118,7 @@ const startSubStoreService = () => {
     setTimeout(() => timeout && reject('启动Sub-Store服务超时'), 5000)
     try {
       const pid = await Plugins.ExecBackground(
-        'node',
+        Plugin.NODE_PATH || 'node',
         [env.basePath + '/' + BACKEND_FILE],
         (out) => {
           if (out.includes('[sub-store] INFO: [BACKEND]')) {
