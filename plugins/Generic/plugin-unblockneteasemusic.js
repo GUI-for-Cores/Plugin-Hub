@@ -69,6 +69,9 @@ const onGenerate = async (config, profile) => {
   if (profile.id !== appSettingsStore.app.kernel.profile) {
     return config
   }
+  if (!(await isUnblockMusicRunning())) {
+    return config
+  }
 
   const isClash = !!config.mode
 
