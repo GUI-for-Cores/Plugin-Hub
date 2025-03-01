@@ -237,9 +237,6 @@ function getIfPresent(obj, defaultValue) {
 /**
  * 说明：解析节点uri的相关方法
  * 来源：https://github.com/sub-store-org/Sub-Store/blob/master/backend/src/core/proxy-utils/parsers/index.js
- * 修改：URI_VMESS
- * - if (proxy.tls && proxy.sni) {
- * + if (proxy.tls && params.sni) {
  */
 
 // Parse SS URI format (only supports new SIP002, legacy format is depreciated).
@@ -278,6 +275,7 @@ function URI_SS() {
         query = parsed[2]
       }
       content = Base64.decode(content)
+
       if (query) {
         if (/(&|\?)v2ray-plugin=/.test(query)) {
           const parsed = query.match(/(&|\?)v2ray-plugin=(.*?)(&|$)/)
@@ -289,8 +287,11 @@ function URI_SS() {
         }
         content = `${content}${query}`
       }
-      userInfoStr = content.split('@')[0]
-      serverAndPortArray = content.match(/@([^/]*)(\/|$)/)
+      userInfoStr = content.match(/(^.*)@/)?.[1]
+      serverAndPortArray = content.match(/@([^/@]*)(\/|$)/)
+    } else if (content.includes('?')) {
+      const parsed = content.match(/(\?.*)$/)
+      query = parsed[1]
     }
 
     const serverAndPort = serverAndPortArray[1]
@@ -307,9 +308,11 @@ function URI_SS() {
     // }
 
     // handle obfs
-    const idx = content.indexOf('?plugin=')
-    if (idx !== -1) {
-      const pluginInfo = ('plugin=' + decodeURIComponent(content.split('?plugin=')[1].split('&')[0])).split(';')
+    const pluginMatch = content.match(/[?&]plugin=([^&]+)/)
+    const shadowTlsMatch = content.match(/[?&]shadow-tls=([^&]+)/)
+
+    if (pluginMatch) {
+      const pluginInfo = ('plugin=' + decodeURIComponent(pluginMatch[1])).split(';')
       const params = {}
       for (const item of pluginInfo) {
         const [key, val] = item.split('=')
@@ -333,8 +336,37 @@ function URI_SS() {
             tls: getIfPresent(params.tls)
           }
           break
+        case 'shadow-tls': {
+          proxy.plugin = 'shadow-tls'
+          const version = getIfNotBlank(params['version'])
+          proxy['plugin-opts'] = {
+            host: getIfNotBlank(params['host']),
+            password: getIfNotBlank(params['password']),
+            version: version ? parseInt(version, 10) : undefined
+          }
+          break
+        }
         default:
           throw new Error(`Unsupported plugin option: ${params.plugin}`)
+      }
+    }
+    // Shadowrocket
+    if (shadowTlsMatch) {
+      const params = JSON.parse(Base64.decode(shadowTlsMatch[1]))
+      const version = getIfNotBlank(params['version'])
+      const address = getIfNotBlank(params['address'])
+      const port = getIfNotBlank(params['port'])
+      proxy.plugin = 'shadow-tls'
+      proxy['plugin-opts'] = {
+        host: getIfNotBlank(params['host']),
+        password: getIfNotBlank(params['password']),
+        version: version ? parseInt(version, 10) : undefined
+      }
+      if (address) {
+        proxy.server = address
+      }
+      if (port) {
+        proxy.port = parseInt(port, 10)
       }
     }
     if (/(&|\?)uot=(1|true)/i.test(query)) {
@@ -651,6 +683,9 @@ function URI_VLESS() {
       if (params.sid) {
         opts['short-id'] = params.sid
       }
+      if (params.spx) {
+        opts['_spider-x'] = params.spx
+      }
       if (Object.keys(opts).length > 0) {
         // proxy[`${params.security}-opts`] = opts;
         proxy[`${params.security}-opts`] = opts
@@ -717,6 +752,13 @@ function URI_VLESS() {
         }
         // mKCP 的伪装头部类型。当前可选值有 none / srtp / utp / wechat-video / dtls / wireguard。省略时默认值为 none，即不使用伪装头部，但不可以为空字符串。
         proxy.headerType = params.headerType || 'none'
+      }
+
+      if (params.mode) {
+        proxy._mode = params.mode
+      }
+      if (params.extra) {
+        proxy._extra = params.extra
       }
     }
 
@@ -870,7 +912,10 @@ function URI_TUIC() {
   const parse = (line) => {
     line = line.split(/tuic:\/\//)[1]
     // eslint-disable-next-line no-unused-vars
-    let [__, uuid, password, server, ___, port, ____, addons = '', name] = /^(.*?):(.*?)@(.*?)(:(\d+))?\/?(\?(.*?))?(?:#(.*?))?$/.exec(line)
+    let [__, auth, server, port, addons = '', name] = /^(.*?)@(.*?)(?::(\d+))?\/?(?:\?(.*?))?(?:#(.*?))?$/.exec(line)
+    auth = decodeURIComponent(auth)
+    let [uuid, ...passwordParts] = auth.split(':')
+    let password = passwordParts.join(':')
     port = parseInt(`${port}`, 10)
     if (isNaN(port)) {
       port = 443
@@ -892,12 +937,14 @@ function URI_TUIC() {
 
     for (const addon of addons.split('&')) {
       let [key, value] = addon.split('=')
-      key = key.replace(/_/, '-')
+      key = key.replace(/_/g, '-')
       value = decodeURIComponent(value)
       if (['alpn'].includes(key)) {
         proxy[key] = value ? value.split(',') : undefined
       } else if (['allow-insecure'].includes(key)) {
         proxy['skip-cert-verify'] = /(TRUE)|1/i.test(value)
+      } else if (['fast-open'].includes(key)) {
+        proxy.tfo = true
       } else if (['disable-sni', 'reduce-rtt'].includes(key)) {
         proxy[key] = /(TRUE)|1/i.test(value)
       } else {
@@ -1018,6 +1065,9 @@ function URI_Trojan() {
 
 const detourParser = (proxy, parsedProxy) => {
   parsedProxy.detour = proxy['dialer-proxy'] || proxy.detour
+}
+const networkParser = (proxy, parsedProxy) => {
+  if (['tcp', 'udp'].includes(proxy._network)) parsedProxy.network = proxy._network
 }
 const tfoParser = (proxy, parsedProxy) => {
   parsedProxy.tcp_fast_open = false
@@ -1277,6 +1327,7 @@ const socks5Parser = (proxy = {}) => {
   if (proxy.uot) parsedProxy.udp_over_tcp = true
   if (proxy['udp-over-tcp']) parsedProxy.udp_over_tcp = true
   if (proxy['fast-open']) parsedProxy.udp_fragment = true
+  networkParser(proxy, parsedProxy)
   tfoParser(proxy, parsedProxy)
   detourParser(proxy, parsedProxy)
   return parsedProxy
@@ -1326,6 +1377,7 @@ const ssParser = (proxy = {}) => {
   if (proxy.uot) parsedProxy.udp_over_tcp = true
   if (proxy['udp-over-tcp']) parsedProxy.udp_over_tcp = true
   if (proxy['fast-open']) parsedProxy.udp_fragment = true
+  networkParser(proxy, parsedProxy)
   tfoParser(proxy, parsedProxy)
   detourParser(proxy, parsedProxy)
   smuxParser(proxy.smux, parsedProxy)
@@ -1421,7 +1473,7 @@ const vmessParser = (proxy = {}) => {
   if (proxy.network === 'h2') h2Parser(proxy, parsedProxy)
   if (proxy.network === 'http') h1Parser(proxy, parsedProxy)
   if (proxy.network === 'grpc') grpcParser(proxy, parsedProxy)
-
+  networkParser(proxy, parsedProxy)
   tfoParser(proxy, parsedProxy)
   detourParser(proxy, parsedProxy)
   tlsParser(proxy, parsedProxy)
@@ -1443,7 +1495,7 @@ const vlessParser = (proxy = {}) => {
   if (proxy.flow === 'xtls-rprx-vision') parsedProxy.flow = proxy.flow
   if (proxy.network === 'ws') wsParser(proxy, parsedProxy)
   if (proxy.network === 'grpc') grpcParser(proxy, parsedProxy)
-
+  networkParser(proxy, parsedProxy)
   tfoParser(proxy, parsedProxy)
   detourParser(proxy, parsedProxy)
   smuxParser(proxy.smux, parsedProxy)
@@ -1463,7 +1515,7 @@ const trojanParser = (proxy = {}) => {
   if (proxy['fast-open']) parsedProxy.udp_fragment = true
   if (proxy.network === 'grpc') grpcParser(proxy, parsedProxy)
   if (proxy.network === 'ws') wsParser(proxy, parsedProxy)
-
+  networkParser(proxy, parsedProxy)
   tfoParser(proxy, parsedProxy)
   detourParser(proxy, parsedProxy)
   tlsParser(proxy, parsedProxy)
@@ -1507,13 +1559,14 @@ const hysteriaParser = (proxy = {}) => {
       if (proxy.disable_mtu_discovery === 1) parsedProxy.disable_mtu_discovery = true
     }
   }
+  networkParser(proxy, parsedProxy)
   tlsParser(proxy, parsedProxy)
   detourParser(proxy, parsedProxy)
   tfoParser(proxy, parsedProxy)
   smuxParser(proxy.smux, parsedProxy)
   return parsedProxy
 }
-const hysteria2Parser = (proxy = {}) => {
+const hysteria2Parser = (proxy = {}, includeUnsupportedProxy) => {
   const parsedProxy = {
     tag: proxy.name,
     type: 'hysteria2',
@@ -1524,11 +1577,16 @@ const hysteria2Parser = (proxy = {}) => {
     tls: { enabled: true, server_name: proxy.server, insecure: false }
   }
   if (parsedProxy.server_port < 0 || parsedProxy.server_port > 65535) throw 'invalid port'
+  if (includeUnsupportedProxy) {
+    if (proxy['hop-interval']) parsedProxy.hop_interval = /^\d+$/.test(proxy['hop-interval']) ? `${proxy['hop-interval']}s` : proxy['hop-interval']
+    if (proxy['ports']) parsedProxy.server_ports = proxy['ports'].split(/\s*,\s*/).map((p) => p.replace(/\s*-\s*/g, ':'))
+  }
   if (proxy.up) parsedProxy.up_mbps = parseInt(`${proxy.up}`, 10)
   if (proxy.down) parsedProxy.down_mbps = parseInt(`${proxy.down}`, 10)
   if (proxy.obfs === 'salamander') parsedProxy.obfs.type = 'salamander'
   if (proxy['obfs-password']) parsedProxy.obfs.password = proxy['obfs-password']
   if (!parsedProxy.obfs.type) delete parsedProxy.obfs
+  networkParser(proxy, parsedProxy)
   tlsParser(proxy, parsedProxy)
   tfoParser(proxy, parsedProxy)
   detourParser(proxy, parsedProxy)
@@ -1552,10 +1610,26 @@ const tuic5Parser = (proxy = {}) => {
   if (proxy['reduce-rtt']) parsedProxy.zero_rtt_handshake = true
   if (proxy['udp-over-stream']) parsedProxy.udp_over_stream = true
   if (proxy['heartbeat-interval']) parsedProxy.heartbeat = `${proxy['heartbeat-interval']}ms`
+  networkParser(proxy, parsedProxy)
   tfoParser(proxy, parsedProxy)
   detourParser(proxy, parsedProxy)
   tlsParser(proxy, parsedProxy)
   smuxParser(proxy.smux, parsedProxy)
+  return parsedProxy
+}
+const anytlsParser = (proxy = {}) => {
+  const parsedProxy = {
+    tag: proxy.name,
+    type: 'anytls',
+    server: proxy.server,
+    server_port: parseInt(`${proxy.port}`, 10),
+    password: proxy.password,
+    tls: { enabled: true, server_name: proxy.server, insecure: false }
+  }
+  if (/^\d+$/.test(proxy['idle-session-check-interval'])) parsedProxy.idle_session_check_interval = `${proxy['idle-session-check-interval']}s`
+  if (/^\d+$/.test(proxy['idle-session-timeout'])) parsedProxy.idle_session_timeout = `${proxy['idle-session-timeout']}s`
+  detourParser(proxy, parsedProxy)
+  tlsParser(proxy, parsedProxy)
   return parsedProxy
 }
 
@@ -1608,6 +1682,7 @@ const wireguardParser = (proxy = {}) => {
       parsedProxy.peers.push(peer)
     }
   }
+  networkParser(proxy, parsedProxy)
   tfoParser(proxy, parsedProxy)
   detourParser(proxy, parsedProxy)
   smuxParser(proxy.smux, parsedProxy)
