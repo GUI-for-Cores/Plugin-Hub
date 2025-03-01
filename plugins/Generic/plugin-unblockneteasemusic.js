@@ -63,7 +63,13 @@ const startUnblockMusicService = () => {
 /**
  * 插件钩子 - 生成配置时
  */
-const onGenerate = async (config) => {
+const onGenerate = async (config, profile) => {
+  const appSettingsStore = Plugins.useAppSettingsStore()
+  // 跳过非当前运行的配置
+  if (profile.id !== appSettingsStore.app.kernel.profile) {
+    return config
+  }
+
   const isClash = !!config.mode
 
   const group = isClash ? config['proxy-groups'] : config['outbounds']
