@@ -129,6 +129,37 @@ const Backup = async () => {
   await Plugins.sleep(1500).then(() => destroy())
 }
 
+/*
+ * 插件钩子：配置上下文 - 部署到服务器
+ */
+const Deploy = async (profile) => {
+  const configPath = Plugin.ServerConfigPath
+  const serviceName = Plugin.ServerServiceName
+  if (!configPath) {
+    throw '请先配置配置文件路径'
+  }
+  if (!serviceName) {
+    throw '请先配置核心服务名称'
+  }
+  const config = await Plugins.generateConfig(profile)
+  const { success, error, destroy } = Plugins.message.info('部署中...', 88888)
+  const isClash = Plugins.APP_TITLE.includes('Clash')
+  try {
+    await httpPost('/deploy', {
+      configPath,
+      serviceName,
+      content: encrypt(isClash ? Plugins.YAML.stringify(config) : JSON.stringify(config, null, 2)),
+      timeout: 5
+    })
+    success('部署成功')
+  } catch (err) {
+    error(err.message || err)
+  } finally {
+    await Plugins.sleep(3000)
+    destroy()
+  }
+}
+
 const getTag = () => {
   if (Plugins.APP_TITLE.includes('Clash')) return 'gfc'
   if (Plugins.APP_TITLE.includes('SingBox')) return 'gfs'

@@ -12,6 +12,13 @@
       "恢复版本": "Recovery",
       "更新日志": "Changelog"
     },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "configuration": [
       {
         "id": "ID_wqicvdoc",
@@ -50,6 +57,13 @@
       "恢复版本": "Recovery",
       "更新日志": "Changelog"
     },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "configuration": [
       {
         "id": "ID_wqicvdoc",
@@ -84,6 +98,13 @@
     "path": "data/plugins/plugin-add-rulesets.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "status": 0,
     "configuration": [],
     "disabled": false,
@@ -99,6 +120,13 @@
     "path": "data/plugins/plugin-share-profile-to-phone.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "status": 0,
     "configuration": [
       {
@@ -124,6 +152,13 @@
     "path": "data/plugins/plugin-register-sing-box.js",
     "triggers": [],
     "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "status": 0,
     "configuration": [],
     "disabled": false,
@@ -139,6 +174,13 @@
     "path": "data/plugins/plugin-sync-singbox-configuration-gists.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "status": 0,
     "configuration": [
       {

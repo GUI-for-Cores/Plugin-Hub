@@ -8,6 +8,13 @@
     "path": "data/plugins/plugin-add-rulesets.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "status": 0,
     "configuration": [],
     "disabled": false,
@@ -23,6 +30,13 @@
     "path": "data/plugins/plugin-register-clash.js",
     "triggers": [],
     "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "status": 0,
     "configuration": [],
     "disabled": false,

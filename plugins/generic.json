@@ -8,6 +8,13 @@
     "path": "data/plugins/plugin-configuration-example.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "status": 0,
     "configuration": [
       {
@@ -99,6 +106,13 @@
     "path": "data/plugins/plugin-mmdb-example.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "status": 0,
     "configuration": [],
     "disabled": false,
@@ -114,6 +128,13 @@
     "path": "data/plugins/plugin-node-convert.js",
     "triggers": ["on::manual", "on::subscribe"],
     "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "status": 0,
     "configuration": [],
     "disabled": false,
@@ -132,6 +153,13 @@
       "滚动版本": "Rolling",
       "恢复版本": "Recovery",
       "更新日志": "Changelog"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
     },
     "configuration": [
       {
@@ -170,6 +198,13 @@
       "开始提问": "Ask",
       "随意对话": "Chat"
     },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "configuration": [
       {
         "id": "ID_d16le0dy",
@@ -197,6 +232,13 @@
     "menus": {
       "开始提问": "Ask",
       "随意对话": "Chat"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
     },
     "configuration": [
       {
@@ -232,6 +274,13 @@
     "path": "data/plugins/plugin-tun-assistant.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "configuration": [],
     "status": 0,
     "disabled": false,
@@ -247,6 +296,13 @@
     "path": "data/plugins/plugin-check-certificate.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "configuration": [],
     "status": 0,
     "disabled": false,
@@ -263,6 +319,13 @@
     "triggers": ["on::manual", "on::ready"],
     "menus": {
       "关闭守卫": "Stop"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
     },
     "configuration": [
       {
@@ -292,6 +355,13 @@
       "设置代理": "Set",
       "清除代理": "Clear"
     },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "configuration": [],
     "status": 0,
     "disabled": false,
@@ -310,6 +380,13 @@
       "普通配置": "Normal",
       "开发配置": "Development",
       "生产配置": "Production"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
     },
     "configuration": [
       {
@@ -354,6 +431,13 @@
     "path": "data/plugins/plugin-install-font.js",
     "triggers": [],
     "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "status": 0,
     "configuration": [],
     "disabled": false,
@@ -369,6 +453,13 @@
     "path": "data/plugins/plugin-live2d-widget.js",
     "triggers": ["on::manual", "on::ready"],
     "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "status": 0,
     "configuration": [
       {
@@ -408,6 +499,13 @@
       "备份配置": "Backup",
       "恢复配置": "Restore"
     },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "status": 0,
     "configuration": [
       {
@@ -446,6 +544,13 @@
       "停止服务": "Stop",
       "已接收文件": "Saved",
       "共享的文件": "Share"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
     },
     "status": 0,
     "configuration": [
@@ -495,6 +600,13 @@
       "配置文件": "Config",
       "管理员": "More"
     },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "status": 0,
     "configuration": [
       {
@@ -522,6 +634,13 @@
     "menus": {
       "运行服务": "Start",
       "停止服务": "Stop"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
     },
     "status": 0,
     "configuration": [
@@ -561,6 +680,13 @@
       "停止服务": "Stop",
       "更新程序": "Update"
     },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "status": 0,
     "configuration": [
       {
@@ -598,6 +724,13 @@
       "运行服务": "Start",
       "停止服务": "Stop",
       "更新程序": "Update"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
     },
     "status": 0,
     "configuration": [
@@ -717,6 +850,13 @@
       "运行服务": "Start",
       "停止服务": "Stop"
     },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "status": 0,
     "configuration": [
       {
@@ -744,6 +884,15 @@
     "menus": {
       "立即备份": "Backup",
       "同步至本地": "Sync"
+    },
+    "context": {
+      "profiles": {
+        "部署到服务器": "Deploy"
+      },
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
     },
     "status": 0,
     "configuration": [
@@ -800,6 +949,13 @@
       "立即备份": "Backup",
       "同步至本地": "Sync"
     },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "status": 0,
     "configuration": [
       {
@@ -836,6 +992,13 @@
     "menus": {
       "立即备份": "Backup",
       "同步至本地": "Sync"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
     },
     "status": 0,
     "configuration": [
@@ -898,6 +1061,13 @@
     "path": "data/plugins/plugin-bandwagon-vps.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "status": 0,
     "configuration": [
       {
@@ -925,6 +1095,13 @@
     "menus": {
       "运行服务": "Start",
       "停止服务": "Stop"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
     },
     "status": 0,
     "configuration": [
@@ -1086,6 +1263,13 @@
     "path": "data/plugins/plugin-index-the-proxy-name.js",
     "triggers": ["on::subscribe"],
     "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "status": 0,
     "configuration": [],
     "disabled": false,
@@ -1101,6 +1285,13 @@
     "path": "data/plugins/plugin-uwp-loopback-exempt.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "status": 0,
     "configuration": [],
     "disabled": false,
@@ -1119,6 +1310,13 @@
       "复制 Bash 环境变量": "copyBashEnv",
       "复制 CMD 环境变量": "copyCMDEnv",
       "复制 PowerShell 环境变量": "copyPowerShellEnv"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
     },
     "status": 0,
     "configuration": [
@@ -1145,6 +1343,13 @@
     "path": "data/plugins/plugin-modify-proxy-name.js",
     "triggers": ["on::subscribe"],
     "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "status": 0,
     "configuration": [
       {
@@ -1197,6 +1402,13 @@
     "path": "data/plugins/plugin-ip-geolocation.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "status": 0,
     "configuration": [],
     "disabled": false,
@@ -1212,6 +1424,13 @@
     "path": "data/plugins/plugin-speedtest.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "status": 0,
     "configuration": [
       {
@@ -1237,6 +1456,13 @@
     "path": "data/plugins/plugin-geoip-search.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "status": 0,
     "configuration": [],
     "disabled": false,
@@ -1253,6 +1479,13 @@
     "triggers": ["on::manual"],
     "menus": {
       "手动模式": "manual"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
     },
     "status": 0,
     "configuration": [
@@ -1297,6 +1530,13 @@
     "path": "data/plugins/plugin-open-yacd-meta-dashboard.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "status": 0,
     "configuration": [],
     "disabled": false,
@@ -1315,6 +1555,13 @@
       "选择背景": "Select",
       "清除主题": "Clear",
       "重置配置": "Reset"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
     },
     "status": 0,
     "configuration": [
@@ -1359,6 +1606,13 @@
     "path": "data/plugins/plugin-aliyunpan-signin.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "status": 0,
     "configuration": [
       {
@@ -1385,6 +1639,13 @@
     "triggers": ["on::manual"],
     "menus": {
       "打开目录": "OpenFolder"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
     },
     "status": 0,
     "configuration": [
@@ -1450,6 +1711,13 @@
       "启动服务": "Start",
       "停止服务": "Stop"
     },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
     "status": 0,
     "configuration": [
       {
@@ -1504,6 +1772,13 @@
     "triggers": ["on::manual", "on::ready"],
     "menus": {
       "XD Dashboard": "OnRun"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
     },
     "configuration": [
       {
