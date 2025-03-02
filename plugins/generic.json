@@ -931,6 +931,24 @@
         "component": "Input",
         "value": "",
         "options": []
+      },
+      {
+        "id": "ID_h2p3p2nn",
+        "title": "核心配置路径",
+        "description": "核心配置路径，例如：/etc/core/config.json",
+        "key": "ServerConfigPath",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_ipgaaq1l",
+        "title": "核心服务名",
+        "description": "systemd服务名，例如：sing-box.service、mihomo.service",
+        "key": "ServerServiceName",
+        "component": "Input",
+        "value": "",
+        "options": []
       }
     ],
     "disabled": false,
