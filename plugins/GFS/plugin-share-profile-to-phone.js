@@ -3,7 +3,6 @@ const PATH = 'data/third/share-profile-to-phone'
 
 /* 触发器 手动触发 */
 const onRun = async () => {
-  await loadDependence()
   const store = Plugins.useProfilesStore()
   if (store.profiles.length === 0) {
     throw '请先创建一个配置'
@@ -21,13 +20,17 @@ const onRun = async () => {
       []
     )
   }
-  const _profile = Plugins.deepClone(profile)
+  await Share(Plugins.deepClone(profile))
+}
+
+const Share = async (profile) => {
+  await loadDependence()
   // 旧配置
-  if (_profile.tunConfig) {
+  if (profile.tunConfig) {
     // * 开启TUN
-    _profile.tunConfig.enable = true
+    profile.tunConfig.enable = true
     // * 替换本地规则集为远程规则集（仅从规则集中心添加的可替换）
-    ;[..._profile.dnsRulesConfig, ..._profile.rulesConfig].forEach((rule) => {
+    ;[...profile.dnsRulesConfig, ...profile.rulesConfig].forEach((rule) => {
       if (rule.type === 'rule_set') {
         // 符合这一规则的说明是从规则集中心添加的，可以安全的转为远程规则集
         if (rule.payload.startsWith('geosite_') || rule.payload.startsWith('geoip_')) {
@@ -44,9 +47,9 @@ const onRun = async () => {
   // 新配置
   else {
     // * 开启TUN
-    let tun = _profile.inbounds.find((v) => v.type === 'tun')
-    const mixed = _profile.inbounds.find((v) => v.type === 'mixed')
-    const http = _profile.inbounds.find((v) => v.type === 'http')
+    let tun = profile.inbounds.find((v) => v.type === 'tun')
+    const mixed = profile.inbounds.find((v) => v.type === 'mixed')
+    const http = profile.inbounds.find((v) => v.type === 'http')
     if (!tun) {
       tun = {
         id: Plugins.sampleID(),
@@ -62,7 +65,7 @@ const onRun = async () => {
           stack: 'mixed'
         }
       }
-      _profile.inbounds.push(tun)
+      profile.inbounds.push(tun)
     }
     tun.enable = true
     if (mixed) {
@@ -84,7 +87,7 @@ const onRun = async () => {
     }
     // * 替换本地规则集为远程规则集
     const rulesetsStore = Plugins.useRulesetsStore()
-    for (const ruleset of _profile.route.rule_set) {
+    for (const ruleset of profile.route.rule_set) {
       if (ruleset.type === 'local') {
         const _ruleset = rulesetsStore.getRulesetById(ruleset.path)
         if (_ruleset) {
@@ -110,12 +113,12 @@ const onRun = async () => {
     '生成的配置类型',
     [
       { label: 'v1.11.0之前版本', value: 'legacy' },
-      { label: '稳定版', value: 'stable' },
-      { label: '内测版', value: 'alpha' }
+      { label: '稳定版', value: 'stable' }
+      // { label: '内测版', value: 'alpha' }
     ],
     ['stable']
   )
-  const config = await Plugins.generateConfig(_profile, type === 'stable')
+  const config = await Plugins.generateConfig(profile, type === 'stable')
   if (type === 'legacy') {
     _adaptToLegacy(config)
   }
@@ -123,7 +126,7 @@ const onRun = async () => {
   const urls = await Promise.all(
     ips.map((ip) => {
       const url = `http://${ip}:${Plugin.Port}`
-      return getQRCode(url, `sing-box://import-remote-profile?url=${encodeURIComponent(url)}#${_profile.name}`)
+      return getQRCode(url, `sing-box://import-remote-profile?url=${encodeURIComponent(url)}#${profile.name}`)
     })
   )
   // await Plugins.StopServer(Plugin.id)

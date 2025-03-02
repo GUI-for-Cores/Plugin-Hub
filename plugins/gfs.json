@@ -121,7 +121,9 @@
     "triggers": ["on::manual"],
     "menus": {},
     "context": {
-      "profiles": {},
+      "profiles": {
+        "共享至手机": "Share"
+      },
       "subscriptions": {},
       "rulesets": {},
       "plugins": {},
