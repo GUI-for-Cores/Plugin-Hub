@@ -10,6 +10,7 @@ const protocolForClash = {
   hysteria2: URI_Hysteria2(),
   hy2: URI_Hysteria2(),
   hysteria: URI_Hysteria(),
+  anytls: URI_AnyTLS(),
   tuic: URI_TUIC(),
   wireguard: URI_WireGuard(),
   trojan: URI_Trojan()
@@ -23,6 +24,7 @@ const protocolForSingBox = () => ({
   hysteria2: hysteria2Parser,
   hy2: hysteria2Parser,
   hysteria: hysteriaParser,
+  anytls: anytlsParser,
   tuic: tuic5Parser,
   wireguard: wireguardParser,
   trojan: trojanParser
@@ -759,6 +761,51 @@ function URI_VLESS() {
       }
       if (params.extra) {
         proxy._extra = params.extra
+      }
+    }
+
+    return proxy
+  }
+  return { name, test, parse }
+}
+function URI_AnyTLS() {
+  const name = 'URI AnyTLS Parser'
+  const test = (line) => {
+    return /^anytls:\/\//.test(line)
+  }
+  const parse = (line) => {
+    line = line.split(/anytls:\/\//)[1]
+    // eslint-disable-next-line no-unused-vars
+    let [__, password, server, port, addons = '', name] = /^(.*?)@(.*?)(?::(\d+))?\/?(?:\?(.*?))?(?:#(.*?))?$/.exec(line)
+    password = decodeURIComponent(password)
+    port = parseInt(`${port}`, 10)
+    if (isNaN(port)) {
+      port = 443
+    }
+    password = decodeURIComponent(password)
+    if (name != null) {
+      name = decodeURIComponent(name)
+    }
+    name = name ?? `AnyTLS ${server}:${port}`
+
+    const proxy = {
+      type: 'anytls',
+      name,
+      server,
+      port,
+      password
+    }
+
+    for (const addon of addons.split('&')) {
+      let [key, value] = addon.split('=')
+      key = key.replace(/_/g, '-')
+      value = decodeURIComponent(value)
+      if (['alpn'].includes(key)) {
+        proxy[key] = value ? value.split(',') : undefined
+      } else if (['insecure'].includes(key)) {
+        proxy['skip-cert-verify'] = /(TRUE)|1/i.test(value)
+      } else {
+        proxy[key] = value
       }
     }
 
