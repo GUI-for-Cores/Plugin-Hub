@@ -2,6 +2,7 @@
   {
     "id": "plugin-rolling-release-legacy",
     "name": "滚动发行（Legacy）",
+    "version": "v1.0.0",
     "description": "适用于习惯旧版配置界面的用户，无法支持新版 sing-box 配置文件。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-rolling-release-legacy.js",
@@ -45,53 +46,9 @@
     "installed": false
   },
   {
-    "id": "plugin-temp-alpha",
-    "name": "滚动发行（内测版）",
-    "description": "此版本属于开发内测版，欢迎加入测试。",
-    "type": "Http",
-    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-temp-alpha.js",
-    "path": "data/plugins/plugin-temp-alpha.js",
-    "triggers": ["on::manual", "on::ready", "on::startup"],
-    "menus": {
-      "滚动版本": "Rolling",
-      "恢复版本": "Recovery",
-      "更新日志": "Changelog"
-    },
-    "context": {
-      "profiles": {},
-      "subscriptions": {},
-      "rulesets": {},
-      "plugins": {},
-      "scheduledtasks": {}
-    },
-    "configuration": [
-      {
-        "id": "ID_wqicvdoc",
-        "title": "自动更新策略",
-        "description": "自动滚动至最新版本",
-        "key": "AutoRollingMode",
-        "component": "Radio",
-        "value": "disabled",
-        "options": ["不自动更新,disabled", "启动APP时,onStartup", "APP就绪时,onReady"]
-      },
-      {
-        "id": "ID_vognsfjh",
-        "title": "自动更新策略延迟",
-        "description": "延迟一段时间再执行更新检测，单位秒",
-        "key": "AutoRollingDelay",
-        "component": "Input",
-        "value": "10",
-        "options": []
-      }
-    ],
-    "status": 0,
-    "disabled": false,
-    "install": false,
-    "installed": false
-  },
-  {
     "id": "plugin-add-rulesets",
     "name": "一键添加规则集",
+    "version": "v1.0.0",
     "description": "一键添加所有的规则集到你的列表，添加后你需要手动更新规则集来下载到本地，以便在配置文件中引用它们。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-add-rulesets.js",
@@ -114,6 +71,7 @@
   {
     "id": "plugin-share-profile-to-phone",
     "name": "共享配置到手机",
+    "version": "v1.0.0",
     "description": "专为手机sing-box应用生成的配置，支持二维码导入。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-share-profile-to-phone.js",
@@ -148,6 +106,7 @@
   {
     "id": "plugin-register-sing-box",
     "name": "注册SingBox协议到注册表",
+    "version": "v1.0.0",
     "description": "注册后，你可以使用机场的一键导入订阅功能。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-register-sing-box.js",
@@ -170,6 +129,7 @@
   {
     "id": "plugin-sync-singbox-configuration-gists",
     "name": "一键同步config.json",
+    "version": "v1.0.0",
     "description": "将所有配置生成的config.json一键同步到Gists。Supported by: StarfishC",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-sync-singbox-configuration-gists.js",

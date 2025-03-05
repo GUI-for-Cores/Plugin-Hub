@@ -2,6 +2,7 @@
   {
     "id": "plugin-configuration-example",
     "name": "插件配置示例",
+    "version": "v1.0.0",
     "description": "插件配置示例，该示例包含了多种数据格式：字符串数组、长文本、键值对、布尔值、单文本。开发者可在编辑插件中配置插件源码中使用到的参数，通过相关API进行引用。用户可右键【配置插件】对这些参数按需修改。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-configuration-example.js",
@@ -100,6 +101,7 @@
   {
     "id": "plugin-mmdb-example",
     "name": "GeoLite2 操作示例",
+    "version": "v1.0.0",
     "description": "插件API MMDB操作示例",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-mmdb-example.js",
@@ -122,6 +124,7 @@
   {
     "id": "plugin-node-convert",
     "name": "节点转换",
+    "version": "v1.0.0",
     "description": "节点格式转换插件，支持v2Ray格式转clash、clash格式转sing-box。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-node-convert.js",
@@ -144,6 +147,7 @@
   {
     "id": "plugin-rolling-release",
     "name": "滚动发行",
+    "version": "v1.0.0",
     "description": "提升GUI升级体验，获取更快、更新、更稳定的版本更新。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-rolling-release.js",
@@ -189,6 +193,7 @@
   {
     "id": "plugin-gemini-ai",
     "name": "Gemini 助手",
+    "version": "v1.0.0",
     "description": "使用Gemini，GUI高高手！",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-gemini-ai.js",
@@ -224,6 +229,7 @@
   {
     "id": "plugin-workers-ai",
     "name": "Workers AI 助手",
+    "version": "v1.0.0",
     "description": "关于GUI，为什么不问问神奇海螺？",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-workers-ai.js",
@@ -268,6 +274,7 @@
   {
     "id": "plugin-tun-assistant",
     "name": "TUN模式助手",
+    "version": "v1.0.0",
     "description": "TUN模式食用指南！",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-tun-assistant.js",
@@ -290,6 +297,7 @@
   {
     "id": "plugin-check-certificate",
     "name": "系统证书安全检测",
+    "version": "v1.0.0",
     "description": "检测系统是否具有未经验证的证书！",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-check-certificate.js",
@@ -312,6 +320,7 @@
   {
     "id": "plugin-system-proxy-guard",
     "name": "代理守卫",
+    "version": "v1.0.0",
     "description": "谁动了我的系统代理？防止系统代理被篡改",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-system-proxy-guard.js",
@@ -346,6 +355,7 @@
   {
     "id": "plugin-systemproxy-external",
     "name": "外接网卡系统代理",
+    "version": "v1.0.0",
     "description": "为macOS的外接网卡设置系统代理。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-systemproxy-external.js",
@@ -371,6 +381,7 @@
   {
     "id": "plugin-hosts-management",
     "name": "Hosts管理",
+    "version": "v1.0.0",
     "description": "在三种预设Hosts中自由切换",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-hosts-management.js",
@@ -425,6 +436,7 @@
   {
     "id": "plugin-install-font",
     "name": "Twemoji.Mozilla",
+    "version": "v1.0.0",
     "description": "下载并安装字体“Twemoji.Mozilla.ttf”，你的节点将正常显示国旗图标。（Twemoji font in COLR/CPAL layered format）",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-install-font.js",
@@ -447,6 +459,7 @@
   {
     "id": "plugin-live2d-widget",
     "name": "Live2D 看板娘",
+    "version": "v1.0.0",
     "description": "把萌萌哒的看板娘抱回家 (ノ≧∇≦)ノ",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-live2d-widget.js",
@@ -488,6 +501,7 @@
   {
     "id": "plugin-adguardhome",
     "name": "AdGuardHome",
+    "version": "v1.0.0",
     "description": "集成AdGuardHome程序。（Network-wide ads & trackers blocking DNS server）",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-adguardhome.js",
@@ -534,6 +548,7 @@
   {
     "id": "plugin-file-transfer-assistant",
     "name": "文件互传助手",
+    "version": "v1.0.0",
     "description": "文件互传助手，支持Siri快捷指令。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-file-transfer-assistant.js",
@@ -589,6 +604,7 @@
   {
     "id": "plugin-alist",
     "name": "Alist",
+    "version": "v1.0.0",
     "description": "🗂️A file list/WebDAV program that supports multiple storages, powered by Gin and Solidjs. / 一个支持多存储的文件列表/WebDAV程序，使用 Gin 和 Solidjs。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-alist.js",
@@ -626,6 +642,7 @@
   {
     "id": "plugin-frp-client",
     "name": "frp 内网穿透",
+    "version": "v1.0.0",
     "description": "FRP内网穿透客户端程序。（A fast reverse proxy to help you expose a local server behind a NAT or firewall to the internet.）",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-frp-client.js",
@@ -670,6 +687,7 @@
   {
     "id": "plugin-sub-store-v3",
     "name": "Sub-Store 纯净版",
+    "version": "v1.0.0",
     "description": "高级订阅管理工具。无Node.js、无MITM，优雅。（Advanced Subscription Manager for QX, Loon, Surge, Stash and Shadowrocket!）",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sub-store-v3.js",
@@ -715,6 +733,7 @@
   {
     "id": "plugin-sub-store-v2",
     "name": "Sub-Store Nodejs版",
+    "version": "v1.0.0",
     "description": "高级订阅管理工具，Node.js版，无需编译。（Advanced Subscription Manager for QX, Loon, Surge, Stash and Shadowrocket!）",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sub-store-v2.js",
@@ -841,6 +860,7 @@
   {
     "id": "plugin-sub-store-script-support",
     "name": "Sub-Store 脚本支持",
+    "version": "v1.0.0",
     "description": "安装后Sub-Store可正常使用测落地的相关脚本。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sub-store-script-support.js",
@@ -876,6 +896,7 @@
   {
     "id": "plugin-sync-configuration",
     "name": "配置同步",
+    "version": "v1.0.0",
     "description": "使用自建服务同步GUI配置。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sync-configuration.js",
@@ -958,6 +979,7 @@
   {
     "id": "plugin-sync-configuration-gists",
     "name": "配置同步 - Gists",
+    "version": "v1.0.0",
     "description": "使用Gists同步GUI配置。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sync-configuration-gists.js",
@@ -1002,6 +1024,7 @@
   {
     "id": "plugin-sync-configuration-webdav",
     "name": "配置同步 - WebDAV",
+    "version": "v1.0.0",
     "description": "使用webDAV协议同步GUI配置。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sync-configuration-webdav.js",
@@ -1073,6 +1096,7 @@
   {
     "id": "plugin-bandwagon-vps",
     "name": "搬瓦工 VPS 管理",
+    "version": "v1.0.0",
     "description": "管理你的搬瓦工VPS。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-bandwagon-vps.js",
@@ -1105,6 +1129,7 @@
   {
     "id": "plugin-unblockneteasemusic",
     "name": "解锁网易云音乐",
+    "version": "v1.0.0",
     "description": "解锁网易云音乐插件，需要安装CA证书。请在音乐客户端内开启：使用IE代理设置。（Revive unavailable songs for Netease Cloud Music (Refactored & Enhanced version)）",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-unblockneteasemusic.js",
@@ -1275,6 +1300,7 @@
   {
     "id": "plugin-index-the-proxy-name",
     "name": "防代理重名",
+    "version": "v1.0.0",
     "description": "在代理名称后面加上索引、避免名称冲突。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-index-the-proxy-name.js",
@@ -1297,6 +1323,7 @@
   {
     "id": "plugin-uwp-loopback-exempt",
     "name": "解除UWP应用本地回环限制",
+    "version": "v1.0.0",
     "description": "解除Window的UWP应用本地回环限制，解除后UWP应用将支持系统代理。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-uwp-loopback-exempt.js",
@@ -1319,6 +1346,7 @@
   {
     "id": "plugin-terminal-proxy",
     "name": "一键设置终端代理",
+    "version": "v1.0.0",
     "description": "一键设置系统cmd、powershell等终端的代理，非常适用于使用系统代理的用户。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-terminal-proxy.js",
@@ -1355,6 +1383,7 @@
   {
     "id": "plugin-modify-proxy-name",
     "name": "更好的代理名称显示",
+    "version": "v1.0.0",
     "description": "在节点名称前加上对应的国家地区的 Emoji；移除节点名称中的一些关键词；对节点名称进行标号。Supported by: QiChaiQiChai",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-modify-proxy-name.js",
@@ -1414,6 +1443,7 @@
   {
     "id": "plugin-ip-geolocation",
     "name": "IP 信息查询",
+    "version": "v1.0.0",
     "description": "快速查询当前 IP 信息。Supported by: QiChaiQiChai",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-ip-geolocation.js",
@@ -1436,6 +1466,7 @@
   {
     "id": "plugin-speedtest",
     "name": "SpeedTest 速度测试",
+    "version": "v1.0.0",
     "description": "测试当前节点延迟和下行速度。Supported by: QiChaiQiChai",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-speedtest.js",
@@ -1468,6 +1499,7 @@
   {
     "id": "plugin-geoip-search",
     "name": "GeoIP 查询",
+    "version": "v1.0.0",
     "description": "查询 IP 信息。Supported by: QiChaiQiChai",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-geoip-search.js",
@@ -1490,6 +1522,7 @@
   {
     "id": "plugin-scamalytics-ip-fraud-risk",
     "name": "Scamalytics IP 欺诈风险查询",
+    "version": "v1.0.0",
     "description": "查询当前节点落地 IP 的欺诈风险。Supported by: QiChaiQiChai",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-scamalytics-ip-fraud-risk.js",
@@ -1542,6 +1575,7 @@
   {
     "id": "plugin-open-yacd-meta-dashboard",
     "name": "Yacd-meta 仪表板",
+    "version": "v1.0.0",
     "description": "启动 Yacd-meta 仪表板。Supported by: QiChaiQiChai",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-open-yacd-meta-dashboard.js",
@@ -1564,6 +1598,7 @@
   {
     "id": "plugin-custom-theme",
     "name": "自定义主题",
+    "version": "v1.0.0",
     "description": "通过修改css变量，实现任意主题配色！",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-custom-theme.js",
@@ -1618,6 +1653,7 @@
   {
     "id": "plugin-aliyunpan-signin",
     "name": "阿里云盘签到",
+    "version": "v1.0.0",
     "description": "阿里云盘自动签到，可配合计划任务系统。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-aliyunpan-signin.js",
@@ -1650,6 +1686,7 @@
   {
     "id": "plugin-screen-recorder",
     "name": "屏幕录制",
+    "version": "v1.0.0",
     "description": "使用浏览器提供的API录制屏幕。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-screen-recorder.js",
@@ -1720,6 +1757,7 @@
   {
     "id": "plugin-gui-restful-api-v1",
     "name": "RESTful-Api v1",
+    "version": "v1.0.0",
     "description": "GUI RESTful-Api，可通过HTTP协议控制GUI。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-gui-restful-api-v1.js",
@@ -1782,6 +1820,7 @@
   {
     "id": "plugin-metacubexd-dashboard",
     "name": "metacubexd 仪表板",
+    "version": "v1.0.0",
     "description": "一个更好看的Mihomo仪表板。Supported by: ColinZeb",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/refs/heads/main/plugins/Generic/plugin-metacubexd-dashboard.js",
