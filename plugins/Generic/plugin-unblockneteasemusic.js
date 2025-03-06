@@ -271,10 +271,9 @@ const Start = async () => {
  * 插件菜单项 - 停止服务
  */
 const Stop = async () => {
-  if (!(await isUnblockMusicRunning())) {
-    throw '当前服务并未在运行'
+  if (await isUnblockMusicRunning()) {
+    await stopUnblockMusicService()
   }
-  await stopUnblockMusicService()
   Plugins.message.success('✨ 插件停止成功')
   return 2
 }
