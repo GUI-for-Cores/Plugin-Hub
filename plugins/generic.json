@@ -1598,7 +1598,7 @@
   {
     "id": "plugin-custom-theme",
     "name": "自定义主题",
-    "version": "v1.0.0",
+    "version": "v2.0.0",
     "description": "通过修改css变量，实现任意主题配色！",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-custom-theme.js",
@@ -1607,7 +1607,8 @@
     "menus": {
       "选择背景": "Select",
       "清除主题": "Clear",
-      "重置配置": "Reset"
+      "重置配置": "Reset",
+      "自定义图标": "CustomIcon"
     },
     "context": {
       "profiles": {},

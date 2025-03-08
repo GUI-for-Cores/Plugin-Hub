@@ -262,6 +262,94 @@ const Reset = async (isReset = true) => {
   isReset && onReady()
 }
 
+/*
+ * 插件钩子 - 右键：自定义图标
+ */
+const CustomIcon = async () => {
+  const iconMap = {
+    huorong: {
+      title: '火绒图标',
+      icons: [
+        'https://github.com/clash-verge-rev/icon-hub/raw/main/huorong/common.ico?raw=true',
+        'https://github.com/clash-verge-rev/icon-hub/raw/main/huorong/sysproxy.ico?raw=true',
+        'https://github.com/clash-verge-rev/icon-hub/raw/main/huorong/tun.ico?raw=true'
+      ]
+    },
+    vergeRevColorful: {
+      title: 'ClashVergeRev 彩色',
+      icons: [
+        'https://github.com/clash-verge-rev/icon-hub/raw/main/official-cat/common.ico?raw=true',
+        'https://github.com/clash-verge-rev/icon-hub/blob/main/official-cat/sysproxy.ico?raw=true',
+        'https://github.com/clash-verge-rev/icon-hub/raw/main/official-cat/tun.ico?raw=true'
+      ]
+    },
+    vergeRevLight: {
+      title: 'ClashVergeRev 亮色',
+      icons: [
+        'https://github.com/clash-verge-rev/icon-hub/raw/main/official-white/common.ico?raw=true',
+        'https://github.com/clash-verge-rev/icon-hub/raw/main/official-white/sysproxy.ico?raw=true',
+        'https://github.com/clash-verge-rev/icon-hub/raw/main/official-white/tun.ico?raw=true'
+      ]
+    },
+    vergeRevDark: {
+      title: 'ClashVergeRev 暗色',
+      icons: [
+        'https://github.com/clash-verge-rev/icon-hub/raw/main/official-black/common.ico?raw=true',
+        'https://github.com/clash-verge-rev/icon-hub/raw/main/official-black/sysproxy.ico?raw=true',
+        'https://github.com/clash-verge-rev/icon-hub/raw/main/official-black/tun.ico?raw=true'
+      ]
+    },
+    [Plugins.APP_TITLE]: {
+      title: Plugins.APP_TITLE,
+      icons: ['/favicon.ico']
+    }
+  }
+
+  const renderImgs = (imgs) => imgs.map((img) => `<img src="${img}" width="20" height= "20" />`).join('')
+  const renderAction = (id) => `<a onclick="window.${handlerId}('${id}')">选中</a>`
+
+  let iconId
+  const handlerId = Plugins.sampleID()
+  window[handlerId] = (id) => {
+    iconId = id
+    Plugins.message.success('已记住你的选择，点击确定生效。', 1000)
+  }
+
+  const items = Object.entries(iconMap).reduce((p, c) => {
+    return [...p, `| ${renderImgs(c[1].icons)} | ${c[1].title} | ${renderAction(c[0])} |`]
+  }, [])
+
+  try {
+    await Plugins.confirm('要替换成什么图标呢？', `|预览|名称|操作|\n| - | - | - |\n${items.join('\n')}\n`, { markdown: true })
+
+    if (iconMap[iconId]) {
+      if (iconId === Plugins.APP_TITLE) {
+        await Plugins.Removefile('data/.cache/icons')
+      } else {
+        const { destroy } = Plugins.message.info('正在下载图标...', 9999)
+        const [normal, proxy, tun] = iconMap[iconId].icons
+        await Promise.all([
+          Plugins.Download(normal, 'data/.cache/icons/tray_normal_dark.ico').then(() => {
+            Plugins.Copyfile('data/.cache/icons/tray_normal_dark.ico', 'data/.cache/icons/tray_normal_light.ico')
+          }),
+          Plugins.Download(proxy, 'data/.cache/icons/tray_proxy_dark.ico').then(() => {
+            Plugins.Copyfile('data/.cache/icons/tray_proxy_dark.ico', 'data/.cache/icons/tray_proxy_light.ico')
+          }),
+          Plugins.Download(tun, 'data/.cache/icons/tray_tun_dark.ico').then(() => {
+            Plugins.Copyfile('data/.cache/icons/tray_tun_dark.ico', 'data/.cache/icons/tray_tun_light.ico')
+          })
+        ])
+        destroy()
+      }
+      if (await Plugins.confirm('替换成功', '是否立即重启客户端？').catch(0)) {
+        await Plugins.RestartApp()
+      }
+    }
+  } finally {
+    delete window[handlerId]
+  }
+}
+
 /**
  * 设置自定义CSS颜色
  */
