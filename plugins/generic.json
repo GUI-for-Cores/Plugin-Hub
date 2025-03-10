@@ -147,7 +147,7 @@
   {
     "id": "plugin-rolling-release",
     "name": "滚动发行",
-    "version": "v1.0.0",
+    "version": "v2.0.0",
     "description": "提升GUI升级体验，获取更快、更新、更稳定的版本更新。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-rolling-release.js",
@@ -156,7 +156,8 @@
     "menus": {
       "滚动版本": "Rolling",
       "恢复版本": "Recovery",
-      "更新日志": "Changelog"
+      "更新日志": "Changelog",
+      "版本统计": "Statistics"
     },
     "context": {
       "profiles": {},
