@@ -29,6 +29,16 @@ const ENV = {
   NETEASE_COOKIE: Plugin.NETEASE_COOKIE //	网易云 Cookie	MUSIC_U=007554xxx
 }
 
+// 存储插件全局变量
+window[Plugin.id] = window[Plugin.id] || {
+  onServiceStopped: Plugins.debounce(async () => {
+    delete window[Plugin.id]
+    console.log(`[${Plugin.name}]`, '插件已停止')
+    await Plugins.Writefile(PID_FILE, '0')
+    await switchTo(0) // 切换为直连
+  }, 100)
+}
+
 /**
  * 启动服务
  */
@@ -46,9 +56,9 @@ const startUnblockMusicService = () => {
             resolve()
           }
         },
-        async () => {
-          await Plugins.Writefile(PID_FILE, '0')
-          await switchTo(0) // 切换为直连
+        () => {
+          console.log(`[${Plugin.name}]`, '进程已结束')
+          window[Plugin.id].onServiceStopped()
         },
         {
           env: ENV
@@ -124,9 +134,8 @@ const stopUnblockMusicService = async () => {
   const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
   if (pid && pid !== '0') {
     await Plugins.KillProcess(Number(pid))
-    await Plugins.Writefile(PID_FILE, '0')
-    // 切换为直连
-    await switchTo(0)
+    console.log(`[${Plugin.name}]`, '已杀死进程')
+    window[Plugin.id].onServiceStopped()
   }
 }
 
