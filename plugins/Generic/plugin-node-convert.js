@@ -18,8 +18,8 @@ const onRun = async () => {
     { label: 'v2Ray格式', value: 'v2ray' }
   ])
 
-  const result =
-    platform == 'singbox' ? JSON.stringify(singbox_proxies, null, 2) : platform == 'mihomo' ? Plugins.YAML.stringify(mihomo_proxies) : v2ray_proxies
+  // prettier-ignore
+  const result = platform == 'singbox' ? JSON.stringify(singbox_proxies, null, 2) : platform == 'mihomo' ? Plugins.YAML.stringify(mihomo_proxies) : v2ray_proxies
 
   await Plugins.confirm('转换结果如下', result)
 }
@@ -40,6 +40,10 @@ const onSubscribe = async (proxies) => {
   // 如果是clash格式，并且是GFS，则转为sing-box格式
   if (isClashProxies && Plugins.APP_TITLE.includes('SingBox')) {
     proxies = ProxyUtils.produce(proxies, 'singbox', 'internal')
+    // 移除暂未适配的字段
+    proxies.forEach((proxy) => {
+      delete proxy.domain_resolver
+    })
   }
 
   return proxies
