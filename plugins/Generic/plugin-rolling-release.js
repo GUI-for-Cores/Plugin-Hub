@@ -165,7 +165,7 @@ const Statistics = async () => {
       const size = r.assets.reduce((p, c) => p + c.size, 0)
       const name = r.name + (r.name === Plugins.APP_VERSION ? '`我的版本`' : '')
       const download = count.other ?? `${windows_icon} ${count.windows} / ${darwin_icon} ${count.darwin} / ${linux_icon} ${count.linux}`
-      const fileSize = Plugins.formatBytes(size / r.assets.length)
+      const fileSize = Plugins.formatBytes(size / r.assets.filter((v) => v.name.startsWith('GUI') || v.name.startsWith('rolling-')).length)
       const uploader = [...new Set(r.assets.map((asset) => asset.uploader.login))].join('、')
       const createTime = Plugins.formatRelativeTime(r.assets[0].updated_at)
       return `| ${name} | ${download} | ${fileSize} | ${uploader} | ${createTime} |`
