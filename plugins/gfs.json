@@ -1,51 +1,5 @@
 [
   {
-    "id": "plugin-rolling-release-legacy",
-    "name": "滚动发行（Legacy）",
-    "version": "v1.0.0",
-    "description": "适用于习惯旧版配置界面的用户，无法支持新版 sing-box 配置文件。",
-    "type": "Http",
-    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-rolling-release-legacy.js",
-    "path": "data/plugins/plugin-rolling-release-legacy.js",
-    "triggers": ["on::manual", "on::ready", "on::startup"],
-    "menus": {
-      "滚动版本": "Rolling",
-      "恢复版本": "Recovery",
-      "更新日志": "Changelog"
-    },
-    "context": {
-      "profiles": {},
-      "subscriptions": {},
-      "rulesets": {},
-      "plugins": {},
-      "scheduledtasks": {}
-    },
-    "configuration": [
-      {
-        "id": "ID_wqicvdoc",
-        "title": "自动更新策略",
-        "description": "自动滚动至最新版本",
-        "key": "AutoRollingMode",
-        "component": "Radio",
-        "value": "disabled",
-        "options": ["不自动更新,disabled", "启动APP时,onStartup", "APP就绪时,onReady"]
-      },
-      {
-        "id": "ID_vognsfjh",
-        "title": "自动更新策略延迟",
-        "description": "延迟一段时间再执行更新检测，单位秒",
-        "key": "AutoRollingDelay",
-        "component": "Input",
-        "value": "10",
-        "options": []
-      }
-    ],
-    "status": 0,
-    "disabled": false,
-    "install": false,
-    "installed": false
-  },
-  {
     "id": "plugin-add-rulesets",
     "name": "一键添加规则集",
     "version": "v1.0.0",
