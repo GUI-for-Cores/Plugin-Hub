@@ -200,49 +200,6 @@ function ClashMeta_Producer() {
         if (opts['include-unsupported-proxy']) return true
         if (proxy.type === 'snell' && String(proxy.version) === '4') {
           return false
-        } else if (['juicity'].includes(proxy.type)) {
-          return false
-        } else if (
-          ['ss'].includes(proxy.type) &&
-          ![
-            'aes-128-ctr',
-            'aes-192-ctr',
-            'aes-256-ctr',
-            'aes-128-cfb',
-            'aes-192-cfb',
-            'aes-256-cfb',
-            'aes-128-gcm',
-            'aes-192-gcm',
-            'aes-256-gcm',
-            'aes-128-ccm',
-            'aes-192-ccm',
-            'aes-256-ccm',
-            'aes-128-gcm-siv',
-            'aes-256-gcm-siv',
-            'chacha20-ietf',
-            'chacha20',
-            'xchacha20',
-            'chacha20-ietf-poly1305',
-            'xchacha20-ietf-poly1305',
-            'chacha8-ietf-poly1305',
-            'xchacha8-ietf-poly1305',
-            '2022-blake3-aes-128-gcm',
-            '2022-blake3-aes-256-gcm',
-            '2022-blake3-chacha20-poly1305',
-            'lea-128-gcm',
-            'lea-192-gcm',
-            'lea-256-gcm',
-            'rabbit128-poly1305',
-            'aegis-128l',
-            'aegis-256',
-            'aez-384',
-            'deoxys-ii-256-128',
-            'rc4-md5',
-            'none'
-          ].includes(proxy.cipher)
-        ) {
-          // https://wiki.metacubex.one/config/proxies/ss/#cipher
-          return false
         }
         return true
       })
@@ -261,7 +218,7 @@ function ClashMeta_Producer() {
           }
           // https://github.com/MetaCubeX/Clash.Meta/blob/Alpha/docs/config.yaml#L400
           // https://stash.wiki/proxy-protocols/proxy-types#vmess
-          if (isPresent(proxy, 'cipher') && !['auto', 'none', 'zero', 'aes-128-gcm', 'chacha20-poly1305'].includes(proxy.cipher)) {
+          if (isPresent(proxy, 'cipher') && !['auto', 'aes-128-gcm', 'chacha20-poly1305', 'none'].includes(proxy.cipher)) {
             proxy.cipher = 'auto'
           }
         } else if (proxy.type === 'tuic') {
@@ -293,8 +250,6 @@ function ClashMeta_Producer() {
           proxy['persistent-keepalive'] = proxy.keepalive
           proxy['preshared-key'] = proxy['preshared-key'] ?? proxy['pre-shared-key']
           proxy['pre-shared-key'] = proxy['preshared-key']
-        } else if (proxy.type === 'snell' && proxy.version < 3) {
-          delete proxy.udp
         } else if (proxy.type === 'vless') {
           if (isPresent(proxy, 'sni')) {
             proxy.servername = proxy.sni
@@ -308,9 +263,6 @@ function ClashMeta_Producer() {
               password: proxy['shadow-tls-password'],
               version: proxy['shadow-tls-version']
             }
-            delete proxy['shadow-tls-password']
-            delete proxy['shadow-tls-sni']
-            delete proxy['shadow-tls-version']
           }
         }
 
@@ -340,7 +292,7 @@ function ClashMeta_Producer() {
             proxy['plugin-opts']['skip-cert-verify'] = proxy['skip-cert-verify']
           }
         }
-        if (['trojan', 'tuic', 'hysteria', 'hysteria2', 'juicity', 'anytls'].includes(proxy.type)) {
+        if (['trojan', 'tuic', 'hysteria', 'hysteria2', 'juicity'].includes(proxy.type)) {
           delete proxy.tls
         }
 
@@ -362,7 +314,7 @@ function ClashMeta_Producer() {
         delete proxy.id
         delete proxy.resolved
         delete proxy['no-resolve']
-        if (type !== 'internal' || opts['delete-underscore-fields']) {
+        if (type !== 'internal') {
           for (const key in proxy) {
             if (proxy[key] == null || /^_/i.test(key)) {
               delete proxy[key]
@@ -371,7 +323,6 @@ function ClashMeta_Producer() {
         }
         if (['grpc'].includes(proxy.network) && proxy[`${proxy.network}-opts`]) {
           delete proxy[`${proxy.network}-opts`]['_grpc-type']
-          delete proxy[`${proxy.network}-opts`]['_grpc-authority']
         }
         return proxy
       })
@@ -897,10 +848,8 @@ function Singbox_Producer() {
       tls: { enabled: true, server_name: proxy.server, insecure: false }
     }
     if (parsedProxy.server_port < 0 || parsedProxy.server_port > 65535) throw 'invalid port'
-    if (includeUnsupportedProxy) {
-      if (proxy['hop-interval']) parsedProxy.hop_interval = /^\d+$/.test(proxy['hop-interval']) ? `${proxy['hop-interval']}s` : proxy['hop-interval']
-      if (proxy['ports']) parsedProxy.server_ports = proxy['ports'].split(/\s*,\s*/).map((p) => p.replace(/\s*-\s*/g, ':'))
-    }
+    if (proxy['hop-interval']) parsedProxy.hop_interval = /^\d+$/.test(proxy['hop-interval']) ? `${proxy['hop-interval']}s` : proxy['hop-interval']
+    if (proxy['ports']) parsedProxy.server_ports = proxy['ports'].split(/\s*,\s*/).map((p) => p.replace(/\s*-\s*/g, ':'))
     if (proxy.up) parsedProxy.up_mbps = parseInt(`${proxy.up}`, 10)
     if (proxy.down) parsedProxy.down_mbps = parseInt(`${proxy.down}`, 10)
     if (proxy.obfs === 'salamander') parsedProxy.obfs.type = 'salamander'
@@ -1149,7 +1098,7 @@ function URI_Producer() {
     if (['trojan', 'tuic', 'hysteria', 'hysteria2', 'juicity'].includes(proxy.type)) {
       delete proxy.tls
     }
-    if (proxy.server && isIPv6(proxy.server)) {
+    if (!['vmess'].includes(proxy.type) && proxy.server && isIPv6(proxy.server)) {
       proxy.server = `[${proxy.server}]`
     }
     switch (proxy.type) {
@@ -1399,6 +1348,12 @@ function URI_Producer() {
         break
       case 'hysteria2':
         let hysteria2params = []
+        if (proxy['hop-interval']) {
+          hysteria2params.push(`hop-interval=${proxy['hop-interval']}`)
+        }
+        if (proxy['keepalive']) {
+          hysteria2params.push(`keepalive=${proxy['keepalive']}`)
+        }
         if (proxy['skip-cert-verify']) {
           hysteria2params.push(`insecure=1`)
         }
@@ -1856,7 +1811,7 @@ const PROXY_PARSERS = (() => {
     }
     const parse = (line) => {
       line = line.split('vmess://')[1]
-      let content = Base64.decode(line)
+      let content = Base64.decode(line.replace(/\?.*?$/, ''))
       if (/=\s*vmess/.test(content)) {
         // Quantumult VMess URI format
         const partitions = content.split(',').map((p) => p.trim())
@@ -2237,6 +2192,7 @@ const PROXY_PARSERS = (() => {
       /* eslint-disable no-unused-vars */
       let [__, password, server, ___, port, ____, _____, ______, _______, ________, addons = '', name] =
         /^(.*?)@(.*?)(:((\d+(-\d+)?)([,;]\d+(-\d+)?)*))?\/?(\?(.*?))?(?:#(.*?))?$/.exec(line)
+
       /* eslint-enable no-unused-vars */
       if (/^\d+$/.test(port)) {
         port = parseInt(`${port}`, 10)
@@ -2280,12 +2236,23 @@ const PROXY_PARSERS = (() => {
       if (params.obfs && params.obfs !== 'none') {
         proxy.obfs = params.obfs
       }
-
-      proxy.ports = params.mport
+      if (params.mport) {
+        proxy.ports = params.mport
+      }
       proxy['obfs-password'] = params['obfs-password']
       proxy['skip-cert-verify'] = /(TRUE)|1/i.test(params.insecure)
       proxy.tfo = /(TRUE)|1/i.test(params.fastopen)
       proxy['tls-fingerprint'] = params.pinSHA256
+      let hop_interval = params['hop-interval'] || params['hop_interval']
+
+      if (/^\d+$/.test(hop_interval)) {
+        proxy['hop-interval'] = parseInt(`${hop_interval}`, 10)
+      }
+      let keepalive = params['keepalive']
+
+      if (/^\d+$/.test(keepalive)) {
+        proxy['keepalive'] = parseInt(`${keepalive}`, 10)
+      }
 
       return proxy
     }
@@ -2682,7 +2649,6 @@ const ProxyUtils = (() => {
 
   function parse(raw) {
     raw = preprocess(raw)
-
     // parse
     const lines = raw.split('\n')
     const proxies = []
@@ -2963,6 +2929,10 @@ ${list}`
     if (['hysteria2'].includes(proxy.type) && proxy.obfs && !['salamander'].includes(proxy.obfs) && !proxy['obfs-password']) {
       proxy['obfs-password'] = proxy.obfs
       proxy.obfs = 'salamander'
+    }
+    if (['hysteria2'].includes(proxy.type) && !proxy['obfs-password'] && proxy['obfs_password']) {
+      proxy['obfs-password'] = proxy['obfs_password']
+      delete proxy['obfs_password']
     }
     if (['vless'].includes(proxy.type)) {
       // 删除 reality-opts: {}
