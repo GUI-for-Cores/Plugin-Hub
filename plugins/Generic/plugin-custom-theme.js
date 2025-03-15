@@ -190,13 +190,20 @@ const onReady = async () => {
   const config = JSON.parse(await Plugins.Readfile(THEME_FILE))
   await setVariable(config)
   await setBackground(config)
+  await setCustomCSS()
 }
 
 const onRun = async () => {
   const config = JSON.parse(await Plugins.Readfile(THEME_FILE))
   await setVariable(config)
   await setBackground(config)
+  await setCustomCSS()
   Plugins.message.success('主题已生效')
+}
+
+/* 触发器 配置插件时 */
+const onConfigure = async (config, old) => {
+  setCustomCSS(config.CustomCSS)
 }
 
 /**
@@ -240,6 +247,7 @@ const Clear = () => {
   })
   document.body.style.backgroundColor = ''
   document.body.style.backgroundImage = ''
+  clearCustomCSS()
 }
 
 /**
@@ -359,6 +367,26 @@ const setVariable = async (config) => {
   })
   Plugin.PrimaryColor && document.body.style.setProperty('--primary-color', Plugin.PrimaryColor)
   Plugin.SecondaryColor && document.body.style.setProperty('--secondary-color', Plugin.SecondaryColor)
+}
+
+/**
+ * 自定义CSS
+ */
+const setCustomCSS = async (css = Plugin.CustomCSS) => {
+  clearCustomCSS()
+  if (css) {
+    const style = document.createElement('style')
+    style.id = Plugin.id + '_custom_css'
+    style.type = 'text/css'
+    style.rel = 'stylesheet'
+    style.appendChild(document.createTextNode(css))
+    document.head.appendChild(style)
+  }
+}
+
+const clearCustomCSS = () => {
+  const dom = document.getElementById(Plugin.id + '_custom_css')
+  dom && dom.remove()
 }
 
 /**

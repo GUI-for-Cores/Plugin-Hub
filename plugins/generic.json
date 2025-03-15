@@ -1599,7 +1599,7 @@
   {
     "id": "plugin-custom-theme",
     "name": "自定义主题",
-    "version": "v2.0.0",
+    "version": "v3.0.0",
     "description": "通过修改css变量，实现任意主题配色！",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-custom-theme.js",
@@ -1644,6 +1644,15 @@
         "description": "不填时将禁用，填写后启用；可使用本地图片和远程图片，例如：http://xxx.png、C:\\xxx.png",
         "key": "BgImagePath",
         "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_gpypsbm4",
+        "title": "自定义CSS",
+        "description": "提供更高级的自定义功能",
+        "key": "CustomCSS",
+        "component": "CodeViewer",
         "value": "",
         "options": []
       }
