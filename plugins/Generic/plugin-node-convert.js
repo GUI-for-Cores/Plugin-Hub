@@ -2564,6 +2564,8 @@ const PROXY_PREPROCESSORS = (() => {
         // 是否被引号包裹
         if (/^(['"]).*\1$/.test(afterTrim)) {
           return `short-id: ${afterTrim}`
+        } else if (['null'].includes(afterTrim)) {
+          return `short-id: ${afterTrim}`
         } else {
           return `short-id: "${afterTrim}"`
         }
