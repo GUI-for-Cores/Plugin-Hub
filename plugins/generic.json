@@ -502,7 +502,7 @@
   {
     "id": "plugin-adguardhome",
     "name": "AdGuardHome",
-    "version": "v1.0.0",
+    "version": "v1.1.0",
     "description": "集成AdGuardHome程序。（Network-wide ads & trackers blocking DNS server）",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-adguardhome.js",
