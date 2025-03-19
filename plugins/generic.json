@@ -643,7 +643,7 @@
   {
     "id": "plugin-frp-client",
     "name": "frp 内网穿透",
-    "version": "v1.0.0",
+    "version": "v1.1.0",
     "description": "FRP内网穿透客户端程序。（A fast reverse proxy to help you expose a local server behind a NAT or firewall to the internet.）",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-frp-client.js",

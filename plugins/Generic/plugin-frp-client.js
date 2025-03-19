@@ -65,8 +65,8 @@ const startFRPService = async () => {
 const installFRP = async () => {
   const { env } = Plugins.useEnvStore()
   const tmpZip = 'data/.cache/frpc.zip'
-  const tmpDir = `data/.cache/frp_0.56.0_windows_${env.arch}`
-  const url = `https://github.com/fatedier/frp/releases/download/v0.56.0/frp_0.56.0_windows_${env.arch}.zip`
+  const tmpDir = `data/.cache/frp_0.61.2_windows_${env.arch}`
+  const url = `https://github.com/fatedier/frp/releases/download/v0.61.2/frp_0.61.2_windows_${env.arch}.zip`
   const { id } = Plugins.message.info('下载FRP压缩包...', 9999999)
   try {
     await Plugins.Download(url, tmpZip, {}, (progress, total) => {
