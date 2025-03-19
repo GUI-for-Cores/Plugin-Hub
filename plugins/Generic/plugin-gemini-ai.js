@@ -112,7 +112,7 @@ const processingCommand = async (text) => {
 const myPrompt = async (placeholder, system_instruction) => {
   const input = await Plugins.prompt(Plugin.name, '', { placeholder })
   const { status, body } = await Plugins.HttpPost(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${Plugin.API_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${Plugin.API_KEY}`,
     { 'Content-Type': 'application/json' },
     {
       system_instruction: {
