@@ -113,8 +113,8 @@ const Share = async (profile) => {
     '生成的配置类型',
     [
       { label: 'v1.11.0之前版本', value: 'legacy' },
-      { label: '稳定版', value: 'stable' }
-      // { label: '内测版', value: 'alpha' }
+      { label: '稳定版(v1.11.0+)', value: 'stable' },
+      { label: '内测版(v1.12.0+)', value: 'alpha' }
     ],
     ['stable']
   )
