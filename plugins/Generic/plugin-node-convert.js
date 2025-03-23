@@ -3007,7 +3007,7 @@ ${list}`
     if (!proxy['tls-fingerprint'] && caStr) {
       proxy['tls-fingerprint'] = rs.generateFingerprint(caStr)
     }
-    if (['shadowsocks'].includes(proxy.type) && isPresent(proxy, 'shadow-tls-password')) {
+    if (['ss'].includes(proxy.type) && isPresent(proxy, 'shadow-tls-password')) {
       proxy.plugin = 'shadow-tls'
       proxy['plugin-opts'] = {
         host: proxy['shadow-tls-sni'],
