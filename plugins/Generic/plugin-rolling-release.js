@@ -35,7 +35,7 @@ const Rolling = async (confirm = true) => {
   const GFS_URL = 'https://api.github.com/repos/GUI-for-Cores/GUI.for.SingBox/releases/tags/rolling-release'
   const url = Plugins.APP_TITLE.includes('Clash') ? GFC_URL : GFS_URL
 
-  const { update, destroy, error } = Plugins.message.info(`[${Plugin.name}] 检测中...`, 999999)
+  const { destroy } = Plugins.message.info(`[${Plugin.name}] 检测中...`, 999999)
 
   const { body } = await Plugins.HttpGet(url, {
     Authorization: Plugins.getGitHubApiAuthorization()
@@ -50,7 +50,6 @@ const Rolling = async (confirm = true) => {
   const BackupFile = 'data/.cache/rolling-release.backup'
   const ZipUrl = body.assets.find((v) => v.name === 'rolling-release.zip')?.browser_download_url
   const VersionUrl = body.assets.find((v) => v.name === 'version.txt')?.browser_download_url
-  const ChangelogUrl = body.assets.find((v) => v.name === 'changelog.md')?.browser_download_url
 
   if (!ZipUrl || !VersionUrl) {
     destroy()
@@ -79,21 +78,14 @@ const Rolling = async (confirm = true) => {
     return
   }
 
-  let changelog = '维护性更新'
-
-  if (ChangelogUrl && confirm) {
-    update('正在获取更新日志...')
-    const { body } = await Plugins.HttpGet(ChangelogUrl)
-    changelog = body
-  }
   destroy()
 
-  confirm && (await Plugins.confirm(Plugin.name, changelog, { type: 'markdown' }))
+  confirm && (await Plugins.confirm('', await fetchChangeLog(), { type: 'markdown' }))
 
-  const { update: update2, destroy: destroy2 } = Plugins.message.info('正在更新...')
+  const { update, destroy: destroy2, error } = Plugins.message.info('正在更新...')
   try {
     await Plugins.Download(ZipUrl, ZipFile, {}, (progress, total) => {
-      update2('正在更新...' + ((progress / total) * 100).toFixed(2) + '%')
+      update('正在更新...' + ((progress / total) * 100).toFixed(2) + '%')
     })
     await Plugins.ignoredError(Plugins.Movefile, 'data/rolling-release', BackupFile)
     await Plugins.UnzipZIPFile(ZipFile, 'data')
@@ -128,28 +120,7 @@ const Recovery = async () => {
  * 右键菜单 - 更新日志
  */
 const Changelog = async () => {
-  const { body } = await Plugins.HttpGet(`https://api.github.com/repos/GUI-for-Cores/${Plugins.APP_TITLE}/commits`, {
-    Authorization: Plugins.getGitHubApiAuthorization()
-  })
-  const releaseIndex = body.findIndex((v) => v.commit.message.startsWith('Release v'))
-  let currentVersion
-  try {
-    currentVersion = await (await fetch('/version.txt')).text()
-  } catch (error) {
-    console.log(`[${Plugin.name}]`, '当前不是滚动发行版本')
-  }
-  const history = body.slice(0, releaseIndex).map((v) => ({
-    message: v.commit.message,
-    time: Plugins.formatRelativeTime(v.commit.committer.date),
-    isCurrent: v.sha.slice(0, 7) === currentVersion
-  }))
-  let tip = ''
-  if (!currentVersion) {
-    tip = '\n\n注意：你当前使用的不是滚动发行版本，请执行本插件以获取上述更新特性。'
-  }
-  Plugins.alert('', '## 滚动发行日志\n\n' + history.map((v) => ` - ${v.isCurrent ? '`你的版本`' : ''}${v.message} 【${v.time}】`).join('\n') + tip, {
-    type: 'markdown'
-  })
+  Plugins.alert('', await fetchChangeLog(), { type: 'markdown' })
 }
 
 /**
@@ -212,6 +183,30 @@ const checkLatestVersion = async () => {
   if (tag_name !== Plugins.APP_VERSION) {
     throw '无法跨大版本升级，请通过 设置 - 关于，更新APP！'
   }
+}
+
+const fetchChangeLog = async () => {
+  const { body } = await Plugins.HttpGet(`https://api.github.com/repos/GUI-for-Cores/${Plugins.APP_TITLE}/commits`, {
+    Authorization: Plugins.getGitHubApiAuthorization()
+  })
+  const releaseIndex = body.findIndex((v) => v.commit.message.startsWith('Release v'))
+  let currentVersion
+  try {
+    currentVersion = await (await fetch('/version.txt')).text()
+  } catch (error) {
+    console.log(`[${Plugin.name}]`, '当前不是滚动发行版本')
+  }
+  const history = body.slice(0, releaseIndex).map((v) => ({
+    message: v.commit.message,
+    time: Plugins.formatRelativeTime(v.commit.committer.date),
+    isCurrent: v.sha.slice(0, 7) === currentVersion
+  }))
+  let tip = ''
+  if (!currentVersion) {
+    tip = '\n\n注意：你当前使用的不是滚动发行版本，请执行本插件以获取上述更新特性。'
+  }
+  const changelog = '## 滚动发行日志\n\n' + history.map((v) => ` - ${v.isCurrent ? '`你的版本`' : ''}${v.message} 【${v.time}】`).join('\n') + tip
+  return changelog
 }
 
 const windows_icon = `<svg viewBox="0 0 1024 1024" width="12" height="12"><path d="M180.532703 507.367493c158.678976-65.355497 235.486292-30.474059 304.269865 16.21838l-79.440283 273.0447c-69.018933-46.431495-144.083559-84.635609-303.396985-18.776645l77.643358-270.088368L180.532703 507.367493zM526.399965 549.988196c68.989257 46.397726 139.539057 80.43903 301.656341 24.985044l-75.661214 263.243473c-159.14151 65.832358-235.541551 28.585035-304.439734-18.128893L526.399965 549.988196zM498.022661 474.363821c-41.512463-27.970028-86.198198-54.113455-149.667741-54.582129-41.86448-0.322341-91.709725 11.587919-155.011446 37.731346l78.410837-271.752264c159.198815-65.822125 235.701187-28.520567 304.673048 18.128893L498.022661 474.363821zM922.033677 249.996774c-158.988014 65.700351-235.394195 28.753881-304.214606-17.613146l-78.428234 271.986601c68.7672 46.62797 151.876036 84.896552 304.315914 16.685008L922.033677 249.996774z" fill="#000000"></path></svg>`
