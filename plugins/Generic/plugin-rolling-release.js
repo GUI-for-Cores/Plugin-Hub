@@ -128,9 +128,28 @@ const Recovery = async () => {
  * 右键菜单 - 更新日志
  */
 const Changelog = async () => {
-  const url = `https://github.com/GUI-for-Cores/${Plugins.APP_TITLE}/releases/download/rolling-release/changelog.md`
-  const { body } = await Plugins.HttpGet(url)
-  await Plugins.alert(Plugin.name, body, { type: 'markdown' })
+  const { body } = await Plugins.HttpGet(`https://api.github.com/repos/GUI-for-Cores/${Plugins.APP_TITLE}/commits`, {
+    Authorization: Plugins.getGitHubApiAuthorization()
+  })
+  const releaseIndex = body.findIndex((v) => v.commit.message.startsWith('Release v'))
+  let currentVersion
+  try {
+    currentVersion = await (await fetch('/version.txt')).text()
+  } catch (error) {
+    console.log(`[${Plugin.name}]`, '当前不是滚动发行版本')
+  }
+  const history = body.slice(0, releaseIndex).map((v) => ({
+    message: v.commit.message,
+    time: Plugins.formatRelativeTime(v.commit.committer.date),
+    isCurrent: v.sha.slice(0, 7) === currentVersion
+  }))
+  let tip = ''
+  if (!currentVersion) {
+    tip = '\n\n注意：你当前使用的不是滚动发行版本，请执行本插件以获取上述更新特性。'
+  }
+  Plugins.alert('', '## 滚动发行日志\n\n' + history.map((v) => ` - ${v.isCurrent ? '`你的版本`' : ''}${v.message} 【${v.time}】`).join('\n') + tip, {
+    type: 'markdown'
+  })
 }
 
 /**

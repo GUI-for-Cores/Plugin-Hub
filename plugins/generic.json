@@ -147,7 +147,7 @@
   {
     "id": "plugin-rolling-release",
     "name": "滚动发行",
-    "version": "v2.0.2",
+    "version": "v2.1.0",
     "description": "提升GUI升级体验，获取更快、更新、更稳定的版本更新。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-rolling-release.js",
