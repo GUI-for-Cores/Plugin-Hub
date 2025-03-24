@@ -199,13 +199,15 @@ const fetchChangeLog = async () => {
   const history = body.slice(0, releaseIndex).map((v) => ({
     message: v.commit.message,
     time: Plugins.formatRelativeTime(v.commit.committer.date),
-    isCurrent: v.sha.slice(0, 7) === currentVersion
+    isCurrent: v.sha.slice(0, 7) === currentVersion,
+    html_url: v.html_url
   }))
   let tip = ''
   if (!currentVersion) {
     tip = '\n\n注意：你当前使用的不是滚动发行版本，请执行本插件以获取上述更新特性。'
   }
-  const changelog = '## 滚动发行日志\n\n' + history.map((v) => ` - ${v.isCurrent ? '`你的版本`' : ''}${v.message} 【${v.time}】`).join('\n') + tip
+  const changelog =
+    '## 滚动发行日志\n\n' + history.map((v) => ` - ${v.isCurrent ? '`你的版本`' : ''}${v.message} 【[${v.time}](${v.html_url} "${v.time}")】`).join('\n') + tip
   return changelog
 }
 
