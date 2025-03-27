@@ -95,7 +95,7 @@ const Share = async (profile) => {
             ruleset.type = 'remote'
             ruleset.url = _ruleset.url
             ruleset.path = ''
-          } else if (_ruleset.type === 'File') {
+          } else if (['File', 'Manual'].includes(_ruleset.type)) {
             if (_ruleset.format === 'source') {
               const _rules = JSON.parse(await Plugins.Readfile(_ruleset.path)).rules
               ruleset.type = 'inline'

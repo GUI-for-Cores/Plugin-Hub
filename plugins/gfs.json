@@ -25,7 +25,7 @@
   {
     "id": "plugin-share-profile-to-phone",
     "name": "共享配置到手机",
-    "version": "v1.1.0",
+    "version": "v1.1.1",
     "description": "专为手机sing-box应用生成的配置，支持二维码导入。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-share-profile-to-phone.js",
