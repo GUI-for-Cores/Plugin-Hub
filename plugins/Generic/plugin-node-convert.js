@@ -164,19 +164,25 @@ function getIfNotBlank(str, defaultValue) {
 }
 
 function isPresent(obj) {
-  return typeof obj !== 'undefined' && obj !== null
-}
-
-function hasNestedProperty(obj, attr) {
-  const keys = Array.isArray(attr) ? attr : attr.split('.').filter(Boolean);
-  let result = obj;
-  for (const key of keys) {
+  if (arguments.length === 1) {
+    return typeof obj !== 'undefined' && obj !== null 
+  } else if (arguments.length === 2)
+  {
+    let attr = arguments[1]
+    const keys = Array.isArray(attr) ? attr : attr.split('.').filter(Boolean);
+    let result = obj;
+    for (const key of keys) {
     if (result == null || typeof result !== 'object') {
       return false;
     }
-    result = result[key];
+      result = result[key];
+    }
+    return result !== undefined && result !== null;
   }
-  return result !== undefined && result !== null;
+}
+
+function hasNestedProperty(obj, attr) {
+
 }
 
 function getIfPresent(obj, defaultValue) {
@@ -3021,7 +3027,7 @@ ${list}`
     if (!proxy['tls-fingerprint'] && caStr) {
       proxy['tls-fingerprint'] = rs.generateFingerprint(caStr)
     }
-    if (['ss'].includes(proxy.type) && hasNestedProperty(proxy, 'shadow-tls-password')) {
+    if (['ss'].includes(proxy.type) && isPresent(proxy, 'shadow-tls-password')) {
       proxy.plugin = 'shadow-tls'
       proxy['plugin-opts'] = {
         host: proxy['shadow-tls-sni'],
