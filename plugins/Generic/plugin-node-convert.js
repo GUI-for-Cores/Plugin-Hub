@@ -167,6 +167,18 @@ function isPresent(obj) {
   return typeof obj !== 'undefined' && obj !== null
 }
 
+const hasNestedProperty = (obj, attr) => {
+  const keys = Array.isArray(attr) ? attr : attr.split('.').filter(Boolean);
+  let result = obj;
+  for (const key of keys) {
+    if (result == null || typeof result !== 'object') {
+      return false;
+    }
+    result = result[key];
+  }
+  return result !== undefined && result !== null;
+}
+
 function getIfPresent(obj, defaultValue) {
   return isPresent(obj) ? obj : defaultValue
 }
@@ -3010,7 +3022,7 @@ ${list}`
     if (!proxy['tls-fingerprint'] && caStr) {
       proxy['tls-fingerprint'] = rs.generateFingerprint(caStr)
     }
-    if (['ss'].includes(proxy.type) && isPresent(proxy, 'shadow-tls-password')) {
+    if (['ss'].includes(proxy.type) && hasNestedProperty(proxy, 'shadow-tls-password')) {
       proxy.plugin = 'shadow-tls'
       proxy['plugin-opts'] = {
         host: proxy['shadow-tls-sni'],
