@@ -37,9 +37,14 @@ const onSubscribe = async (proxies) => {
 
   const isClashProxies = proxies.some((proxy) => proxy.name && !proxy.tag)
 
+  const isGFS = Plugins.APP_TITLE.includes('SingBox')
+
   // 如果是clash格式，并且是GFS，则转为sing-box格式
-  if (isClashProxies && Plugins.APP_TITLE.includes('SingBox')) {
+  if (isClashProxies && isGFS) {
     proxies = ProxyUtils.produce(proxies, 'singbox', 'internal')
+  }
+
+  if (isGFS) {
     // 移除暂未适配的字段
     proxies.forEach((proxy) => {
       delete proxy.domain_resolver
@@ -52,12 +57,6 @@ const onSubscribe = async (proxies) => {
 // =======================================================================================================================
 //                                      以下是兼容SubStore API的一些处理
 // =======================================================================================================================
-
-const getNestedProperty = (obj, path) => {
-  return path.split('.').reduce((value, key) => {
-    return value?.[key]
-  }, obj)
-}
 
 const Base64 = {
   decode: Plugins.base64Decode,
@@ -137,13 +136,13 @@ const getTrojanURIParser = () => {
 
 // =======================================================================================================================
 //                                      以下是Sub-Store仓库中关于解析节点uri的相关源码
-//                                      1、添加了一些注释，记录从哪个文件而来、以及是否做了一些修改
-//                                      2、修改了Sub-Store的一些源码...
+//                                  添加了一些注释，记录从哪个文件而来、以及是否做了一些修改
 // =======================================================================================================================
 
 /**
  * 说明：工具类方法
  * 来源：https://github.com/sub-store-org/Sub-Store/blob/master/backend/src/utils/index.js
+ * 修改：isPresent方法
  */
 
 // source: https://stackoverflow.com/a/36760050
@@ -171,24 +170,19 @@ function getIfNotBlank(str, defaultValue) {
 
 function isPresent(obj) {
   if (arguments.length === 1) {
-    return typeof obj !== 'undefined' && obj !== null 
-  } else if (arguments.length === 2)
-  {
+    return typeof obj !== 'undefined' && obj !== null
+  } else if (arguments.length === 2) {
     let attr = arguments[1]
-    const keys = Array.isArray(attr) ? attr : attr.split('.').filter(Boolean);
-    let result = obj;
+    const keys = Array.isArray(attr) ? attr : attr.split('.').filter(Boolean)
+    let result = obj
     for (const key of keys) {
-    if (result == null || typeof result !== 'object') {
-      return false;
+      if (result == null || typeof result !== 'object') {
+        return false
+      }
+      result = result[key]
     }
-      result = result[key];
-    }
-    return result !== undefined && result !== null;
+    return result !== undefined && result !== null
   }
-}
-
-function hasNestedProperty(obj, attr) {
-
 }
 
 function getIfPresent(obj, defaultValue) {
@@ -206,7 +200,7 @@ function isValidPortNumber(port) {
 /**
  * 来源：https://github.com/sub-store-org/Sub-Store/blob/cc556b641d32f5af571101cd825d76f8506a0855/backend/src/core/proxy-utils/producers/clashmeta.js
  */
-function ClashMeta_Producer(isPresent = getNestedProperty) {
+function ClashMeta_Producer() {
   const type = 'ALL'
   const produce = (proxies, type, opts = {}) => {
     const list = proxies
@@ -2650,7 +2644,7 @@ const PROXY_PREPROCESSORS = (() => {
 })()
 
 // 来源：https://github.com/sub-store-org/Sub-Store/blob/master/backend/src/core/proxy-utils/index.js
-const ProxyUtils = (({ isPresent }) => {
+const ProxyUtils = (() => {
   function preprocess(raw) {
     for (const processor of PROXY_PREPROCESSORS) {
       try {
@@ -3045,4 +3039,4 @@ ${list}`
     parse,
     produce
   }
-})({ isPresent: getNestedProperty })
+})()
