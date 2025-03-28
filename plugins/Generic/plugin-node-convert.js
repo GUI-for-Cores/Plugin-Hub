@@ -167,7 +167,7 @@ function isPresent(obj) {
   return typeof obj !== 'undefined' && obj !== null
 }
 
-const hasNestedProperty = (obj, attr) => {
+function hasNestedProperty(obj, attr) {
   const keys = Array.isArray(attr) ? attr : attr.split('.').filter(Boolean);
   let result = obj;
   for (const key of keys) {
@@ -1635,7 +1635,6 @@ const PROXY_PARSERS = (() => {
       content = content.split('#')[0] // strip proxy name
       // handle IPV4 and IPV6
       let serverAndPortArray = content.match(/@([^/]*)(\/|$)/)
-
       let rawUserInfoStr = decodeURIComponent(content.split('@')[0]) // 其实应该分隔之后, 用户名和密码再 decodeURIComponent. 但是问题不大
       let userInfoStr
       if (rawUserInfoStr?.startsWith('2022-blake3-')) {
