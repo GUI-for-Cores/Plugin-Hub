@@ -3,16 +3,17 @@ const onRun = async () => {
 }
 
 const onTask = async () => {
-  return updateGist();
-};
+  return updateGist()
+}
 
 const updateGist = async () => {
   if (!Plugin.GistId) throw '未配置GIST ID'
   const store = Plugins.useProfilesStore()
   let str = ''
-  for (const profile of store.profiles)
-  {
-    const configJsonContent = await Plugins.generateConfig(profile)   
+  for (const file of store.profiles) {
+    let profile = Plugins.deepClone(file)
+    transformLocalRuleset(profile)
+    const configJsonContent = await Plugins.generateConfig(profile)
     const { id: messageId } = Plugins.message.info(`updating [ ${profile.name} ]`, 60 * 1000)
     try {
       const updatedGist = await updateGistFile(profile.name, Plugin.GistId, JSON.stringify(configJsonContent, null, 4))
@@ -26,6 +27,31 @@ const updateGist = async () => {
     }
   }
   return str
+}
+
+async function transformLocalRuleset(profile) {
+  // * 替换本地规则集为远程规则集
+  const rulesetsStore = Plugins.useRulesetsStore()
+  for (const ruleset of profile.route.rule_set) {
+    if (ruleset.type === 'local') {
+      const _ruleset = rulesetsStore.getRulesetById(ruleset.path)
+      if (_ruleset) {
+        if (_ruleset.type === 'Http') {
+          ruleset.type = 'remote'
+          ruleset.url = _ruleset.url
+          ruleset.path = ''
+        } else if (['File', 'Manual'].includes(_ruleset.type)) {
+          if (_ruleset.format === 'source') {
+            const _rules = JSON.parse(await Plugins.Readfile(_ruleset.path)).rules
+            ruleset.type = 'inline'
+            ruleset.rules = JSON.stringify(_rules)
+            ruleset.url = ''
+            ruleset.path = ''
+          }
+        }
+      }
+    }
+  }
 }
 
 async function updateGistFile(name, gistId, configJsonContent) {
