@@ -3,8 +3,8 @@ const onRun = async () => {
 }
 
 const onTask = async () => {
-  return updateGist();
-};
+  return updateGist()
+}
 
 const updateGist = async () => {
   if (!Plugin.GistId) throw '未配置GIST ID'

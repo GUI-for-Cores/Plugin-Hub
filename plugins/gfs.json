@@ -83,7 +83,7 @@
   {
     "id": "plugin-sync-singbox-configuration-gists",
     "name": "一键同步config.json",
-    "version": "v1.0.0",
+    "version": "v1.0.1",
     "description": "将所有配置生成的config.json一键同步到Gists。Supported by: StarfishC",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-sync-singbox-configuration-gists.js",
