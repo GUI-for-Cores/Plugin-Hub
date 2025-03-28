@@ -124,7 +124,7 @@
   {
     "id": "plugin-node-convert",
     "name": "节点转换",
-    "version": "v1.2.3",
+    "version": "v1.2.4",
     "description": "节点格式转换插件，支持v2Ray格式转clash、clash格式转sing-box。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-node-convert.js",

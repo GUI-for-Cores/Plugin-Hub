@@ -53,6 +53,12 @@ const onSubscribe = async (proxies) => {
 //                                      以下是兼容SubStore API的一些处理
 // =======================================================================================================================
 
+const getNestedProperty = (obj, path) => {
+  return path.split('.').reduce((value, key) => {
+    return value?.[key]
+  }, obj)
+}
+
 const Base64 = {
   decode: Plugins.base64Decode,
   encode: Plugins.base64Encode
@@ -181,18 +187,8 @@ function isValidPortNumber(port) {
 
 /**
  * 来源：https://github.com/sub-store-org/Sub-Store/blob/cc556b641d32f5af571101cd825d76f8506a0855/backend/src/core/proxy-utils/producers/clashmeta.js
- * 修改：+  const isPresent = (obj, expr) => {
- *      +    return expr.split('.').reduce((value, key) => {
- *      +      return value?.[key]
- *      +      }, obj)
- *      +  }
  */
-function ClashMeta_Producer() {
-  const isPresent = (obj, expr) => {
-    return expr.split('.').reduce((value, key) => {
-      return value?.[key]
-    }, obj)
-  }
+function ClashMeta_Producer(isPresent = getNestedProperty) {
   const type = 'ALL'
   const produce = (proxies, type, opts = {}) => {
     const list = proxies
@@ -2637,7 +2633,7 @@ const PROXY_PREPROCESSORS = (() => {
 })()
 
 // 来源：https://github.com/sub-store-org/Sub-Store/blob/master/backend/src/core/proxy-utils/index.js
-const ProxyUtils = (() => {
+const ProxyUtils = (({ isPresent }) => {
   function preprocess(raw) {
     for (const processor of PROXY_PREPROCESSORS) {
       try {
@@ -3032,4 +3028,4 @@ ${list}`
     parse,
     produce
   }
-})()
+})({ isPresent: getNestedProperty })
