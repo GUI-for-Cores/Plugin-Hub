@@ -3,6 +3,54 @@
  */
 
 /**
+ * 订阅上下文菜单 - 导出为URI
+ */
+const ExportAsURI = async (subscription) => {
+  const proxies = await getClashProxies(subscription)
+  const v2ray_proxies = ProxyUtils.produce(proxies, 'v2ray', 'internal')
+  await Plugins.ClipboardSetText(v2ray_proxies)
+  Plugins.message.success('已复制')
+}
+
+/**
+ * 订阅上下文菜单 - 导出为clash
+ */
+const ExportAsClash = async (subscription) => {
+  const proxies = await getClashProxies(subscription)
+  await Plugins.ClipboardSetText(JSON.stringify(proxies))
+  Plugins.message.success('已复制')
+}
+
+/**
+ * 订阅上下文菜单 - 导出为sing-box
+ */
+const ExportAsSingBox = async (subscription) => {
+  const proxies = await getClashProxies(subscription)
+  const singbox_proxies = ProxyUtils.produce(proxies, 'singbox', 'internal')
+  await Plugins.ClipboardSetText(JSON.stringify(singbox_proxies))
+  Plugins.message.success('已复制')
+}
+
+/**
+ * 获取clash格式的节点
+ */
+const getClashProxies = async (subscription) => {
+  let sub_path = subscription.path
+  if (Plugins.APP_TITLE.includes('SingBox')) {
+    const tmp = 'data/.cache/tmp_subscription_' + subscription.id
+    if (!(await Plugins.FileExists(tmp))) {
+      await Plugins.alert('提示', '你需要先更新此订阅，才能继续使用本功能！\n\n\n一直看见本提示？请`编辑`订阅将用户代理设置为`clash.meta`后再更新订阅。\n\n注：手动管理的订阅不支持导出', {
+        type: 'markdown'
+      })
+      return
+    }
+    sub_path = tmp
+  }
+  const { proxies } = Plugins.YAML.parse(await Plugins.Readfile(sub_path))
+  return proxies
+}
+
+/**
  * 插件钩子：点击运行按钮时
  */
 const onRun = async () => {
@@ -27,7 +75,7 @@ const onRun = async () => {
 /**
  * 插件钩子：更新订阅时
  */
-const onSubscribe = async (proxies) => {
+const onSubscribe = async (proxies, subscription) => {
   const isBase64 = proxies.length === 1 && proxies[0].base64
 
   // 如果是v2ray分享链接，则转为clash格式
@@ -38,6 +86,12 @@ const onSubscribe = async (proxies) => {
   const isClashProxies = proxies.some((proxy) => proxy.name && !proxy.tag)
 
   const isGFS = Plugins.APP_TITLE.includes('SingBox')
+
+  // 缓存clash格式，导出URI时需要此格式
+  if (isClashProxies && isGFS) {
+    const tmp = 'data/.cache/tmp_subscription_' + subscription.id
+    Plugins.Writefile(tmp, Plugins.YAML.stringify({ proxies }))
+  }
 
   // 如果是clash格式，并且是GFS，则转为sing-box格式
   if (isClashProxies && isGFS) {
