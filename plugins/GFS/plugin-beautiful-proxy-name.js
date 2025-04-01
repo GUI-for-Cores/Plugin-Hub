@@ -2,7 +2,7 @@
 // 2. EnableNationalEmoji 是否允许国旗，国旗emoji 会放在订阅名称后面 xxx | emoji hk 01
 // 3. EnableUnifyRegionName 是否统一地区名称，比如 hk01 => 香港 01，hk-tlw => 香港 02
 // 4. EnableCityName 是否显示具体的城市名（如果有的话）=> 香港 01 铜锣湾
-// 5. ReservedKeywords 是否保留节点名称中的除国家城市外的其他信息，有些节点是IPEL，那么加入IPEL|BGP|\\d+\\.\\d+，用分隔符隔开，支持正则
+// 5. ReservedKeywords 是否保留节点名称中的除国家城市外的其他信息，有些节点是IPEL，那么加入IEPL|BGP|\\d+\\.\\d+，用分隔符隔开，支持正则
 // 结果可能是：机场 | 香港 01 铜锣湾 | BGP
 
 const onSubscribe = async (proxies, metadata) => {

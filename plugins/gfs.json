@@ -185,10 +185,10 @@
       {
         "id": "ID_0g2le942",
         "title": "其它需要保留的关键字",
-        "description": "节点名中其他还需要保留的信息，用 | 分割，支持正则，比如BGP|IPEL|\\d+\\.\\d+等",
+        "description": "节点名中其他还需要保留的信息，用 | 分割，支持正则，比如BGP|IEPL|\\d+\\.\\d+等",
         "key": "ReservedKeywords",
         "component": "Input",
-        "value": "BGP|IPEL",
+        "value": "BGP|IEPL|IPLC",
         "options": []
       }
     ],
