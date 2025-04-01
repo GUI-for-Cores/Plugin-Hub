@@ -2,7 +2,7 @@
 // 2. EnableNationalEmoji 是否允许国旗，国旗emoji 会放在订阅名称后面 xxx | emoji hk 01
 // 3. EnableUnifyRegionName 是否统一地区名称，比如 hk01 => 香港 01，hk-tlw => 香港 02
 // 4. EnableCityName 是否显示具体的城市名（如果有的话）=> 香港 01 铜锣湾
-// 5. ReservedKeywords 是否保留节点名称中的除国家城市外的其他信息，比如有些节点是IPEL，有些会写有速率
+// 5. ReservedKeywords 是否保留节点名称中的除国家城市外的其他信息，有些节点是IPEL，那么加入IPEL|BGP|\\d+\\.\\d+，用分隔符隔开，支持正则
 // 结果可能是：机场 | 香港 01 铜锣湾 | BGP
 
 const onSubscribe = async (proxies, metadata) => {
@@ -26,26 +26,6 @@ const onSubscribe = async (proxies, metadata) => {
     });
   });
 
-  const sortedSubKeywords = [...subRegionRules.keys()].sort(
-    (a, b) => b.length - a.length,
-  );
-  const sortedKeywords = [...regionRules.keys()].sort(
-    (a, b) => b.length - a.length,
-  );
-  const keywordRegex = new RegExp(
-    `(?:^|[^a-zA-Z0-9])` + // **确保关键字是独立的**
-      `(${sortedKeywords.map(escapeRegExp).join("|")})` + // **匹配关键字**
-      `\\d*` + // **匹配关键字后面紧跟的数字（可选）**
-      `(?=[^a-zA-Z0-9]|$)`, // **确保后面是非字母数字或结尾**
-    "gi",
-  );
-  const subKeywordRegex = new RegExp(
-    `(?:^|[^a-zA-Z0-9])` +
-      `(${sortedSubKeywords.map(escapeRegExp).join("|")})` +
-      `\\d*` +
-      `(?=[^a-zA-Z0-9]|$)`,
-    "gi",
-  );
   const emojiRegex = /[\u{1F1E6}-\u{1F1FF}]{2}/gu;
 
   // 记录每个国家的节点数
@@ -63,42 +43,33 @@ const onSubscribe = async (proxies, metadata) => {
         if (region) {
           matchedRegion = region;
         }
-        return "";
+        return " ";
       })
       .trim();
 
-    // 匹配地区国家
-    tag = tag
-      .replace(keywordRegex, (match) => {
-        // 去除 match 前后的非字母数字字符
-        const cleanMatch = match.replace(
-          /^[^\p{L}\p{N}\p{Script=Han}]+|[^\p{L}\p{Script=Han}]+$/gu,
-          "",
-        );
-        const region = regionRules.get(cleanMatch.toLowerCase());
-        if (region) {
+    for (const [keyword, region] of regionRules) {
+      const [isChinese, regex] = createRegionRegex(keyword)
+      if (tag.match(regex)) {
+        if (!matchedRegion) {
           matchedRegion = region;
-          return "";
         }
-        return match;
-      })
-      .trim();
+        tag = tag.replace(regex, isChinese ? " " : "$1").trim();
+        break;
+      }
+    }
 
-    // 匹配具体的地点
-    tag = tag
-      .replace(subKeywordRegex, (match) => {
-        const cleanMatch = match.replace(
-          /^[^\p{L}\p{N}\p{Script=Han}]+|[^\p{L}\p{N}\p{Script=Han}]+$/gu,
-          "",
-        );
-        const region = subRegionRules.get(cleanMatch.toLowerCase());
-        if (region) {
+    // 匹配子地区（城市）
+    for (const [subKeyword, region] of subRegionRules) {
+      const [isChinese, regex] = createRegionRegex(subKeyword)
+      if (tag.match(regex)) {
+        if (!matchedRegion) {
           matchedRegion = region;
-          subMatchedRegion = cleanMatch;
         }
-        return "";
-      })
-      .trim();
+        subMatchedRegion = subKeyword;
+        tag = tag.replace(regex, isChinese ? " " : "$1").trim();
+        break;
+      }
+    }
 
     // 保留非关键字部分
     let parts = tag
@@ -106,17 +77,24 @@ const onSubscribe = async (proxies, metadata) => {
         /^[^\p{L}\p{N}\p{Script=Han}]+|[^\p{L}\p{N}\p{Script=Han}]+$/gu,
         "",
       )
-      .replace(/(?<!\S)\d+(?!\S)/g, "")
-      .trim()
-      .split(/[_\-\s]+/)
-      .filter(Boolean);
-    const otherInfoKeywords = ReservedKeywords.split("|").map((k) =>
-      k.trim().toLowerCase(),
-    );
-    const matchedOtherInfo = parts.filter((part) =>
-      otherInfoKeywords.includes(part.toLowerCase()),
-    );
+      .trim();
 
+    // 使用正则表达式匹配保留的关键词
+    let matchedOtherInfo = [];
+    if (ReservedKeywords && parts) {
+      const keywords = ReservedKeywords.split("|")
+        .map((k) => k.trim())
+        .filter(Boolean);
+      keywords.forEach((keyword) => {
+        const [_, regex] = createRegionRegex(keyword)
+        const match = parts.match(regex);
+        if (match) {
+          matchedOtherInfo.push(match[0].trim());
+        }
+      });
+    }
+
+    // 最后处理：匹配地区成功才会有emoji
     if (matchedRegion) {
       let regionName = "";
       let serialNumber = "";
@@ -140,22 +118,37 @@ const onSubscribe = async (proxies, metadata) => {
       ]
         .filter(Boolean)
         .join(" ");
-      tag = matchedOtherInfo.length >= 1 ? tag + " | " + matchedOtherInfo.join(" ") : tag;
+      tag =
+        matchedOtherInfo.length >= 1
+          ? tag + " | " + matchedOtherInfo.join(" ")
+          : tag;
       // console.log(tag)
     }
     tag = EnableSubscriptionName ? metadata.name + " | " + tag : tag;
     return { ...proxy, tag: tag ?? proxy.tag };
   });
+  const sort = EnableUnifyRegionName === 2 ? "en" : "zh-Hans-CN";
   proxies.sort((a, b) =>
-    a.tag.localeCompare(b.tag, "zh-Hans-CN", { numeric: true }),
+    a.tag.localeCompare(b.tag, sort, { numeric: true }),
   );
   return proxies;
 };
+
+function createRegionRegex(keyword) {
+  const isChinese = /[\u4e00-\u9fa5]/.test(keyword);
+  return [
+    isChinese,
+    isChinese
+      ? new RegExp(`${escapeRegExp(keyword)}`, "gi")
+      : new RegExp(`(^|[^\\p{L}\\p{N}])${keyword}(?=[^\\p{L}]|$)`, "gui"),
+  ];
+}
 
 // 辅助函数：转义正则特殊字符
 function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
+
 
 const RegionData = [
   {
