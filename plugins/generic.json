@@ -1452,7 +1452,7 @@
     "version": "v2.0.0",
     "description": "统一规范代理显示，使其显示更好看。Supported by: Starfish",
     "type": "Http",
-    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-beautiful-proxy-name.js",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-beautiful-proxy-name.js",
     "path": "data/plugins/plugin-beautiful-proxy-name.js",
     "triggers": ["on::subscribe"],
     "menus": {},
