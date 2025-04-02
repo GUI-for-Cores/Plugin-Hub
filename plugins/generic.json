@@ -1447,13 +1447,13 @@
   },
 
   {
-    "id": "plugin-beautiful-proxy-name",
-    "name": "美化代理名称",
-    "version": "v2.0.0",
-    "description": "统一规范代理显示，使其显示更好看。Supported by: Starfish",
+    "id": "plugin-beautiful-node-name",
+    "name": "美化节点名称",
+    "version": "v3.0.0",
+    "description": "统一规范节点名称，使其显示更好看。Supported by: Starfish",
     "type": "Http",
-    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-beautiful-proxy-name.js",
-    "path": "data/plugins/plugin-beautiful-proxy-name.js",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-beautiful-node-name.js",
+    "path": "data/plugins/plugin-beautiful-node-name.js",
     "triggers": ["on::subscribe"],
     "menus": {},
     "context": {
