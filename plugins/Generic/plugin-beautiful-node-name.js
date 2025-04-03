@@ -31,6 +31,15 @@ const onSubscribe = async (proxies, metadata) => {
   // 记录每个国家的节点数
   const countryCountMap = new Map()
 
+  // 根据订阅设置过滤掉节点
+  proxies = proxies.filter((v) => {
+    const flag1 = metadata.include ? new RegExp(metadata.include).test(v.tag) : true
+    const flag2 = metadata.exclude ? !new RegExp(metadata.exclude).test(v.tag) : true
+    const flag3 = metadata.includeProtocol ? new RegExp(metadata.includeProtocol).test(v.type) : true
+    const flag4 = metadata.excludeProtocol ? !new RegExp(metadata.excludeProtocol).test(v.type) : true
+    return flag1 && flag2 && flag3 && flag4
+  })
+
   proxies = proxies.map((proxy) => {
     const flag = Plugins.APP_TITLE.includes('SingBox') ? 'tag' : 'name'
     let tag = proxy[flag]
