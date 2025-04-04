@@ -1,16 +1,43 @@
-// 1. EnableSubscriptionName 是否允许订阅名称  比如节点 hk01，订阅名 xxx => xxx | hk 01
-// 2. EnableNationalEmoji 是否允许国旗，国旗emoji 会放在订阅名称后面 xxx | emoji hk 01
-// 3. EnableUnifyRegionName 是否统一地区名称，比如 hk01 => 香港 01，hk-tlw => 香港 02
-// 4. EnableCityName 是否显示具体的城市名（如果有的话）=> 香港 01 铜锣湾
-// 5. ReservedKeywords 是否保留节点名称中的除国家城市外的其他信息，有些节点是IPEL，那么加入IEPL|BGP|\\d+\\.\\d+，用分隔符隔开，支持正则
-// 结果可能是：机场 | 香港 01 铜锣湾 | BGP
+/**
+ * 1. EnableSubscriptionName 是否允许订阅名称  比如节点 hk01，订阅名 xxx => xxx | hk 01
+ * 2. EnableNationalEmoji 是否允许国旗，国旗emoji 会放在订阅名称后面 xxx | emoji hk 01
+ * 3. EnableUnifyRegionName 是否统一地区名称，比如 hk01 => 香港 01，hk-tlw => 香港 02
+ * 4. EnableCityName 是否显示具体的城市名（如果有的话）=> 香港 01 铜锣湾
+ * 5. ReservedKeywords 是否保留节点名称中的除国家城市外的其他信息，有些节点是IPEL，那么加入IEPL|BGP|\\d+\\.\\d+，用分隔符隔开，支持正则
+ * 结果可能是：机场 | 香港 01 铜锣湾 | BGP
+ */
 
+/* 手动触发 */
+const onRun = async () => {
+  let subscribesStore = Plugins.useSubscribesStore()
+  if (subscribesStore.subscribes.length === 0) {
+    throw '请添加订阅'
+  }
+  let subscription_list = await Plugins.picker.multi(
+    '请选择要美化的订阅',
+    subscribesStore.subscribes.map((v) => ({
+      label: v.name,
+      value: v
+    })),
+    []
+  )
+  await Promise.all(subscription_list.map(async (subscription) => {
+    subscription.proxies = await beautifyNodeName(subscription.proxies, subscription)
+    Plugins.message.success(`美化成功 [${subscription.name}]`)
+  }))
+}
+
+/* 订阅时 */
 const onSubscribe = async (proxies, metadata) => {
-  const EnableSubscriptionName = Plugin.EnableSubscriptionName
-  const EnableNationalEmoji = Plugin.EnableNationalEmoji
-  const EnableUnifyRegionName = Plugin.EnableUnifyRegionName
-  const EnableCityName = Plugin.EnableCityName
-  const ReservedKeywords = Plugin.ReservedKeywords
+  return await beautifyNodeName(proxies, metadata)
+}
+
+async function beautifyNodeName(proxies, metadata) {
+  const enableSubscriptionName = Plugin.EnableSubscriptionName
+  const enableNationalEmoji = Plugin.EnableNationalEmoji
+  const enableUnifyRegionName = Plugin.EnableUnifyRegionName
+  const enableCityName = Plugin.EnableCityName
+  const reservedKeywords = Plugin.ReservedKeywords
 
   const regionRules = new Map()
   const subRegionRules = new Map()
@@ -30,6 +57,15 @@ const onSubscribe = async (proxies, metadata) => {
 
   // 记录每个国家的节点数
   const countryCountMap = new Map()
+
+  // 根据订阅设置过滤掉节点
+  proxies = proxies.filter((v) => {
+    const flag1 = metadata.include ? new RegExp(metadata.include).test(v.tag) : true
+    const flag2 = metadata.exclude ? !new RegExp(metadata.exclude).test(v.tag) : true
+    const flag3 = metadata.includeProtocol ? new RegExp(metadata.includeProtocol).test(v.type) : true
+    const flag4 = metadata.excludeProtocol ? !new RegExp(metadata.excludeProtocol).test(v.type) : true
+    return flag1 && flag2 && flag3 && flag4
+  })
 
   proxies = proxies.map((proxy) => {
     const flag = Plugins.APP_TITLE.includes('SingBox') ? 'tag' : 'name'
@@ -77,8 +113,8 @@ const onSubscribe = async (proxies, metadata) => {
 
     // 使用正则表达式匹配保留的关键词
     let matchedOtherInfo = []
-    if (ReservedKeywords && parts) {
-      const keywords = ReservedKeywords.split('|')
+    if (reservedKeywords && parts) {
+      const keywords = reservedKeywords.split('|')
         .map((k) => k.trim())
         .filter(Boolean)
       keywords.forEach((keyword) => {
@@ -95,9 +131,9 @@ const onSubscribe = async (proxies, metadata) => {
       let regionName = ''
       let serialNumber = ''
 
-      if (EnableUnifyRegionName) {
-        // 根据 EnableUnifyRegionName 的值选择语言
-        const lang = EnableUnifyRegionName === 2 ? 'en' : 'zh'
+      if (enableUnifyRegionName) {
+        // 根据 enableUnifyRegionName 的值选择语言
+        const lang = enableUnifyRegionName === 2 ? 'en' : 'zh'
         regionName = matchedRegion.standardName[lang]
       }
 
@@ -107,20 +143,23 @@ const onSubscribe = async (proxies, metadata) => {
       serialNumber = count.toString().padStart(2, '0')
 
       tag = [
-        EnableNationalEmoji ? matchedRegion.emoji : '',
-        EnableUnifyRegionName ? regionName : '',
+        enableNationalEmoji ? matchedRegion.emoji : '',
+        enableUnifyRegionName ? regionName : '',
         serialNumber,
-        EnableCityName ? subMatchedRegion ?? '' : ''
+        enableCityName ? subMatchedRegion ?? '' : ''
       ]
         .filter(Boolean)
         .join(' ')
       tag = matchedOtherInfo.length >= 1 ? tag + ' | ' + matchedOtherInfo.join(' ') : tag
       // console.log(tag)
     }
-    tag = EnableSubscriptionName ? metadata.name + ' | ' + tag : tag
+    const prefix = `${metadata.name} | `
+    tag = enableSubscriptionName && !tag?.startsWith(prefix)
+      ? prefix + tag
+      : tag
     return { ...proxy, [flag]: tag ?? proxy.tag }
   })
-  const sort = EnableUnifyRegionName === 2 ? 'en' : 'zh-Hans-CN'
+  const sort = enableUnifyRegionName === 2 ? 'en' : 'zh-Hans-CN'
   proxies.sort((a, b) => a.tag.localeCompare(b.tag, sort, { numeric: true }))
   return proxies
 }
