@@ -197,12 +197,12 @@ const onSubscribe = async (proxies) => {
         const lowercasetag = v.tag.toLowerCase()
         // Check if the proxy tag already starts with an emoji
         const codePoint = lowercasetag.codePointAt(0)
-        if (codePoint >= 0x1F1E6 && codePoint <= 0x1F1FF) {
-            const emoji = v.tag.slice(0, 4)
-            if (v.tag[emoji.length] != ' ') {
-              v.tag = emoji + ' ' + v.tag.slice(emoji.length)
-            }
-            return v
+        if (codePoint >= 0x1f1e6 && codePoint <= 0x1f1ff) {
+          const emoji = v.tag.slice(0, 4)
+          if (v.tag[emoji.length] != ' ') {
+            v.tag = emoji + ' ' + v.tag.slice(emoji.length)
+          }
+          return v
         }
         for (const keywords in SortedKeywordsToEmoji) {
           const regex = new RegExp(keywords, 'i')

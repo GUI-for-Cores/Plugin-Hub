@@ -175,12 +175,9 @@ const getPrefix = () => {
 
 const getBackupFilename = async () => {
   const defaultFilename =
-    getPrefix() + '-' +
-    Plugins.APP_VERSION + '_' +
-    Plugins.formatDate(Date.now(), 'YYYYMMDD-HHmmss') + '_' +
-    'core-' + await getKernelVersion()
+    getPrefix() + '-' + Plugins.APP_VERSION + '_' + Plugins.formatDate(Date.now(), 'YYYYMMDD-HHmmss') + '_' + 'core-' + (await getKernelVersion())
 
-  const input = await Plugins.prompt(Plugin.name, defaultFilename) || defaultFilename
+  const input = (await Plugins.prompt(Plugin.name, defaultFilename)) || defaultFilename
   if (!input.startsWith(getPrefix()) || /[\\/:*?"<>|]/.test(input)) {
     Plugins.message.error('文件名必须以 ' + getPrefix() + ' 起始，禁止包含 \\ / : * ? " < > |')
     throw '输入的文件名不合法，请重新输入并确保符合要求'
@@ -286,7 +283,7 @@ class WebDAV {
       const displayname = getTextContent(responses[i], 'D:displayname') || href.replace(Plugin.DataPath + '/', '')
       list.push({
         href: href,
-        displayname:displayname,
+        displayname: displayname,
         lastModified: getTextContent(responses[i], 'D:getlastmodified') || 'N/A',
         creationDate: getTextContent(responses[i], 'D:creationdate') || 'N/A'
       })
