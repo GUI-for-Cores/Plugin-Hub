@@ -21,10 +21,12 @@ const onRun = async () => {
     })),
     []
   )
-  await Promise.all(subscription_list.map(async (subscription) => {
-    subscription.proxies = await beautifyNodeName(subscription.proxies, subscription)
-    Plugins.message.success(`美化成功 [${subscription.name}]`)
-  }))
+  await Promise.all(
+    subscription_list.map(async (subscription) => {
+      subscription.proxies = await beautifyNodeName(subscription.proxies, subscription)
+      Plugins.message.success(`美化成功 [${subscription.name}]`)
+    })
+  )
 }
 
 /* 订阅时 */
@@ -114,7 +116,8 @@ async function beautifyNodeName(proxies, metadata) {
     // 使用正则表达式匹配保留的关键词
     let matchedOtherInfo = []
     if (reservedKeywords && parts) {
-      const keywords = reservedKeywords.split('|')
+      const keywords = reservedKeywords
+        .split('|')
         .map((k) => k.trim())
         .filter(Boolean)
       keywords.forEach((keyword) => {
@@ -154,9 +157,7 @@ async function beautifyNodeName(proxies, metadata) {
       // console.log(tag)
     }
     const prefix = `${metadata.name} | `
-    tag = enableSubscriptionName && !tag?.startsWith(prefix)
-      ? prefix + tag
-      : tag
+    tag = enableSubscriptionName && !tag?.startsWith(prefix) ? prefix + tag : tag
     return { ...proxy, [flag]: tag ?? proxy.tag }
   })
   const sort = enableUnifyRegionName === 2 ? 'en' : 'zh-Hans-CN'
