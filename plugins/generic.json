@@ -1449,7 +1449,7 @@
   {
     "id": "plugin-beautiful-node-name",
     "name": "美化节点名称",
-    "version": "v3.0.0",
+    "version": "v3.0.1",
     "description": "统一规范节点名称，使其显示更好看。Supported by: Starfish",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-beautiful-node-name.js",
