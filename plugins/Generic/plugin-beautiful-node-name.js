@@ -149,7 +149,7 @@ async function beautifyNodeName(proxies, metadata) {
         enableNationalEmoji ? matchedRegion.emoji : '',
         enableUnifyRegionName ? regionName : '',
         serialNumber,
-        enableCityName ? subMatchedRegion ?? '' : ''
+        enableCityName ? (subMatchedRegion ?? '') : ''
       ]
         .filter(Boolean)
         .join(' ')
