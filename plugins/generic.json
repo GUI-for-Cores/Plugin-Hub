@@ -1454,7 +1454,7 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-beautiful-node-name.js",
     "path": "data/plugins/plugin-beautiful-node-name.js",
-    "triggers": ["on::subscribe"],
+    "triggers": ["on::subscribe", "on::manual"],
     "menus": {},
     "context": {
       "profiles": {},

@@ -8,12 +8,12 @@
  */
 
 /* 手动触发 */
-const onRun = async() => {
+const onRun = async () => {
   let subscribesStore = Plugins.useSubscribesStore()
   if (subscribesStore.subscribes.length === 0) {
     throw '请添加订阅'
   }
-  let subscription = await Plugins.picker.single(
+  let subscription_list = await Plugins.picker.multi(
     '请选择要美化的订阅',
     subscribesStore.subscribes.map((v) => ({
       label: v.name,
@@ -21,13 +21,15 @@ const onRun = async() => {
     })),
     []
   )
-  subscription.proxies = await beautifyNodeName(subscription.proxies, subscription)
-  Plugins.message.success('美化成功')
+  await Promise.all(subscription_list.map(async (subscription) => {
+    subscription.proxies = await beautifyNodeName(subscription.proxies, subscription)
+    Plugins.message.success(`美化成功 [${subscription.name}]`)
+  }))
 }
 
 /* 订阅时 */
 const onSubscribe = async (proxies, metadata) => {
-  return beautifyNodeName(proxies, metadata)
+  return await beautifyNodeName(proxies, metadata)
 }
 
 async function beautifyNodeName(proxies, metadata) {
@@ -151,7 +153,10 @@ async function beautifyNodeName(proxies, metadata) {
       tag = matchedOtherInfo.length >= 1 ? tag + ' | ' + matchedOtherInfo.join(' ') : tag
       // console.log(tag)
     }
-    tag = enableSubscriptionName ? metadata.name + ' | ' + tag : tag
+    const prefix = `${metadata.name} | `
+    tag = enableSubscriptionName && !tag?.startsWith(prefix)
+      ? prefix + tag
+      : tag
     return { ...proxy, [flag]: tag ?? proxy.tag }
   })
   const sort = enableUnifyRegionName === 2 ? 'en' : 'zh-Hans-CN'
