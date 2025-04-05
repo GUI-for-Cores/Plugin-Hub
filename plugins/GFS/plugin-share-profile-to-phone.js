@@ -17,7 +17,7 @@ const onRun = async () => {
         label: v.name,
         value: v
       })),
-      []
+      [store.profiles[0]]
     )
   }
   await Share(Plugins.deepClone(profile))
@@ -229,6 +229,22 @@ function getQRCode(rawUrl, rawStr) {
   })
 }
 
+function isPrivateIP(ip) {
+  const parts = ip.split('.')
+  if (parts.length !== 4) return false
+  const first = parseInt(parts[0], 10)
+  const second = parseInt(parts[1], 10)
+  const fourth = parseInt(parts[3], 10)
+  if (first === 255 || fourth === 1 || fourth === 255) return false
+  // Check 10.0.0.0/8 (10.x.x.x)
+  if (first === 10) return true
+  // Check 172.16.0.0/12 (172.16.x.x to 172.31.x.x)
+  if (first === 172 && second >= 16 && second <= 31) return true
+  // Check 192.168.0.0/16 (192.168.x.x)
+  if (first === 192 && second === 168) return true
+  return false
+}
+
 async function getIPAddress() {
   const os = Plugins.useEnvStore().env.os
   const cmd = {
@@ -244,9 +260,13 @@ async function getIPAddress() {
   const text = await Plugins.Exec(cmd, arg, { convert: os === 'windows' })
   const ipv4Pattern = /\b(?:\d{1,3}\.){3}\d{1,3}\b/g
   let ips = text.match(ipv4Pattern) || []
-  ips.unshift('127.0.0.1')
-  ips = ips.filter((ip) => {
-    return !ip.startsWith('255') && !ip.endsWith('255')
-  })
-  return [...new Set(ips)]
+  ips = ips.filter((ip) => isPrivateIP(ip))
+
+  const getPriority = (ip) => {
+    if (ip.startsWith('192.')) return 0
+    if (ip.startsWith('10.')) return 1
+    if (ip.startsWith('172.')) return 2
+    return 3
+  }
+  return [...new Set(ips)].sort((a, b) => getPriority(a) - getPriority(b))
 }
