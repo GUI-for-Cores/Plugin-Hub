@@ -197,7 +197,9 @@ const fetchChangeLog = async () => {
     console.log(`[${Plugin.name}]`, '当前不是滚动发行版本')
   }
   const history = body.slice(0, releaseIndex).map((v) => ({
-    message: v.commit.message,
+    message: v.commit.message
+      .replaceAll('\n\n', '\n    - ')
+      .replaceAll(/#(\d+)/g, `[#$1](https://github.com/GUI-for-Cores/${Plugins.APP_TITLE}/pull/$1 "#$1")`),
     time: Plugins.formatRelativeTime(v.commit.committer.date),
     isCurrent: v.sha.slice(0, 7) === currentVersion,
     html_url: v.html_url
