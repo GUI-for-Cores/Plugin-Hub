@@ -1,7 +1,7 @@
 /**
  * Windows网卡代理共享插件
  * 用于将指定网卡连接共享给其他网卡，使连接到该网卡的设备流量通过代理
- * @version v1.0.0
+ * @version v1.1.0
  */
 
 /* Trigger on::manual */
@@ -11,19 +11,49 @@ const onRun = async () => {
       Plugin.name,
       [
         { label: '启用网卡代理共享', value: 'Enable' },
-        { label: '禁用网卡代理共享', value: 'Disable' }
+        { label: '禁用网卡代理共享', value: 'Disable' },
+        { label: '查看共享状态', value: 'Status' }
       ],
       ['Enable']
     )
     
+    // 如果用户取消选择，返回当前状态而不做更改
+    if (!action) {
+      return Plugin.status || await checkSharingStatus()
+    }
+    
     if (action === 'Enable') {
-      await enableSharing()
+      return await enableSharing()
     } else if (action === 'Disable') {
-      await disableSharing()
+      return await disableSharing()
+    } else if (action === 'Status') {
+      const status = await checkSharingStatus()
+      
+      if (status === 1) {
+        // 如果有保存的共享信息，显示详细信息
+        if (Plugin.sharingInfo) {
+          Plugins.message.info(`当前共享状态: ${Plugin.sharingInfo.sourceAdapter} → ${Plugin.sharingInfo.targetAdapter}`)
+        } else {
+          Plugins.message.info("当前有网卡共享正在运行")
+        }
+      } else {
+        Plugins.message.info("当前没有网卡共享")
+      }
+      
+      return status
     }
   } catch (error) {
     handleError(error)
+    return Plugin.status || 0  // 发生错误时返回当前状态而非初始状态
   }
+}
+
+/**
+ * 插件钩子：状态查询
+ * 用于在插件列表中显示当前状态
+ */
+const onStatus = async () => {
+  return await checkSharingStatus()
 }
 
 /**
@@ -31,9 +61,10 @@ const onRun = async () => {
  */
 const quickEnable = async () => {
   try {
-    await enableSharing(true)
+    return await enableSharing(true)
   } catch (error) {
     handleError(error)
+    return Plugin.status || 0
   }
 }
 
@@ -42,9 +73,34 @@ const quickEnable = async () => {
  */
 const quickDisable = async () => {
   try {
-    await disableSharing()
+    return await disableSharing()
   } catch (error) {
     handleError(error)
+    return Plugin.status || 0
+  }
+}
+
+/**
+ * 菜单方法：快速查看状态
+ */
+const quickCheckStatus = async () => {
+  try {
+    const status = await checkSharingStatus()
+    
+    if (status === 1) {
+      if (Plugin.sharingInfo) {
+        Plugins.message.info(`当前共享状态: ${Plugin.sharingInfo.sourceAdapter} → ${Plugin.sharingInfo.targetAdapter}`)
+      } else {
+        Plugins.message.info("当前有网卡共享正在运行")
+      }
+    } else {
+      Plugins.message.info("当前没有网卡共享")
+    }
+    
+    return status
+  } catch (error) {
+    handleError(error)
+    return Plugin.status || 0
   }
 }
 
@@ -117,13 +173,20 @@ const enableSharing = async (useLastTarget = false) => {
         targetAdapters,
         targetAdapters.length > 0 ? [targetAdapters[0].value] : undefined
       )
+      
+      // 如果用户取消选择，返回当前状态
+      if (!targetAdapter) {
+        return Plugin.status || 0
+      }
     }
     
     // 保存选择的目标网卡
     Plugin.lastTargetAdapter = targetAdapter
     
     // 先禁用所有现有共享
-    await disableSharing(false)
+    if (Plugin.autoReplaceSharing !== false) {
+      await disableSharing(false)
+    }
     
     // 配置ICS
     const sharingScript = `
@@ -176,7 +239,18 @@ const enableSharing = async (useLastTarget = false) => {
     if (sharingResult.includes("SUCCESS")) {
       const message = `已成功将 ${sourceAdapter.Name} 的连接共享给 ${targetAdapter}`
       Plugins.message.success(message)
-      return true
+      
+      // 设置插件状态为"运行中"
+      Plugin.status = 1
+      
+      // 保存当前共享信息到插件状态中
+      Plugin.sharingInfo = {
+        sourceAdapter: sourceAdapter.Name,
+        targetAdapter: targetAdapter,
+        enabledAt: new Date().toISOString()
+      }
+      
+      return 1  // 返回状态码 1 表示运行中
     } else {
       throw new Error(`配置共享失败: ${sharingResult}`)
     }
@@ -250,12 +324,103 @@ const disableSharing = async (showMessage = true) => {
           Plugins.message.info("没有找到需要禁用的共享")
         }
       }
-      return true
+      
+      // 设置插件状态为"已停止"
+      Plugin.status = 2
+      
+      // 清除共享信息
+      Plugin.sharingInfo = null
+      
+      return 2  // 返回状态码 2 表示已停止
     } else {
       throw new Error(`禁用共享失败: ${parsedResult.message}`)
     }
   } catch (error) {
     throw error
+  }
+}
+
+/**
+ * 查询当前网卡共享状态
+ */
+const checkSharingStatus = async () => {
+  try {
+    const psScript = `
+      try {
+        # 创建网络配置对象
+        $networkConfig = New-Object -ComObject HNetCfg.HNetShare
+        
+        # 获取所有连接的共享状态
+        $connections = $networkConfig.EnumEveryConnection
+        
+        $sharingInfo = @()
+        
+        foreach ($conn in $connections) {
+          try {
+            $props = $networkConfig.NetConnectionProps.Invoke($conn)
+            $config = $networkConfig.INetSharingConfigurationForINetConnection.Invoke($conn)
+            
+            if ($config.SharingEnabled) {
+              $sharingType = if ($config.SharingConnectionType -eq 0) { "Public" } else { "Private" }
+              $sharingInfo += [PSCustomObject]@{
+                Name = $props.Name
+                Type = $sharingType
+              }
+            }
+          } catch {}
+        }
+        
+        $result = [PSCustomObject]@{
+          success = $true
+          sharingExists = ($sharingInfo.Count -gt 0)
+          sharingInfo = $sharingInfo
+        } | ConvertTo-Json
+        Write-Output $result
+      } catch {
+        $result = [PSCustomObject]@{
+          success = $false
+          message = "ERROR: $_"
+        } | ConvertTo-Json
+        Write-Output $result
+      }
+    `
+    
+    const result = await Plugins.Exec('powershell', ['-Command', psScript])
+    const parsedResult = JSON.parse(result)
+    
+    if (parsedResult.success) {
+      if (parsedResult.sharingExists) {
+        // 如果存在共享，设置状态为"运行中"
+        Plugin.status = 1
+        
+        // 如果没有保存的共享信息，尝试从查询结果中提取
+        if (!Plugin.sharingInfo && parsedResult.sharingInfo && parsedResult.sharingInfo.length > 0) {
+          const publicAdapter = parsedResult.sharingInfo.find(a => a.Type === "Public")
+          const privateAdapter = parsedResult.sharingInfo.find(a => a.Type === "Private")
+          
+          if (publicAdapter && privateAdapter) {
+            Plugin.sharingInfo = {
+              sourceAdapter: publicAdapter.Name,
+              targetAdapter: privateAdapter.Name,
+              enabledAt: new Date().toISOString()
+            }
+          }
+        }
+        
+        return 1
+      } else {
+        // 如果不存在共享，设置状态为"已停止"
+        Plugin.status = 2
+        Plugin.sharingInfo = null
+        return 2
+      }
+    } else {
+      // 如果查询失败，保持当前状态
+      return Plugin.status || 0
+    }
+  } catch (error) {
+    console.error("查询共享状态失败:", error)
+    return Plugin.status || 0
   }
 }
 

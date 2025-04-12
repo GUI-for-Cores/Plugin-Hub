@@ -1949,7 +1949,7 @@
   {
     "id": "plugin-network-sharing",
     "name": "网卡代理共享",
-    "version": "v1.0.0",
+    "version": "v1.1.0",
     "description": "将指定网卡连接共享给其他网卡，使连接到该网卡的设备流量通过代理",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-network-sharing.js",
@@ -1957,7 +1957,8 @@
     "triggers": ["on::manual"],
     "menus": {
       "快速启用共享": "quickEnable",
-      "快速禁用共享": "quickDisable"
+      "快速禁用共享": "quickDisable",
+      "查看共享状态": "quickCheckStatus"
     },
     "context": {
       "profiles": {},
