@@ -1505,6 +1505,8 @@ function URI_Producer() {
                 }
               } else if (['disable-sni', 'reduce-rtt'].includes(key) && proxy[key]) {
                 tuicParams.push(`${i.replace(/-/g, '_')}=1`)
+              } else if (['congestion-controller'].includes(key)) {
+                tuicParams.push(`congestion_control=${proxy[key]}`)
               } else if (proxy[key]) {
                 tuicParams.push(`${i.replace(/-/g, '_')}=${encodeURIComponent(proxy[key])}`)
               }
@@ -2442,6 +2444,9 @@ const PROXY_PARSERS = (() => {
           proxy.tfo = true
         } else if (['disable-sni', 'reduce-rtt'].includes(key)) {
           proxy[key] = /(TRUE)|1/i.test(value)
+        } else if (key === 'congestion-control') {
+          proxy['congestion-controller'] = value
+          delete proxy[key]
         } else {
           proxy[key] = value
         }
