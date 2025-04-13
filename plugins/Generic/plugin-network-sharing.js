@@ -1,7 +1,7 @@
 /**
  * Windows网卡代理共享插件
  * 用于将指定网卡连接共享给其他网卡，使连接到该网卡的设备流量通过代理
- * @version v1.1.1
+ * @version v1.1.2
  * @author 星4
  */
 
@@ -152,6 +152,8 @@ const quickCheckStatus = async () => {
  */
 const getNetworkAdapters = async () => {
   const psScript = `
+    $OutputEncoding = [System.Text.Encoding]::UTF8
+    
     $networkAdapters = Get-NetAdapter | Where-Object { $_.Status -eq 'Up' } | ForEach-Object {
       [PSCustomObject]@{
         Name = $_.Name
@@ -160,8 +162,10 @@ const getNetworkAdapters = async () => {
         MacAddress = $_.MacAddress
         ifIndex = $_.ifIndex
       }
-    } | ConvertTo-Json
-    Write-Output $networkAdapters
+    }
+    
+    $jsonString = ConvertTo-Json $networkAdapters
+    Write-Output $jsonString
   `
   
   const result = await Plugins.Exec('powershell', ['-Command', psScript])
@@ -247,6 +251,8 @@ const enableSharing = async (useLastTarget = false) => {
     
     // 配置ICS
     const sharingScript = `
+      $OutputEncoding = [System.Text.Encoding]::UTF8
+      
       try {
         # 创建网络配置对象
         $networkConfig = New-Object -ComObject HNetCfg.HNetShare
@@ -286,7 +292,7 @@ const enableSharing = async (useLastTarget = false) => {
         
         Write-Output "SUCCESS: 共享配置成功"
       } catch {
-        Write-Error "ERROR: $_"
+        Write-Output "ERROR: $_"
         exit 1
       }
     `
@@ -322,6 +328,8 @@ const enableSharing = async (useLastTarget = false) => {
 const disableSharing = async (showMessage = true) => {
   try {
     const psScript = `
+      $OutputEncoding = [System.Text.Encoding]::UTF8
+      
       try {
         # 创建网络配置对象
         $networkConfig = New-Object -ComObject HNetCfg.HNetShare
@@ -346,27 +354,29 @@ const disableSharing = async (showMessage = true) => {
         }
         
         if ($disabledAny) {
-          $result = [PSCustomObject]@{
+          $result = @{
             success = $true
             message = "已成功禁用网络共享"
             adapters = $disabledAdapters
-          } | ConvertTo-Json
-          Write-Output $result
+          }
         } else {
-          $result = [PSCustomObject]@{
+          $result = @{
             success = $true
             message = "没有找到需要禁用的共享"
             adapters = @()
-          } | ConvertTo-Json
-          Write-Output $result
+          }
         }
+        
+        $jsonResult = ConvertTo-Json $result
+        Write-Output $jsonResult
       } catch {
-        $result = [PSCustomObject]@{
+        $result = @{
           success = $false
           message = "ERROR: $_"
           adapters = @()
-        } | ConvertTo-Json
-        Write-Output $result
+        }
+        $jsonResult = ConvertTo-Json $result
+        Write-Output $jsonResult
       }
     `
     
@@ -403,6 +413,8 @@ const disableSharing = async (showMessage = true) => {
 const checkSharingStatus = async () => {
   try {
     const psScript = `
+      $OutputEncoding = [System.Text.Encoding]::UTF8
+      
       try {
         # 创建网络配置对象
         $networkConfig = New-Object -ComObject HNetCfg.HNetShare
@@ -419,7 +431,7 @@ const checkSharingStatus = async () => {
             
             if ($config.SharingEnabled) {
               $sharingType = if ($config.SharingConnectionType -eq 0) { "Public" } else { "Private" }
-              $sharingInfo += [PSCustomObject]@{
+              $sharingInfo += @{
                 Name = $props.Name
                 Type = $sharingType
               }
@@ -427,18 +439,21 @@ const checkSharingStatus = async () => {
           } catch {}
         }
         
-        $result = [PSCustomObject]@{
+        $result = @{
           success = $true
           sharingExists = ($sharingInfo.Count -gt 0)
           sharingInfo = $sharingInfo
-        } | ConvertTo-Json
-        Write-Output $result
+        }
+        
+        $jsonResult = ConvertTo-Json $result
+        Write-Output $jsonResult
       } catch {
-        $result = [PSCustomObject]@{
+        $result = @{
           success = $false
           message = "ERROR: $_"
-        } | ConvertTo-Json
-        Write-Output $result
+        }
+        $jsonResult = ConvertTo-Json $result
+        Write-Output $jsonResult
       }
     `
     
@@ -498,3 +513,4 @@ function handleError(error) {
   
   console.error("详细错误信息:", error)
 }
+
