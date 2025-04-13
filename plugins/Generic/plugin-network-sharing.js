@@ -1,7 +1,7 @@
 /**
  * Windows网卡代理共享插件
  * 用于将指定网卡连接共享给其他网卡，使连接到该网卡的设备流量通过代理
- * @version v1.1.1
+ * @version v1.1.3
  * @author 星4
  */
 
@@ -24,9 +24,9 @@ const onRun = async () => {
       ['Enable']
     )
     
-    // 如果用户取消选择，返回当前状态而不做更改
+    // 用户取消选择时直接返回当前状态
     if (!action) {
-      return Plugin.status || await checkSharingStatus()
+      return Plugin.status || 0
     }
     
     if (action === 'Enable') {
@@ -50,8 +50,7 @@ const onRun = async () => {
       return status
     }
   } catch (error) {
-    handleError(error)
-    return Plugin.status || 0  // 发生错误时返回当前状态而非初始状态
+    return handleErrorSafely(error)
   }
 }
 
@@ -67,6 +66,18 @@ const isWindowsOS = () => {
   } catch (error) {
     return false
   }
+}
+
+/**
+ * 统一处理错误，忽略用户取消操作
+ * 返回当前插件状态
+ */
+const handleErrorSafely = (error) => {
+  // 忽略包含"取消"关键字的错误
+  if (!error.toString().includes('取消')) {
+    Plugins.message.error(`操作失败: ${error.message || error}`)
+  }
+  return Plugin.status || 0
 }
 
 /**
@@ -94,8 +105,7 @@ const quickEnable = async () => {
   try {
     return await enableSharing(true)
   } catch (error) {
-    handleError(error)
-    return Plugin.status || 0
+    return handleErrorSafely(error)
   }
 }
 
@@ -112,8 +122,7 @@ const quickDisable = async () => {
   try {
     return await disableSharing()
   } catch (error) {
-    handleError(error)
-    return Plugin.status || 0
+    return handleErrorSafely(error)
   }
 }
 
@@ -142,8 +151,7 @@ const quickCheckStatus = async () => {
     
     return status
   } catch (error) {
-    handleError(error)
-    return Plugin.status || 0
+    return handleErrorSafely(error)
   }
 }
 
@@ -152,6 +160,8 @@ const quickCheckStatus = async () => {
  */
 const getNetworkAdapters = async () => {
   const psScript = `
+    $OutputEncoding = [System.Text.Encoding]::UTF8
+    
     $networkAdapters = Get-NetAdapter | Where-Object { $_.Status -eq 'Up' } | ForEach-Object {
       [PSCustomObject]@{
         Name = $_.Name
@@ -160,8 +170,10 @@ const getNetworkAdapters = async () => {
         MacAddress = $_.MacAddress
         ifIndex = $_.ifIndex
       }
-    } | ConvertTo-Json
-    Write-Output $networkAdapters
+    }
+    
+    $jsonString = ConvertTo-Json $networkAdapters
+    Write-Output $jsonString
   `
   
   const result = await Plugins.Exec('powershell', ['-Command', psScript])
@@ -231,7 +243,7 @@ const enableSharing = async (useLastTarget = false) => {
         targetAdapters.length > 0 ? [targetAdapters[0].value] : undefined
       )
       
-      // 如果用户取消选择，返回当前状态
+      // 如果用户取消选择，直接返回当前状态
       if (!targetAdapter) {
         return Plugin.status || 0
       }
@@ -247,6 +259,8 @@ const enableSharing = async (useLastTarget = false) => {
     
     // 配置ICS
     const sharingScript = `
+      $OutputEncoding = [System.Text.Encoding]::UTF8
+      
       try {
         # 创建网络配置对象
         $networkConfig = New-Object -ComObject HNetCfg.HNetShare
@@ -286,7 +300,7 @@ const enableSharing = async (useLastTarget = false) => {
         
         Write-Output "SUCCESS: 共享配置成功"
       } catch {
-        Write-Error "ERROR: $_"
+        Write-Output "ERROR: $_"
         exit 1
       }
     `
@@ -312,6 +326,10 @@ const enableSharing = async (useLastTarget = false) => {
       throw new Error(`配置共享失败: ${sharingResult}`)
     }
   } catch (error) {
+    // 如果错误信息包含"取消"，则静默返回
+    if (error.toString().includes('取消')) {
+      return Plugin.status || 0
+    }
     throw error
   }
 }
@@ -322,6 +340,8 @@ const enableSharing = async (useLastTarget = false) => {
 const disableSharing = async (showMessage = true) => {
   try {
     const psScript = `
+      $OutputEncoding = [System.Text.Encoding]::UTF8
+      
       try {
         # 创建网络配置对象
         $networkConfig = New-Object -ComObject HNetCfg.HNetShare
@@ -346,27 +366,29 @@ const disableSharing = async (showMessage = true) => {
         }
         
         if ($disabledAny) {
-          $result = [PSCustomObject]@{
+          $result = @{
             success = $true
             message = "已成功禁用网络共享"
             adapters = $disabledAdapters
-          } | ConvertTo-Json
-          Write-Output $result
+          }
         } else {
-          $result = [PSCustomObject]@{
+          $result = @{
             success = $true
             message = "没有找到需要禁用的共享"
             adapters = @()
-          } | ConvertTo-Json
-          Write-Output $result
+          }
         }
+        
+        $jsonResult = ConvertTo-Json $result
+        Write-Output $jsonResult
       } catch {
-        $result = [PSCustomObject]@{
+        $result = @{
           success = $false
           message = "ERROR: $_"
           adapters = @()
-        } | ConvertTo-Json
-        Write-Output $result
+        }
+        $jsonResult = ConvertTo-Json $result
+        Write-Output $jsonResult
       }
     `
     
@@ -393,6 +415,10 @@ const disableSharing = async (showMessage = true) => {
       throw new Error(`禁用共享失败: ${parsedResult.message}`)
     }
   } catch (error) {
+    // 如果错误信息包含"取消"，则静默返回
+    if (error.toString().includes('取消')) {
+      return Plugin.status || 0
+    }
     throw error
   }
 }
@@ -403,6 +429,8 @@ const disableSharing = async (showMessage = true) => {
 const checkSharingStatus = async () => {
   try {
     const psScript = `
+      $OutputEncoding = [System.Text.Encoding]::UTF8
+      
       try {
         # 创建网络配置对象
         $networkConfig = New-Object -ComObject HNetCfg.HNetShare
@@ -419,7 +447,7 @@ const checkSharingStatus = async () => {
             
             if ($config.SharingEnabled) {
               $sharingType = if ($config.SharingConnectionType -eq 0) { "Public" } else { "Private" }
-              $sharingInfo += [PSCustomObject]@{
+              $sharingInfo += @{
                 Name = $props.Name
                 Type = $sharingType
               }
@@ -427,18 +455,21 @@ const checkSharingStatus = async () => {
           } catch {}
         }
         
-        $result = [PSCustomObject]@{
+        $result = @{
           success = $true
           sharingExists = ($sharingInfo.Count -gt 0)
           sharingInfo = $sharingInfo
-        } | ConvertTo-Json
-        Write-Output $result
+        }
+        
+        $jsonResult = ConvertTo-Json $result
+        Write-Output $jsonResult
       } catch {
-        $result = [PSCustomObject]@{
+        $result = @{
           success = $false
           message = "ERROR: $_"
-        } | ConvertTo-Json
-        Write-Output $result
+        }
+        $jsonResult = ConvertTo-Json $result
+        Write-Output $jsonResult
       }
     `
     
@@ -476,25 +507,6 @@ const checkSharingStatus = async () => {
       return Plugin.status || 0
     }
   } catch (error) {
-    console.error("查询共享状态失败:", error)
-    return Plugin.status || 0
+    return handleErrorSafely(error)
   }
-}
-
-/**
- * 统一错误处理
- */
-function handleError(error) {
-  const errorMessage = error.message || error.toString()
-  
-  // 常见错误的友好提示
-  if (errorMessage.includes("exit status 1")) {
-    Plugins.message.error("启用共享失败: 可能是权限不足或已有其他共享存在")
-  } else if (errorMessage.includes("未找到")) {
-    Plugins.message.error(errorMessage)
-  } else {
-    Plugins.message.error(`操作失败: ${errorMessage}`)
-  }
-  
-  console.error("详细错误信息:", error)
 }
