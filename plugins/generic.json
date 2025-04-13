@@ -1945,5 +1945,51 @@
     "disabled": false,
     "install": false,
     "installed": false
+  },
+  {
+    "id": "plugin-network-sharing",
+    "name": "Windows 网卡代理共享",
+    "version": "v1.1.1",
+    "description": "将指定网卡连接共享给其他网卡，使连接到该网卡的设备流量通过代理 Supported by: 星4",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-network-sharing.js",
+    "path": "data/plugins/plugin-network-sharing.js",
+    "triggers": ["on::manual"],
+    "menus": {
+      "快速启用共享": "quickEnable",
+      "快速禁用共享": "quickDisable",
+      "查看共享状态": "quickCheckStatus"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "configuration": [
+      {
+        "id": "ID_sourceAdapter",
+        "title": "源网卡名称",
+        "description": "要共享的源网卡名称，默认匹配tun和meta，支持部分匹配，可自定义额外匹配",
+        "key": "sourceAdapterName",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_autoReplace",
+        "title": "自动替换现有共享",
+        "description": "当已存在网卡共享时，是否自动替换为新的共享设置",
+        "key": "autoReplaceSharing",
+        "component": "Switch",
+        "value": true,
+        "options": []
+      }
+    ],
+    "status": 0,
+    "disabled": false,
+    "install": false,
+    "installed": false
   }
 ]
