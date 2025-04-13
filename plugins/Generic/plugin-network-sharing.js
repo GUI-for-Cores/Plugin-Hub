@@ -1,7 +1,7 @@
 /**
  * Windows网卡代理共享插件
  * 用于将指定网卡连接共享给其他网卡，使连接到该网卡的设备流量通过代理
- * @version v1.1.2
+ * @version v1.1.3
  * @author 星4
  */
 
@@ -24,9 +24,9 @@ const onRun = async () => {
       ['Enable']
     )
     
-    // 如果用户取消选择，返回当前状态而不做更改
+    // 用户取消选择时直接返回当前状态
     if (!action) {
-      return Plugin.status || await checkSharingStatus()
+      return Plugin.status || 0
     }
     
     if (action === 'Enable') {
@@ -50,8 +50,7 @@ const onRun = async () => {
       return status
     }
   } catch (error) {
-    handleError(error)
-    return Plugin.status || 0  // 发生错误时返回当前状态而非初始状态
+    return handleErrorSafely(error)
   }
 }
 
@@ -67,6 +66,18 @@ const isWindowsOS = () => {
   } catch (error) {
     return false
   }
+}
+
+/**
+ * 统一处理错误，忽略用户取消操作
+ * 返回当前插件状态
+ */
+const handleErrorSafely = (error) => {
+  // 忽略包含"取消"关键字的错误
+  if (!error.toString().includes('取消')) {
+    Plugins.message.error(`操作失败: ${error.message || error}`)
+  }
+  return Plugin.status || 0
 }
 
 /**
@@ -94,8 +105,7 @@ const quickEnable = async () => {
   try {
     return await enableSharing(true)
   } catch (error) {
-    handleError(error)
-    return Plugin.status || 0
+    return handleErrorSafely(error)
   }
 }
 
@@ -112,8 +122,7 @@ const quickDisable = async () => {
   try {
     return await disableSharing()
   } catch (error) {
-    handleError(error)
-    return Plugin.status || 0
+    return handleErrorSafely(error)
   }
 }
 
@@ -142,8 +151,7 @@ const quickCheckStatus = async () => {
     
     return status
   } catch (error) {
-    handleError(error)
-    return Plugin.status || 0
+    return handleErrorSafely(error)
   }
 }
 
@@ -235,7 +243,7 @@ const enableSharing = async (useLastTarget = false) => {
         targetAdapters.length > 0 ? [targetAdapters[0].value] : undefined
       )
       
-      // 如果用户取消选择，返回当前状态
+      // 如果用户取消选择，直接返回当前状态
       if (!targetAdapter) {
         return Plugin.status || 0
       }
@@ -318,6 +326,10 @@ const enableSharing = async (useLastTarget = false) => {
       throw new Error(`配置共享失败: ${sharingResult}`)
     }
   } catch (error) {
+    // 如果错误信息包含"取消"，则静默返回
+    if (error.toString().includes('取消')) {
+      return Plugin.status || 0
+    }
     throw error
   }
 }
@@ -403,6 +415,10 @@ const disableSharing = async (showMessage = true) => {
       throw new Error(`禁用共享失败: ${parsedResult.message}`)
     }
   } catch (error) {
+    // 如果错误信息包含"取消"，则静默返回
+    if (error.toString().includes('取消')) {
+      return Plugin.status || 0
+    }
     throw error
   }
 }
@@ -491,26 +507,6 @@ const checkSharingStatus = async () => {
       return Plugin.status || 0
     }
   } catch (error) {
-    console.error("查询共享状态失败:", error)
-    return Plugin.status || 0
+    return handleErrorSafely(error)
   }
 }
-
-/**
- * 统一错误处理
- */
-function handleError(error) {
-  const errorMessage = error.message || error.toString()
-  
-  // 常见错误的友好提示
-  if (errorMessage.includes("exit status 1")) {
-    Plugins.message.error("启用共享失败: 可能是权限不足或已有其他共享存在")
-  } else if (errorMessage.includes("未找到")) {
-    Plugins.message.error(errorMessage)
-  } else {
-    Plugins.message.error(`操作失败: ${errorMessage}`)
-  }
-  
-  console.error("详细错误信息:", error)
-}
-
