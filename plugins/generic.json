@@ -1949,7 +1949,7 @@
   {
     "id": "plugin-network-sharing",
     "name": "Windows 网卡代理共享",
-    "version": "v1.1.3",
+    "version": "v1.1.4",
     "description": "将指定网卡连接共享给其他网卡，使连接到该网卡的设备流量通过代理 Supported by: 星4",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-network-sharing.js",

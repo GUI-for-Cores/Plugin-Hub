@@ -176,7 +176,7 @@ const getNetworkAdapters = async () => {
     Write-Output $jsonString
   `
 
-  const result = await Plugins.Exec('powershell', ['-Command', psScript])
+  const result = await Plugins.Exec('powershell', ['-Command', psScript], { convert: true })
   return JSON.parse(result)
 }
 
@@ -292,11 +292,10 @@ const enableSharing = async (useLastTarget = false) => {
         Write-Output "SUCCESS: 共享配置成功"
       } catch {
         Write-Output "ERROR: $_"
-        exit 1
       }
     `
 
-    const sharingResult = await Plugins.Exec('powershell', ['-Command', sharingScript])
+    const sharingResult = await Plugins.Exec('powershell', ['-Command', sharingScript], { convert: true })
 
     if (sharingResult.includes('SUCCESS')) {
       const message = `已成功将 ${sourceAdapter.Name} 的连接共享给 ${targetAdapter}`
@@ -383,7 +382,7 @@ const disableSharing = async (showMessage = true) => {
       }
     `
 
-    const result = await Plugins.Exec('powershell', ['-Command', psScript])
+    const result = await Plugins.Exec('powershell', ['-Command', psScript], { convert: true })
     const parsedResult = JSON.parse(result)
 
     if (parsedResult.success) {
@@ -464,7 +463,7 @@ const checkSharingStatus = async () => {
       }
     `
 
-    const result = await Plugins.Exec('powershell', ['-Command', psScript])
+    const result = await Plugins.Exec('powershell', ['-Command', psScript], { convert: true })
     const parsedResult = JSON.parse(result)
 
     if (parsedResult.success) {
