@@ -1948,7 +1948,7 @@
   },
   {
     "id": "plugin-network-sharing",
-    "name": "网卡代理共享",
+    "name": "Windows 网卡代理共享",
     "version": "v1.1.1",
     "description": "将指定网卡连接共享给其他网卡，使连接到该网卡的设备流量通过代理 Supported by: 星4",
     "type": "Http",
