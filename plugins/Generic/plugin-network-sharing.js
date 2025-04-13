@@ -9,7 +9,7 @@
 const onRun = async () => {
   // 检测操作系统类型
   if (!isWindowsOS()) {
-    Plugins.message.error("此插件仅支持Windows系统")
+    Plugins.message.error('此插件仅支持Windows系统')
     return 0
   }
 
@@ -23,30 +23,30 @@ const onRun = async () => {
       ],
       ['Enable']
     )
-    
+
     // 用户取消选择时直接返回当前状态
     if (!action) {
       return Plugin.status || 0
     }
-    
+
     if (action === 'Enable') {
       return await enableSharing()
     } else if (action === 'Disable') {
       return await disableSharing()
     } else if (action === 'Status') {
       const status = await checkSharingStatus()
-      
+
       if (status === 1) {
         // 如果有保存的共享信息，显示详细信息
         if (Plugin.sharingInfo) {
           Plugins.message.info(`当前共享状态: ${Plugin.sharingInfo.sourceAdapter} → ${Plugin.sharingInfo.targetAdapter}`)
         } else {
-          Plugins.message.info("当前有网卡共享正在运行")
+          Plugins.message.info('当前有网卡共享正在运行')
         }
       } else {
-        Plugins.message.info("当前没有网卡共享")
+        Plugins.message.info('当前没有网卡共享')
       }
-      
+
       return status
     }
   } catch (error) {
@@ -98,7 +98,7 @@ const onStatus = async () => {
 const quickEnable = async () => {
   // 检测操作系统类型
   if (!isWindowsOS()) {
-    Plugins.message.error("此插件仅支持Windows系统")
+    Plugins.message.error('此插件仅支持Windows系统')
     return 0
   }
 
@@ -115,7 +115,7 @@ const quickEnable = async () => {
 const quickDisable = async () => {
   // 检测操作系统类型
   if (!isWindowsOS()) {
-    Plugins.message.error("此插件仅支持Windows系统")
+    Plugins.message.error('此插件仅支持Windows系统')
     return 0
   }
 
@@ -132,23 +132,23 @@ const quickDisable = async () => {
 const quickCheckStatus = async () => {
   // 检测操作系统类型
   if (!isWindowsOS()) {
-    Plugins.message.error("此插件仅支持Windows系统")
+    Plugins.message.error('此插件仅支持Windows系统')
     return 0
   }
 
   try {
     const status = await checkSharingStatus()
-    
+
     if (status === 1) {
       if (Plugin.sharingInfo) {
         Plugins.message.info(`当前共享状态: ${Plugin.sharingInfo.sourceAdapter} → ${Plugin.sharingInfo.targetAdapter}`)
       } else {
-        Plugins.message.info("当前有网卡共享正在运行")
+        Plugins.message.info('当前有网卡共享正在运行')
       }
     } else {
-      Plugins.message.info("当前没有网卡共享")
+      Plugins.message.info('当前没有网卡共享')
     }
-    
+
     return status
   } catch (error) {
     return handleErrorSafely(error)
@@ -175,7 +175,7 @@ const getNetworkAdapters = async () => {
     $jsonString = ConvertTo-Json $networkAdapters
     Write-Output $jsonString
   `
-  
+
   const result = await Plugins.Exec('powershell', ['-Command', psScript])
   return JSON.parse(result)
 }
@@ -187,76 +187,67 @@ const enableSharing = async (useLastTarget = false) => {
   try {
     // 获取网络适配器列表
     const adapters = await getNetworkAdapters()
-    
+
     // 获取配置中的自定义源网卡名称
-    const customAdapterName = Plugin.sourceAdapterName || ""
-    
+    const customAdapterName = Plugin.sourceAdapterName || ''
+
     // 查找源网卡，优先匹配tun和meta，同时支持自定义名称
     let sourceAdapter = null
-    
+
     // 如果有自定义网卡名称，先尝试匹配它
     if (customAdapterName) {
-      sourceAdapter = adapters.find(a => a.Name.toLowerCase().includes(customAdapterName.toLowerCase()))
+      sourceAdapter = adapters.find((a) => a.Name.toLowerCase().includes(customAdapterName.toLowerCase()))
     }
-    
+
     // 如果没有找到自定义网卡或没有设置自定义网卡，尝试匹配tun和meta
     if (!sourceAdapter) {
-      sourceAdapter = adapters.find(a => 
-        a.Name.toLowerCase().includes('tun') || 
-        a.Name.toLowerCase().includes('meta')
-      )
+      sourceAdapter = adapters.find((a) => a.Name.toLowerCase().includes('tun') || a.Name.toLowerCase().includes('meta'))
     }
-    
+
     // 如果仍然没有找到，抛出错误
     if (!sourceAdapter) {
       // 保持原来的错误提示格式
-      const adapterNameToShow = customAdapterName || "tun或meta"
+      const adapterNameToShow = customAdapterName || 'tun或meta'
       throw new Error(`未找到${adapterNameToShow}网卡，请确保名称正确且TUN模式已启用`)
     }
-    
+
     // 过滤可能的目标网卡
     const targetAdapters = adapters
-      .filter(a => a.Name !== sourceAdapter.Name && 
-                  !a.Name.toLowerCase().includes('loopback') &&
-                  !a.Name.toLowerCase().includes('bluetooth'))
-      .map(a => ({ label: a.Name, value: a.Name }))
-    
+      .filter((a) => a.Name !== sourceAdapter.Name && !a.Name.toLowerCase().includes('loopback') && !a.Name.toLowerCase().includes('bluetooth'))
+      .map((a) => ({ label: a.Name, value: a.Name }))
+
     if (targetAdapters.length === 0) {
       throw new Error('未找到可用的目标网卡')
     }
-    
+
     let targetAdapter
-    
+
     // 如果使用上次的目标网卡且有存储值
     if (useLastTarget && Plugin.lastTargetAdapter) {
-      const lastAdapterExists = targetAdapters.some(a => a.value === Plugin.lastTargetAdapter)
+      const lastAdapterExists = targetAdapters.some((a) => a.value === Plugin.lastTargetAdapter)
       if (lastAdapterExists) {
         targetAdapter = Plugin.lastTargetAdapter
       }
     }
-    
+
     // 如果没有上次的目标网卡或不存在，让用户选择
     if (!targetAdapter) {
-      targetAdapter = await Plugins.picker.single(
-        '请选择要接收共享的网卡', 
-        targetAdapters,
-        targetAdapters.length > 0 ? [targetAdapters[0].value] : undefined
-      )
-      
+      targetAdapter = await Plugins.picker.single('请选择要接收共享的网卡', targetAdapters, targetAdapters.length > 0 ? [targetAdapters[0].value] : undefined)
+
       // 如果用户取消选择，直接返回当前状态
       if (!targetAdapter) {
         return Plugin.status || 0
       }
     }
-    
+
     // 保存选择的目标网卡
     Plugin.lastTargetAdapter = targetAdapter
-    
+
     // 先禁用所有现有共享
     if (Plugin.autoReplaceSharing !== false) {
       await disableSharing(false)
     }
-    
+
     // 配置ICS
     const sharingScript = `
       $OutputEncoding = [System.Text.Encoding]::UTF8
@@ -304,24 +295,24 @@ const enableSharing = async (useLastTarget = false) => {
         exit 1
       }
     `
-    
+
     const sharingResult = await Plugins.Exec('powershell', ['-Command', sharingScript])
-    
-    if (sharingResult.includes("SUCCESS")) {
+
+    if (sharingResult.includes('SUCCESS')) {
       const message = `已成功将 ${sourceAdapter.Name} 的连接共享给 ${targetAdapter}`
       Plugins.message.success(message)
-      
+
       // 设置插件状态为"运行中"
       Plugin.status = 1
-      
+
       // 保存当前共享信息到插件状态中
       Plugin.sharingInfo = {
         sourceAdapter: sourceAdapter.Name,
         targetAdapter: targetAdapter,
         enabledAt: new Date().toISOString()
       }
-      
-      return 1  // 返回状态码 1 表示运行中
+
+      return 1 // 返回状态码 1 表示运行中
     } else {
       throw new Error(`配置共享失败: ${sharingResult}`)
     }
@@ -391,26 +382,26 @@ const disableSharing = async (showMessage = true) => {
         Write-Output $jsonResult
       }
     `
-    
+
     const result = await Plugins.Exec('powershell', ['-Command', psScript])
     const parsedResult = JSON.parse(result)
-    
+
     if (parsedResult.success) {
       if (showMessage) {
         if (parsedResult.adapters.length > 0) {
-          Plugins.message.success(`已禁用以下网卡的共享: ${parsedResult.adapters.join(", ")}`)
+          Plugins.message.success(`已禁用以下网卡的共享: ${parsedResult.adapters.join(', ')}`)
         } else {
-          Plugins.message.info("没有找到需要禁用的共享")
+          Plugins.message.info('没有找到需要禁用的共享')
         }
       }
-      
+
       // 设置插件状态为"已停止"
       Plugin.status = 2
-      
+
       // 清除共享信息
       Plugin.sharingInfo = null
-      
-      return 2  // 返回状态码 2 表示已停止
+
+      return 2 // 返回状态码 2 表示已停止
     } else {
       throw new Error(`禁用共享失败: ${parsedResult.message}`)
     }
@@ -472,20 +463,20 @@ const checkSharingStatus = async () => {
         Write-Output $jsonResult
       }
     `
-    
+
     const result = await Plugins.Exec('powershell', ['-Command', psScript])
     const parsedResult = JSON.parse(result)
-    
+
     if (parsedResult.success) {
       if (parsedResult.sharingExists) {
         // 如果存在共享，设置状态为"运行中"
         Plugin.status = 1
-        
+
         // 如果没有保存的共享信息，尝试从查询结果中提取
         if (!Plugin.sharingInfo && parsedResult.sharingInfo && parsedResult.sharingInfo.length > 0) {
-          const publicAdapter = parsedResult.sharingInfo.find(a => a.Type === "Public")
-          const privateAdapter = parsedResult.sharingInfo.find(a => a.Type === "Private")
-          
+          const publicAdapter = parsedResult.sharingInfo.find((a) => a.Type === 'Public')
+          const privateAdapter = parsedResult.sharingInfo.find((a) => a.Type === 'Private')
+
           if (publicAdapter && privateAdapter) {
             Plugin.sharingInfo = {
               sourceAdapter: publicAdapter.Name,
@@ -494,7 +485,7 @@ const checkSharingStatus = async () => {
             }
           }
         }
-        
+
         return 1
       } else {
         // 如果不存在共享，设置状态为"已停止"
