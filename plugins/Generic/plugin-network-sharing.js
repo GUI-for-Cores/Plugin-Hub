@@ -1,11 +1,18 @@
 /**
  * Windows网卡代理共享插件
  * 用于将指定网卡连接共享给其他网卡，使连接到该网卡的设备流量通过代理
- * @version v1.1.0
+ * @version v1.1.1
+ * @author 星4
  */
 
 /* Trigger on::manual */
 const onRun = async () => {
+  // 检测操作系统类型
+  if (!isWindowsOS()) {
+    Plugins.message.error("此插件仅支持Windows系统")
+    return 0
+  }
+
   try {
     const action = await Plugins.picker.single(
       Plugin.name,
@@ -49,10 +56,28 @@ const onRun = async () => {
 }
 
 /**
+ * 检测是否为Windows操作系统
+ * 使用最可靠的方式检测当前运行环境是否为Windows
+ */
+const isWindowsOS = () => {
+  try {
+    // 尝试执行Windows特有的powershell命令
+    Plugins.Exec('powershell', ['-Command', 'echo "Windows"'])
+    return true
+  } catch (error) {
+    return false
+  }
+}
+
+/**
  * 插件钩子：状态查询
  * 用于在插件列表中显示当前状态
  */
 const onStatus = async () => {
+  // 如果不是Windows系统，直接返回状态0
+  if (!isWindowsOS()) {
+    return 0
+  }
   return await checkSharingStatus()
 }
 
@@ -60,6 +85,12 @@ const onStatus = async () => {
  * 菜单方法：快速启用共享
  */
 const quickEnable = async () => {
+  // 检测操作系统类型
+  if (!isWindowsOS()) {
+    Plugins.message.error("此插件仅支持Windows系统")
+    return 0
+  }
+
   try {
     return await enableSharing(true)
   } catch (error) {
@@ -72,6 +103,12 @@ const quickEnable = async () => {
  * 菜单方法：快速禁用共享
  */
 const quickDisable = async () => {
+  // 检测操作系统类型
+  if (!isWindowsOS()) {
+    Plugins.message.error("此插件仅支持Windows系统")
+    return 0
+  }
+
   try {
     return await disableSharing()
   } catch (error) {
@@ -84,6 +121,12 @@ const quickDisable = async () => {
  * 菜单方法：快速查看状态
  */
 const quickCheckStatus = async () => {
+  // 检测操作系统类型
+  if (!isWindowsOS()) {
+    Plugins.message.error("此插件仅支持Windows系统")
+    return 0
+  }
+
   try {
     const status = await checkSharingStatus()
     
@@ -130,24 +173,38 @@ const getNetworkAdapters = async () => {
  */
 const enableSharing = async (useLastTarget = false) => {
   try {
-    // 确保Clash允许局域网连接
-    await ensureClashAllowLan()
-    
     // 获取网络适配器列表
     const adapters = await getNetworkAdapters()
     
-    // 使用配置中的源网卡名称
-    const sourceAdapterName = Plugin.sourceAdapterName || "tun"
+    // 获取配置中的自定义源网卡名称
+    const customAdapterName = Plugin.sourceAdapterName || ""
     
-    // 查找源网卡
-    const sourceAdapter = adapters.find(a => a.Name.toLowerCase().includes(sourceAdapterName.toLowerCase()))
+    // 查找源网卡，优先匹配tun和meta，同时支持自定义名称
+    let sourceAdapter = null
+    
+    // 如果有自定义网卡名称，先尝试匹配它
+    if (customAdapterName) {
+      sourceAdapter = adapters.find(a => a.Name.toLowerCase().includes(customAdapterName.toLowerCase()))
+    }
+    
+    // 如果没有找到自定义网卡或没有设置自定义网卡，尝试匹配tun和meta
     if (!sourceAdapter) {
-      throw new Error(`未找到${sourceAdapterName}网卡，请确保名称正确且TUN模式已启用`)
+      sourceAdapter = adapters.find(a => 
+        a.Name.toLowerCase().includes('tun') || 
+        a.Name.toLowerCase().includes('meta')
+      )
+    }
+    
+    // 如果仍然没有找到，抛出错误
+    if (!sourceAdapter) {
+      // 保持原来的错误提示格式
+      const adapterNameToShow = customAdapterName || "tun或meta"
+      throw new Error(`未找到${adapterNameToShow}网卡，请确保名称正确且TUN模式已启用`)
     }
     
     // 过滤可能的目标网卡
     const targetAdapters = adapters
-      .filter(a => !a.Name.toLowerCase().includes(sourceAdapterName.toLowerCase()) && 
+      .filter(a => a.Name !== sourceAdapter.Name && 
                   !a.Name.toLowerCase().includes('loopback') &&
                   !a.Name.toLowerCase().includes('bluetooth'))
       .map(a => ({ label: a.Name, value: a.Name }))
@@ -421,34 +478,6 @@ const checkSharingStatus = async () => {
   } catch (error) {
     console.error("查询共享状态失败:", error)
     return Plugin.status || 0
-  }
-}
-
-/**
- * 确保Clash允许局域网连接
- */
-async function ensureClashAllowLan() {
-  try {
-    const kernelApiStore = Plugins.useKernelApiStore()
-    
-    // 检查并修改Clash配置
-    const config = kernelApiStore.config
-    
-    // 如果配置中没有allow-lan字段或为false，则修改配置
-    if (!config || !config['allow-lan']) {
-      await kernelApiStore.updateConfig({
-        ...(config || {}),
-        'allow-lan': true
-      })
-      
-      // 重启Clash内核以应用更改
-      await kernelApiStore.restartKernel()
-      Plugins.message.info('已启用Clash局域网连接')
-    }
-    
-    return true
-  } catch (error) {
-    throw new Error(`启用Clash局域网连接失败: ${error.message || error}`)
   }
 }
 
