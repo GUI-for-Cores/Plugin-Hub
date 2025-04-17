@@ -122,7 +122,7 @@ const Share = async (profile) => {
     ],
     ['stable']
   )
-  const config = await Plugins.generateConfig(profile, type === 'stable')
+  const config = await Plugins.generateConfig(profile, type === 'stable' || type === 'legacy')
   if (type === 'legacy') {
     _adaptToLegacy(config)
   }
