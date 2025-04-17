@@ -132,6 +132,7 @@ interface Plugins {
   deepClone<T>(obj: T): T
   deepAssign<T, U>(target: T, source: U): T & U
   sampleID(): string
+  isValidIPv4(ip: string): boolean
   generateConfig(profile: any, stable?: boolean): Promise<any>
   formatBytes(bytes: number): string
   handleUseProxy(group: any, proxy: { name: string }): Promise<void>

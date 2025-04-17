@@ -27,6 +27,10 @@ const Share = async (profile) => {
   await loadDependence()
   // 旧配置
   if (profile.tunConfig) {
+    const ok = await Plugins.confirm('提示', '你正在使用旧版客户端，请升级至新版以获取完整支持！', { cancelText: '继续使用旧版', okText: '好的' }).catch(
+      () => false
+    )
+    if (ok) return
     // * 开启TUN
     profile.tunConfig.enable = true
     // * 替换本地规则集为远程规则集（仅从规则集中心添加的可替换）
@@ -121,6 +125,21 @@ const Share = async (profile) => {
   const config = await Plugins.generateConfig(profile, type === 'stable')
   if (type === 'legacy') {
     _adaptToLegacy(config)
+  }
+  // 新配置且禁用IPv6
+  if (!profile.tunConfig && Plugin.Ipv6Mode === 'disabled') {
+    config.dns.strategy = 'ipv4_only'
+    config.inbounds.forEach((inbound) => {
+      if (inbound.type === 'tun') {
+        inbound.address = inbound.address.filter((address) => Plugins.isValidIPv4(address.split('/')[0]))
+      }
+    })
+    config.dns.rules.forEach((rule) => {
+      if (rule.strategy) rule.strategy = 'ipv4_only'
+    })
+    config.route.rules.forEach((rule) => {
+      if (rule.strategy) rule.strategy = 'ipv4_only'
+    })
   }
   const ips = await getIPAddress()
   const urls = await Promise.all(

@@ -25,7 +25,7 @@
   {
     "id": "plugin-share-profile-to-phone",
     "name": "共享配置到手机",
-    "version": "v1.2.0",
+    "version": "v2.0.0",
     "description": "专为手机sing-box应用生成的配置，支持二维码导入。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-share-profile-to-phone.js",
@@ -43,6 +43,15 @@
     },
     "status": 0,
     "configuration": [
+      {
+        "id": "ID_bf0c6gk1",
+        "title": "IPv6设置",
+        "description": "建议禁用IPv6，否则可能会出现规则集下载失败的问题",
+        "key": "Ipv6Mode",
+        "component": "Radio",
+        "value": "disabled",
+        "options": ["禁用IPv6,disabled", "由配置决定,none"]
+      },
       {
         "id": "ID_dyo2te6b",
         "title": "监听端口",
