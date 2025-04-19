@@ -422,6 +422,13 @@ function Singbox_Producer() {
     if (smux['max-streams']) proxy.multiplex.max_streams = parseInt(`${smux['max-streams']}`, 10)
     if (smux['min-streams']) proxy.multiplex.min_streams = parseInt(`${smux['min-streams']}`, 10)
     if (smux.padding) proxy.multiplex.padding = true
+    if (smux['brutal-opts']?.up || smux['brutal-opts']?.down) {
+      proxy.multiplex.brutal = {
+        enabled: true
+      }
+      if (smux['brutal-opts']?.up) proxy.multiplex.brutal.up_mbps = parseInt(`${smux['brutal-opts']?.up}`, 10)
+      if (smux['brutal-opts']?.down) proxy.multiplex.brutal.down_mbps = parseInt(`${smux['brutal-opts']?.down}`, 10)
+    }
   }
 
   const wsParser = (proxy, parsedProxy) => {
@@ -1162,7 +1169,7 @@ function URI_Producer() {
     delete proxy.resolved
     delete proxy['no-resolve']
     for (const key in proxy) {
-      if (proxy[key] == null || /^_/i.test(key)) {
+      if (proxy[key] == null) {
         delete proxy[key]
       }
     }
@@ -1481,7 +1488,7 @@ function URI_Producer() {
               hysteriaParams.push(`obfsParam=${proxy[key]}`)
             } else if (['sni'].includes(key)) {
               hysteriaParams.push(`peer=${proxy[key]}`)
-            } else if (proxy[key]) {
+            } else if (proxy[key] && !/^_/i.test(key)) {
               hysteriaParams.push(`${i}=${encodeURIComponent(proxy[key])}`)
             }
           }
@@ -1512,7 +1519,7 @@ function URI_Producer() {
                 tuicParams.push(`${i.replace(/-/g, '_')}=1`)
               } else if (['congestion-controller'].includes(key)) {
                 tuicParams.push(`congestion_control=${proxy[key]}`)
-              } else if (proxy[key]) {
+              } else if (proxy[key] && !/^_/i.test(key)) {
                 tuicParams.push(`${i.replace(/-/g, '_')}=${encodeURIComponent(proxy[key])}`)
               }
             }
@@ -1535,8 +1542,12 @@ function URI_Producer() {
             } else if (['skip-cert-verify'].includes(key)) {
               if (proxy[key]) {
                 anytlsParams.push(`insecure=1`)
+              } else if (['udp'].includes(key)) {
+                if (proxy[key]) {
+                  anytlsParams.push(`udp=1`)
+                }
               }
-            } else if (proxy[key]) {
+            } else if (proxy[key] && !/^_/i.test(key)) {
               anytlsParams.push(`${i.replace(/-/g, '_')}=${encodeURIComponent(proxy[key])}`)
             }
           }
@@ -1555,7 +1566,7 @@ function URI_Producer() {
               if (proxy[key]) {
                 wireguardParams.push(`${key}=1`)
               }
-            } else if (proxy[key]) {
+            } else if (proxy[key] && !/^_/i.test(key)) {
               wireguardParams.push(`${key}=${encodeURIComponent(proxy[key])}`)
             }
           }
@@ -2247,6 +2258,8 @@ const PROXY_PARSERS = (() => {
           proxy[key] = value ? value.split(',') : undefined
         } else if (['insecure'].includes(key)) {
           proxy['skip-cert-verify'] = /(TRUE)|1/i.test(value)
+        } else if (['udp'].includes(key)) {
+          proxy[key] = /(TRUE)|1/i.test(value)
         } else {
           proxy[key] = value
         }
