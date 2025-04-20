@@ -74,46 +74,53 @@ const onUninstall = async () => {
 const startSpeedTest = async (serverId) => {
   const { bin_path } = Constant
   const args = ['--accept-license', '--format=json', '--progress=yes']
-  if (serverId) {
-    args.push('--server-id=' + serverId)
-  }
-  let pid = -1
-  const { update, success, destroy } = Plugins.message.info('开始测速', 999999, async () => {
-    if (pid !== -1) {
-      await Plugins.KillProcess(pid)
-      Plugins.message.info('已停止测速')
-    }
-  })
+  serverId && args.push('--server-id=' + serverId)
   console.log(`[${Plugin.name}]`, '开始测速...')
-  pid = await Plugins.ExecBackground(
-    bin_path,
-    args,
-    async (out) => {
-      console.log(`[${Plugin.name}]`, out)
-      const { type, ping, download, upload, result } = JSON.parse(out)
-      if (type === 'ping') {
-        update(`延迟: ${ping.latency}ms , ${ping.progress * 100}%`)
-      } else if (type === 'download') {
-        update(
-          `👇下行: ${Plugins.formatBytes(download.bandwidth)}/s ,  使用流量: ${Plugins.formatBytes(download.bytes)} , ${(download.progress * 100).toFixed(2)}%`
-        )
-      } else if (type === 'upload') {
-        update(`👆上行: ${Plugins.formatBytes(upload.bandwidth)}/s ,  使用流量: ${Plugins.formatBytes(upload.bytes)} ,  ${(upload.progress * 100).toFixed(2)}%`)
-      } else if (type === 'result') {
-        success('测速完毕')
-        Plugins.sleep(2000).then(() => destroy())
-        await Plugins.alert(
-          '测速结果如下：',
-          `![${result.id}](${result.url}.png "${result.id}")\n\n> 请访问【[测速详情](${result.url} "网页版")】以查看更详细的测速结果！`,
-          { type: 'markdown' }
-        )
+  await new Promise(async (resolve, reject) => {
+    let pid = -1
+    const { update, success, destroy } = Plugins.message.info('开始测速...', 999999, async () => {
+      if (pid !== -1) {
+        await Plugins.KillProcess(pid)
+        Plugins.message.info('已停止测速')
       }
-    },
-    () => {
-      console.log(`[${Plugin.name}]`, '测速结束')
-    },
-    { convert: true }
-  )
+    })
+    pid = await Plugins.ExecBackground(
+      bin_path,
+      args,
+      async (out) => {
+        console.log(`[${Plugin.name}]`, out)
+        const { type, ping, download, upload, result, error } = JSON.parse(out)
+        if (error) {
+          destroy()
+          reject(error)
+          return
+        }
+        if (type === 'ping') {
+          update(`延迟: ${ping.latency}ms , ${ping.progress * 100}%`)
+        } else if (type === 'download') {
+          update(
+            `👇下行: ${Plugins.formatBytes(download.bandwidth)}/s ,  使用流量: ${Plugins.formatBytes(download.bytes)} , ${(download.progress * 100).toFixed(2)}%`
+          )
+        } else if (type === 'upload') {
+          update(
+            `👆上行: ${Plugins.formatBytes(upload.bandwidth)}/s ,  使用流量: ${Plugins.formatBytes(upload.bytes)} ,  ${(upload.progress * 100).toFixed(2)}%`
+          )
+        } else if (type === 'result') {
+          success('测速完毕')
+          Plugins.sleep(2000).then(() => destroy())
+          await Plugins.alert(
+            '测速结果如下：',
+            `![${result.id}](${result.url}.png "${result.id}")\n\n> 请访问【[测速详情](${result.url} "网页版")】以查看更详细的测速结果！`,
+            { type: 'markdown' }
+          )
+        }
+      },
+      () => {
+        console.log(`[${Plugin.name}]`, '测速结束')
+        resolve()
+      }
+    )
+  })
 }
 
 /*
