@@ -1572,6 +1572,31 @@
     "installed": false
   },
   {
+    "id": "plugin-speedtest-cli",
+    "version": "v1.0.0",
+    "name": "Speedtest CLI",
+    "description": "适用于命令行的互联网速度测试",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-speedtest-cli.js",
+    "path": "data/plugins/plugin-speedtest-cli.js",
+    "triggers": ["on::manual"],
+    "menus": {
+      "选择测速服务器": "startSpeedTestByServerId"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [],
+    "disabled": false,
+    "install": true,
+    "installed": false
+  },
+  {
     "id": "plugin-geoip-search",
     "name": "GeoIP 查询",
     "version": "v1.0.0",

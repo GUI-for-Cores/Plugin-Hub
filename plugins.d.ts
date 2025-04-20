@@ -42,7 +42,8 @@ interface Plugins {
     success(msg: string, duration?: number): void
     info(
       msg: string,
-      duration?: number
+      duration?: number,
+      onClose?: () => void
     ): {
       id: string | number
       update: (msg: string, type?: string) => void
@@ -88,7 +89,13 @@ interface Plugins {
   ProcessInfo(pid: number): Promise<string>
   KillProcess(pid: number): Promise<void>
   Exec(cmd: string, args?: string[], options?: { convert?: boolean }): Promise<string>
-  ExecBackground(cmd: string, args: string[], onOut: (out: string) => void, onExit: () => void, options?: { env?: Record<string, string> }): Promise<number>
+  ExecBackground(
+    cmd: string,
+    args: string[],
+    onOut: (out: string) => void,
+    onExit: () => void,
+    options?: { env?: Record<string, string>; convert?: boolean }
+  ): Promise<number>
 
   HttpGet(url: string, headers?: Record<string, string>, options?: { Insecure?: boolean }): Promise<{ status: number; body: any }>
   HttpPost(url: string, headers: Record<string, string>, data: any, options?: { Timeout?: number; Insecure?: boolean }): Promise<{ status: number; body: any }>
