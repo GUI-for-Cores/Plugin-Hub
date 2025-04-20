@@ -1573,7 +1573,7 @@
   },
   {
     "id": "plugin-speedtest-cli",
-    "version": "v1.0.0",
+    "version": "v1.0.1",
     "name": "Speedtest CLI",
     "description": "适用于命令行的互联网速度测试",
     "type": "Http",

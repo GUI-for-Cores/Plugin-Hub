@@ -39,7 +39,7 @@ const onRun = async () => {
 /* 触发器 安装 */
 const onInstall = async () => {
   const { download_url, bin_path } = Constant
-  const { update, success, destroy, error } = Plugins.message.info('正在下载...', 1200 * 1000)
+  const { update, success, destroy } = Plugins.message.info('正在下载...', 1200 * 1000)
   const tmp = 'data/.cache/speedtest-cli' + (download_url.endsWith('.zip') ? '.zip' : '.tgz')
 
   await Plugins.Download(download_url, tmp, {}, (progress, total) => {
@@ -121,7 +121,7 @@ const startSpeedTest = async (serverId) => {
  */
 const startSpeedTestByServerId = async () => {
   const { bin_path } = Constant
-  const output = await Plugins.Exec(bin_path, ['--accept-license', '--format=json', '--servers'], { convert: true })
+  const output = await Plugins.Exec(bin_path, ['--accept-license', '--format=json', '--servers'])
   console.log(`[${Plugin.name}]`, output)
   const { servers } = JSON.parse(output)
   const id = await Plugins.picker.single(
