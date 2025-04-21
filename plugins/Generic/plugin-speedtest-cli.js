@@ -3,6 +3,7 @@
  */
 
 const PATH = 'data/third/speed-test-cli'
+const History_File = PATH + '/history.json'
 
 const Constant = (() => {
   const { env } = Plugins.useEnvStore()
@@ -108,6 +109,7 @@ const startSpeedTest = async (serverId) => {
         } else if (type === 'result') {
           success('测速完毕')
           Plugins.sleep(2000).then(() => destroy())
+          saveResult(out)
           await Plugins.alert(
             '测速结果如下：',
             `![${result.id}](${result.url}.png "${result.id}")\n\n> 请访问【[测速详情](${result.url} "网页版")】以查看更详细的测速结果！`,
@@ -142,4 +144,68 @@ const startSpeedTestByServerId = async () => {
   )
   if (!id) throw '未选择，已取消测速'
   await startSpeedTest(id)
+}
+
+/*
+ * 插件菜单项 - 查看测速历史
+ */
+const speedtestHistory = async () => {
+  if (!(await Plugins.FileExists(History_File))) {
+    throw '还没有测过速，来测测吧！'
+  }
+  const history = JSON.parse(await Plugins.Readfile(History_File))
+  let header = `
+|带宽|延迟|服务器|时间|详情|
+|--|--|--|--|--|
+`
+  const body = history
+    .reverse()
+    .map((v) =>
+      [
+        '|',
+        `↓ ${Plugins.formatBytes(v.download.bandwidth)}/s ↑ ${Plugins.formatBytes(v.upload.bandwidth)}/s`,
+        '|',
+        `${v.ping.latency}ms`,
+        '|',
+        `${v.server.country} ${v.server.location}`,
+        '|',
+        Plugins.formatDate(v.timestamp, 'YYYY-MM-DD HH:mm:ss'),
+        '|',
+        `[](${v.result.url} "详情")`,
+        '|'
+      ].join('')
+    )
+    .join('\n')
+  await Plugins.alert('测速历史', header + body, { type: 'markdown' })
+}
+
+/*
+ * 插件菜单项 - 清理测速历史
+ */
+const clearHistory = async () => {
+  if (!(await Plugins.FileExists(History_File))) {
+    throw '无需清理'
+  }
+  const history = JSON.parse(await Plugins.Readfile(History_File))
+  if (history.length === 0) throw '无需清理'
+  const ids = await Plugins.picker.multi(
+    '请选择要清理的测速结果',
+    history.reverse().map((v) => ({
+      label: `↓ ${Plugins.formatBytes(v.download.bandwidth)}/s ↑ ${Plugins.formatBytes(v.upload.bandwidth)}/s`,
+      description: `${Plugins.formatDate(v.timestamp, 'YYYY-MM-DD HH:mm:ss')} - ${v.server.country} ${v.server.location}`,
+      value: v.result.id
+    })),
+    []
+  )
+  if (ids.length === 0) return
+  const filtered = history.filter((v) => !ids.includes(v.result.id))
+  await Plugins.Writefile(History_File, JSON.stringify(filtered))
+  Plugins.message.success('清理完成')
+}
+
+// 保存测速结果
+const saveResult = async (result) => {
+  const history = JSON.parse((await Plugins.ignoredError(Plugins.Readfile, History_File)) || '[]')
+  history.push(JSON.parse(result))
+  Plugins.Writefile(History_File, JSON.stringify(history))
 }

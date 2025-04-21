@@ -142,6 +142,7 @@ interface Plugins {
   isValidIPv4(ip: string): boolean
   generateConfig(profile: any, stable?: boolean): Promise<any>
   formatBytes(bytes: number): string
+  formatDate(date: string | number, format: string)
   handleUseProxy(group: any, proxy: { name: string }): Promise<void>
   debounce(fn: (...args: any[]) => void, delay: number): (...args: any[]) => void
   getKernelFileName(isAlpha: boolean): Promise<string>
