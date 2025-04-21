@@ -36,9 +36,10 @@ const onSubscribe = async (proxies, metadata) => {
 
 /* 测试名称 */
 const testName = async () => {
-  const input = await Plugins.prompt('请输入要美化的节点名：', '', { placeholder: '暂不支持订阅名输入', type: 'code' })
-  const proxies = [{ tag: input, name: input, type: 'all' }]
-  const metadata = { name: '订阅名' }
+  const input = await Plugins.prompt('请输入要美化的节点名：', '', { placeholder: '订阅名（首行）\n节点名（第二行）', type: 'code' })
+  const data = input.split('\n')
+  const proxies = [{ tag: data[1], name: data[1], type: '' }]
+  const metadata = { name: data[0] }
   const result = await beautifyNodeName(proxies, metadata)
   await Plugins.confirm('美化结果：', result[0].tag)
 }
