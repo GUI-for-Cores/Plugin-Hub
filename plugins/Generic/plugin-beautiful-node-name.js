@@ -34,6 +34,16 @@ const onSubscribe = async (proxies, metadata) => {
   return await beautifyNodeName(proxies, metadata)
 }
 
+/* 测试名称 */
+const testName = async () => {
+  const input = await Plugins.prompt('请输入要美化的节点名：', '', { placeholder: '订阅名（首行）\n节点名（第二行）', type: 'code' })
+  const data = input.split('\n')
+  const proxies = [{ tag: data[1], name: data[1], type: '' }]
+  const metadata = { name: data[0] }
+  const result = await beautifyNodeName(proxies, metadata)
+  await Plugins.confirm('美化结果：', result[0].tag)
+}
+
 async function beautifyNodeName(proxies, metadata) {
   const enableSubscriptionName = Plugin.EnableSubscriptionName
   const enableNationalEmoji = Plugin.EnableNationalEmoji
@@ -111,7 +121,10 @@ async function beautifyNodeName(proxies, metadata) {
     }
 
     // 保留非关键字部分
-    let parts = tag.replace(/^[^\p{L}\p{N}\p{Script=Han}]+|[^\p{L}\p{N}\p{Script=Han}]+$/gu, '').trim()
+    let parts = tag
+      .replace(/^[^\p{L}\p{N}\p{Script=Han}]+|[^\p{L}\p{N}\p{Script=Han}]+$/gu, '')
+      .replace(/[\s_\-.,|\\/;:]+/g, ' ')
+      .trim()
 
     // 使用正则表达式匹配保留的关键词
     let matchedOtherInfo = []
