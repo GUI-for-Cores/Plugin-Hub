@@ -97,6 +97,7 @@ interface Plugins {
     options?: { env?: Record<string, string>; convert?: boolean }
   ): Promise<number>
 
+  Request: any
   HttpGet(url: string, headers?: Record<string, string>, options?: { Insecure?: boolean }): Promise<{ status: number; body: any }>
   HttpPost(url: string, headers: Record<string, string>, data: any, options?: { Timeout?: number; Insecure?: boolean }): Promise<{ status: number; body: any }>
   HttpDelete(url: string, headers: Record<string, string>, options?: { Insecure?: boolean }): Promise<{ status: number; body: any }>
@@ -138,6 +139,7 @@ interface Plugins {
   base64Encode(text: string): string
   deepClone<T>(obj: T): T
   deepAssign<T, U>(target: T, source: U): T & U
+  asyncPool: <T>(poolLimit: number, array: T[], iteratorFn: (item: T, array: T[]) => Promise<any>) => Promise<any[]>
   sampleID(): string
   isValidIPv4(ip: string): boolean
   generateConfig(profile: any, stable?: boolean): Promise<any>
