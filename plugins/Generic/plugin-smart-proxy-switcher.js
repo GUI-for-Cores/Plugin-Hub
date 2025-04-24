@@ -15,7 +15,7 @@
 默认值如下（用于参考）：  
 ewmaAlpha: 0.3
 failureThreshold: 3
-circuitBreakerTimeout: 60000
+circuitBreakerTimeout: 360000
 penaltyIncrement: 5
 penaltyDecayRate: 0.1
 priorityWeight: 1.0
@@ -112,6 +112,60 @@ const Stop = () => {
   return 2
 }
 
+/*
+ * 右键菜单 - 查看节点状态
+ */
+const ViewStat = async () => {
+  function renderState(state) {
+    switch (state) {
+      case 'CLOSED':
+        return '🟢 正常'
+      case 'OPEN':
+        return '🔴 故障'
+      case 'HALF_OPEN':
+        return '🟡 检测中'
+      default:
+        return '❓未知'
+    }
+  }
+
+  const groups = window[Plugin.id].managers.map((manager) => {
+    const group = manager.proxies[0].group
+    const rows = manager.proxies
+      .map((proxy) => {
+        const { id, lastDelay, ewmaLatency, failureCount, penalty, state } = proxy
+        const name = id.replaceAll('|', '\\|')
+        return {
+          name: manager.current?.id === id ? `\`${name}\`` : name,
+          state: renderState(state),
+          lastDelay: lastDelay ? lastDelay + 'ms' : '-',
+          ewmaLatency: ewmaLatency ? ewmaLatency.toFixed(2) + 'ms' : ewmaLatency,
+          score: proxy.getScore().toFixed(2),
+          failureCount,
+          penalty: penalty ? penalty.toFixed(2) : penalty,
+          isAvailable: lastDelay !== '' ? '✅' : '❌'
+        }
+      })
+      .sort((a, b) => b.score - a.score)
+    return { group, rows, options: manager.options }
+  })
+
+  const groups_markdown = groups.map((group) =>
+    [
+      `## 策略组【${group.group}】`,
+      `> 代理数量：${group.rows.length} 监控间隔：${group.options.monitoringInterval}ms\n`,
+      '|节点名|分数|当前延迟|EWMA平滑延迟|失败次数|惩罚值|断路器|可用性|',
+      '|--|--|--|--|--|--|--|--|',
+      group.rows.map((v) => `|${v.name}|${v.score}|${v.lastDelay}|${v.ewmaLatency}|${v.failureCount}|${v.penalty}|${v.state}|${v.isAvailable}|`).join('\n')
+    ].join('\n')
+  )
+
+  const ok = await Plugins.confirm(Plugin.name, groups_markdown.join('\n'), { type: 'markdown', okText: '刷新' }).catch(() => false)
+  if (ok) {
+    return await ViewStat()
+  }
+}
+
 const setupRequestApi = () => {
   let base = Plugins.APP_TITLE.includes('SingBox') ? 'http://127.0.0.1:20123' : 'http://127.0.0.1:20113'
   let bearer = ''
@@ -154,6 +208,7 @@ class ProxyServer {
     // 指标信息
     this.ewmaLatency = null // 延迟的 EWMA 平均值
     this.failureCount = 0 // 连续失败次数
+    this.lastDelay = '' // 最后一次延迟
     this.penalty = 0 // 故障惩罚值
     this.lastPenaltyUpdate = Date.now() // 上次惩罚更新时间
 
@@ -172,6 +227,7 @@ class ProxyServer {
       this.ewmaLatency = alpha * latency + (1 - alpha) * this.ewmaLatency
     }
     this.failureCount = 0
+    this.lastDelay = latency
     if (this.state === 'HALF_OPEN' || this.state === 'OPEN') {
       this.state = 'CLOSED'
     }
@@ -184,6 +240,7 @@ class ProxyServer {
   recordFailure() {
     const now = Date.now()
     this.failureCount += 1
+    this.lastDelay = ''
     this.penalty += this.options.penaltyIncrement
     this.lastPenaltyUpdate = now
     if (this.failureCount >= this.options.failureThreshold) {
@@ -227,7 +284,7 @@ class ProxyManager {
       {
         ewmaAlpha: 0.3, // 延迟 EWMA 平滑因子
         failureThreshold: 3, // 最大允许连续失败次数
-        circuitBreakerTimeout: 30 * 1000, // 断路器开启后的超时时间（ms）
+        circuitBreakerTimeout: 360 * 1000, // 断路器开启后的超时时间（ms）
         penaltyIncrement: 5, // 每次失败增加的惩罚值
         penaltyDecayRate: 0.1, // 惩罚值衰减速率（每秒）
         priorityWeight: 1.0, // 优先级权重

@@ -150,14 +150,15 @@
   },
   {
     "id": "plugin-smart-proxy-switcher",
-    "version": "v1.0.0",
+    "version": "v2.0.0",
     "name": "节点智能切换",
-    "description": "实现动态代理选择机制，包含故障转移、断路器、EWMA 延迟跟踪、基于分数调度与滞后控制，防止频繁切换。",
+    "description": "实现动态代理选择机制，包含故障转移、断路器、EWMA 延迟跟踪、基于分数调度与滞后控制。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-smart-proxy-switcher.js",
     "path": "data/plugins/plugin-smart-proxy-switcher.js",
     "triggers": ["on::manual", "on::ready"],
     "menus": {
+      "查看节点状态": "ViewStat",
       "停止": "Stop"
     },
     "context": {
@@ -201,7 +202,7 @@
         "description": "作用：控制状态监测的频率和实时性，更大的数值更省资源，更小的数值更新代理状态更及时",
         "key": "MonitoringInterval",
         "component": "Input",
-        "value": "60000",
+        "value": "180000",
         "options": []
       },
       {
@@ -246,7 +247,7 @@
         "description": "对切换策略进行微调，适合高级玩家",
         "key": "CustomMode",
         "component": "CodeViewer",
-        "value": "{\n  \"ewmaAlpha\": 0.3,\n  \"_ewmaAlpha\": \"作用：控制 EWMA 对延迟的记忆程度，默认值：0.3\",\n  \"_ewmaAlpha增大\": \"更敏感，延迟波动响应更快\",\n  \"_ewmaAlpha减小\": \"更平滑，更看重历史表现\",\n  \"_ewmaAlpha提示\": \"适合根据网络抖动强度调节灵敏度\",\n\n  \"failureThreshold\": 3,\n  \"_failureThreshold\": \"作用：连续失败几次后触发断路器，默认值：3\",\n  \"_failureThreshold增大\": \"更容忍失败，不容易触发断路\",\n  \"_failureThreshold减小\": \"更快识别故障，更敏捷\",\n  \"_failureThreshold提示\": \"影响代理因失败被判为不可用的门槛\",\n\n  \"circuitBreakerTimeout\": 30000,\n  \"_circuitBreakerTimeout\": \"作用：断路器打开后等待多长时间重试，默认值：30000（30秒）\",\n  \"_circuitBreakerTimeout增大\": \"断路持续更久，降低恢复频率\",\n  \"_circuitBreakerTimeout减小\": \"更早尝试恢复，有可能误恢复\",\n  \"_circuitBreakerTimeout提示\": \"适合根据代理恢复速度调整重试间隔\",\n\n  \"penaltyIncrement\": 5,\n  \"_penaltyIncrement\": \"作用：每次失败后累加的惩罚值，默认值：5\",\n  \"_penaltyIncrement增大\": \"失败惩罚更重，代理得分下降更快\",\n  \"_penaltyIncrement减小\": \"更宽容失败，不易被替换\",\n  \"_penaltyIncrement提示\": \"影响失败事件对代理选择的惩罚力度\",\n\n  \"penaltyDecayRate\": 0.1,\n  \"_penaltyDecayRate\": \"作用：惩罚值的时间衰减速率，默认值：0.1\",\n  \"_penaltyDecayRate增大\": \"惩罚恢复更快，代理更容易被原谅\",\n  \"_penaltyDecayRate减小\": \"惩罚持续时间更长，慎重切换回来\",\n  \"_penaltyDecayRate提示\": \"控制失败历史影响持续多久\",\n\n  \"priorityWeight\": 1.0,\n  \"_priorityWeight\": \"作用：优先级在综合评分中的权重，默认值：1.0\",\n  \"_priorityWeight增大\": \"更倾向优先使用高优先级代理\",\n  \"_priorityWeight减小\": \"更注重实际性能而非设定优先级\",\n  \"_priorityWeight提示\": \"反映系统对预设偏好程度的信任\",\n\n  \"latencyWeight\": 100.0,\n  \"_latencyWeight\": \"作用：延迟在综合评分中的权重，默认值：100.0\",\n  \"_latencyWeight增大\": \"更关注低延迟，代理切换更频繁\",\n  \"_latencyWeight减小\": \"更稳定，允许较高延迟代理被选中\",\n  \"_latencyWeight提示\": \"决定系统是否更看重实时响应性能\",\n\n  \"penaltyWeight\": 1.0,\n  \"_penaltyWeight\": \"作用：惩罚值在综合评分中的权重，默认值：1.0\",\n  \"_penaltyWeight增大\": \"历史失败更影响评分，代理更难被重新使用\",\n  \"_penaltyWeight减小\": \"惩罚影响弱化，更容易容忍曾失败的代理\",\n  \"_penaltyWeight提示\": \"影响失败代理重新进入候选池的难度\",\n\n  \"hysteresisMargin\": 0.1,\n  \"_hysteresisMargin\": \"作用：切换代理需超出当前代理得分多少，默认值：0.1\",\n  \"_hysteresisMargin增大\": \"减少切换频率，保持更稳定\",\n  \"_hysteresisMargin减小\": \"更敏感，容易发生代理抖动\",\n  \"_hysteresisMargin提示\": \"防止分数接近时频繁切换（抖动）\"\n}\n",
+        "value": "{\n  \"ewmaAlpha\": 0.3,\n  \"_ewmaAlpha\": \"作用：控制 EWMA 对延迟的记忆程度，默认值：0.3\",\n  \"_ewmaAlpha增大\": \"更敏感，延迟波动响应更快\",\n  \"_ewmaAlpha减小\": \"更平滑，更看重历史表现\",\n  \"_ewmaAlpha提示\": \"适合根据网络抖动强度调节灵敏度\",\n\n  \"failureThreshold\": 3,\n  \"_failureThreshold\": \"作用：连续失败几次后触发断路器，默认值：3\",\n  \"_failureThreshold增大\": \"更容忍失败，不容易触发断路\",\n  \"_failureThreshold减小\": \"更快识别故障，更敏捷\",\n  \"_failureThreshold提示\": \"影响代理因失败被判为不可用的门槛\",\n\n  \"circuitBreakerTimeout\": 360000,\n  \"_circuitBreakerTimeout\": \"作用：断路器打开后等待多长时间重试，默认值：360000（6分钟）\",\n  \"_circuitBreakerTimeout增大\": \"断路持续更久，降低恢复频率\",\n  \"_circuitBreakerTimeout减小\": \"更早尝试恢复，有可能误恢复\",\n  \"_circuitBreakerTimeout提示\": \"适合根据代理恢复速度调整重试间隔\",\n\n  \"penaltyIncrement\": 5,\n  \"_penaltyIncrement\": \"作用：每次失败后累加的惩罚值，默认值：5\",\n  \"_penaltyIncrement增大\": \"失败惩罚更重，代理得分下降更快\",\n  \"_penaltyIncrement减小\": \"更宽容失败，不易被替换\",\n  \"_penaltyIncrement提示\": \"影响失败事件对代理选择的惩罚力度\",\n\n  \"penaltyDecayRate\": 0.1,\n  \"_penaltyDecayRate\": \"作用：惩罚值的时间衰减速率，默认值：0.1\",\n  \"_penaltyDecayRate增大\": \"惩罚恢复更快，代理更容易被原谅\",\n  \"_penaltyDecayRate减小\": \"惩罚持续时间更长，慎重切换回来\",\n  \"_penaltyDecayRate提示\": \"控制失败历史影响持续多久\",\n\n  \"priorityWeight\": 1.0,\n  \"_priorityWeight\": \"作用：优先级在综合评分中的权重，默认值：1.0\",\n  \"_priorityWeight增大\": \"更倾向优先使用高优先级代理\",\n  \"_priorityWeight减小\": \"更注重实际性能而非设定优先级\",\n  \"_priorityWeight提示\": \"反映系统对预设偏好程度的信任\",\n\n  \"latencyWeight\": 100.0,\n  \"_latencyWeight\": \"作用：延迟在综合评分中的权重，默认值：100.0\",\n  \"_latencyWeight增大\": \"更关注低延迟，代理切换更频繁\",\n  \"_latencyWeight减小\": \"更稳定，允许较高延迟代理被选中\",\n  \"_latencyWeight提示\": \"决定系统是否更看重实时响应性能\",\n\n  \"penaltyWeight\": 1.0,\n  \"_penaltyWeight\": \"作用：惩罚值在综合评分中的权重，默认值：1.0\",\n  \"_penaltyWeight增大\": \"历史失败更影响评分，代理更难被重新使用\",\n  \"_penaltyWeight减小\": \"惩罚影响弱化，更容易容忍曾失败的代理\",\n  \"_penaltyWeight提示\": \"影响失败代理重新进入候选池的难度\",\n\n  \"hysteresisMargin\": 0.1,\n  \"_hysteresisMargin\": \"作用：切换代理需超出当前代理得分多少，默认值：0.1\",\n  \"_hysteresisMargin增大\": \"减少切换频率，保持更稳定\",\n  \"_hysteresisMargin减小\": \"更敏感，容易发生代理抖动\",\n  \"_hysteresisMargin提示\": \"防止分数接近时频繁切换（抖动）\"\n}\n",
         "options": []
       }
     ],
