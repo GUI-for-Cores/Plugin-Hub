@@ -1,10 +1,10 @@
 /*
- * 实现动态代理选择机制，包含故障转移、断路器、EWMA 延迟跟踪、基于分数调度与滞后控制，防止频繁切换。
+ * 实现动态代理选择机制，包含故障转移、断路器、EWMA 延迟跟踪、基于分数调度与滞后控制。
  * TODO: 解决切换配置未自动接管新的代理组
  */
 
 /*
-调整参数可以大语言模型提示词：
+调整参数可用大语言模型提示词：
 你是一个代理服务器调度系统的参数专家。我想要不同风格的调度参数配置。系统包括 EWMA、优先级、断路器、惩罚分机制和滞后控制（hysteresis）等策略。请只输出**与默认值不同的参数和注释**，格式如下：
 
 {
@@ -133,17 +133,19 @@ const ViewStat = async () => {
     const group = manager.proxies[0].group
     const rows = manager.proxies
       .map((proxy) => {
-        const { id, lastDelay, ewmaLatency, failureCount, penalty, state } = proxy
+        const { id, lastDelay, ewmaLatency, failureCount, penalty, state, lastPenaltyUpdate, nextAttempt } = proxy
         const name = id.replaceAll('|', '\\|')
         return {
           name: manager.current?.id === id ? `\`${name}\`` : name,
           state: renderState(state),
           lastDelay: lastDelay ? lastDelay + 'ms' : '-',
-          ewmaLatency: ewmaLatency ? ewmaLatency.toFixed(2) + 'ms' : ewmaLatency,
+          ewmaLatency: ewmaLatency ? ewmaLatency.toFixed(2) + 'ms' : '-',
           score: proxy.getScore().toFixed(2),
           failureCount,
           penalty: penalty ? penalty.toFixed(2) : penalty,
-          isAvailable: lastDelay !== '' ? '✅' : '❌'
+          isAvailable: lastDelay !== '' ? '✅' : '❌',
+          lastPenaltyUpdate,
+          nextAttempt
         }
       })
       .sort((a, b) => b.score - a.score)
@@ -154,9 +156,14 @@ const ViewStat = async () => {
     [
       `## 策略组【${group.group}】`,
       `> 代理数量：${group.rows.length} 监控间隔：${group.options.monitoringInterval}ms\n`,
-      '|节点名|分数|当前延迟|EWMA平滑延迟|失败次数|惩罚值|断路器|可用性|',
-      '|--|--|--|--|--|--|--|--|',
-      group.rows.map((v) => `|${v.name}|${v.score}|${v.lastDelay}|${v.ewmaLatency}|${v.failureCount}|${v.penalty}|${v.state}|${v.isAvailable}|`).join('\n')
+      '|节点名|分数|当前延迟|EWMA平滑延迟|失败次数|惩罚值|更新时间|下次检测时间|断路器|可用性|',
+      '|--|--|--|--|--|--|--|--|--|--|',
+      group.rows
+        .map(
+          (v) =>
+            `|${v.name}|${v.score}|${v.lastDelay}|${v.ewmaLatency}|${v.failureCount}|${v.penalty}|${Plugins.formatRelativeTime(v.lastPenaltyUpdate)}|${v.nextAttempt === 0 ? '-' : Plugins.formatRelativeTime(v.nextAttempt)}|${v.state}|${v.isAvailable}|`
+        )
+        .join('\n')
     ].join('\n')
   )
 
@@ -319,6 +326,10 @@ class ProxyManager {
   // 检查所有代理状态
   async checkAll() {
     const checkProxy = async (proxy) => {
+      // 如果是 OPEN 且还不能尝试，不要浪费请求
+      if (!proxy.isAvailable()) {
+        return
+      }
       try {
         const { delay } = await request.get(proxy.url, {
           url: Plugin.TestUrl || 'https://www.gstatic.com/generate_204',
