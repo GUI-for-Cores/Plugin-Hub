@@ -98,10 +98,23 @@ interface Plugins {
   ): Promise<number>
 
   Request: any
-  HttpGet(url: string, headers?: Record<string, string>, options?: { Insecure?: boolean }): Promise<{ status: number; body: any }>
-  HttpPost(url: string, headers: Record<string, string>, data: any, options?: { Timeout?: number; Insecure?: boolean }): Promise<{ status: number; body: any }>
-  HttpDelete(url: string, headers: Record<string, string>, options?: { Insecure?: boolean }): Promise<{ status: number; body: any }>
-  HttpPatch(url: string, headers: Record<string, string>, data: any): Promise<{ status: number; body: any }>
+  HttpGet(
+    url: string,
+    headers?: Record<string, string>,
+    options?: { Insecure?: boolean }
+  ): Promise<{ status: number; headers: Record<string, string>; body: any }>
+  HttpPost(
+    url: string,
+    headers: Record<string, string>,
+    data: any,
+    options?: { Timeout?: number; Insecure?: boolean }
+  ): Promise<{ status: number; headers: Record<string, string>; body: any }>
+  HttpDelete(
+    url: string,
+    headers: Record<string, string>,
+    options?: { Insecure?: boolean }
+  ): Promise<{ status: number; headers: Record<string, string>; body: any }>
+  HttpPatch(url: string, headers: Record<string, string>, data: any): Promise<{ status: number; headers: Record<string, string>; body: any }>
   Requests(options: {
     method: string
     url: string
