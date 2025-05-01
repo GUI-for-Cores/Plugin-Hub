@@ -18,7 +18,9 @@ const onRun = async () => {
     return { result, duration: (endTime - startTime) / 1000 + 's' }
   })
 
+  const startTime = Date.now()
   const rows = await Promise.all(promises)
+  const duration = (Date.now() - startTime) / 1000 + 's'
 
   rows.forEach((row) => {
     row.result.status = row.result.status.replace('Yes', '✅').replace('No', '❌')
@@ -37,7 +39,8 @@ const onRun = async () => {
 
   await Plugins.alert(
     Plugin.name,
-    ['|名称|解锁情况|地区|用时|', '|--|--|--|--|', ''].join('\n') +
+    `> 检测完毕，共检测项目 ${promises.length} 个，总用时 ${duration}\n\n` +
+      ['|名称|解锁情况|地区|用时|', '|--|--|--|--|', ''].join('\n') +
       rows.map((row) => `|${row.result.name}|${row.result.status}|${row.result.region}|${row.duration}|`).join('\n'),
     { type: 'markdown' }
   )
