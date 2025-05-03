@@ -238,7 +238,7 @@ function encrypt(data) {
 }
 
 /**
- *解密
+ * 解密
  */
 function decrypt(data) {
   try {
@@ -301,13 +301,27 @@ class WebDAV {
     return body
   }
 
-  async put(url, content) {
+  async put(url, content, tried = false) {
+    const fullUrl = this.address + url
     const { body, status } = await Plugins.Requests({
       method: 'PUT',
-      url: this.address + url,
+      url: fullUrl,
       body: content,
       headers: this.headers
     })
+
+    if ((status === 409 || status === 404) && Plugin.CreateOnNotExist && !tried) {
+      const path = decodeURIComponent(new URL(fullUrl).pathname)
+      const dir = path.substring(0, path.lastIndexOf('/'))
+      try {
+        await this.mkdirRecursive(dir)
+      } catch (e) {
+        console.error('[WebDAV] failed to create directory:', e)
+        Plugins.message.error('创建目录失败，请检查路径是否正确及路径权限')
+      }
+      return this.put(url, content, true)
+    }
+
     if (status !== 201) throw body
     return body
   }
@@ -320,5 +334,27 @@ class WebDAV {
     })
     if (status !== 204) throw body
     return body
+  }
+
+  async mkdirRecursive(path) {
+    const segments = path.split('/').filter(Boolean)
+    let current = ''
+    for (const segment of segments) {
+      current += '/' + segment
+      const fullUrl = this.address.replace(/\/+$/, '') + current
+      try {
+        const res = await Plugins.Requests({
+          method: 'MKCOL',
+          url: fullUrl,
+          headers: this.headers
+        })
+      } catch (err) {
+        console.warn('[DEBUG] MKCOL threw error:', err)
+        const msg = String(err)
+        if (!msg.includes('405') && !msg.includes('AlreadyExists') && !msg.includes('201')) {
+          throw '创建目录失败：' + fullUrl
+        }
+      }
+    }
   }
 }

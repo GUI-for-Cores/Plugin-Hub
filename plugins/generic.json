@@ -1137,7 +1137,7 @@
   {
     "id": "plugin-sync-configuration-webdav",
     "name": "配置同步 - WebDAV",
-    "version": "v1.0.0",
+    "version": "v2.0.0",
     "description": "使用webDAV协议同步GUI配置。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sync-configuration-webdav.js",
@@ -1199,6 +1199,14 @@
         "key": "Secret",
         "component": "Input",
         "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_nrxu1qyz",
+        "title": "路径不存在时尝试创建",
+        "key": "CreateOnNotExist",
+        "component": "Switch",
+        "value": true,
         "options": []
       }
     ],
