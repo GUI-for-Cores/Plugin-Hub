@@ -288,8 +288,78 @@ const Checker = {
     }
   },
   disney_plus: {
+    skip: true,
     name: 'Disney+',
+    Token: 'Bearer ZGlzbmV5JmJyb3dzZXImMS4wLjA.Cu56AgSfBTDag5NiRA81oLHkDZfu5L3CKadnefEAY84',
     async check() {
+      const { body, status } = await Plugins.HttpPost(
+        'https://disney.api.edge.bamgrid.com/devices',
+        {
+          Authorization: this.Token,
+          'Content-Type': 'application/json; charset=UTF-8'
+        },
+        {
+          deviceFamily: 'browser',
+          applicationRuntime: 'chrome',
+          deviceProfile: 'windows',
+          attributes: {}
+        }
+      )
+      if (status === 403) {
+        return new CheckResult(this.name, 'No (IP Banned By Disney+)', null)
+      }
+      const assertion = body.match(/"assertion"\s*:\s*"([^"]+)/)?.[1]
+      if (!assertion) {
+        return new CheckResult(this.name, 'Failed', null)
+      }
+
+      const { body: body2, status: status2 } = await Plugins.HttpPost(
+        'https://disney.api.edge.bamgrid.com/token',
+        {
+          Authorization: this.Token,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        {
+          grant_type: 'urn:ietf:params:oauth:grant-type:token-exchange',
+          latitude: '0',
+          longitude: '0',
+          platform: 'browser',
+          subject_token: assertion,
+          subject_token_type: 'urn:bamtech:params:oauth:token-type:device'
+        }
+      )
+      const body2Str = JSON.stringify(body2)
+      if (body2Str.includes('forbidden-location') || body2Str.includes('403 ERROR')) {
+        return new CheckResult(this.name, 'No (IP Banned By Disney+)', null)
+      }
+      const refreshToken = body2.refresh_token || body2Str.match(/"refresh_token"\s*:\s*"([^"]+)/)?.[1]
+      if (!refreshToken) {
+        return new CheckResult(this.name, 'No (Cannot extract refresh token)', null)
+      }
+
+      const { body: body3, status: status3 } = await Plugins.HttpPost(
+        'https://disney.api.edge.bamgrid.com/graph/v1/device/graphql',
+        {
+          Authorization: this.Token,
+          'Content-Type': 'application/json'
+        },
+        {
+          query: `mutation refreshToken($input: RefreshTokenInput!) {
+            refreshToken(refreshToken: $input) {
+              activeSession {
+                sessionId
+              }
+            }
+          }`,
+          variables: {
+            input: {
+              refreshToken: refreshToken
+            }
+          }
+        }
+      )
+      const { body: body4, status: status4 } = await Plugins.HttpGet('https://disneyplus.com')
+      // TODO: 获取redirect url
       return new CheckResult(this.name, 'TODO', null)
     }
   },
