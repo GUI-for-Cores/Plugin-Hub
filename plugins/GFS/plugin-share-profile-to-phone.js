@@ -52,7 +52,7 @@ const Share = async (profile) => {
   else {
     // * 开启TUN
     let tun = profile.inbounds.find((v) => v.type === 'tun')
-    const mixed = profile.inbounds.find((v) => v.type === 'mixed')
+    let mixed = profile.inbounds.find((v) => v.type === 'mixed')
     const http = profile.inbounds.find((v) => v.type === 'http')
     if (!tun) {
       tun = {
@@ -86,6 +86,28 @@ const Share = async (profile) => {
           enabled: true,
           server: '127.0.0.1',
           server_port: http.http.listen.listen_port
+        }
+      }
+    } else {
+      mixed = {
+        id: Plugins.sampleID(),
+        tag: 'mixed-in',
+        type: 'mixed',
+        enable: true,
+        mixed: {
+          listen: {
+            listen: '127.0.0.1',
+            listen_port: 20122
+          },
+          users: []
+        }
+      }
+      profile.inbounds.push(mixed)
+      tun.tun.platform = {
+        http_proxy: {
+          enabled: true,
+          server: '127.0.0.1',
+          server_port: mixed.mixed.listen.listen_port
         }
       }
     }
