@@ -75,7 +75,7 @@ const Share = async (profile) => {
     if (mixed) {
       tun.tun.platform = {
         http_proxy: {
-          enabled: false,
+          enabled: true,
           server: '127.0.0.1',
           server_port: mixed.mixed.listen.listen_port
         }
@@ -83,7 +83,7 @@ const Share = async (profile) => {
     } else if (http) {
       tun.tun.platform = {
         http_proxy: {
-          enabled: false,
+          enabled: true,
           server: '127.0.0.1',
           server_port: http.http.listen.listen_port
         }
