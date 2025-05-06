@@ -101,18 +101,18 @@ interface Plugins {
   HttpGet(
     url: string,
     headers?: Record<string, string>,
-    options?: { Insecure?: boolean }
+    options?: { Insecure?: boolean; Redirect?: boolean }
   ): Promise<{ status: number; headers: Record<string, string>; body: any }>
   HttpPost(
     url: string,
     headers: Record<string, string>,
     data: any,
-    options?: { Timeout?: number; Insecure?: boolean }
+    options?: { Timeout?: number; Insecure?: boolean; Redirect?: boolean }
   ): Promise<{ status: number; headers: Record<string, string>; body: any }>
   HttpDelete(
     url: string,
     headers: Record<string, string>,
-    options?: { Insecure?: boolean }
+    options?: { Insecure?: boolean; Redirect?: boolean }
   ): Promise<{ status: number; headers: Record<string, string>; body: any }>
   HttpPatch(url: string, headers: Record<string, string>, data: any): Promise<{ status: number; headers: Record<string, string>; body: any }>
   Requests(options: {
@@ -121,6 +121,7 @@ interface Plugins {
     headers?: Record<string, string>
     body?: string
     Insecure?: boolean
+    Redirect?: boolean
   }): Promise<{ status: number; body: any }>
   Download(url: string, path: string, headers?: Record<string, string>, progressCallback?: (progress: number, total: number) => void): Promise<void>
 

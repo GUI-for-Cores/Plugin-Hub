@@ -288,7 +288,6 @@ const Checker = {
     }
   },
   disney_plus: {
-    skip: true,
     name: 'Disney+',
     Token: 'Bearer ZGlzbmV5JmJyb3dzZXImMS4wLjA.Cu56AgSfBTDag5NiRA81oLHkDZfu5L3CKadnefEAY84',
     async check() {
@@ -296,7 +295,7 @@ const Checker = {
         'https://disney.api.edge.bamgrid.com/devices',
         {
           Authorization: this.Token,
-          'Content-Type': 'application/json; charset=UTF-8'
+          'Content-Type': 'application/json'
         },
         {
           deviceFamily: 'browser',
@@ -308,7 +307,7 @@ const Checker = {
       if (status === 403) {
         return new CheckResult(this.name, 'No (IP Banned By Disney+)', null)
       }
-      const assertion = body.match(/"assertion"\s*:\s*"([^"]+)/)?.[1]
+      const assertion = body.assertion
       if (!assertion) {
         return new CheckResult(this.name, 'Failed', null)
       }
@@ -329,9 +328,10 @@ const Checker = {
         }
       )
       const body2Str = JSON.stringify(body2)
-      if (body2Str.includes('forbidden-location') || body2Str.includes('403 ERROR')) {
+      if (status2 === 403 || body2Str.includes('forbidden-location')) {
         return new CheckResult(this.name, 'No (IP Banned By Disney+)', null)
       }
+      // 好了 我的IP只能走到这了 等有缘人继续开发
       const refreshToken = body2.refresh_token || body2Str.match(/"refresh_token"\s*:\s*"([^"]+)/)?.[1]
       if (!refreshToken) {
         return new CheckResult(this.name, 'No (Cannot extract refresh token)', null)
@@ -358,9 +358,32 @@ const Checker = {
           }
         }
       )
-      const { body: body4, status: status4 } = await Plugins.HttpGet('https://disneyplus.com')
-      // TODO: 获取redirect url
-      return new CheckResult(this.name, 'TODO', null)
+      let region = body3.match(/region"\s*:\s*"([^"]+)"/)?.[1]
+      if (!region) {
+        try {
+          const { body, status } = await Plugins.HttpGet('https://disneyplus.com')
+          region = JSON.stringify(body).match(/region"\s*:\s*"([^"]+)"/)?.[1]
+        } catch {}
+      }
+      if (!region) {
+        return new CheckResult(this.name, 'No', null)
+      }
+
+      const supported = body3.match(/"inSupportedLocation"\s*:\s*(true|false)/)?.[1]
+
+      const { headers: headers4 } = await Plugins.HttpGet('https://disneyplus.com', undefined, { Redirect: false })
+      const redirectUrl = headers4['Location']
+      if (redirectUrl.includes('preview') || redirectUrl.includes('unavailable')) {
+        return new CheckResult(this.name, 'No', null)
+      }
+
+      if (supported === true) {
+        return new CheckResult(this.name, 'Yes', region)
+      } else if (supported === false) {
+        return new CheckResult(this.name, 'No', region)
+      }
+
+      return new CheckResult(this.name, 'No', region)
     }
   },
   prime_video: {
