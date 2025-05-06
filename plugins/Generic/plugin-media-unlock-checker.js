@@ -23,7 +23,7 @@ const onRun = async () => {
   const duration = (Date.now() - startTime) / 1000 + 's'
 
   rows.forEach((row) => {
-    row.result.status = row.result.status.replace('Yes', '✅').replace('No', '❌')
+    row.result.status = row.result.status?.replace('Yes', '✅')?.replace('No', '❌')
     row.result.region = row.result.region || '-'
     if (row.result.status.includes('Client.Timeout')) {
       row.result.status = '😤连接超时'
