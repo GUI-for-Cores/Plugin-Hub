@@ -661,7 +661,7 @@
   {
     "id": "plugin-file-transfer-assistant",
     "name": "文件互传助手",
-    "version": "v1.0.2",
+    "version": "v1.0.3",
     "description": "文件互传助手，支持Siri快捷指令。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-file-transfer-assistant.js",

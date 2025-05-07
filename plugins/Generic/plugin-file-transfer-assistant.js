@@ -100,7 +100,7 @@ const startService = async () => {
   }
 
   const Shortcut = SharePath + '/文件互传.shortcut'
-  if (!(await Plugins.FileExists(ShareHtml))) {
+  if (!(await Plugins.FileExists(Shortcut))) {
     await Plugins.Download(
       'https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Resources/plugin-file-transfer-assistant/文件互传.shortcut',
       Shortcut
