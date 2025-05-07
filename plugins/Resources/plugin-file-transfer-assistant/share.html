@@ -1,98 +1,155 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>文件互传助手</title>
     <style>
       * {
         box-sizing: border-box;
       }
+
       body {
         margin: 0;
-        background: #f0f0f3;
+        background: #e0e5ec;
         color: #333;
-        padding: 1rem;
+        padding: 1.5rem;
       }
+
       h1 {
         text-align: center;
-        margin-bottom: 1rem;
+        margin-bottom: 2rem;
+        font-size: 1.8rem;
+        color: #555;
+        text-shadow: 1px 1px 2px #fff;
       }
+
       ul {
         list-style: none;
         padding: 0;
+        margin: 0 auto;
+        max-width: 500px;
       }
+
       li {
-        background: #fff;
-        margin: 0.5rem 0;
+        background: #e0e5ec;
+        margin: 0.8rem 0;
         padding: 1rem;
-        border-radius: 12px;
-        box-shadow: 4px 4px 10px #ccc, -4px -4px 10px #fff;
+        border-radius: 16px;
+        box-shadow:
+          8px 8px 16px #babecc,
+          -8px -8px 16px #ffffff;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        transition: transform 0.1s;
+        transition: all 0.2s ease;
       }
+
       li:active {
-        transform: scale(0.98);
+        transform: scale(0.97);
       }
+
       li.folder {
         font-weight: bold;
+        color: #333;
       }
+
       li span {
         flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        margin-left: 8px;
       }
+
       li a {
         background: none;
         border: none;
-        color: #007bff;
-        font-size: 1rem;
+        color: #4d90fe;
+        font-size: 0.9rem;
         text-decoration: none;
         margin: 0 4px;
+        transition: color 0.2s;
+      }
+
+      li a:hover {
+        color: #1a73e8;
+      }
+
+      .icon-file,
+      .icon-folder {
+        width: 28px;
+        height: 28px;
+        background-size: cover;
+        flex-shrink: 0;
       }
       .icon-file {
         width: 24px;
         height: 24px;
         margin-right: 8px;
-        background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAWBJREFUeNqEUj1LxEAQnd1MVA4lyIEWx6UIKEGUExGsbC3tLfwJ/hT/g7VlCnubqxXBwg/Q4hQP/LhKL5nZuBsvuGfW5MGyuzM7jzdvVuR5DgYnZ+f99ai7Vt5t9K9unu4HLweI3qWYxI6PDosdy0fhcntxO44CcOBzPA7mfEyuHwf7ntQk4jcnywOxIlfxOCNYaLVgb6cXbkTdhJXq2SIlNMC0xIqhHczDbi8OVzpLSUa0WebRfmigLHqj1EcPZnwf7gbDIrYVRyEinurj6jTBHyI7pqVrFQqEbt6TEmZ9v1NRAJNC1xTYxIQh/MmRUlmFQE3qWOW1nqB2TWk1/3tgJV0waVvkFIEeZbHq4ElyKzAmEXOx6gnEVJuWBzmkRJBRPYGZBDsVaOlpSgVJE2yVaAe/0kx/3azBRO0VsbMFZE3CDSZKweZfYIVg+DZ6v7h9GDVOwZPw/PoxKu/fAgwALbDAXf7DdQkAAAAASUVORK5CYII=");
+        background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAWBJREFUeNqEUj1LxEAQnd1MVA4lyIEWx6UIKEGUExGsbC3tLfwJ/hT/g7VlCnubqxXBwg/Q4hQP/LhKL5nZuBsvuGfW5MGyuzM7jzdvVuR5DgYnZ+f99ai7Vt5t9K9unu4HLweI3qWYxI6PDosdy0fhcntxO44CcOBzPA7mfEyuHwf7ntQk4jcnywOxIlfxOCNYaLVgb6cXbkTdhJXq2SIlNMC0xIqhHczDbi8OVzpLSUa0WebRfmigLHqj1EcPZnwf7gbDIrYVRyEinurj6jTBHyI7pqVrFQqEbt6TEmZ9v1NRAJNC1xTYxIQh/MmRUlmFQE3qWOW1nqB2TWk1/3tgJV0waVvkFIEeZbHq4ElyKzAmEXOx6gnEVJuWBzmkRJBRPYGZBDsVaOlpSgVJE2yVaAe/0kx/3azBRO0VsbMFZE3CDSZKweZfYIVg+DZ6v7h9GDVOwZPw/PoxKu/fAgwALbDAXf7DdQkAAAAASUVORK5CYII=');
         background-size: 100% 100%;
       }
       .icon-folder {
         width: 24px;
         height: 24px;
         margin-right: 8px;
-        background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAIlJREFUOE9jZKAQMFKonwFsQED/pwQGhv8KqIb9W7ChUPABIQsgBkz4+B+LwgcM//85EjIEnwEgMx8w/GdYiN0VjA82FPItIGQAXh9sKOBnHN4G/D+AGgCMDugBgj8M/v9zRGhgVmBg/D+fNAMIpSAGBgYqxgLWpEzICf8ObCgUPECdzETILnzyANUYRBF567JvAAAAAElFTkSuQmCC");
+        background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAIlJREFUOE9jZKAQMFKonwFsQED/pwQGhv8KqIb9W7ChUPABIQsgBkz4+B+LwgcM//85EjIEnwEgMx8w/GdYiN0VjA82FPItIGQAXh9sKOBnHN4G/D+AGgCMDugBgj8M/v9zRGhgVmBg/D+fNAMIpSAGBgYqxgLWpEzICf8ObCgUPECdzETILnzyANUYRBF567JvAAAAAElFTkSuQmCC');
         background-size: 100% 100%;
       }
+
       .empty {
         color: gray;
         text-align: center;
-        align-items: center;
-        justify-content: center;
+        margin-top: 2rem;
+        font-size: 0.9rem;
       }
+
       .footer {
         text-align: center;
-        font-size: 10px;
+        font-size: 12px;
+        color: #888;
+        margin-top: 2rem;
       }
-      #refresh {
+
+      .btn {
         position: fixed;
         right: 20px;
-        bottom: 20px;
-        width: 46px;
-        line-height: 46px;
+        width: 52px;
+        height: 52px;
+        line-height: 52px;
         text-align: center;
         user-select: none;
-        font-size: 12px;
-        border-radius: 12px;
-        background: #fff;
-        transition: transform 0.1s;
-        box-shadow: 4px 4px 10px #ccc, -4px -4px 10px #fff;
+        font-size: 13px;
+        border-radius: 50%;
+        background: #e0e5ec;
+        box-shadow:
+          6px 6px 12px #babecc,
+          -6px -6px 12px #ffffff;
+        transition: transform 0.2s;
+        cursor: pointer;
       }
+      #refresh {
+        bottom: 20px;
+      }
+
       #refresh:active {
-        transform: scale(0.98);
+        transform: scale(0.95);
+      }
+
+      #upload {
+        bottom: 80px;
+      }
+
+      #upload:active {
+        transform: scale(0.95);
+      }
+
+      #current {
+        text-align: center;
+        font-size: 0.95rem;
+        color: #777;
+        margin-bottom: 1rem;
       }
     </style>
   </head>
@@ -100,93 +157,94 @@
     <h1>文件互传助手</h1>
     <div id="current"></div>
     <ul id="file-list"></ul>
-    <div id="refresh">刷新</div>
-    <p class="footer">
-      本页面由 GUI.for.Cores 项目组下的【文件互传助手】插件提供支持
-    </p>
+    <div id="upload" class="btn">上传</div>
+    <div id="refresh" class="btn">刷新</div>
+    <p class="footer">本页面由 GUI.for.Cores 项目组下的【文件互传助手】插件提供支持</p>
 
     <script>
-      let currentPath = "";
+      let currentPath = ''
 
       async function fetchAndRender(path) {
-        const res = await fetch(`/dir?path=${encodeURIComponent(path)}`);
-        const data = await res.json();
+        const res = await fetch(`/dir?path=${encodeURIComponent(path)}`)
+        const data = await res.json()
 
         // 更新目录
-        document.getElementById("current").textContent = path;
+        document.getElementById('current').textContent = path
 
-        const fileList = document.getElementById("file-list");
-        fileList.innerHTML = "";
+        const fileList = document.getElementById('file-list')
+        fileList.innerHTML = ''
 
-        if (path !== "") {
-          const upLi = document.createElement("li");
-          upLi.className = "folder";
-          upLi.innerHTML = "<span>..</span>";
+        if (path !== '') {
+          const upLi = document.createElement('li')
+          upLi.className = 'folder'
+          upLi.innerHTML = '<span>..</span>'
           upLi.onclick = () => {
-            const parts = currentPath.split("/").filter(Boolean);
-            parts.pop();
-            currentPath = parts.join("/");
-            fetchAndRender(currentPath);
-          };
-          fileList.appendChild(upLi);
+            const parts = currentPath.split('/').filter(Boolean)
+            parts.pop()
+            currentPath = parts.join('/')
+            fetchAndRender(currentPath)
+          }
+          fileList.appendChild(upLi)
         }
 
         if (data.length === 0) {
-          const li = document.createElement("li");
-          li.classList = "empty";
-          li.textContent = "这里没有共享的数据 :)";
-          fileList.appendChild(li);
+          const li = document.createElement('li')
+          li.classList = 'empty'
+          li.textContent = '这里没有共享的数据 :)'
+          fileList.appendChild(li)
         }
 
         data.forEach((item) => {
-          const li = document.createElement("li");
-          li.className = item.isDir ? "folder" : "file";
+          const li = document.createElement('li')
+          li.className = item.isDir ? 'folder' : 'file'
 
           // icon
-          const icon = document.createElement("div");
-          icon.className = item.isDir ? "icon-folder" : "icon-file";
-          li.appendChild(icon);
+          const icon = document.createElement('div')
+          icon.className = item.isDir ? 'icon-folder' : 'icon-file'
+          li.appendChild(icon)
 
           // title
-          const name = document.createElement("span");
-          name.textContent = item.isDir
-            ? item.name
-            : `${item.name} (${item.size})`;
-          li.appendChild(name);
+          const name = document.createElement('span')
+          name.textContent = item.isDir ? item.name : `${item.name} (${item.size})`
+          li.appendChild(name)
 
           if (item.isDir) {
             li.onclick = () => {
-              currentPath = (currentPath ? currentPath + "/" : "") + item.name;
-              fetchAndRender(currentPath);
-            };
+              currentPath = (currentPath ? currentPath + '/' : '') + item.name
+              fetchAndRender(currentPath)
+            }
           } else {
-            const filePath = (currentPath ? currentPath + "/" : "") + item.name;
-            const url = `/static/${encodeURIComponent(filePath)}`;
+            const filePath = (currentPath ? currentPath + '/' : '') + item.name
+            const url = `/static/${encodeURIComponent(filePath)}`
 
-            const preview = document.createElement("a");
-            preview.textContent = "打开";
-            preview.href = url;
-            preview.target = "_blank";
+            const preview = document.createElement('a')
+            preview.textContent = '打开'
+            preview.href = url
+            preview.target = '_blank'
 
-            const download = document.createElement("a");
-            download.textContent = "下载";
-            download.href = url;
-            download.target = "_blank";
-            download.download = item.name;
+            const download = document.createElement('a')
+            download.textContent = '下载'
+            download.href = url
+            download.target = '_blank'
+            download.download = item.name
 
-            li.appendChild(preview);
-            li.appendChild(download);
+            li.appendChild(preview)
+            li.appendChild(download)
           }
 
-          fileList.appendChild(li);
-        });
+          fileList.appendChild(li)
+        })
       }
 
-      document.getElementById("refresh").onclick = () => {
-        fetchAndRender(currentPath);
-      };
+      document.getElementById('refresh').onclick = () => {
+        fetchAndRender(currentPath)
+      }
 
-      fetchAndRender(currentPath);
+      document.getElementById('upload').onclick = () => {
+        location.href = '/upload.html'
+      }
+
+      fetchAndRender(currentPath)
     </script>
   </body>
 </html>

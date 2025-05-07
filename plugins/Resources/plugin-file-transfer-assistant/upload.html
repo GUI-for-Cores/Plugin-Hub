@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>文件互传助手</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: #e0e5ec;
+        color: #333;
+        padding: 1.5rem;
+        font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 2rem;
+        font-size: 1.8rem;
+        color: #555;
+        text-shadow: 1px 1px 2px #fff;
+      }
+
+      form {
+        background: #e0e5ec;
+        padding: 2rem 1.5rem;
+        border-radius: 20px;
+        box-shadow:
+          8px 8px 16px #babecc,
+          -8px -8px 16px #ffffff;
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+        max-width: 400px;
+        margin: 0 auto 2rem;
+        transition: all 0.2s ease;
+      }
+
+      form:hover {
+        transform: translateY(-2px);
+      }
+
+      input[type='file'] {
+        padding: 0.8rem;
+        border: none;
+        border-radius: 12px;
+        background: #e0e5ec;
+        box-shadow:
+          inset 4px 4px 8px #babecc,
+          inset -4px -4px 8px #ffffff;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      input[type='file']:hover {
+        background: #e6eaf0;
+      }
+
+      input[type='submit'] {
+        padding: 0.6rem 1.2rem;
+        font-size: 1rem;
+        border: none;
+        border-radius: 12px;
+        color: #fff;
+        background: #4d90fe;
+        box-shadow:
+          4px 4px 12px #babecc,
+          -4px -4px 12px #ffffff;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      input[type='submit']:hover {
+        background: #3b7efc;
+      }
+
+      .footer {
+        text-align: center;
+        font-size: 12px;
+        color: #777;
+        padding-top: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>文件互传助手</h1>
+    <form action="/发送文件" method="post" enctype="multipart/form-data">
+      <input type="file" name="file" multiple />
+      <input type="submit" value="上传文件" />
+    </form>
+    <p class="footer">本页面由 GUI.for.Cores 项目组下的【文件互传助手】插件提供支持</p>
+  </body>
+</html>
