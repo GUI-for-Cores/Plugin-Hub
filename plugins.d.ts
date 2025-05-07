@@ -88,6 +88,7 @@ interface Plugins {
       StaticPath?: string
       UploadPath?: string
       UploadRoute?: string
+      MaxUploadSize?: number
     }
   ): Promise<{ close: () => Promise<void> }>
 

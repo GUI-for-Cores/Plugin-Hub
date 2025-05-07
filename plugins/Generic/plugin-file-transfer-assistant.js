@@ -99,6 +99,15 @@ const startService = async () => {
     Plugins.message.info('已自动创建共享文件夹')
   }
 
+  const Shortcut = SharePath + '/文件互传.shortcut'
+  if (!(await Plugins.FileExists(ShareHtml))) {
+    await Plugins.Download(
+      'https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Resources/plugin-file-transfer-assistant/文件互传.shortcut',
+      Shortcut
+    )
+    Plugins.message.info('已下载快捷指令到共享文件夹')
+  }
+
   await Plugins.StartServer(
     '0.0.0.0:5233',
     Plugin.id,
@@ -132,7 +141,8 @@ const startService = async () => {
     {
       StaticPath: SharePath,
       UploadPath: SavePath,
-      UploadRoute: '/发送文件'
+      UploadRoute: '/发送文件',
+      MaxUploadSize: 4096 * 1024 * 1024 // 4GB
     }
   )
 }
