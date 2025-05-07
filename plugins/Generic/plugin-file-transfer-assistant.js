@@ -96,7 +96,7 @@ const startService = async () => {
 
   if (!(await Plugins.FileExists(SharePath))) {
     await Plugins.Makedir(SharePath)
-    Plugins.message.info('已自动创建共享文件夹')
+    Plugins.message.success('已自动创建共享文件夹')
   }
 
   const Shortcut = SharePath + '/文件互传.shortcut'
@@ -105,7 +105,7 @@ const startService = async () => {
       'https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Resources/plugin-file-transfer-assistant/文件互传.shortcut',
       Shortcut
     )
-    Plugins.message.info('已下载快捷指令到共享文件夹')
+    Plugins.message.success('已下载快捷指令到共享文件夹')
   }
 
   await Plugins.StartServer(
