@@ -81,9 +81,14 @@ interface Plugins {
         body: string
       },
       res: {
-        end: (status: number, headers: Record<string, string>, body: string) => void
+        end: (status: number, headers: Record<string, string>, body: string, options?: { Mode: 'Binary' | 'Text' }) => void
       }
-    ) => void
+    ) => void,
+    options?: {
+      StaticPath?: string
+      UploadPath?: string
+      UploadRoute?: string
+    }
   ): Promise<{ close: () => Promise<void> }>
 
   ProcessInfo(pid: number): Promise<string>

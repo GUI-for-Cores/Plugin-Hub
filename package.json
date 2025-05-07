@@ -5,6 +5,7 @@
   "scripts": {
     "format": "prettier --write plugins/"
   },
+  "type": "module",
   "keywords": [
     "GUI.for.Cores",
     "GUI.for.Clash",

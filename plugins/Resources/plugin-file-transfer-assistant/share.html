@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>文件互传助手</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #f0f0f3;
+        color: #333;
+        padding: 1rem;
+      }
+      h1 {
+        text-align: center;
+        margin-bottom: 1rem;
+      }
+      ul {
+        list-style: none;
+        padding: 0;
+      }
+      li {
+        background: #fff;
+        margin: 0.5rem 0;
+        padding: 1rem;
+        border-radius: 12px;
+        box-shadow: 4px 4px 10px #ccc, -4px -4px 10px #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: transform 0.1s;
+      }
+      li:active {
+        transform: scale(0.98);
+      }
+      li.folder {
+        font-weight: bold;
+      }
+      li span {
+        flex: 1;
+      }
+      li a {
+        background: none;
+        border: none;
+        color: #007bff;
+        font-size: 1rem;
+        text-decoration: none;
+        margin: 0 4px;
+      }
+      .icon-file {
+        width: 24px;
+        height: 24px;
+        margin-right: 8px;
+        background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAWBJREFUeNqEUj1LxEAQnd1MVA4lyIEWx6UIKEGUExGsbC3tLfwJ/hT/g7VlCnubqxXBwg/Q4hQP/LhKL5nZuBsvuGfW5MGyuzM7jzdvVuR5DgYnZ+f99ai7Vt5t9K9unu4HLweI3qWYxI6PDosdy0fhcntxO44CcOBzPA7mfEyuHwf7ntQk4jcnywOxIlfxOCNYaLVgb6cXbkTdhJXq2SIlNMC0xIqhHczDbi8OVzpLSUa0WebRfmigLHqj1EcPZnwf7gbDIrYVRyEinurj6jTBHyI7pqVrFQqEbt6TEmZ9v1NRAJNC1xTYxIQh/MmRUlmFQE3qWOW1nqB2TWk1/3tgJV0waVvkFIEeZbHq4ElyKzAmEXOx6gnEVJuWBzmkRJBRPYGZBDsVaOlpSgVJE2yVaAe/0kx/3azBRO0VsbMFZE3CDSZKweZfYIVg+DZ6v7h9GDVOwZPw/PoxKu/fAgwALbDAXf7DdQkAAAAASUVORK5CYII=");
+        background-size: 100% 100%;
+      }
+      .icon-folder {
+        width: 24px;
+        height: 24px;
+        margin-right: 8px;
+        background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAIlJREFUOE9jZKAQMFKonwFsQED/pwQGhv8KqIb9W7ChUPABIQsgBkz4+B+LwgcM//85EjIEnwEgMx8w/GdYiN0VjA82FPItIGQAXh9sKOBnHN4G/D+AGgCMDugBgj8M/v9zRGhgVmBg/D+fNAMIpSAGBgYqxgLWpEzICf8ObCgUPECdzETILnzyANUYRBF567JvAAAAAElFTkSuQmCC");
+        background-size: 100% 100%;
+      }
+      .footer {
+        text-align: center;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>文件列表</h1>
+    <ul id="file-list"></ul>
+    <p class="footer">
+      本页面由 GUI.for.Cores 项目组下的【文件互传助手】插件提供支持
+    </p>
+
+    <script>
+      let currentPath = "";
+
+      async function fetchAndRender(path) {
+        const res = await fetch(`/dir?path=${encodeURIComponent(path)}`);
+        const data = await res.json();
+
+        const fileList = document.getElementById("file-list");
+        fileList.innerHTML = "";
+
+        if (path !== "") {
+          const upLi = document.createElement("li");
+          upLi.className = "folder";
+          upLi.innerHTML = "<span>..</span>";
+          upLi.onclick = () => {
+            const parts = currentPath.split("/").filter(Boolean);
+            parts.pop();
+            currentPath = parts.join("/");
+            fetchAndRender(currentPath);
+          };
+          fileList.appendChild(upLi);
+        }
+
+        data.forEach((item) => {
+          const li = document.createElement("li");
+          li.className = item.isDir ? "folder" : "file";
+
+          // icon
+          const icon = document.createElement("div");
+          icon.className = item.isDir ? "icon-folder" : "icon-file";
+          li.appendChild(icon);
+
+          // title
+          const name = document.createElement("span");
+          name.textContent = item.isDir
+            ? item.name
+            : `${item.name} (${item.size})`;
+          li.appendChild(name);
+
+          if (item.isDir) {
+            li.onclick = () => {
+              currentPath = (currentPath ? currentPath + "/" : "") + item.name;
+              fetchAndRender(currentPath);
+            };
+          } else {
+            const filePath = (currentPath ? currentPath + "/" : "") + item.name;
+            const url = `/static/${encodeURIComponent(filePath)}`;
+
+            const preview = document.createElement("a");
+            preview.textContent = "打开";
+            preview.href = url;
+            preview.target = "_blank";
+
+            const download = document.createElement("a");
+            download.textContent = "下载";
+            download.href = url;
+            download.target = "_blank";
+            download.download = item.name;
+
+            li.appendChild(preview);
+            li.appendChild(download);
+          }
+
+          fileList.appendChild(li);
+        });
+      }
+
+      fetchAndRender(currentPath);
+    </script>
+  </body>
+</html>
