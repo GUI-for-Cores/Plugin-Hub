@@ -67,15 +67,40 @@
         background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAIlJREFUOE9jZKAQMFKonwFsQED/pwQGhv8KqIb9W7ChUPABIQsgBkz4+B+LwgcM//85EjIEnwEgMx8w/GdYiN0VjA82FPItIGQAXh9sKOBnHN4G/D+AGgCMDugBgj8M/v9zRGhgVmBg/D+fNAMIpSAGBgYqxgLWpEzICf8ObCgUPECdzETILnzyANUYRBF567JvAAAAAElFTkSuQmCC");
         background-size: 100% 100%;
       }
+      .empty {
+        color: gray;
+        text-align: center;
+        align-items: center;
+        justify-content: center;
+      }
       .footer {
         text-align: center;
         font-size: 10px;
       }
+      #refresh {
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        width: 46px;
+        line-height: 46px;
+        text-align: center;
+        user-select: none;
+        font-size: 12px;
+        border-radius: 12px;
+        background: #fff;
+        transition: transform 0.1s;
+        box-shadow: 4px 4px 10px #ccc, -4px -4px 10px #fff;
+      }
+      #refresh:active {
+        transform: scale(0.98);
+      }
     </style>
   </head>
   <body>
-    <h1>文件列表</h1>
+    <h1>文件互传助手</h1>
+    <div id="current"></div>
     <ul id="file-list"></ul>
+    <div id="refresh">刷新</div>
     <p class="footer">
       本页面由 GUI.for.Cores 项目组下的【文件互传助手】插件提供支持
     </p>
@@ -86,6 +111,9 @@
       async function fetchAndRender(path) {
         const res = await fetch(`/dir?path=${encodeURIComponent(path)}`);
         const data = await res.json();
+
+        // 更新目录
+        document.getElementById("current").textContent = path;
 
         const fileList = document.getElementById("file-list");
         fileList.innerHTML = "";
@@ -101,6 +129,13 @@
             fetchAndRender(currentPath);
           };
           fileList.appendChild(upLi);
+        }
+
+        if (data.length === 0) {
+          const li = document.createElement("li");
+          li.classList = "empty";
+          li.textContent = "这里没有共享的数据 :)";
+          fileList.appendChild(li);
         }
 
         data.forEach((item) => {
@@ -146,6 +181,10 @@
           fileList.appendChild(li);
         });
       }
+
+      document.getElementById("refresh").onclick = () => {
+        fetchAndRender(currentPath);
+      };
 
       fetchAndRender(currentPath);
     </script>
