@@ -1,3 +1,5 @@
+const PATH = 'data/third/file-transfer-assistant'
+
 const SharePath = await Plugins.AbsolutePath(Plugin.SharePath)
 const SavePath = await Plugins.AbsolutePath(Plugin.SavePath)
 
@@ -85,12 +87,20 @@ const startService = async () => {
     '/接收文本': () => Plugins.ClipboardGetText()
   }
 
-  const ShareHtml = 'data/third/file-transfer-assistant/share.html'
+  const ShareHtml = PATH + '/share.html'
+  const UploadHtml = PATH + '/upload.html'
 
   if (!(await Plugins.FileExists(ShareHtml))) {
     await Plugins.Download(
       'https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Resources/plugin-file-transfer-assistant/share.html',
       ShareHtml
+    )
+  }
+
+  if (!(await Plugins.FileExists(UploadHtml))) {
+    await Plugins.Download(
+      'https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Resources/plugin-file-transfer-assistant/upload.html',
+      UploadHtml
     )
   }
 
@@ -117,8 +127,9 @@ const startService = async () => {
         return res.end(200, { 'Content-Type': MIME_MAPPING.html }, html)
       }
 
-      if (req.url.startsWith('/download')) {
-        return await handleDownload(req, res)
+      if (req.url == '/upload.html') {
+        const html = await Plugins.Readfile(UploadHtml)
+        return res.end(200, { 'Content-Type': MIME_MAPPING.html }, html)
       }
 
       if (req.url.startsWith('/dir')) {
@@ -169,13 +180,4 @@ const handleDir = async (req, res) => {
   }
   const dirs = await Plugins.Readdir(fullPath)
   res.end(200, { 'Content-Type': MIME_MAPPING.json }, JSON.stringify(dirs.map((v) => ({ ...v, size: Plugins.formatBytes(v.size) }))))
-}
-
-const handleDownload = async (req, res) => {
-  const path = new URLSearchParams(req.url.slice(req.url.indexOf('?'))).get('path')
-  const fullPath = await Plugins.AbsolutePath(SharePath + '/' + path)
-  if (!fullPath?.startsWith(SharePath)) {
-    return res.end(403, { 'Content-Type': MIME_MAPPING.txt }, '禁止访问此文件:' + path)
-  }
-  return res.end(302, { Location: '/static/' + path }, '')
 }
