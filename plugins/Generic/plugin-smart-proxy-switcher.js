@@ -53,7 +53,7 @@ const onRun = async () => {
   const presetMap = {
     Stable: Plugin.StableMode,
     LatencyFirst: Plugin.LatencyFirstMode,
-    CustomMode: Plugin.CustomMode
+    Custom: Plugin.CustomMode
   }
   if (!presetMap[Plugin.Preset]) {
     throw '预设使用场景不存在，请检查插件配置'
