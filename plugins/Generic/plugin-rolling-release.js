@@ -43,6 +43,9 @@ const Rolling = async (confirm = true) => {
 
   if (body.message) {
     destroy()
+    if (body.status == '404') {
+      throw '当前没有可用的滚动更新'
+    }
     throw body.message
   }
 
