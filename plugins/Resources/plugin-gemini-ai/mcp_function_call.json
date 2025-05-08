@@ -1,0 +1,77 @@
+[
+  {
+    "name": "editProfile",
+    "description": "编辑GUI配置",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "配置ID (e.g., 'ID_xxx')"
+        },
+        "name": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "required": ["id"]
+    }
+  },
+  {
+    "name": "listProfile",
+    "description": "列出所有GUI配置；根据配置名称查询配置列表"
+  },
+  {
+    "name": "updateAllSubscription",
+    "description": "更新所有订阅"
+  },
+  {
+    "name": "updateSubscription",
+    "description": "更新名称中包含关键字的一个或多个订阅",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "keywords": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "required": ["keywords"]
+    }
+  },
+  {
+    "name": "updateAllRulesets",
+    "description": "更新所有规则集"
+  },
+  {
+    "name": "listRuleset",
+    "description": "根据关键词列出已添加到本地的（或所有的）规则集",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "keywords": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  },
+  {
+    "name": "listRulesetHub",
+    "description": "根据关键词列出规则集中心的规则集",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "keywords": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "required": ["keywords"]
+    }
+  },
+  {
+    "name": "exitApp",
+    "description": "退出程序"
+  }
+]
