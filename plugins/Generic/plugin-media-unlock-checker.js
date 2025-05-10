@@ -331,7 +331,6 @@ const Checker = {
       if (status2 === 403 || body2Str.includes('forbidden-location')) {
         return new CheckResult(this.name, 'No (IP Banned By Disney+)', null)
       }
-      // 好了 我的IP只能走到这了 等有缘人继续开发
       const refreshToken = body2.refresh_token || body2Str.match(/"refresh_token"\s*:\s*"([^"]+)/)?.[1]
       if (!refreshToken) {
         return new CheckResult(this.name, 'No (Cannot extract refresh token)', null)
@@ -358,18 +357,19 @@ const Checker = {
           }
         }
       )
-      let region = body3.match(/region"\s*:\s*"([^"]+)"/)?.[1]
+      const body3Str = JSON.stringify(body3)
+      let region = body3Str.match(/countryCode"\s*:\s*"([^"]+)"/)?.[1]
       if (!region) {
         try {
           const { body, status } = await Plugins.HttpGet('https://disneyplus.com')
-          region = JSON.stringify(body).match(/region"\s*:\s*"([^"]+)"/)?.[1]
+          region = body.match(/region"\s*:\s*"([^"]+)"/)?.[1]
         } catch {}
       }
       if (!region) {
         return new CheckResult(this.name, 'No', null)
       }
 
-      const supported = body3.match(/"inSupportedLocation"\s*:\s*(true|false)/)?.[1]
+      const supported = body3Str.match(/"inSupportedLocation"\s*:\s*(true|false)/)?.[1] === 'true'
 
       const { headers: headers4 } = await Plugins.HttpGet('https://disneyplus.com', undefined, { Redirect: false })
       const redirectUrl = headers4['Location']
@@ -377,13 +377,7 @@ const Checker = {
         return new CheckResult(this.name, 'No', null)
       }
 
-      if (supported === true) {
-        return new CheckResult(this.name, 'Yes', region)
-      } else if (supported === false) {
-        return new CheckResult(this.name, 'No', region)
-      }
-
-      return new CheckResult(this.name, 'No', region)
+      return new CheckResult(this.name, supported ? 'Yes' : 'No', region)
     }
   },
   prime_video: {

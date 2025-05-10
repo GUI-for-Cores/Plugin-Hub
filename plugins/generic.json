@@ -1717,7 +1717,7 @@
   },
   {
     "id": "plugin-media-unlock-checker",
-    "version": "v1.0.1",
+    "version": "v1.0.2",
     "name": "流媒体解锁检测",
     "description": "检测当前网络环境下的流媒体解锁情况。",
     "type": "Http",
