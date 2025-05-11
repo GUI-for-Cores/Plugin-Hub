@@ -140,6 +140,8 @@ interface Plugins {
   ClipboardSetText(text: string): Promise<void>
   ClipboardGetText(): Promise<string>
 
+  ValidateCron(expression): Promise<boolean>
+
   OpenMMDB(path: string, id: string): Promise<void>
   CloseMMDB(path: string, id: string): Promise<void>
   QueryMMDB(path: string, ip: string, type?: 'ASN' | 'AnonymousIP' | 'City' | 'ConnectionType' | 'Country' | 'Domain' | 'Enterprise'): Promise<any> // Define return type if known

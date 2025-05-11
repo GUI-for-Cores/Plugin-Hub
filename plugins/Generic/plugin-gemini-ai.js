@@ -115,6 +115,22 @@ const McpFunctionMap = {
     const pluginsStore = Plugins.usePluginsStore()
     return pluginsStore.pluginHub.filter((v) => keywords.some((keyword) => v.name.toLowerCase().includes(keyword.toLowerCase())))
   },
+  list_scheduled_tasks: () => {
+    const scheduledTasksStore = Plugins.useScheduledTasksStore()
+    return scheduledTasksStore.scheduledtasks
+  },
+  search_scheduled_tasks_by_keywords: ({ keywords }) => {
+    const scheduledTasksStore = Plugins.useScheduledTasksStore()
+    return scheduledTasksStore.scheduledtasks.filter((v) => keywords.some((keyword) => v.name.toLowerCase().includes(keyword.toLowerCase())))
+  },
+  validate_cron_expression: async ({ expression }) => {
+    try {
+      await Plugins.ValidateCron(expression)
+      return '有效'
+    } catch (error) {
+      return '无效: ' + (error.message || error)
+    }
+  },
   exitApp: () => {
     Plugins.exitApp()
   }

@@ -143,6 +143,38 @@
       "required": ["keywords"]
     }
   },
+
+  {
+    "name": "list_scheduled_tasks",
+    "description": "列出所有的计划任务(scheduled_tasks)信息"
+  },
+  {
+    "name": "search_scheduled_tasks_by_keywords",
+    "description": "根据关键词搜索匹配的scheduled_tasks(计划任务)信息",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "keywords": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "required": ["keywords"]
+    }
+  },
+  {
+    "name": "validate_cron_expression",
+    "description": "验证提供的 cron 表达式是否有效",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "expression": {
+          "type": "string"
+        }
+      },
+      "required": ["expression"]
+    }
+  },
   {
     "name": "exitApp",
     "description": "退出程序"
