@@ -13,45 +13,57 @@ const chatHistory = []
  * 在此开发更多的MCP协议工具，需和FunctionCallPath中定义的保持一致
  */
 const McpFunctionMap = {
-  listProfile: () => {
+  list_profiles: () => {
     const profilesStore = Plugins.useProfilesStore()
-    // 只返回给AI些许字段
     return profilesStore.profiles.map((v) => ({ name: v.name, id: v.id }))
   },
-  updateAllSubscription: async () => {
-    const subscribeStore = Plugins.useSubscribesStore()
-    return await subscribeStore.updateSubscribes()
+  search_profiles_by_keywords: ({ keywords }) => {
+    const profilesStore = Plugins.useProfilesStore()
+    return profilesStore.profiles.filter((v) => keywords.some((keyword) => v.name.toLowerCase().includes(keyword.toLowerCase())))
   },
-  updateSubscription: async ({ keywords }) => {
-    const subscribeStore = Plugins.useSubscribesStore()
-    const subs = subscribeStore.subscribes.filter((v) => keywords.some((name) => v.name.includes(name))).map((v) => ({ name: v.name, id: v.id }))
+  list_subscriptions: () => {
+    const subscribesStore = Plugins.useSubscribesStore()
+    return subscribesStore.subscribes
+  },
+  search_subscriptions_by_keywords: ({ keywords }) => {
+    const subscribesStore = Plugins.useSubscribesStore()
+    return subscribesStore.subscribes.filter((v) => keywords.some((keyword) => v.name.toLowerCase().includes(keyword.toLowerCase())))
+  },
+  update_all_subscriptions: async () => {
+    const subscribesStore = Plugins.useSubscribesStore()
+    return await subscribesStore.updateSubscribes()
+  },
+  update_subscriptions_by_keywords: async ({ keywords }) => {
+    const subscribesStore = Plugins.useSubscribesStore()
+    const subs = subscribesStore.subscribes
+      .filter((v) => keywords.some((name) => v.name.toLowerCase().includes(name.toLowerCase())))
+      .map((v) => ({ name: v.name, id: v.id }))
     return await Plugins.asyncPool(5, subs, async ({ id, name }) => {
       const result = []
       try {
-        await subscribeStore.updateSubscribe(id)
+        await subscribesStore.updateSubscribe(id)
         result.push({ name, result: '更新成功' })
       } catch (error) {
-        result.push({ name, result: '更新失败，因为：' + (error.message || error) })
+        result.push({
+          name,
+          result: '更新失败，因为：' + (error.message || error)
+        })
       }
       return result
     })
   },
-  updateAllRulesets: async () => {
-    const rulesetStore = Plugins.useRulesetsStore()
-    return rulesetStore.updateRulesets()
-  },
-  listRuleset: async ({ keywords }) => {
+  list_rulesets: () => {
     const rulesetsStore = Plugins.useRulesetsStore()
-    let rulesets = rulesetsStore.rulesets
-    if (keywords) {
-      rulesets = rulesets.filter((v) => keywords.some((keyword) => (v.tag || v.name).includes(keyword)))
-    }
-    return rulesets
+    return rulesetsStore.rulesets
   },
-  listRulesetHub: async ({ keywords }) => {
+  search_rulesets_by_keywords: ({ keywords }) => {
+    const rulesetsStore = Plugins.useRulesetsStore()
+    return rulesetsStore.rulesets.filter((v) => keywords.some((keyword) => (v.tag ?? v.name).toLowerCase().includes(keyword.toLowerCase())))
+  },
+  search_rulesets_by_keywords_in_ruleset_hub: async ({ keywords }) => {
     // TODO: 等待客户端把规则集中心改到store里
     const { list } = JSON.parse(await Plugins.Readfile('data/.cache/ruleset-list.json').catch(() => '{"list": []}'))
-    const filtered = list.filter((v) => keywords.some((keyword) => v.name.includes(keyword)))
+    const filtered = list.filter((v) => keywords.some((keyword) => v.name.toLowerCase().includes(keyword.toLowerCase())))
     if (filtered.length === 0) {
       return '没有找到符合条件的规则集'
     }
@@ -59,6 +71,45 @@ const McpFunctionMap = {
       `查询结果如下，格式为：名称,类型,数量，其中类型0是geosite,1是geoip，请使用markdown表格来展示：` +
       filtered.map((v) => `${v.name},${v.type === 'geosite' ? 0 : 1},${v.count}`).join('\n')
     )
+  },
+  update_all_rulesets: async () => {
+    const rulesetStore = Plugins.useRulesetsStore()
+    return rulesetStore.updateRulesets()
+  },
+  update_rulesets_by_keywords: async ({ keywords }) => {
+    const rulesetStore = Plugins.useRulesetsStore()
+    const rulesets = rulesetStore.rulesets
+      .filter((v) => keywords.some((name) => (v.name ?? v.tag).toLowerCase().includes(name.toLowerCase())))
+      .map((v) => ({ name: v.name ?? v.tag, id: v.id }))
+    return await Plugins.asyncPool(5, rulesets, async ({ id, name }) => {
+      const result = []
+      try {
+        await rulesetStore.updateRuleset(id)
+        result.push({ name, result: '更新成功' })
+      } catch (error) {
+        result.push({
+          name,
+          result: '更新失败，因为：' + (error.message || error)
+        })
+      }
+      return result
+    })
+  },
+  list_plugins: () => {
+    const pluginsStore = Plugins.usePluginsStore()
+    return pluginsStore.plugins
+  },
+  search_plugins_by_keywords: ({ keywords }) => {
+    const pluginsStore = Plugins.usePluginsStore()
+    return pluginsStore.plugins.filter((v) => keywords.some((keyword) => v.name.toLowerCase().includes(keyword.toLowerCase())))
+  },
+  list_plugin_hub: () => {
+    const pluginsStore = Plugins.usePluginsStore()
+    return pluginsStore.pluginHub
+  },
+  search_plugins_by_keywords_in_plugin_hub: ({ keywords }) => {
+    const pluginsStore = Plugins.usePluginsStore()
+    return pluginsStore.pluginHub.filter((v) => keywords.some((keyword) => v.name.toLowerCase().includes(keyword.toLowerCase())))
   },
   exitApp: () => {
     Plugins.exitApp()
@@ -76,7 +127,9 @@ const onRun = async () => {
  * 菜单项 - 开始提问
  */
 const Ask = async (systemInstruction, functionDeclarations) => {
-  const input = await Plugins.prompt(Plugin.name, '', { placeholder: '有什么能够帮你的？' })
+  const input = await Plugins.prompt(Plugin.name, '', {
+    placeholder: '想要聊些什么呢？'
+  })
   askHistory.push({ role: 'user', parts: [{ text: input }] })
 
   const requestBody = {
@@ -116,7 +169,9 @@ const Ask = async (systemInstruction, functionDeclarations) => {
           askHistory.push({
             role: 'user',
             parts: [
-              { text: `[Calling tool {${name}} with args {${JSON.stringify(args)}} successful! Please summarize the returned results: ${JSON.stringify(res)}]` }
+              {
+                text: `[Calling tool {${name}} with args {${JSON.stringify(args)}} successful! Please summarize the returned results: ${JSON.stringify(res)}]`
+              }
             ]
           })
           await awaitAIsummary()
@@ -126,7 +181,11 @@ const Ask = async (systemInstruction, functionDeclarations) => {
       } catch (error) {
         askHistory.push({
           role: 'user',
-          parts: [{ text: `[Calling tool {${name}} with args {${JSON.stringify(args)}} failed! Please summarize the reasons: ${JSON.stringify(error)}]` }]
+          parts: [
+            {
+              text: `[Calling tool {${name}} with args {${JSON.stringify(args)}} failed! Please summarize the reasons: ${JSON.stringify(error)}]`
+            }
+          ]
         })
         await awaitAIsummary()
       }
@@ -141,7 +200,9 @@ const Ask = async (systemInstruction, functionDeclarations) => {
  */
 const Chat = async () => {
   await initAi()
-  const input = await Plugins.prompt(Plugin.name, '', { placeholder: '有什么能够帮你的？' })
+  const input = await Plugins.prompt(Plugin.name, '', {
+    placeholder: '有什么能够帮你的？'
+  })
   chatHistory.push({ role: 'user', parts: [{ text: input }] })
   const requestBody = { contents: chatHistory }
   const parts = await generateContent(requestBody)

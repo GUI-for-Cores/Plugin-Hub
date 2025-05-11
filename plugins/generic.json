@@ -306,7 +306,7 @@
   {
     "id": "plugin-gemini-ai",
     "name": "Gemini 助手",
-    "version": "v1.2.0",
+    "version": "v1.3.0",
     "description": "使用Gemini，GUI高高手！",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-gemini-ai.js",
