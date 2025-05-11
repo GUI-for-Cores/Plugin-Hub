@@ -13,6 +13,10 @@ const chatHistory = []
  * 在此开发更多的MCP协议工具，需和FunctionCallPath中定义的保持一致
  */
 const McpFunctionMap = {
+  user_profile: () => {
+    const appSettingsStore = Plugins.useAppSettingsStore()
+    return appSettingsStore.app
+  },
   list_profiles: () => {
     const profilesStore = Plugins.useProfilesStore()
     return profilesStore.profiles.map((v) => ({ name: v.name, id: v.id }))
@@ -149,11 +153,7 @@ const Ask = async (systemInstruction, functionDeclarations) => {
   const parts = await generateContent(requestBody)
   askHistory.push({ role: 'model', parts })
   let responseText = ''
-  const awaitAIsummary = async () => {
-    const parts = await generateContent(requestBody)
-    askHistory.push({ role: 'model', parts })
-    responseText += parts[0]?.text
-  }
+  let functionCallResult = ''
   for (const part of parts) {
     const { text, functionCall } = part
     if (text) {
@@ -164,34 +164,26 @@ const Ask = async (systemInstruction, functionDeclarations) => {
       const { name, args } = functionCall
       try {
         const res = await McpFunctionMap[name]?.(args)
-        // 如果有返回值，发送给AI进行总结
         if (res) {
-          askHistory.push({
-            role: 'user',
-            parts: [
-              {
-                text: `[Calling tool {${name}} with args {${JSON.stringify(args)}} successful! Please summarize the returned results: ${JSON.stringify(res)}]`
-              }
-            ]
-          })
-          await awaitAIsummary()
+          functionCallResult += `[Calling tool {${name}} with args {${JSON.stringify(
+            args
+          )}} successful! Please summarize the returned results: ${JSON.stringify(res)}]\n\n`
         } else {
-          responseText += '已完成！'
+          functionCallResult += `[Calling tool {${name}} with args {${JSON.stringify(args)}} successful! No Results.\n\n`
         }
       } catch (error) {
-        askHistory.push({
-          role: 'user',
-          parts: [
-            {
-              text: `[Calling tool {${name}} with args {${JSON.stringify(args)}} failed! Please summarize the reasons: ${JSON.stringify(error)}]`
-            }
-          ]
-        })
-        await awaitAIsummary()
+        functionCallResult += `[Calling tool {${name}} with args {${JSON.stringify(args)}} failed! Please summarize the reasons: ${JSON.stringify(error)}]\n\n`
       }
     }
   }
-  await Plugins.confirm(Plugin.name, responseText, { type: 'markdown' })
+  // 如果有返回值，发送给AI进行总结
+  if (functionCallResult) {
+    askHistory.push({ role: 'user', parts: [{ text: functionCallResult }] })
+    const parts = await generateContent(requestBody)
+    askHistory.push({ role: 'model', parts })
+    responseText += parts[0]?.text
+  }
+  await Plugins.confirm(input, responseText, { type: 'markdown' })
   return true
 }
 
@@ -207,7 +199,7 @@ const Chat = async () => {
   const requestBody = { contents: chatHistory }
   const parts = await generateContent(requestBody)
   chatHistory.push({ role: 'model', parts })
-  await Plugins.confirm(Plugin.name, parts[0]?.text, { type: 'markdown' })
+  await Plugins.confirm(input, parts[0]?.text, { type: 'markdown' })
   return await Chat()
 }
 

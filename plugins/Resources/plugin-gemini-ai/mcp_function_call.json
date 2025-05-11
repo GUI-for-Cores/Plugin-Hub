@@ -1,5 +1,9 @@
 [
   {
+    "name": "user_profile",
+    "description": "查看用户软件的偏好设置，包括语言、主题、颜色、字体等等"
+  },
+  {
     "name": "list_profiles",
     "description": "列出所有的profiles(配置)信息"
   },
