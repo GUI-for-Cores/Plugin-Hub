@@ -173,7 +173,7 @@ const isUnblockMusicRunning = async () => {
 const InstallUnblockMusic = async () => {
   const { env } = Plugins.useEnvStore()
   if (env.os !== 'windows') throw '该插件暂不支持此操作系统'
-  const BinaryFileUrl = `https://github.com/UnblockNeteaseMusic/server/releases/download/v0.27.6/unblockneteasemusic-win-${
+  const BinaryFileUrl = `https://github.com/UnblockNeteaseMusic/server/releases/download/v0.27.8-patch.1/unblockneteasemusic-win-${
     { amd64: 'x64' }[env.arch] || env.arch
   }.exe`
   const { id } = Plugins.message.info('正在下载...', 999999)
