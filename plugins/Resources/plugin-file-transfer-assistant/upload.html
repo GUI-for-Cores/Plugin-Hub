@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>文件互传助手</title>
+    <title>文件互传助手 - 上传</title>
     <style>
       * {
         box-sizing: border-box;
@@ -11,87 +11,163 @@
 
       body {
         margin: 0;
-        background: #e0e5ec;
-        color: #333;
+        background: #34495e; /* Changed to solid color */
+        background-size: cover;
+        color: #fff; /* White text for contrast */
         padding: 1.5rem;
         font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        display: flex; /* For centering form */
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
       }
 
       h1 {
         text-align: center;
-        margin-bottom: 2rem;
-        font-size: 1.8rem;
-        color: #555;
-        text-shadow: 1px 1px 2px #fff;
+        margin-bottom: 2.5rem; /* Increased margin */
+        font-size: 2.2rem; /* Consistent with share.html */
+        color: #ffffff;
+        text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
       }
 
       form {
-        background: #e0e5ec;
-        padding: 2rem 1.5rem;
-        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.15); /* Transparent white */
+        backdrop-filter: blur(12px) saturate(190%); /* Slightly more blur */
+        -webkit-backdrop-filter: blur(12px) saturate(190%); /* Safari support */
+        padding: 2.5rem 2rem; /* Increased padding */
+        border-radius: 24px; /* More rounded */
+        border: 1px solid rgba(255, 255, 255, 0.2); /* Subtle border */
         box-shadow:
-          8px 8px 16px #babecc,
-          -8px -8px 16px #ffffff;
+          0 10px 35px 0 rgba(31, 38, 135, 0.15),
+          /* Softer, more modern shadow */ inset 2px 2px 6px rgba(255, 255, 255, 0.3),
+          /* Inner highlight for texture */ inset -2px -2px 6px rgba(0, 0, 0, 0.1); /* Inner shadow for depth */
         display: flex;
         flex-direction: column;
-        gap: 1.2rem;
-        max-width: 400px;
+        gap: 1.8rem; /* Increased gap */
+        width: 100%; /* Responsive width */
+        max-width: 450px; /* Slightly increased max-width */
         margin: 0 auto 2rem;
-        transition: all 0.2s ease;
+        transition: all 0.3s ease-in-out;
       }
 
       form:hover {
-        transform: translateY(-2px);
+        transform: translateY(-5px) scale(1.02); /* Lift and scale effect on hover */
+        box-shadow:
+          0 14px 40px 0 rgba(31, 38, 135, 0.2),
+          inset 2px 2px 6px rgba(255, 255, 255, 0.4),
+          inset -2px -2px 6px rgba(0, 0, 0, 0.15);
       }
 
       input[type='file'] {
-        padding: 0.8rem;
-        border: none;
-        border-radius: 12px;
-        background: #e0e5ec;
-        box-shadow:
-          inset 4px 4px 8px #babecc,
-          inset -4px -4px 8px #ffffff;
+        padding: 1rem; /* Increased padding */
+        border: 1px solid rgba(255, 255, 255, 0.25); /* Subtle border */
+        border-radius: 16px; /* More rounded */
+        background: rgba(255, 255, 255, 0.1); /* Slightly transparent */
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        color: #e0e0e0; /* Lighter text color for placeholder/file name */
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all 0.25s ease;
+        box-shadow:
+          inset 3px 3px 6px rgba(0, 0, 0, 0.1),
+          /* Softer inner shadow */ inset -3px -3px 6px rgba(255, 255, 255, 0.15); /* Softer inner highlight */
+      }
+
+      input[type='file']::file-selector-button {
+        /* Styling the button part of file input */
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        padding: 0.8rem 1rem;
+        border-radius: 12px;
+        color: #fff;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        margin-right: 1rem;
+      }
+
+      input[type='file']::file-selector-button:hover {
+        background: rgba(255, 255, 255, 0.3);
       }
 
       input[type='file']:hover {
-        background: #e6eaf0;
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.35);
       }
 
       input[type='submit'] {
-        padding: 0.6rem 1.2rem;
-        font-size: 1rem;
+        padding: 0.9rem 1.5rem; /* Increased padding */
+        font-size: 1.1rem; /* Slightly larger font */
+        font-weight: bold;
         border: none;
-        border-radius: 12px;
+        border-radius: 16px; /* More rounded */
         color: #fff;
-        background: #4d90fe;
+        background: rgba(77, 144, 254, 0.6); /* Glassy blue */
+        backdrop-filter: blur(8px) saturate(150%);
+        -webkit-backdrop-filter: blur(8px) saturate(150%);
+        border: 1px solid rgba(77, 144, 254, 0.4);
         box-shadow:
-          4px 4px 12px #babecc,
-          -4px -4px 12px #ffffff;
+          0 6px 15px rgba(77, 144, 254, 0.3),
+          /* Shadow based on button color */ inset 1px 1px 3px rgba(255, 255, 255, 0.3),
+          inset -1px -1px 3px rgba(0, 0, 0, 0.1);
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
       }
 
       input[type='submit']:hover {
-        background: #3b7efc;
+        background: rgba(59, 126, 252, 0.7); /* Darker, more opaque on hover */
+        border-color: rgba(59, 126, 252, 0.6);
+        transform: translateY(-3px);
+        box-shadow:
+          0 10px 20px rgba(59, 126, 252, 0.35),
+          inset 1px 1px 3px rgba(255, 255, 255, 0.4),
+          inset -1px -1px 3px rgba(0, 0, 0, 0.15);
+      }
+
+      input[type='submit']:active {
+        transform: scale(0.98) translateY(0);
+        background: rgba(59, 126, 252, 0.5);
+        box-shadow:
+          0 4px 10px rgba(59, 126, 252, 0.25),
+          inset 1px 1px 3px rgba(255, 255, 255, 0.2),
+          inset -1px -1px 3px rgba(0, 0, 0, 0.1);
       }
 
       .footer {
         text-align: center;
-        font-size: 12px;
-        color: #777;
-        padding-top: 1rem;
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.7);
+        padding-top: 1.5rem; /* Increased padding */
+        margin-top: auto; /* Pushes footer to bottom if content is short */
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Optional: Add a link to go back to the share page */
+      .back-link {
+        display: block;
+        text-align: center;
+        margin-top: 1.5rem;
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        padding: 0.5rem 1rem;
+        background: rgba(0, 0, 0, 0.15);
+        border-radius: 10px;
+        transition: all 0.2s ease;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+      .back-link:hover {
+        background: rgba(0, 0, 0, 0.25);
+        color: #fff;
       }
     </style>
   </head>
   <body>
-    <h1>文件互传助手</h1>
+    <h1>上传文件</h1>
     <form action="/发送文件" method="post" enctype="multipart/form-data">
-      <input type="file" name="file" multiple />
-      <input type="submit" value="上传文件" />
+      <input type="file" name="file" multiple required />
+      <input type="submit" value="开始上传" />
     </form>
+    <a href="/" class="back-link">返回文件列表</a>
     <p class="footer">本页面由 GUI.for.Cores 项目组下的【文件互传助手】插件提供支持</p>
   </body>
 </html>
