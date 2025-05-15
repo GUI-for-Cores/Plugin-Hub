@@ -87,35 +87,38 @@ const startService = async () => {
     '/接收文本': () => Plugins.ClipboardGetText()
   }
 
-  const ShareHtml = PATH + '/share.html'
-  const UploadHtml = PATH + '/upload.html'
-
-  if (!(await Plugins.FileExists(ShareHtml))) {
-    await Plugins.Download(
-      'https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Resources/plugin-file-transfer-assistant/share.html',
-      ShareHtml
-    )
-  }
-
-  if (!(await Plugins.FileExists(UploadHtml))) {
-    await Plugins.Download(
-      'https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Resources/plugin-file-transfer-assistant/upload.html',
-      UploadHtml
-    )
-  }
-
   if (!(await Plugins.FileExists(SharePath))) {
     await Plugins.Makedir(SharePath)
     Plugins.message.success('已自动创建共享文件夹')
   }
 
+  const ShareHtml = PATH + '/share.html'
+  const UploadHtml = PATH + '/upload.html'
   const Shortcut = SharePath + '/文件互传.shortcut'
-  if (!(await Plugins.FileExists(Shortcut))) {
-    await Plugins.Download(
-      'https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Resources/plugin-file-transfer-assistant/文件互传.shortcut',
-      Shortcut
-    )
-    Plugins.message.success('已下载快捷指令到共享文件夹')
+
+  const versionFile = PATH + '/version.txt'
+  const version = await Plugins.Readfile(versionFile).catch(() => '')
+  // 如果插件升级了，则总是获取最新资源文件
+  const shouldFetch = Plugin.version !== version
+  if (shouldFetch) {
+    await Promise.all([
+      // 下载下载页面
+      Plugins.Download(
+        'https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Resources/plugin-file-transfer-assistant/share.html',
+        ShareHtml
+      ),
+      // 下载上传页面
+      Plugins.Download(
+        'https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Resources/plugin-file-transfer-assistant/upload.html',
+        UploadHtml
+      ),
+      // 下载快捷指令
+      Plugins.Download(
+        'https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Resources/plugin-file-transfer-assistant/文件互传.shortcut',
+        Shortcut
+      )
+    ])
+    await Plugins.Writefile(versionFile, Plugin.version)
   }
 
   await Plugins.StartServer(
@@ -153,7 +156,7 @@ const startService = async () => {
       StaticPath: SharePath,
       UploadPath: SavePath,
       UploadRoute: '/发送文件',
-      MaxUploadSize: 4096 * 1024 * 1024 // 4GB
+      MaxUploadSize: 100 * 1024 * 1024 * 1024 // 100GB 真能传输这么大文件吗，管他的写大点
     }
   )
 }
