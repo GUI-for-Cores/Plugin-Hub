@@ -100,8 +100,19 @@ const onRun = async () => {
 
 /* 触发器 APP就绪后 */
 const onReady = async () => {
+  if (Plugin.AutoStart && !(await isSmartProxySwitcherRunning())) {
+    await onRun()
+    return 1
+  }
   // 返回2，将插件状态始终置为已停止
   return 2
+}
+
+/**
+ * 检测SmartProxySwitcher是否在运行
+ */
+const isSmartProxySwitcherRunning = async () => {
+  return (await Plugins.ListServer()).includes(Plugin.id)
 }
 
 /*
