@@ -14,9 +14,24 @@ const onRun = async () => {
 
 /* Trigger on::ready */
 const onReady = async () => {
-  if (Plugin.status === 1) {
+  const isRunning = Plugin.status === 1
+  if (isRunning) {
     setTimeout(startProxyGuard, 3000)
   }
+
+  const appStore = Plugins.useAppStore()
+  appStore.addCustomActions('core_state', {
+    component: 'Switch',
+    componentSlots: {
+      default: '代理守卫'
+    },
+    componentProps: {
+      modelValue: isRunning,
+      onChange: async (val) => {
+        ;(!val ? onRun() : Stop()).catch((err) => Plugins.message.error(err))
+      }
+    }
+  })
 }
 
 const Stop = async () => {
