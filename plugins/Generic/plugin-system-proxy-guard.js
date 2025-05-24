@@ -28,7 +28,7 @@ const onReady = async () => {
     componentProps: {
       modelValue: isRunning,
       onChange: async (val) => {
-        ;(!val ? onRun() : Stop()).catch((err) => Plugins.message.error(err))
+        ;(val ? onRun() : Stop()).catch((err) => Plugins.message.error(err))
       }
     }
   })

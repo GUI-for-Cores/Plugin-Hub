@@ -433,7 +433,7 @@
   {
     "id": "plugin-system-proxy-guard",
     "name": "代理守卫",
-    "version": "v2.0.0",
+    "version": "v2.0.1",
     "description": "谁动了我的系统代理？防止系统代理被篡改",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-system-proxy-guard.js",
