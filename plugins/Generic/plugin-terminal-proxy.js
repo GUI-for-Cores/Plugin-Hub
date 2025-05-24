@@ -1,3 +1,6 @@
+// 保存插件状态
+window[Plugin.id] = window[Plugin.id] || {}
+
 const getProxyServer = async () => {
   const appSettings = Plugins.useAppSettingsStore()
   if (!appSettings.app.kernel.running) throw '请先启动内核程序'
@@ -138,6 +141,55 @@ const onRun = async () => {
       break
     }
   }
+}
+
+/* 触发器 APP就绪后 */
+const onReady = async () => {
+  // 移除之前添加的：放在这个生命周期里用不到，但是保留着吧
+  window[Plugin.id].remove?.()
+  // 添加自定义操作到概览面板的核心状态组件里
+  const appStore = Plugins.useAppStore()
+  if (!appStore.addCustomActions) {
+    Plugins.message.warn('本插件正在使用新的API，你的版本不受支持，请更新。')
+    return
+  }
+  window[Plugin.id].remove = appStore.addCustomActions('core_state', [
+    {
+      component: 'Dropdown',
+      componentProps: {
+        size: 'small',
+        trigger: ['hover']
+      },
+      componentSlots: {
+        default: ({ h }) => {
+          return h('Button', { type: 'link', size: 'small' }, '复制系统代理')
+        },
+        overlay: ({ h }) => {
+          return h(
+            'div',
+            [
+              ['复制Bash命令', copyBashEnv],
+              ['复制Powershell命令', copyPowerShellEnv],
+              ['复制Cmd命令', copyCMDEnv]
+            ].map(([title, fn]) => {
+              return h(
+                'Button',
+                {
+                  type: 'link',
+                  onClick: () => {
+                    fn()
+                      .then(() => Plugins.message.success('复制成功'))
+                      .catch((err) => Plugins.message.error(err))
+                  }
+                },
+                () => title
+              )
+            })
+          )
+        }
+      }
+    }
+  ])
 }
 
 const copyBashEnv = async () => {
