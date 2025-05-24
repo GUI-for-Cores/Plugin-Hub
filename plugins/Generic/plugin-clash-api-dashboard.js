@@ -13,9 +13,15 @@ const onRun = async () => {
 const onReady = async () => {
   const appStore = Plugins.useAppStore()
   appStore.addCustomActions('core_state', {
-    component: 'div',
+    component: 'Dropdown',
+    componentProps: {
+      trigger: ['hover']
+    },
     componentSlots: {
       default: ({ h }) => {
+        return h('Button', { type: 'link', size: 'small' }, () => 'WebUI')
+      },
+      overlay: ({ h }) => {
         return h('div', [
           h('Button', { type: 'link', size: 'small', onClick: () => openDash('yacdmeta') }, () => 'Yacd'),
           h('Button', { type: 'link', size: 'small', onClick: () => openDash('metacubexd') }, () => 'MetaCubeXD'),
