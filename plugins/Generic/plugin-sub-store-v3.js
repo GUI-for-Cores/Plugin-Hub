@@ -6,6 +6,8 @@ const PATH = 'data/third/sub-store-v3'
 const USER_PROFILE = PATH + '/user.json'
 const BACKEND_FILE = PATH + '/sub-store.min.js'
 
+window[Plugin.id] = window[Plugin.id] || {}
+
 /**
  * 插件钩子 - 点击安装按钮时
  */
@@ -152,6 +154,8 @@ const startSubStoreService = async () => {
     }
     res.end(200, { 'Content-Type': 'text/html; charset=utf-8' }, 'The Sub-Store Backend is running... Have a nice day :)')
   })
+
+  addToCoreStatePanel()
 }
 
 /**
@@ -159,6 +163,7 @@ const startSubStoreService = async () => {
  */
 const stopSubStoreService = async () => {
   await Plugins.StopServer(Plugin.id)
+  removeFromCoreStatePanel()
 }
 
 /**
@@ -166,4 +171,75 @@ const stopSubStoreService = async () => {
  */
 const isSubStoreRunning = async () => {
   return (await Plugins.ListServer()).includes(Plugin.id)
+}
+
+/**
+ * 添加到概览页
+ */
+const addToCoreStatePanel = () => {
+  window[Plugin.id].remove?.()
+  const appStore = Plugins.useAppStore()
+  window[Plugin.id].remove = appStore.addCustomActions('core_state', {
+    component: 'div',
+    componentSlots: {
+      default: ({ h, ref }) => {
+        const open = ref(false)
+        return h(
+          'Button',
+          {
+            type: 'link',
+            size: 'small',
+            onClick: () => {
+              open.value = true
+              console.log(`[${Plugin.name}]`, open.value)
+            }
+          },
+          () => [
+            h('img', {
+              src: 'https://raw.githubusercontent.com/sub-store-org/Sub-Store-Front-End/refs/heads/master/public/favicon.ico',
+              width: '16px',
+              height: '16px',
+              style: {
+                borderRadius: '4px',
+                marginRight: '4px'
+              }
+            }),
+            'SubStore',
+            h(
+              'Modal',
+              {
+                open: open.value,
+                title: 'SubStore',
+                width: '90',
+                height: '90',
+                maskClosable: true,
+                cancelText: 'common.close',
+                submit: false,
+                'onUpdate:open': (val) => {
+                  open.value = val
+                  console.log(`[${Plugin.name}] val`, val)
+                }
+              },
+              () =>
+                h('iframe', {
+                  src: 'https://sub-store.vercel.app/subs?api=http://' + Plugin.Address,
+                  style: {
+                    width: '100%',
+                    height: 'calc(100% - 5px)',
+                    border: 'none'
+                  }
+                })
+            )
+          ]
+        )
+      }
+    }
+  })
+}
+
+/**
+ * 从概览页移除
+ */
+const removeFromCoreStatePanel = () => {
+  window[Plugin.id].remove?.()
 }
