@@ -8,6 +8,29 @@ const onRun = async () => {
   await handler()
 }
 
+/* 触发器 APP就绪后 */
+const onReady = async () => {
+  try {
+    await checkOS()
+  } catch (error) {
+    return
+  }
+  const appStore = Plugins.useAppStore()
+  appStore.addCustomActions('core_state', {
+    component: 'Switch',
+    componentSlots: {
+      default: '外接网卡系统代理'
+    },
+    componentProps: {
+      onChange: async (val) => {
+        ;(val ? Set() : Clear()).catch((err) => {
+          Plugins.message.error(err)
+        })
+      }
+    }
+  })
+}
+
 /**
  * 右键 - 设置代理
  */

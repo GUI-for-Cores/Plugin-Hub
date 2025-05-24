@@ -146,6 +146,7 @@ interface Plugins {
   CloseMMDB(path: string, id: string): Promise<void>
   QueryMMDB(path: string, ip: string, type?: 'ASN' | 'AnonymousIP' | 'City' | 'ConnectionType' | 'Country' | 'Domain' | 'Enterprise'): Promise<any> // Define return type if known
 
+  useAppStore(): any
   useKernelApiStore(): any
   usePluginsStore(): any
   useRulesetsStore(): any

@@ -468,12 +468,12 @@
   {
     "id": "plugin-systemproxy-external",
     "name": "外接网卡系统代理",
-    "version": "v1.0.0",
+    "version": "v2.0.0",
     "description": "为macOS的外接网卡设置系统代理。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-systemproxy-external.js",
     "path": "data/plugins/plugin-systemproxy-external.js",
-    "triggers": ["on::manual"],
+    "triggers": ["on::manual", "on::ready"],
     "menus": {
       "设置代理": "Set",
       "清除代理": "Clear"
