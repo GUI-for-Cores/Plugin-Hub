@@ -189,10 +189,7 @@ const addToCoreStatePanel = () => {
           {
             type: 'link',
             size: 'small',
-            onClick: () => {
-              open.value = true
-              console.log(`[${Plugin.name}]`, open.value)
-            }
+            onClick: () => (open.value = true)
           },
           () => [
             h('img', {
@@ -204,21 +201,17 @@ const addToCoreStatePanel = () => {
                 marginRight: '4px'
               }
             }),
-            'SubStore',
+            'Sub-Store',
             h(
               'Modal',
               {
-                open: open.value,
-                title: 'SubStore',
+                title: 'Sub-Store',
                 width: '90',
                 height: '90',
-                maskClosable: true,
                 cancelText: 'common.close',
                 submit: false,
-                'onUpdate:open': (val) => {
-                  open.value = val
-                  console.log(`[${Plugin.name}] val`, val)
-                }
+                open: open.value,
+                'onUpdate:open': (val) => (open.value = val)
               },
               () =>
                 h('iframe', {
