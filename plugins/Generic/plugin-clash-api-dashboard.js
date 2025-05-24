@@ -9,6 +9,23 @@ const onRun = async () => {
   await openDash()
 }
 
+/* 触发器 APP就绪后 */
+const onReady = async () => {
+  const appStore = Plugins.useAppStore()
+  appStore.addCustomActions('core_state', {
+    component: 'div',
+    componentSlots: {
+      default: ({ h }) => {
+        return h('div', [
+          h('Button', { type: 'link', size: 'small', onClick: () => openDash('yacdmeta') }, () => 'Yacd'),
+          h('Button', { type: 'link', size: 'small', onClick: () => openDash('metacubexd') }, () => 'MetaCubeXD'),
+          h('Button', { type: 'link', size: 'small', onClick: () => openDash('zashboard') }, () => 'Zashboard')
+        ])
+      }
+    }
+  })
+}
+
 /**
  * 生成本地仪表板配置
  */
@@ -56,13 +73,13 @@ const onGenerate = async (config) => {
 /**
  * 创建仪表板链接，并访问
  */
-const openDash = async () => {
+const openDash = async (dashName = Plugin.dashName) => {
   const { external_controller: controller, external_ui: configUiPath, secret } = await getApiConfig()
   const [, port] = controller.split(':')
   let openUrl
   if (Plugin.dashType === 'online') {
     let dashLink
-    switch (Plugin.dashName) {
+    switch (dashName) {
       case 'yacdmeta':
         dashLink = 'http://yacd.metacubex.one/'
         break
@@ -76,7 +93,7 @@ const openDash = async () => {
     openUrl = `${dashLink}?hostname=127.0.0.1&port=${port}${secret ? `&secret=${secret}` : ''}&http=1`
   } else {
     let uiPath, urlPath
-    switch (Plugin.dashName) {
+    switch (dashName) {
       case 'yacdmeta':
         uiPath = 'ui/yacdmeta'
         urlPath = '/'

@@ -2173,12 +2173,12 @@
   {
     "id": "plugin-clash-api-dashboard",
     "name": "Clash API 仪表板",
-    "version": "v1.0.0",
+    "version": "v2.0.0",
     "description": "方便的切换和访问 Clash 面板。Supported by: 泡泡茶壶",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-clash-api-dashboard.js",
     "path": "data/plugins/plugin-clash-api-dashboard.js",
-    "triggers": ["on::manual", "on::generate"],
+    "triggers": ["on::manual", "on::generate", "on::ready"],
     "menus": {},
     "context": {
       "profiles": {},
