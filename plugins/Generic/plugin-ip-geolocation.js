@@ -61,24 +61,24 @@ const addToCoreStatePanel = () => {
     component: 'div',
     componentSlots: {
       default: ({ h, ref }) => {
-        const content = ref('IP: Loading')
+        const content = ref('')
+        const refreshIP = async () => {
+          content.value = 'IP: Loading'
+          const { body } = await Plugins.HttpGet('https://ipapi.co/json')
+          const country = flags.get(body.country) || '❓'
+          const ip = body.ip
+          content.value = `IP: ${country} ${ip}`
+        }
 
         clearInterval(window[Plugin.id].timer)
-        window[Plugin.id].timer = Plugins.setIntervalImmediately(
-          async () => {
-            const { body } = await Plugins.HttpGet('https://ipapi.co/json')
-            const country = flags.get(body.country) || '❓'
-            const ip = body.ip
-            content.value = `IP: ${country} ${ip}`
-          },
-          3 * 60 * 1000
-        ) // 3分钟刷新一次IP信息
+        window[Plugin.id].timer = Plugins.setIntervalImmediately(refreshIP, 3 * 60 * 1000) // 3分钟刷新一次IP信息
 
         return h(
           'Button',
           {
             type: 'link',
-            size: 'small'
+            size: 'small',
+            onClick: refreshIP
           },
           () => content.value
         )
