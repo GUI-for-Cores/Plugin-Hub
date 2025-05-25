@@ -1,7 +1,3 @@
-/**
- * 不采用计划任务，而是浏览器的interval来执行，因为够简单
- */
-
 // 存储变量状态
 window[Plugin.id] = window[Plugin.id] || {}
 
@@ -59,19 +55,16 @@ const startProxyGuard = (interval) => {
       const appSettings = Plugins.useAppSettingsStore()
       if (!appSettings.app.kernel.running) return
 
-      const kernelApiStore = Plugins.useKernelApiStore()
-      if (kernelApiStore.config.tun.enable) return
-
       const envStore = Plugins.useEnvStore()
       const flag = !envStore.systemProxy
       envStore
         .setSystemProxy()
-        .catch(Plugins.message.error)
         .then(() => {
           if (flag) {
             Plugins.message.success(`[${Plugin.name}]: 守卫成功`)
           }
         })
+        .catch(Plugins.message.error)
     },
     (interval || Plugin.Interval) * 1000
   )
