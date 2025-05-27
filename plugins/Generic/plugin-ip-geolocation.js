@@ -70,8 +70,7 @@ const addToCoreStatePanel = () => {
           content.value = `IP: ${country} ${ip}`
         }
 
-        clearInterval(window[Plugin.id].timer)
-        window[Plugin.id].timer = Plugins.setIntervalImmediately(refreshIP, 3 * 60 * 1000) // 3分钟刷新一次IP信息
+        refreshIP()
 
         return h(
           'Button',

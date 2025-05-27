@@ -1646,7 +1646,7 @@
   {
     "id": "plugin-ip-geolocation",
     "name": "IP 信息查询",
-    "version": "v2.1.0",
+    "version": "v2.1.1",
     "description": "快速查询当前 IP 信息。Supported by: QiChaiQiChai",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-ip-geolocation.js",
