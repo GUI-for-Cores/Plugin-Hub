@@ -1235,12 +1235,15 @@ function URI_Producer() {
           v: '2',
           ps: proxy.name,
           add: proxy.server,
-          port: proxy.port,
+          port: `${proxy.port}`,
           id: proxy.uuid,
-          type,
-          aid: proxy.alterId || 0,
+          aid: `${proxy.alterId || 0}`,
+          scy: proxy.cipher,
           net,
-          tls: proxy.tls ? 'tls' : ''
+          type,
+          tls: proxy.tls ? 'tls' : '',
+          alpn: Array.isArray(proxy.alpn) ? proxy.alpn.join(',') : proxy.alpn,
+          fp: proxy['client-fingerprint']
         }
         if (proxy.tls && proxy.sni) {
           result.sni = proxy.sni
@@ -1249,17 +1252,24 @@ function URI_Producer() {
         if (proxy.network) {
           let vmessTransportPath = proxy[`${proxy.network}-opts`]?.path
           let vmessTransportHost = proxy[`${proxy.network}-opts`]?.headers?.Host
-          if (vmessTransportPath) {
-            result.path = Array.isArray(vmessTransportPath) ? vmessTransportPath[0] : vmessTransportPath
-          }
-          if (vmessTransportHost) {
-            result.host = Array.isArray(vmessTransportHost) ? vmessTransportHost[0] : vmessTransportHost
-          }
+
           if (['grpc'].includes(proxy.network)) {
             result.path = proxy[`${proxy.network}-opts`]?.['grpc-service-name']
             // https://github.com/XTLS/Xray-core/issues/91
             result.type = proxy[`${proxy.network}-opts`]?.['_grpc-type'] || 'gun'
             result.host = proxy[`${proxy.network}-opts`]?.['_grpc-authority']
+          } else if (['kcp', 'quic'].includes(proxy.network)) {
+            // https://github.com/XTLS/Xray-core/issues/91
+            result.type = proxy[`${proxy.network}-opts`]?.[`_${proxy.network}-type`] || 'none'
+            result.host = proxy[`${proxy.network}-opts`]?.[`_${proxy.network}-host`]
+            result.path = proxy[`${proxy.network}-opts`]?.[`_${proxy.network}-path`]
+          } else {
+            if (vmessTransportPath) {
+              result.path = Array.isArray(vmessTransportPath) ? vmessTransportPath[0] : vmessTransportPath
+            }
+            if (vmessTransportHost) {
+              result.host = Array.isArray(vmessTransportHost) ? vmessTransportHost[0] : vmessTransportHost
+            }
           }
         }
         result = 'vmess://' + Base64.encode(JSON.stringify(result))
@@ -1981,7 +1991,9 @@ const PROXY_PARSERS = (() => {
           type: 'vmess',
           server,
           port,
-          cipher: getIfPresent(params.scy, 'auto'),
+          // https://github.com/2dust/v2rayN/wiki/Description-of-VMess-share-link
+          // https://github.com/XTLS/Xray-core/issues/91
+          cipher: ['auto', 'aes-128-gcm', 'chacha20-poly1305', 'none'].includes(params.scy) ? params.scy : 'auto',
           uuid: params.id,
           alterId: parseInt(getIfPresent(params.aid ?? params.alterId, 0), 10),
           tls: ['tls', true, 1, '1'].includes(params.tls),
@@ -2004,8 +2016,8 @@ const PROXY_PARSERS = (() => {
           proxy.network = 'ws'
         } else if (['http'].includes(params.net) || ['http'].includes(params.obfs) || ['http'].includes(params.type)) {
           proxy.network = 'http'
-        } else if (['grpc'].includes(params.net)) {
-          proxy.network = 'grpc'
+        } else if (['grpc', 'kcp', 'quic'].includes(params.net)) {
+          proxy.network = params.net
         } else if (params.net === 'httpupgrade' || proxy.network === 'httpupgrade') {
           proxy.network = 'ws'
           httpupgrade = true
@@ -2046,12 +2058,18 @@ const PROXY_PARSERS = (() => {
             }
           }
           // 传输层应该有配置, 暂时不考虑兼容不给配置的节点
-          if (transportPath || transportHost) {
+          if (transportPath || transportHost || ['kcp', 'quic'].includes(proxy.network)) {
             if (['grpc'].includes(proxy.network)) {
               proxy[`${proxy.network}-opts`] = {
                 'grpc-service-name': getIfNotBlank(transportPath),
                 '_grpc-type': getIfNotBlank(params.type),
                 '_grpc-authority': getIfNotBlank(params.authority)
+              }
+            } else if (['kcp', 'quic'].includes(proxy.network)) {
+              proxy[`${proxy.network}-opts`] = {
+                [`_${proxy.network}-type`]: getIfNotBlank(params.type),
+                [`_${proxy.network}-host`]: getIfNotBlank(getIfNotBlank(transportHost)),
+                [`_${proxy.network}-path`]: getIfNotBlank(transportPath)
               }
             } else {
               const opts = {
@@ -2068,6 +2086,12 @@ const PROXY_PARSERS = (() => {
             delete proxy.network
           }
         }
+
+        proxy['client-fingerprint'] = params.fp
+        proxy.alpn = params.alpn ? params.alpn.split(',') : undefined
+        // 然而 wiki 和 app 实测中都没有字段表示这个
+        // proxy['skip-cert-verify'] = /(TRUE)|1/i.test(params.allowInsecure);
+
         return proxy
       }
     }
