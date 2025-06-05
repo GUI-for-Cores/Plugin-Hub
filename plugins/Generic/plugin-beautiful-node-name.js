@@ -96,9 +96,12 @@ async function beautifyNodeName(proxies, metadata) {
       })
       .trim()
 
+    let matchRegionName = ''
     for (const [keyword, region] of regionRules) {
       const [isChinese, regex] = createRegionRegex(keyword)
-      if (tag.match(regex)) {
+      const matchResult = tag.match(regex)
+      if (matchResult) {
+        matchRegionName = matchResult[0].replace(/^[-_]+|[-_]+$/g, '').trim()
         if (!matchedRegion) {
           matchedRegion = region
         }
@@ -147,11 +150,13 @@ async function beautifyNodeName(proxies, metadata) {
       let regionName = ''
       let serialNumber = ''
 
-      if (enableUnifyRegionName) {
-        // 根据 enableUnifyRegionName 的值选择语言
-        const lang = enableUnifyRegionName === 2 ? 'en' : 'zh'
-        regionName = matchedRegion.standardName[lang]
-      }
+      // 根据 enableUnifyRegionName 的值选择语言
+      regionName =
+        enableUnifyRegionName === '统一为英文'
+          ? matchedRegion.standardName['en']
+          : enableUnifyRegionName === '统一为中文'
+            ? matchedRegion.standardName['zh']
+            : matchRegionName
 
       // 更新计数器
       const count = (countryCountMap.get(matchedRegion.emoji) || 0) + 1
@@ -160,7 +165,7 @@ async function beautifyNodeName(proxies, metadata) {
 
       tag = [
         enableNationalEmoji ? matchedRegion.emoji : '',
-        enableUnifyRegionName ? regionName : '',
+        enableUnifyRegionName ? regionName : matchRegionName,
         serialNumber,
         enableCityName ? (subMatchedRegion ?? '') : ''
       ]
