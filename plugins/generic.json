@@ -2219,7 +2219,7 @@
     "description": "通过为浏览器添加启动参数，实现免代理访问被墙网站。Supported by: 泡泡茶壶",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sni-spoofing.js",
-    "status": 2,
+    "status": 0,
     "path": "data/plugins/plugin-sni-spoofing.js",
     "triggers": ["on::manual", "on::shutdown", "on::ready"],
     "menus": {
