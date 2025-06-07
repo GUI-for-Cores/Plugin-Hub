@@ -2213,7 +2213,7 @@
     "installed": false
   },
   {
-    "id": "ID_79xicib8",
+    "id": "plugin-sni-spoofing",
     "version": "v1.0.0",
     "name": "SNI 伪造",
     "description": "通过为浏览器添加启动参数，实现免代理访问被墙网站。Supported by: 泡泡茶壶",
