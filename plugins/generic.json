@@ -2211,5 +2211,51 @@
     "disabled": false,
     "install": false,
     "installed": false
+  },
+  {
+    "id": "ID_79xicib8",
+    "version": "v1.0.0",
+    "name": "SNI 伪造",
+    "description": "通过为浏览器添加启动参数，实现免代理访问被墙网站。Supported by: 泡泡茶壶",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sni-spoofing.js",
+    "status": 2,
+    "path": "data/plugins/plugin-sni-spoofing.js",
+    "triggers": ["on::manual", "on::shutdown", "on::ready"],
+    "menus": {
+      "更新规则": "updateRule",
+      "启动服务": "onStart",
+      "停止服务": "onStop"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "configuration": [
+      {
+        "id": "ID_h37od3q7",
+        "title": "浏览器路径",
+        "description": "用 Chromium 作为内核的浏览器的绝对路径 (包括但不限于 Chrome，Edge，Brave)",
+        "key": "browserPath",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_jcd2ujqo",
+        "title": "OpenSSL 可执行文件路径",
+        "description": "此选项仅限于 Windwos，填写你的 openssl 安装路径，或者安装推荐的版本 winget install --id=FireDaemon.OpenSSL -e",
+        "key": "binFilePath",
+        "component": "Input",
+        "value": "C:/Program Files/FireDaemon OpenSSL 3/bin/openssl.exe",
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": true,
+    "installed": false
   }
 ]
