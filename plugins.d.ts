@@ -40,6 +40,7 @@ interface Plugins {
   }
   message: {
     success(msg: string, duration?: number): void
+    warn(msg: string, duration?: number): void
     info(
       msg: string,
       duration?: number,

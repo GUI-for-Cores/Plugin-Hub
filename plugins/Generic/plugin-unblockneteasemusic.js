@@ -4,6 +4,7 @@
 const MUSIC_PATH = 'data/third/unblock-netease-music'
 const PID_FILE = MUSIC_PATH + '/unblock-netease-music.pid'
 const PROCESS_NAME = 'unblockneteasemusic.exe'
+const PROCESS_PATH = MUSIC_PATH + '/' + PROCESS_NAME
 
 const ENV = {
   LOG_LEVEL: 'info', //	日志输出等级。请见〈日志等级〉部分。	LOG_LEVEL=debug  info  error
@@ -35,52 +36,48 @@ window[Plugin.id] = window[Plugin.id] || {
     delete window[Plugin.id]
     console.log(`[${Plugin.name}]`, '插件已停止')
     await Plugins.Writefile(PID_FILE, '0')
-    await switchTo(0) // 切换为直连
   }, 100)
 }
 
 /**
- * 启动服务
+ * 插件钩子 - 点击安装按钮时
  */
-const startUnblockMusicService = () => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const pid = await Plugins.ExecBackground(
-        MUSIC_PATH + '/' + PROCESS_NAME,
-        ['-p', Plugin.Port + ':' + (Number(Plugin.Port) + 1), '-a', '127.0.0.1', '-o', ...Plugin.Source],
-        async (out) => {
-          console.log(`[${Plugin.name}]`, out)
-          if (out.includes('HTTP Server running')) {
-            Plugins.Writefile(PID_FILE, pid.toString())
-            await switchTo(1) // 切换为代理
-            resolve()
-          }
-        },
-        () => {
-          console.log(`[${Plugin.name}]`, '进程已结束')
-          window[Plugin.id].onServiceStopped()
-        },
-        {
-          env: ENV
-        }
-      )
-    } catch (error) {
-      reject(error.message || error)
-    }
-  })
+const onInstall = async () => {
+  await installUnblockMusic()
+  return 0
 }
 
 /**
- * 插件钩子 - 生成配置时
+ * 插件钩子 - 点击卸载按钮时
  */
-const onGenerate = async (config, profile) => {
-  const appSettingsStore = Plugins.useAppSettingsStore()
-  // 跳过非当前运行的配置
-  if (profile.id !== appSettingsStore.app.kernel.profile) {
-    return config
+const onUninstall = async () => {
+  if (await isUnblockMusicRunning()) {
+    throw '请先停止插件服务！'
   }
+  await Plugins.confirm('确定要卸载吗', '将删除插件资源：' + MUSIC_PATH + '\n\n若已安装CA证书，记得手动卸载哦')
+  await Plugins.Removefile(MUSIC_PATH)
+  return 0
+}
+
+/**
+ * 插件钩子 - 点击运行按钮时
+ */
+const onRun = async () => {
+  if (await isUnblockMusicRunning()) {
+    Plugins.message.warn('当前插件已经在运行了')
+    return 1
+  }
+  await startUnblockMusicService()
+  await switchTo(1)
+  Plugins.message.success('✨ 插件启动成功!')
+  return 1
+}
+
+/* 触发器 核心启动前 */
+const onBeforeCoreStart = async (config, profile) => {
+  console.log(`[${Plugin.name}]`, 'onBeforeCoreStart 启动插件并注入配置')
   if (!(await isUnblockMusicRunning())) {
-    return config
+    await startUnblockMusicService()
   }
 
   const isClash = !!config.mode
@@ -127,6 +124,82 @@ const onGenerate = async (config, profile) => {
   return config
 }
 
+/* 触发器 核心启动后 */
+const onCoreStarted = async () => {
+  console.log(`[${Plugin.name}]`, 'onCoreStarted 检测是否在运行并切换为解锁模式')
+  const isRunning = await isUnblockMusicRunning()
+  if (isRunning) {
+    await switchTo(1)
+  }
+  return isRunning && 1
+}
+
+/* 触发器 核心停止后 */
+const onCoreStopped = async () => {
+  console.log(`[${Plugin.name}]`, 'onCoreStopped 停止插件并切换为直连模式')
+  if (await isUnblockMusicRunning()) {
+    await stopUnblockMusicService()
+    switchTo(0)
+    return 2
+  }
+}
+
+/**
+ * 插件菜单项 - 启动服务
+ */
+const Start = async () => {
+  if (await isUnblockMusicRunning()) {
+    Plugins.message.warn('当前插件已经在运行了')
+    return 1
+  }
+  await startUnblockMusicService()
+  await switchTo(1)
+  Plugins.message.success('✨ 插件启动成功!')
+  return 1
+}
+
+/**
+ * 插件菜单项 - 停止服务
+ */
+const Stop = async () => {
+  if (await isUnblockMusicRunning()) {
+    await stopUnblockMusicService()
+  }
+  await switchTo(0)
+  Plugins.message.success('✨ 插件停止成功')
+  return 2
+}
+
+/**
+ * 启动服务
+ */
+const startUnblockMusicService = () => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const pid = await Plugins.ExecBackground(
+        PROCESS_PATH,
+        ['-p', Plugin.Port + ':' + (Number(Plugin.Port) + 1), '-a', '127.0.0.1', '-o', ...Plugin.Source],
+        async (out) => {
+          console.log(`[${Plugin.name}]`, out)
+          if (out.includes('HTTP Server running')) {
+            await Plugins.Writefile(PID_FILE, pid.toString())
+            resolve()
+          }
+        },
+        () => {
+          console.log(`[${Plugin.name}]`, 'ExecBackground onEnd 进程已结束')
+          window[Plugin.id].onServiceStopped()
+        },
+        {
+          env: ENV
+        }
+      )
+    } catch (error) {
+      reject(error.message || error)
+    }
+  })
+}
+
 /**
  * 停止服务
  */
@@ -134,7 +207,7 @@ const stopUnblockMusicService = async () => {
   const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
   if (pid && pid !== '0') {
     await Plugins.KillProcess(Number(pid))
-    console.log(`[${Plugin.name}]`, '已杀死进程')
+    console.log(`[${Plugin.name}]`, 'KillProcess 已杀死进程')
     window[Plugin.id].onServiceStopped()
   }
 }
@@ -145,6 +218,7 @@ const stopUnblockMusicService = async () => {
  * index: 1切换为代理
  */
 const switchTo = async (index) => {
+  console.log(`[${Plugin.name}]`, '切换为', ['直连模式', '解锁模式'][index])
   const appSettings = Plugins.useAppSettingsStore()
   if (!appSettings.app.kernel.running) return
   const kernelApiStore = Plugins.useKernelApiStore()
@@ -170,18 +244,25 @@ const isUnblockMusicRunning = async () => {
 /**
  * 安装
  */
-const InstallUnblockMusic = async () => {
+const installUnblockMusic = async () => {
   const { env } = Plugins.useEnvStore()
-  if (env.os !== 'windows') throw '该插件暂不支持此操作系统'
-  const BinaryFileUrl = `https://github.com/UnblockNeteaseMusic/server/releases/download/v0.27.8-patch.1/unblockneteasemusic-win-${
-    { amd64: 'x64' }[env.arch] || env.arch
-  }.exe`
+  if (!['windows', 'linux'].includes(env.os)) throw '该插件暂不支持此操作系统'
+  const isWin = env.os === 'windows'
+  const isX64 = env.arch === 'amd64'
+  const BinaryFileUrl = `https://github.com/UnblockNeteaseMusic/server/releases/download/v0.27.9/unblockneteasemusic-${isWin ? 'win' : 'linux'}-${isX64 ? 'x64' : 'arm64'}${isWin ? '.exe' : ''}`
+  // https://github.com/UnblockNeteaseMusic/server/releases/download/v0.27.9/unblockneteasemusic-linux-x64
+  // https://github.com/UnblockNeteaseMusic/server/releases/download/v0.27.9/unblockneteasemusic-win-x64.exe
+  // https://github.com/UnblockNeteaseMusic/server/releases/download/v0.27.9/unblockneteasemusic-win-arm64.exe
+
   const { id } = Plugins.message.info('正在下载...', 999999)
   try {
     await Plugins.Makedir(MUSIC_PATH)
-    await Plugins.Download(BinaryFileUrl, MUSIC_PATH + '/unblockneteasemusic.exe', {}, (c, t) => {
+    await Plugins.Download(BinaryFileUrl, PROCESS_PATH, {}, (c, t) => {
       Plugins.message.update(id, '正在下载...' + ((c / t) * 100).toFixed(2) + '%')
     })
+    if (!isWin) {
+      await Plugins.Exec('chmod', ['+x', await Plugins.AbsolutePath(PROCESS_PATH)])
+    }
     Plugins.message.update(id, '下载完成')
   } finally {
     await Plugins.sleep(1000)
@@ -198,91 +279,4 @@ const InstallUnblockMusic = async () => {
       type: 'markdown'
     }
   )
-}
-
-/**
- * 插件钩子 - 点击安装按钮时
- */
-const onInstall = async () => {
-  await InstallUnblockMusic()
-  return 0
-}
-
-/**
- * 插件钩子 - 点击卸载按钮时
- */
-const onUninstall = async () => {
-  if (await isUnblockMusicRunning()) {
-    throw '请先停止插件服务！'
-  }
-  await Plugins.confirm('确定要卸载吗', '将删除插件资源：' + MUSIC_PATH + '\n\n若已安装CA证书，记得手动卸载哦')
-  await Plugins.Removefile(MUSIC_PATH)
-  return 0
-}
-
-/* 插件钩子 - 配置插件时 */
-const onConfigure = async (config, old) => {
-  if (await isUnblockMusicRunning()) {
-    await stopUnblockMusicService()
-    await startUnblockMusicService()
-  }
-}
-
-/**
- * 插件钩子 - 点击运行按钮时
- */
-const onRun = async () => {
-  if (await isUnblockMusicRunning()) {
-    throw '当前插件已经在运行了'
-  }
-  await startUnblockMusicService()
-  Plugins.message.success('✨ 插件启动成功!')
-  return 1
-}
-
-/**
- * 插件钩子 - 启动APP时
- */
-const onStartup = async () => {
-  if (Plugin.AutoStartOrStop && !(await isUnblockMusicRunning())) {
-    await startUnblockMusicService()
-    // 再切换一次，因为GUI启动后没来得及获取内核信息，插件就调用了switchTo，导致获取不到group和proxy，没有切换成功
-    setTimeout(() => {
-      switchTo(1)
-    }, 3000)
-    return 1
-  }
-}
-
-/**
- * 插件钩子 - 关闭APP时
- */
-const onShutdown = async () => {
-  if (Plugin.AutoStartOrStop && (await isUnblockMusicRunning())) {
-    await stopUnblockMusicService()
-    return 2
-  }
-}
-
-/**
- * 插件菜单项 - 启动服务
- */
-const Start = async () => {
-  if (await isUnblockMusicRunning()) {
-    throw '当前插件已经在运行了'
-  }
-  await startUnblockMusicService()
-  Plugins.message.success('✨ 插件启动成功!')
-  return 1
-}
-
-/**
- * 插件菜单项 - 停止服务
- */
-const Stop = async () => {
-  if (await isUnblockMusicRunning()) {
-    await stopUnblockMusicService()
-  }
-  Plugins.message.success('✨ 插件停止成功')
-  return 2
 }
