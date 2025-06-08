@@ -113,10 +113,16 @@ const Recovery = async () => {
     Plugins.message.info('无需恢复，此版本已是默认版本。')
     return
   }
-  await Plugins.confirm(Plugin.name, '是否移除当前版本，恢复为默认版本？\n这将移除 data/rolling-release 目录。')
+  await Plugins.confirm(
+    Plugin.name,
+    '滚动发行过程中，相关配置文件会自动升级，因此回滚会造成<span style="color: red">配置文件不兼容</span>，导致出现<span style="color: red">意外状况</span>，确定要回滚吗？',
+    {
+      type: 'markdown'
+    }
+  )
   await Plugins.Removefile('data/rolling-release')
-  const ok = await Plugins.confirm(Plugin.name, '恢复成功，是否立即重载界面').catch(() => 0)
-  ok && (await Plugins.WindowReloadApp())
+  await Plugins.confirm(Plugin.name, '回滚成功，即将重载界面！').catch(() => true)
+  await Plugins.WindowReloadApp()
 }
 
 /**
