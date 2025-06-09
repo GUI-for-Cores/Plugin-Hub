@@ -15,7 +15,7 @@ const ENV = {
   // ENABLE_HTTPDNS: false, // 激活故障的 Netease HTTPDNS 查询（不建议）
   DISABLE_UPGRADE_CHECK: String(Plugin.DISABLE_UPGRADE_CHECK), // 禁用更新检测
   FOLLOW_SOURCE_ORDER: 'false', // 严格按照配置音源的顺序进行查询
-  // JSON_LOG: 'true' // 输出机器可读的 JSON 记录格式
+  JSON_LOG: 'true', // 输出机器可读的 JSON 记录格式
   NO_CACHE: String(Plugin.NO_CACHE), // 停用 cache
   MIN_BR: Plugin.MIN_BR, //	允许的最低源音质，小于该值将被替换	MIN_BR=320000
   SELECT_MAX_BR: String(Plugin.SELECT_MAX_BR), //	选择所有音源中的最高码率替换音频	SELECT_MAX_BR=true
@@ -249,7 +249,7 @@ const installUnblockMusic = async () => {
   if (!['windows', 'linux'].includes(env.os)) throw '该插件暂不支持此操作系统'
   const isWin = env.os === 'windows'
   const isX64 = env.arch === 'amd64'
-  const BinaryFileUrl = `https://github.com/UnblockNeteaseMusic/server/releases/download/v0.27.9/unblockneteasemusic-${isWin ? 'win' : 'linux'}-${isX64 ? 'x64' : 'arm64'}${isWin ? '.exe' : ''}`
+  const BinaryFileUrl = `https://github.com/UnblockNeteaseMusic/server/releases/download/v0.27.10/unblockneteasemusic-${isWin ? 'win' : 'linux'}-${isX64 ? 'x64' : 'arm64'}${isWin ? '.exe' : ''}`
   // https://github.com/UnblockNeteaseMusic/server/releases/download/v0.27.9/unblockneteasemusic-linux-x64
   // https://github.com/UnblockNeteaseMusic/server/releases/download/v0.27.9/unblockneteasemusic-win-x64.exe
   // https://github.com/UnblockNeteaseMusic/server/releases/download/v0.27.9/unblockneteasemusic-win-arm64.exe
