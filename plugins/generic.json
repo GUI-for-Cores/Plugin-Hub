@@ -2206,7 +2206,7 @@
   {
     "id": "plugin-sni-spoofing",
     "name": "SNI 伪造",
-    "version": "v2.0.0",
+    "version": "v3.0.0",
     "description": "通过为浏览器添加启动参数和运行 Nginx 反代服务，实现免代理访问被墙网站。Supported by: 泡泡茶壶",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sni-spoofing.js",
@@ -2230,7 +2230,7 @@
         "id": "ID_h37od3q7",
         "title": "浏览器路径",
         "description": "用 Chromium 作为内核的浏览器的绝对路径 (包括但不限于 Chrome，Edge，Brave)",
-        "key": "browserPath",
+        "key": "BrowserPath",
         "component": "Input",
         "value": "",
         "options": []
@@ -2238,8 +2238,8 @@
       {
         "id": "ID_jcd2ujqo",
         "title": "OpenSSL 可执行文件路径",
-        "description": "此选项仅限于 Windwos，填写你的 openssl 程序的绝对路径",
-        "key": "binFilePath",
+        "description": "此选项仅限于 Windwos，填写你的 OpenSSL 程序的绝对路径",
+        "key": "OpensslPath",
         "component": "Input",
         "value": "C:/Program Files/FireDaemon OpenSSL 3/bin/openssl.exe",
         "options": []
@@ -2248,7 +2248,7 @@
         "id": "ID_wvnnkd3x",
         "title": "启用全局伪造",
         "description": "启用后可以伪造浏览器之外的应用，如需观看 Youtube 视频，则必需启用",
-        "key": "isGlobalSpoofing",
+        "key": "GlobalSpoofing",
         "component": "Switch",
         "value": false,
         "options": []
@@ -2257,7 +2257,7 @@
         "id": "ID_n16nxaql",
         "title": "自定义规则",
         "description": "填写你自己的伪造规则，将会合并到基础规则中",
-        "key": "customRule",
+        "key": "CustomRules",
         "component": "CodeViewer",
         "value": "[]",
         "options": []
@@ -2266,7 +2266,7 @@
         "id": "ID_zkafn4dl",
         "title": "额外启动参数",
         "description": "填写的参数将添加到最终的浏览器启动参数中",
-        "key": "extraStartArgs",
+        "key": "ExtraStartArgs",
         "component": "Input",
         "value": "",
         "options": []
