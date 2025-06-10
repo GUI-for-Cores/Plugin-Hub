@@ -1,33 +1,43 @@
 // 参考项目：https://github.com/SpaceTimee/Sheas-Cealer
 
-const RULE_URL_PREFIX = 'https://github.com/SpaceTimee/Cealing-Host/raw/main'
+const RULES_URL_PREFIX = 'https://github.com/SpaceTimee/Cealing-Host/raw/main'
 const NGINX_BIN_URL_PREFIX = 'https://github.com/jirutka/nginx-binaries/raw/refs/heads/binaries'
-const BASE_RULE_URL = `${RULE_URL_PREFIX}/Cealing-Host.json`
+const BASE_RULES_URL = `${RULES_URL_PREFIX}/Cealing-Host.json`
 
 const THIRD_DIR = 'data/third/sni-spoofing'
-const BASE_RULE_FILE_PATH = `${THIRD_DIR}/Cealing-Host.json`
+const BASE_RULES_FILE_PATH = `${THIRD_DIR}/Base-Hosts-Rules.json`
+
 const NGINX_TEMP_DIR = `${THIRD_DIR}/temp`
 const NGINX_LOGS_DIR = `${THIRD_DIR}/logs`
+const NGINX_ERROR_LOG_PATH = `${NGINX_LOGS_DIR}/error.log`
+const NGINX_ACCESS_LOG_PATH = `${NGINX_LOGS_DIR}/access.log`
 
 const NGINX_PID_FILE_PATH = `${NGINX_LOGS_DIR}/nginx.pid`
 const NGINX_CONF_FILE_PATH = `${THIRD_DIR}/nginx.conf`
 
-const ROOT_CA_KEY_PATH = `${THIRD_DIR}/root_ca.key`
-const ROOT_CA_CRT_PATH = `${THIRD_DIR}/root_ca.crt`
-const ROOT_CA_CRT_SHA1 = `${THIRD_DIR}/root_crt_sha1`
-const CHILD_CERT_KEY_PATH = `${THIRD_DIR}/child.key`
-const CHILD_CERT_CRT_PATH = `${THIRD_DIR}/child.crt`
+const ROOT_CA_KEY_PATH = `${THIRD_DIR}/${Plugins.APP_TITLE}-Root-Ca.key`
+const ROOT_CA_CRT_PATH = `${THIRD_DIR}/${Plugins.APP_TITLE}-Root-Ca.crt`
+const ROOT_CA_CRT_SHA1 = `${THIRD_DIR}/${Plugins.APP_TITLE}-Root-Crt-Sha1`
+const CHILD_CERT_KEY_PATH = `${THIRD_DIR}/${Plugins.APP_TITLE}-Child.key`
+const CHILD_CERT_CRT_PATH = `${THIRD_DIR}/${Plugins.APP_TITLE}-Child.crt`
 
-const TMEP_DIR = 'data/.cache'
+const TEMP_DIR = 'data/.cache'
 
-const HOSTS_START_MARKER = '# Nginx Start'
-const HOSTS_END_MARKER = '# Nginx End'
+const HOSTS_START_MARKER = '# Nginx Hosts Start'
+const HOSTS_END_MARKER = '# Nginx Hosts End'
+
+const BROWSER_EXEC_PATH = (Plugin.BrowserPath || '').replace(/\\/g, '/').replace(/"/g, '').trim()
+const OPENSSL_EXEC_PATH = (Plugin.OpensslPath || 'C:/Program Files/FireDaemon OpenSSL 3/bin/openssl.exe').replace(/\\/g, '/').replace(/"/g, '').trim()
+const GLOBAL_SPOOFING = Plugin.GlobalSpoofing || false
+const CUSTOM_RULES = Plugin.CustomRules || []
+const EXTRA_START_ARGS = (Plugin.ExtraStartArgs || '').replace(/\\/g, '/').trim()
 
 window[Plugin.id] = window[Plugin.id] || {}
 
 /**
  * 插件钩子：APP就绪后
  */
+
 const onReady = async () => {
   return 2
 }
@@ -35,19 +45,19 @@ const onReady = async () => {
 /**
  * 插件钩子：运行按钮 - onRun
  */
+
 const onRun = async () => {
   const appSettings = Plugins.useAppSettingsStore()
   if (appSettings.app.kernel.running) {
-    throw '为了插件能正常工作，请停止内核'
+    throw '为了插件能正常工作，请先停止内核'
   }
 
-  const execPath = Plugin.browserPath.replace(/\\/g, '/').replace(/"/g, '').trim()
-  if (!execPath) {
+  if (!BROWSER_EXEC_PATH) {
     throw '请配置浏览器路径'
   }
 
   try {
-    if (!(await isRunningNginx()) && Plugin.isGlobalSpoofing) {
+    if (!(await isRunningNginx()) && GLOBAL_SPOOFING) {
       await startNginx()
     }
 
@@ -58,18 +68,18 @@ const onRun = async () => {
     }
 
     const startArgs = await generateStartArgs()
-    const browerPid = await Plugins.ExecBackground(
-      execPath,
+    const browserPid = await Plugins.ExecBackground(
+      BROWSER_EXEC_PATH,
       startArgs,
       async (out) => {},
       async () => {
-        if (browerPid && browerPid !== 0) {
-          await Plugins.ignoredError(Plugins.KillProcess, browerPid)
+        if (browserPid && browserPid !== 0) {
+          await Plugins.ignoredError(Plugins.KillProcess, browserPid)
         }
       }
     )
 
-    return Plugin.isGlobalSpoofing ? 1 : 0
+    return GLOBAL_SPOOFING ? 1 : 0
   } catch (e) {
     Plugins.message.error(`运行失败: ${e.message || e}`)
     return 2
@@ -79,29 +89,36 @@ const onRun = async () => {
 /**
  * 插件钩子：安装 - onInstall
  */
+
 const onInstall = async () => {
   const envStore = Plugins.useEnvStore()
   const { os, arch } = envStore.env
   if ((os !== 'windows' && os !== 'linux') || arch !== 'amd64') {
-    throw '此插件目前仅适配 Windows 和 Linux 系统，以及 AMD64(x86_64) 架构'
+    throw '本插件目前仅适配 Windows 和 Linux 系统，以及 AMD64(x86_64) 架构'
   }
-  if (!(await Plugins.FileExists(THIRD_DIR)) || !(await Plugins.FileExists(`${THIRD_DIR}/nginx${os === 'windows' ? '.exe' : ''}`))) {
-    await Plugins.Makedir(THIRD_DIR)
-    // 规则文件下载和 Nginx 核心安装
-    await Plugins.Download(BASE_RULE_URL, BASE_RULE_FILE_PATH)
-    await installNginxCore()
+  try {
+    if (!(await Plugins.FileExists(THIRD_DIR)) || (await Plugins.Readdir(THIRD_DIR)).length < 6) {
+      await Plugins.ignoredError(Plugins.Removefile, THIRD_DIR)
+      await Plugins.Makedir(THIRD_DIR)
+      await Plugins.Download(BASE_RULES_URL, BASE_RULES_FILE_PATH)
+      await installNginxCore()
+    }
+    return 0
+  } catch (e) {
+    await Plugins.ignoredError(Plugins.Removefile, THIRD_DIR)
+    throw e
   }
-  return 0
 }
 
 /**
  * 插件钩子：卸载 - onUninstall
  */
+
 const onUninstall = async () => {
   if (await isRunningNginx()) {
     await stopNginx()
   }
-
+  await manageRootCertInSystemTrust(CERT_ACTION.UNINSTALL) // 移除根证书
   if (await Plugins.FileExists(THIRD_DIR)) {
     await Plugins.Removefile(THIRD_DIR)
   }
@@ -113,27 +130,30 @@ const onUninstall = async () => {
 /**
  * 插件钩子：关闭 - onShutdown
  */
+
 const onShutdown = async () => {
   if (await isRunningNginx()) {
     await stopNginx()
-    return 2
   }
+  return 2
 }
 
 /*
  * 插件菜单：更新规则 - updateRule
  */
-const updateRule = async () => {
-  await Plugins.Download(BASE_RULE_URL, BASE_RULE_FILE_PATH)
-  Plugins.message.success('更新规则成功')
 
+const updateRule = async () => {
+  await Plugins.Download(BASE_RULES_URL, BASE_RULES_FILE_PATH)
+  Plugins.message.success('规则更新成功')
   if (await isRunningNginx()) {
-    try {
+    if (
+      await Plugins.confirm('帮助', '重启服务后应用新规则，是否立即重启？', {
+        okText: '是',
+        cancelText: '否'
+      })
+    ) {
       await stopNginx()
       await startNginx()
-      Plugins.message.info('证书和配置已根据新规则更新。')
-    } catch (e) {
-      Plugins.message.error(`更新配置失败: ${e.message || e}`)
     }
   }
 }
@@ -141,19 +161,26 @@ const updateRule = async () => {
 /**
  * 插件菜单：启动服务 - onStart
  */
+
 const onStart = async () => {
-  if (!(await isRunningNginx()) && Plugin.isGlobalSpoofing) {
-    try {
-      await startNginx()
-      Plugins.message.success('nginx 启动成功，使用完后，建议手动停止服务')
+  if (GLOBAL_SPOOFING) {
+    if (!(await isRunningNginx())) {
+      const appSettings = Plugins.useAppSettingsStore()
+      if (appSettings.app.kernel.running) {
+        Plugins.message.info('为了插件能正常工作，建议停止内核')
+      }
+      try {
+        await startNginx()
+        Plugins.message.success('nginx 启动成功，使用完后，建议手动停止服务')
+        return 1
+      } catch (e) {
+        Plugins.message.error(`启动失败: ${e.message || e}`)
+        return 2
+      }
+    } else {
+      Plugins.message.info('nginx 已经在运行。')
       return 1
-    } catch (e) {
-      Plugins.message.error(`启动失败: ${e.message || e}`)
-      return 2
     }
-  } else if (await isRunningNginx()) {
-    Plugins.message.info('nginx 已经在运行。')
-    return 1
   } else {
     Plugins.message.info('未启用全局伪造，无需启动 nginx。')
     return 0
@@ -163,6 +190,7 @@ const onStart = async () => {
 /**
  * 插件菜单：停止服务 - onStop
  */
+
 const onStop = async () => {
   if (await isRunningNginx()) {
     try {
@@ -189,20 +217,11 @@ const installNginxCore = async () => {
     windows: 'nginx-1.27.5-x86_64-win32.exe',
     linux: 'nginx-1.27.5-x86_64-linux'
   }[os]
-  await Plugins.Download(`${NGINX_BIN_URL_PREFIX}/${nginxBinFile}`, `${THIRD_DIR}/nginx${os === 'windows' ? '.exe' : ''}`)
-
-  await Plugins.Makedir(NGINX_TEMP_DIR)
-  await Plugins.Makedir(NGINX_LOGS_DIR)
-  await Plugins.Writefile(`${NGINX_LOGS_DIR}/access.log`, '')
-  await Plugins.Writefile(`${NGINX_LOGS_DIR}/error.log`, '')
 
   const absPath = await Plugins.AbsolutePath(THIRD_DIR)
-
-  let execBinFilePath = ''
-  let isInstalledOpenssl = false
+  const opensslExecPath = os === 'windows' ? OPENSSL_EXEC_PATH : '/usr/bin/openssl'
   if (os === 'windows') {
-    execBinFilePath = Plugin.binFilePath || 'C:/Program Files/FireDaemon OpenSSL 3/bin/openssl.exe'
-    if (!(await Plugins.FileExists(execBinFilePath))) {
+    if (!(await Plugins.FileExists(opensslExecPath))) {
       Plugins.message.warn(`未找到 OpenSSL 可执行文件，请配置 OpenSSL 安装路径，或者安装推荐的版本`)
       if (
         await Plugins.confirm('帮助', '是否复制安装命令？', {
@@ -212,20 +231,27 @@ const installNginxCore = async () => {
       ) {
         await Plugins.ClipboardSetText('winget install --id=FireDaemon.OpenSSL -e')
         Plugins.message.info('已复制 winget 安装命令到剪贴板，请粘贴到终端中执行。')
+        throw '请先安装 OpenSSL'
       }
-    } else isInstalledOpenssl = true
+    }
   } else {
-    execBinFilePath = '/usr/bin/openssl'
-    try {
-      await Plugins.Exec(execBinFilePath, ['-v'])
-      isInstalledOpenssl = true
-    } catch (e) {
-      Plugins.message.warn(`未找到 OpenSSL 可执行文件，请安装 OpenSSL。`)
+    if (!(await Plugins.FileExists(opensslExecPath))) {
+      throw '未找到 OpenSSL 可执行文件，请先安装 OpenSSL。'
     }
   }
 
+  try {
+    await Plugins.Download(`${NGINX_BIN_URL_PREFIX}/${nginxBinFile}`, `${THIRD_DIR}/nginx${os === 'windows' ? '.exe' : ''}`)
+    await Plugins.Makedir(NGINX_TEMP_DIR)
+    await Plugins.Makedir(NGINX_LOGS_DIR)
+    await Plugins.Writefile(NGINX_ACCESS_LOG_PATH, '')
+    await Plugins.Writefile(NGINX_ERROR_LOG_PATH, '')
+  } catch (e) {
+    throw `安装 Nginx 失败 ${e.message || e}`
+  }
+
   if (os === 'windows') {
-    await Plugins.message.info('为了服务正常运行，请确保软件设置内的以管理员身份运行选项已启用')
+    await Plugins.alert('提示', '为了服务正常运行，请确保软件设置内的以管理员身份运行选项已启用')
   } else {
     await Plugins.Exec('chmod', ['+x', `${absPath}/nginx`])
     try {
@@ -244,39 +270,27 @@ const installNginxCore = async () => {
     }
   }
 
-  if (isInstalledOpenssl) await generateRootCert()
-  else Plugins.message.info(`根证书将在后续步骤生成，请再此之前安装或配置好 OpenSSL`)
-  // 根据 OpenSSL 安装情况判断是否在安装阶段生成根证书
+  await generateAndInstallRootCert(opensslExecPath)
+
   Plugins.message.success('Nginx 核心安装成功')
 }
 
 /**
- * 确保根证书存在，如果不存在则生成。
+ * 生成根证书
+ * @param {String} opensslExecPath
  */
-const generateRootCert = async () => {
+const generateAndInstallRootCert = async (opensslExecPath) => {
   const envStore = Plugins.useEnvStore()
   const { os } = envStore.env
   const rootKeyPath = await Plugins.AbsolutePath(ROOT_CA_KEY_PATH)
   const rootCrtPath = await Plugins.AbsolutePath(ROOT_CA_CRT_PATH)
 
-  const opensslPath = os === 'windows' ? Plugin.binFilePath || 'C:/Program Files/FireDaemon OpenSSL 3/bin/openssl.exe' : '/usr/bin/openssl'
-
-  if (!opensslPath) {
-    throw new Error('OpenSSL 路径未配置或未找到。')
-  }
-
-  if ((await Plugins.FileExists(rootKeyPath)) && (await Plugins.FileExists(rootCrtPath))) {
-    Plugins.message.info('根证书已存在。')
-    return
-  }
-
   Plugins.message.info('生成根证书...')
   try {
     // 生成根证书私钥
-    await Plugins.Exec(opensslPath, ['genrsa', '-out', rootKeyPath, '2048'])
-
+    await Plugins.Exec(opensslExecPath, ['genrsa', '-out', rootKeyPath, '2048'])
     // 生成自签名根证书
-    await Plugins.Exec(opensslPath, [
+    await Plugins.Exec(opensslExecPath, [
       'req',
       '-x509',
       '-new',
@@ -296,12 +310,14 @@ const generateRootCert = async () => {
     }
 
     if (os === 'windows') {
-      const rootCrtSha1 = await getRootCertSha1(opensslPath, rootCrtPath)
+      const rootCrtSha1 = await getRootCertSha1(opensslExecPath, rootCrtPath)
       await Plugins.Writefile(ROOT_CA_CRT_SHA1, rootCrtSha1)
       Plugins.message.success('写入根证书 SHA1 值成功。')
     }
 
     Plugins.message.success('根证书生成成功。')
+
+    await manageRootCertInSystemTrust(CERT_ACTION.INSTALL)
   } catch (e) {
     throw `生成根证书失败: ${e.message || e}`
   }
@@ -310,8 +326,8 @@ const generateRootCert = async () => {
 /**
  * 获取根证书的 SHA1 值。
  */
-const getRootCertSha1 = async (opensslPath, rootCrtPath) => {
-  const fingerprintString = await Plugins.Exec(opensslPath, ['x509', '-in', rootCrtPath, '-noout', '-fingerprint', '-sha1'])
+const getRootCertSha1 = async (opensslExecPath, rootCrtPath) => {
+  const fingerprintString = await Plugins.Exec(opensslExecPath, ['x509', '-in', rootCrtPath, '-noout', '-fingerprint', '-sha1'])
   const lowercaseString = fingerprintString
     .replace(/.*Fingerprint=/g, '')
     .replace(/:/g, '')
@@ -326,22 +342,14 @@ const getRootCertSha1 = async (opensslPath, rootCrtPath) => {
 const generateChildCertWithSans = async (jsonData) => {
   const envStore = Plugins.useEnvStore()
   const { os } = envStore.env
-  const absPath = await Plugins.AbsolutePath(THIRD_DIR)
 
-  const opensslPath = os === 'windows' ? Plugin.binFilePath || 'C:/Program Files/FireDaemon OpenSSL 3/bin/openssl.exe' : '/usr/bin/openssl'
+  const opensslExecPath = os === 'windows' ? OPENSSL_EXEC_PATH : '/usr/bin/openssl'
   const rootKeyPath = await Plugins.AbsolutePath(ROOT_CA_KEY_PATH)
   const rootCrtPath = await Plugins.AbsolutePath(ROOT_CA_CRT_PATH)
   const childKeyPath = await Plugins.AbsolutePath(CHILD_CERT_KEY_PATH)
   const childCrtPath = await Plugins.AbsolutePath(CHILD_CERT_CRT_PATH)
-  const childCsrPath = `${absPath}/child.csr`
-  const sanConfigPath = `${await Plugins.AbsolutePath(TMEP_DIR)}/san_config` // 临时 SAN 配置文件
-
-  if (!opensslPath) {
-    throw new Error('OpenSSL 路径未配置或未找到。')
-  }
-  if (!(await Plugins.FileExists(rootKeyPath)) || !(await Plugins.FileExists(rootCrtPath))) {
-    throw new Error('根证书文件不存在，无法生成子证书。')
-  }
+  const childCsrPath = `${await Plugins.AbsolutePath(THIRD_DIR)}/child.csr`
+  const sanConfigPath = `${await Plugins.AbsolutePath(TEMP_DIR)}/san_config` // 临时 SAN 配置文件
 
   Plugins.message.info('生成子证书...')
   try {
@@ -395,10 +403,10 @@ const generateChildCertWithSans = async (jsonData) => {
     await Plugins.Writefile(sanConfigPath, sanConfigContent)
 
     // 生成子证书私钥
-    await Plugins.Exec(opensslPath, ['genrsa', '-out', childKeyPath, '2048'])
+    await Plugins.Exec(opensslExecPath, ['genrsa', '-out', childKeyPath, '2048'])
 
     // 生成子证书 CSR (Certificate Signing Request)
-    await Plugins.Exec(opensslPath, [
+    await Plugins.Exec(opensslExecPath, [
       'req',
       '-new',
       '-key',
@@ -414,7 +422,7 @@ const generateChildCertWithSans = async (jsonData) => {
     ])
 
     // 使用根证书签发子证书
-    await Plugins.Exec(opensslPath, [
+    await Plugins.Exec(opensslExecPath, [
       'x509',
       '-req',
       '-in',
@@ -445,13 +453,12 @@ const generateChildCertWithSans = async (jsonData) => {
 
     Plugins.message.success('子证书生成成功。')
   } catch (e) {
-    Plugins.message.error(`生成子证书失败: ${e.message || e}`)
     // 尝试清理可能生成的文件
     await Plugins.ignoredError(Plugins.Removefile, childKeyPath)
     await Plugins.ignoredError(Plugins.Removefile, childCrtPath)
     await Plugins.ignoredError(Plugins.Removefile, childCsrPath)
     await Plugins.ignoredError(Plugins.Removefile, sanConfigPath)
-    throw e
+    throw `生成子证书失败: ${e.message || e}`
   }
 }
 
@@ -534,10 +541,10 @@ const startNginx = async () => {
   const { os } = envStore.env
   const absPath = await Plugins.AbsolutePath(THIRD_DIR)
 
-  await Plugins.Writefile(`${NGINX_LOGS_DIR}/access.log`, '')
-  await Plugins.Writefile(`${NGINX_LOGS_DIR}/error.log`, '')
+  await Plugins.Writefile(NGINX_ACCESS_LOG_PATH, '')
+  await Plugins.Writefile(NGINX_ERROR_LOG_PATH, '')
 
-  await generateAndWriteConfigs() // 在启动前生成并写入配置和证书
+  await generateAndWriteNginxConfigs() // 在启动前生成并写入配置和证书
 
   return new Promise(async (outerResolve, outerReject) => {
     try {
@@ -592,9 +599,8 @@ const startNginx = async () => {
       )
 
       if (nginxPid && nginxPid !== 0) {
-        setTimeout(() => {
-          nginxStartPromiseResolve()
-        }, 1000) // 等待 1 秒，给 Nginx 启动时间
+        await Plugins.sleep(1_000)
+        nginxStartPromiseResolve()
       } else {
         nginxStartPromiseReject(new Error('无法启动 Nginx 进程'))
         outerReject(new Error('无法启动 Nginx 进程'))
@@ -602,12 +608,7 @@ const startNginx = async () => {
 
       await nginxStartPromise // 等待 Nginx 进程启动成功或失败的信号
 
-      await manageRootCertInSystemTrust(CERT_ACTION.INSTALL) // 安装根证书
-
-      const jsonData = await getMergedRules()
-      const dynamicHostsContent = await generateDynamicHostsContent(jsonData)
-      await updateSystemHostsFile(HOSTS_ACTION.ADD, dynamicHostsContent)
-
+      await generateAndWriteHostsConfigs()
       outerResolve()
     } catch (e) {
       outerReject(e)
@@ -623,34 +624,16 @@ const stopNginx = async () => {
   const { os } = envStore.env
   const absPath = await Plugins.AbsolutePath(THIRD_DIR)
   const execPath = `${absPath}/nginx${os === 'windows' ? '.exe' : ''}`
-
   if (!(await isRunningNginx())) {
     Plugins.message.info('Nginx 未运行，无需停止。')
     return
   }
-
-  await manageRootCertInSystemTrust(CERT_ACTION.UNINSTALL) // 移除根证书
   await updateSystemHostsFile(HOSTS_ACTION.REMOVE, '') // 恢复 Hosts 文件
-
   Plugins.message.info('发送 Nginx 停止信号...')
   const nginxConfAbsPath = await Plugins.AbsolutePath(NGINX_CONF_FILE_PATH)
   try {
     await Plugins.Exec(execPath, ['-s', 'quit', '-c', nginxConfAbsPath, '-p', absPath])
     Plugins.message.success('Nginx 停止信号已发送。')
-    await new Promise((resolve) => setTimeout(resolve, 2000)) // 等待 2 秒
-    // 再次检查是否还在运行
-    if (await isRunningNginx()) {
-      Plugins.message.warn('Nginx 进程可能未完全停止，尝试强制杀死。')
-      if (await Plugins.FileExists(NGINX_PID_FILE_PATH)) {
-        const pid = Number(await Plugins.Readfile(NGINX_PID_FILE_PATH))
-        if (pid && pid !== 0) {
-          await Plugins.ignoredError(Plugins.KillProcess, pid)
-          Plugins.message.success(`已尝试杀死进程 ${pid}。`)
-        }
-      }
-      // 再次等待确保进程清理
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-    }
   } catch (e) {
     throw `停止 Nginx 失败: ${e.message || e}`
   }
@@ -677,10 +660,9 @@ const isRunningNginx = async () => {
  * 获取合并后的规则
  */
 const getMergedRules = async () => {
-  const baseRule = await Plugins.Readfile(BASE_RULE_FILE_PATH)
+  const baseRules = await Plugins.Readfile(BASE_RULES_FILE_PATH)
   try {
-    const customRule = JSON.parse(Plugin.customRule)
-    const completeRules = [...JSON.parse(baseRule), ...customRule]
+    const completeRules = [...JSON.parse(baseRules), ...JSON.parse(CUSTOM_RULES)]
     return completeRules
   } catch (e) {
     throw `自定义规则内容不是有效的 JSON 数组: ${e.message || e}`
@@ -751,13 +733,12 @@ const generateStartArgs = async () => {
   // 将 hostResolverRules 数组连接成字符串
   const hostResolverRulesString = hostResolverRules.join(',')
 
-  const extraStartArgs = Plugin.extraStartArgs || ''
   const startArgs = [
     `--host-rules="${hostRulesString}"`,
     `--host-resolver-rules="${hostResolverRulesString}"`,
     '--test-type',
     '--ignore-certificate-errors',
-    extraStartArgs
+    EXTRA_START_ARGS
   ]
 
   return startArgs
@@ -781,28 +762,25 @@ const getHostsFilePath = async () => {
 /**
  * @description 辅助函数：生成并写入 Nginx 配置
  */
-const generateAndWriteConfigs = async () => {
-  if (!(await Plugins.FileExists(BASE_RULE_FILE_PATH))) {
-    throw new Error('规则文件不存在，请先更新规则。')
-  }
-
+const generateAndWriteNginxConfigs = async () => {
   const jsonData = await getMergedRules()
-
-  // 1. 确保根证书存在 (如果不存在则生成)
-  await generateRootCert()
-
-  // 2. 根据规则生成包含 SAN 的子证书
+  // 根据规则生成包含 SAN 的子证书
   await generateChildCertWithSans(jsonData)
-
-  // 3. 生成并写入 Nginx 配置 (使用新生成的子证书)
+  // 生成并写入 Nginx 配置 (使用新生成的子证书)
   const nginxConfContent = await generateNginxConfContent(jsonData)
   await Plugins.Writefile(NGINX_CONF_FILE_PATH, nginxConfContent)
-  Plugins.message.info(`Nginx 配置文件已更新: ${NGINX_CONF_FILE_PATH}`)
+  Plugins.message.info(`Nginx 配置文件已更新`)
+}
+
+const generateAndWriteHostsConfigs = async () => {
+  const jsonData = await getMergedRules()
+  const dynamicHostsContent = await generateDynamicHostsContent(jsonData)
+  await updateSystemHostsFile(HOSTS_ACTION.ADD, dynamicHostsContent)
 }
 
 /**
- * @description 新增函数：根据 Cealing-Host.json 规则生成 Hosts 文件中动态部分的内容。
- * @param {Array<Array<any>>} jsonData - Cealing-Host.json 的解析内容。
+ * @description 新增函数：根据 Base-Hosts-Rules.json 规则生成 Hosts 文件中动态部分的内容。
+ * @param {Array<Array<any>>} jsonData - Base-Hosts-Rules.json 的解析内容。
  * @returns {Promise<string>} 动态 Hosts 文件内容字符串 (例如 "127.0.0.1 example.com\n127.0.0.1 www.example.com")。
  */
 const generateDynamicHostsContent = async (jsonData) => {
@@ -894,7 +872,7 @@ const updateSystemHostsFile = async (action, dynamicHostsContent) => {
   const envStore = Plugins.useEnvStore()
   const { os } = envStore.env
 
-  const tempFileAbsPath = await Plugins.AbsolutePath(`${TMEP_DIR}/hosts_temp}`)
+  const tempFileAbsPath = await Plugins.AbsolutePath(`${TEMP_DIR}/hosts_temp}`)
   try {
     if (os === 'windows') {
       // 在 Windows 上直接写入，需要管理员权限运行整个应用
@@ -913,55 +891,56 @@ const updateSystemHostsFile = async (action, dynamicHostsContent) => {
 }
 
 /**
- * @description 新增函数：根据 Cealing-Host.json 规则生成完整的 Nginx 配置内容。
- * @param {Array<Array<any>>} jsonData - Cealing-Host.json 的解析内容。
+ * @description 新增函数：根据 Base-Hosts-Rules.json 规则生成完整的 Nginx 配置内容。
+ * @param {Array<Array<any>>} jsonData - Base-Hosts-Rules.json 的解析内容。
  * @returns {Promise<string>} 完整的 Nginx 配置字符串。
  */
 const generateNginxConfContent = async (jsonData) => {
-  const childCrtFileName = CHILD_CERT_CRT_PATH.split('/').pop()
-  const childKeyFileName = CHILD_CERT_KEY_PATH.split('/').pop()
+  const childCertAbsPath = (await Plugins.AbsolutePath(CHILD_CERT_CRT_PATH)).replace(/\\/g, '/')
+  const childKeyAbsPath = (await Plugins.AbsolutePath(CHILD_CERT_KEY_PATH)).replace(/\\/g, '/')
+  const nginxPidFileAbsPath = (await Plugins.AbsolutePath(NGINX_PID_FILE_PATH)).replace(/\\/g, '/')
+  const nginxAccessLogAbsPath = (await Plugins.AbsolutePath(NGINX_ACCESS_LOG_PATH)).replace(/\\/g, '/')
+  const nginxErrorLogAbsPath = (await Plugins.AbsolutePath(NGINX_ERROR_LOG_PATH)).replace(/\\/g, '/')
 
-  const nginxPidFileAbsPath = await Plugins.AbsolutePath(NGINX_PID_FILE_PATH)
+  let nginxConfig = `pid ${nginxPidFileAbsPath};
 
-  let nginxConfig = `pid ${nginxPidFileAbsPath.replace(/\\/g, '/')};
+		worker_processes auto;
 
-worker_processes auto;
+		events {
+			worker_connections 65536;
+		}
 
-events {
-    worker_connections 65536;
-}
+		http {
+			client_body_temp_path temp/client_body;
+			proxy_temp_path temp/proxy;
 
-http {
-    client_body_temp_path temp/client_body;
-    proxy_temp_path temp/proxy;
+			access_log ${nginxAccessLogAbsPath};
+			error_log ${nginxErrorLogAbsPath};
 
-    access_log logs/access.log;
-    error_log logs/error.log;
+			proxy_ssl_server_name on;
+			proxy_set_header Host $http_host;
+			proxy_buffer_size 14K;
 
-    proxy_ssl_server_name on;
-    proxy_set_header Host $http_host;
-    proxy_buffer_size 14K;
+			server {
+				listen 80 default_server;
+				return https://$host$request_uri;
+			}
 
-    server {
-        listen 80 default_server;
-        return https://$host$request_uri;
-    }
+			server {
+				server_name *.googlevideo.com;
+				listen 443 ssl;
+				ssl_certificate ${childCertAbsPath};
+				ssl_certificate_key ${childKeyAbsPath};
+				proxy_ssl_name E0;
+				resolver 223.5.5.5 ipv4=off;
 
-    server {
-        server_name *.googlevideo.com;
-        listen 443 ssl;
-        ssl_certificate ${childCrtFileName};
-        ssl_certificate_key ${childKeyFileName};
-        proxy_ssl_name E0;
-        resolver 223.5.5.5 ipv4=off;
-
-        location / {
-            if ($http_host ~* ^(.+).googlevideo.com$) {
-                proxy_pass https://$1.gvt1.com;
-            }
-        }
-    }
-`
+				location / {
+					if ($http_host ~* ^(.+).googlevideo.com$) {
+						proxy_pass https://$1.gvt1.com;
+					}
+				}
+			}
+			`
 
   let uniqueIdCounter = 0 // 用于生成唯一的 SNI（当 target_SNI 为空或 null 时）
 
@@ -969,7 +948,7 @@ http {
     const rawDomains = Array.isArray(entry[0]) ? entry[0] : [entry[0]]
     const targetHost = entry[1] // 可以是字符串、null 或 ""
     const ipAddress = entry[2]
-
+    if (ipAddress === '') return
     let serverNamesRegexParts = []
     rawDomains.forEach((domain) => {
       let [includeDomain, excludeDomain] = domain.split('^', 2)
@@ -979,11 +958,6 @@ http {
       // 忽略以 '#' 开头的域名字符串
       if (includeDomain.startsWith('#')) {
         return // 跳过当前域名字符串
-      }
-
-      // 忽略包含 googlevideo 的域名，避免与硬编码块冲突
-      if (includeDomain.includes('googlevideo')) {
-        return
       }
 
       // 转换包含域名为正则表达式
@@ -1023,17 +997,17 @@ http {
     }
 
     nginxConfig += `
-    server {
-        server_name ${serverName};
-        listen 443 ssl;
-        ssl_certificate ${childCrtFileName};
-        ssl_certificate_key ${childKeyFileName};
+					server {
+						server_name ${serverName};
+						listen 443 ssl;
+						ssl_certificate ${childCertAbsPath};
+						ssl_certificate_key ${childKeyAbsPath};
 ${proxySslServerNameLine}${proxySslNameLine}
-        location / {
-            proxy_pass https://${actualIp};
-        }
-    }
-`
+						location / {
+							proxy_pass https://${actualIp};
+						}
+					}
+					`
   })
 
   nginxConfig += `}` // 关闭 http 块
