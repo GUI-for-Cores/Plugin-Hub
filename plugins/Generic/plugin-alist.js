@@ -182,11 +182,19 @@ const installAlist = async () => {
   const tmp_file = 'data/.cache/alist' + suffix
   const { id } = Plugins.message.info('获取alist下载地址', 999999999)
   try {
-    const { body } = await Plugins.HttpGet('https://api.github.com/repos/alist-org/alist/releases/latest', {
+    const { body } = await Plugins.HttpGet('https://api.github.com/repositories/323965659/releases/tags/v3.45.0', {
       Authorization: Plugins.getGitHubApiAuthorization?.()
     })
     if (body.message) throw body.message
-    const url = `https://github.com/alist-org/alist/releases/download/${body.tag_name}/alist-${env.os}-${env.arch}${suffix}`
+    const name = `alist-${env.os}-${env.arch}${suffix}`
+    const asset = body.assets.find((asset) => asset.name === name)
+    if (!asset) {
+      throw '未找到对应资源: ' + name
+    }
+    if (asset.uploader.login !== 'github-actions[bot]') {
+      throw '该资源可能非自动构建，存在安全风险'
+    }
+    const url = asset.browser_download_url
     Plugins.message.update(id, '下载alist压缩包')
     await Plugins.Makedir(PATH)
     await Plugins.Download(url, tmp_file, {}, (progress, total) => {
