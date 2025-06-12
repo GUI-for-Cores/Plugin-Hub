@@ -15,6 +15,7 @@
   "author": "GUI.for.Cores",
   "license": "GPL-3.0",
   "dependencies": {
-    "prettier": "^3.5.3"
+    "prettier": "^3.5.3",
+    "vue": "^3.5.16"
   }
 }
