@@ -8,6 +8,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-configuration-example.js",
     "path": "data/plugins/plugin-configuration-example.js",
     "triggers": ["on::manual"],
+    "hasUI": false,
     "menus": {},
     "context": {
       "profiles": {},
@@ -107,6 +108,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-mmdb-example.js",
     "path": "data/plugins/plugin-mmdb-example.js",
     "triggers": ["on::manual"],
+    "hasUI": false,
     "menus": {},
     "context": {
       "profiles": {},
@@ -130,6 +132,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-ui-example.js",
     "path": "data/plugins/plugin-ui-example.js",
     "triggers": ["on::manual"],
+    "hasUI": true,
     "menus": {},
     "context": {
       "profiles": {},
@@ -153,6 +156,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-node-convert.js",
     "path": "data/plugins/plugin-node-convert.js",
     "triggers": ["on::manual", "on::subscribe"],
+    "hasUI": false,
     "menus": {},
     "context": {
       "profiles": {},
@@ -180,6 +184,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-smart-proxy-switcher.js",
     "path": "data/plugins/plugin-smart-proxy-switcher.js",
     "triggers": ["on::manual", "on::ready"],
+    "hasUI": false,
     "menus": {
       "查看节点状态": "ViewStat",
       "停止": "Stop"
@@ -288,6 +293,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-rolling-release.js",
     "path": "data/plugins/plugin-rolling-release.js",
     "triggers": ["on::manual", "on::ready", "on::startup"],
+    "hasUI": false,
     "menus": {
       "滚动版本": "Rolling",
       "恢复版本": "Recovery",
@@ -335,6 +341,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-gemini-ai.js",
     "path": "data/plugins/plugin-gemini-ai.js",
     "triggers": ["on::manual"],
+    "hasUI": false,
     "menus": {
       "开始提问": "Ask",
       "随意对话": "Chat"
@@ -371,6 +378,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-workers-ai.js",
     "path": "data/plugins/plugin-workers-ai.js",
     "triggers": ["on::manual"],
+    "hasUI": false,
     "menus": {
       "开始提问": "Ask",
       "随意对话": "Chat"
@@ -416,6 +424,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-tun-assistant.js",
     "path": "data/plugins/plugin-tun-assistant.js",
     "triggers": ["on::manual"],
+    "hasUI": false,
     "menus": {},
     "context": {
       "profiles": {},
@@ -439,6 +448,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-check-certificate.js",
     "path": "data/plugins/plugin-check-certificate.js",
     "triggers": ["on::manual"],
+    "hasUI": false,
     "menus": {},
     "context": {
       "profiles": {},
@@ -462,6 +472,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-system-proxy-guard.js",
     "path": "data/plugins/plugin-system-proxy-guard.js",
     "triggers": ["on::manual", "on::ready"],
+    "hasUI": false,
     "menus": {
       "关闭守卫": "Stop"
     },
@@ -497,6 +508,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-systemproxy-external.js",
     "path": "data/plugins/plugin-systemproxy-external.js",
     "triggers": ["on::manual", "on::ready"],
+    "hasUI": false,
     "menus": {
       "设置代理": "Set",
       "清除代理": "Clear"
@@ -523,6 +535,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-hosts-management.js",
     "path": "data/plugins/plugin-hosts-management.js",
     "triggers": ["on::manual"],
+    "hasUI": false,
     "menus": {
       "普通配置": "Normal",
       "开发配置": "Development",
@@ -578,6 +591,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-install-font.js",
     "path": "data/plugins/plugin-install-font.js",
     "triggers": [],
+    "hasUI": false,
     "menus": {},
     "context": {
       "profiles": {},
@@ -601,6 +615,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-live2d-widget.js",
     "path": "data/plugins/plugin-live2d-widget.js",
     "triggers": ["on::manual", "on::ready"],
+    "hasUI": false,
     "menus": {},
     "context": {
       "profiles": {},
@@ -643,6 +658,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-adguardhome.js",
     "path": "data/plugins/plugin-adguardhome.js",
     "triggers": ["on::manual", "on::startup", "on::shutdown"],
+    "hasUI": false,
     "menus": {
       "授权程序": "Grant",
       "运行服务": "Start",
@@ -701,6 +717,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-file-transfer-assistant.js",
     "path": "data/plugins/plugin-file-transfer-assistant.js",
     "triggers": ["on::manual", "on::ready"],
+    "hasUI": false,
     "menus": {
       "运行服务": "Start",
       "停止服务": "Stop",
@@ -757,6 +774,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-alist.js",
     "path": "data/plugins/plugin-alist.js",
     "triggers": ["on::manual", "on::startup", "on::shutdown"],
+    "hasUI": false,
     "menus": {
       "运行服务": "Start",
       "停止服务": "Stop",
@@ -795,6 +813,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-frp-client.js",
     "path": "data/plugins/plugin-frp-client.js",
     "triggers": ["on::manual", "on::startup", "on::shutdown"],
+    "hasUI": false,
     "menus": {
       "运行服务": "Start",
       "停止服务": "Stop"
@@ -840,6 +859,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sub-store-v3.js",
     "path": "data/plugins/plugin-sub-store-v3.js",
     "triggers": ["on::manual", "on::ready"],
+    "hasUI": false,
     "menus": {
       "运行服务": "Start",
       "停止服务": "Stop",
@@ -886,6 +906,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sub-store-v2.js",
     "path": "data/plugins/plugin-sub-store-v2.js",
     "triggers": ["on::manual", "on::startup", "on::shutdown"],
+    "hasUI": false,
     "menus": {
       "运行服务": "Start",
       "停止服务": "Stop",
@@ -1013,6 +1034,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sub-store-script-support.js",
     "path": "data/plugins/plugin-sub-store-script-support.js",
     "triggers": ["on::manual", "on::ready"],
+    "hasUI": false,
     "menus": {
       "运行服务": "Start",
       "停止服务": "Stop"
@@ -1049,6 +1071,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sync-configuration.js",
     "path": "data/plugins/plugin-sync-configuration.js",
     "triggers": ["on::manual", "on::ready"],
+    "hasUI": false,
     "menus": {
       "立即备份": "Backup",
       "同步至本地": "Sync"
@@ -1132,6 +1155,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sync-configuration-gists.js",
     "path": "data/plugins/plugin-sync-configuration-gists.js",
     "triggers": ["on::manual", "on::ready"],
+    "hasUI": false,
     "menus": {
       "立即备份": "Backup",
       "同步至本地": "Sync"
@@ -1177,6 +1201,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sync-configuration-webdav.js",
     "path": "data/plugins/plugin-sync-configuration-webdav.js",
     "triggers": ["on::manual", "on::ready"],
+    "hasUI": false,
     "menus": {
       "立即备份": "Backup",
       "同步至本地": "Sync"
@@ -1257,6 +1282,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-bandwagon-vps.js",
     "path": "data/plugins/plugin-bandwagon-vps.js",
     "triggers": ["on::manual"],
+    "hasUI": false,
     "menus": {},
     "context": {
       "profiles": {},
@@ -1290,6 +1316,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-unblockneteasemusic.js",
     "path": "data/plugins/plugin-unblockneteasemusic.js",
     "triggers": ["on::manual", "on::before::core::start", "on::core::stopped", "on::core::started"],
+    "hasUI": false,
     "menus": {
       "运行服务": "Start",
       "停止服务": "Stop"
@@ -1452,6 +1479,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-index-the-proxy-name.js",
     "path": "data/plugins/plugin-index-the-proxy-name.js",
     "triggers": ["on::subscribe"],
+    "hasUI": false,
     "menus": {},
     "context": {
       "profiles": {},
@@ -1475,6 +1503,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-uwp-loopback-exempt.js",
     "path": "data/plugins/plugin-uwp-loopback-exempt.js",
     "triggers": ["on::manual"],
+    "hasUI": false,
     "menus": {},
     "context": {
       "profiles": {},
@@ -1498,6 +1527,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-terminal-proxy.js",
     "path": "data/plugins/plugin-terminal-proxy.js",
     "triggers": ["on::manual", "on::ready"],
+    "hasUI": false,
     "menus": {
       "复制 Bash 环境变量": "copyBashEnv",
       "复制 CMD 环境变量": "copyCMDEnv",
@@ -1535,6 +1565,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-modify-proxy-name.js",
     "path": "data/plugins/plugin-modify-proxy-name.js",
     "triggers": ["on::subscribe"],
+    "hasUI": false,
     "menus": {},
     "context": {
       "profiles": {},
@@ -1595,6 +1626,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-beautiful-node-name.js",
     "path": "data/plugins/plugin-beautiful-node-name.js",
     "triggers": ["on::subscribe", "on::manual"],
+    "hasUI": false,
     "menus": {
       "测试节点名": "testName"
     },
@@ -1666,6 +1698,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-ip-geolocation.js",
     "path": "data/plugins/plugin-ip-geolocation.js",
     "triggers": ["on::manual", "on::ready"],
+    "hasUI": false,
     "menus": {},
     "context": {
       "profiles": {},
@@ -1689,6 +1722,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-speedtest.js",
     "path": "data/plugins/plugin-speedtest.js",
     "triggers": ["on::manual"],
+    "hasUI": false,
     "menus": {},
     "context": {
       "profiles": {},
@@ -1722,6 +1756,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-speedtest-cli.js",
     "path": "data/plugins/plugin-speedtest-cli.js",
     "triggers": ["on::manual"],
+    "hasUI": false,
     "menus": {
       "选择测速服务器": "startSpeedTestByServerId",
       "查看测速历史": "speedtestHistory",
@@ -1749,6 +1784,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-media-unlock-checker.js",
     "path": "data/plugins/plugin-media-unlock-checker.js",
     "triggers": ["on::manual"],
+    "hasUI": false,
     "menus": {},
     "context": {
       "profiles": {},
@@ -1772,6 +1808,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-geoip-search.js",
     "path": "data/plugins/plugin-geoip-search.js",
     "triggers": ["on::manual"],
+    "hasUI": false,
     "menus": {},
     "context": {
       "profiles": {},
@@ -1795,6 +1832,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-scamalytics-ip-fraud-risk.js",
     "path": "data/plugins/plugin-scamalytics-ip-fraud-risk.js",
     "triggers": ["on::manual"],
+    "hasUI": false,
     "menus": {
       "手动模式": "manual"
     },
@@ -1848,6 +1886,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-open-yacd-meta-dashboard.js",
     "path": "data/plugins/plugin-open-yacd-meta-dashboard.js",
     "triggers": ["on::manual"],
+    "hasUI": false,
     "menus": {},
     "context": {
       "profiles": {},
@@ -1871,6 +1910,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-custom-theme.js",
     "path": "data/plugins/plugin-custom-theme.js",
     "triggers": ["on::manual", "on::ready"],
+    "hasUI": false,
     "menus": {
       "选择背景": "Select",
       "清除主题": "Clear",
@@ -1936,6 +1976,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-aliyunpan-signin.js",
     "path": "data/plugins/plugin-aliyunpan-signin.js",
     "triggers": ["on::manual"],
+    "hasUI": false,
     "menus": {},
     "context": {
       "profiles": {},
@@ -1969,6 +2010,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-screen-recorder.js",
     "path": "data/plugins/plugin-screen-recorder.js",
     "triggers": ["on::manual"],
+    "hasUI": false,
     "menus": {
       "打开目录": "OpenFolder"
     },
@@ -2040,6 +2082,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-gui-restful-api-v1.js",
     "path": "data/plugins/plugin-gui-restful-api-v1.js",
     "triggers": ["on::manual", "on::ready"],
+    "hasUI": false,
     "menus": {
       "启动服务": "Start",
       "停止服务": "Stop"
@@ -2104,6 +2147,7 @@
     "status": 0,
     "path": "data/plugins/plugin-metacubexd-dashboard.js",
     "triggers": ["on::manual", "on::ready"],
+    "hasUI": false,
     "menus": {
       "XD Dashboard": "OnRun"
     },
@@ -2147,6 +2191,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-network-sharing.js",
     "path": "data/plugins/plugin-network-sharing.js",
     "triggers": ["on::manual"],
+    "hasUI": false,
     "menus": {
       "快速启用共享": "quickEnable",
       "快速禁用共享": "quickDisable",
@@ -2193,6 +2238,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-clash-api-dashboard.js",
     "path": "data/plugins/plugin-clash-api-dashboard.js",
     "triggers": ["on::manual", "on::generate", "on::ready"],
+    "hasUI": false,
     "menus": {},
     "context": {
       "profiles": {},
@@ -2235,6 +2281,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sni-spoofing.js",
     "path": "data/plugins/plugin-sni-spoofing.js",
     "triggers": ["on::manual", "on::shutdown", "on::ready"],
+    "hasUI": false,
     "menus": {
       "更新规则": "updateRule",
       "启动服务": "onStart",
@@ -2308,6 +2355,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-generate-warp-config.js",
     "path": "data/plugins/plugin-generate-warp-config.js",
     "triggers": ["on::manual"],
+    "hasUI": false,
     "menus": {},
     "context": {
       "profiles": {},
