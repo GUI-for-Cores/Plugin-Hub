@@ -2298,5 +2298,38 @@
     "disabled": false,
     "install": true,
     "installed": false
+  },
+  {
+    "id": "plugin-generate-warp-config",
+    "name": "WARP 配置生成",
+    "version": "v1.0.0",
+    "description": "自动注册并生成 Cloudflare WARP 的配置信息。Supported by: 泡泡茶壶",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-generate-warp-config.js",
+    "path": "data/plugins/plugin-generate-warp-config.js",
+    "triggers": ["on::manual"],
+    "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_1u3mi3d9",
+        "title": "OpenSSL 可执行文件路径",
+        "description": "此选项只需要 Windwos 用户填写，并且是可选的",
+        "key": "OpenSslExecPath",
+        "component": "Input",
+        "value": "C:/Program Files/FireDaemon OpenSSL 3/bin/openssl.exe",
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
   }
 ]
