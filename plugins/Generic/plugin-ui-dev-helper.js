@@ -63,6 +63,10 @@ const createUIModal = () => {
        * 启动开发服务器
        */
       const handleStartDevServer = async () => {
+        if (!Plugin.Token) {
+          Plugins.message.warn('请先配置开发Token，并填入开发模板文件内')
+          return
+        }
         loading.value = true
         try {
           await Plugins.StartServer('127.0.0.1:28888', Plugin.id, (req, res) => {
