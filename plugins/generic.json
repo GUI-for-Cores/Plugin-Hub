@@ -148,6 +148,40 @@
     "installed": false
   },
   {
+    "id": "plugin-ui-dev-helper",
+    "name": "插件UI开发助手",
+    "version": "v1.0.0",
+    "description": "可热更新代码，实时预览插件UI改动。",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-ui-dev-helper.js",
+    "status": 0,
+    "path": "data/plugins/plugin-ui-dev-helper.js",
+    "triggers": ["on::manual"],
+    "menus": {},
+    "hasUI": true,
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "configuration": [
+      {
+        "id": "ID_i0lo92gn",
+        "title": "开发Token",
+        "description": "",
+        "key": "Token",
+        "component": "Input",
+        "value": "",
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-node-convert",
     "name": "节点转换",
     "version": "v2.3.0",
