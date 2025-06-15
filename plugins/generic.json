@@ -803,7 +803,7 @@
       "id": "plugin-gitea",
       "name": "Gitea",
       "version": "v1.0.0",
-      "description": "🌱 轻量级自托管 Git 服务，支持一键安装与管理。by: Fromsko",
+      "description": "🌱 轻量级自托管 Git 服务，支持一键安装与管理。Supported by: Fromsko",
       "type": "Http",
       "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-gitea.js",
       "path": "data/plugins/plugin-gitea.js",
