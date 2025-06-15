@@ -168,7 +168,13 @@ const createUIModal = () => {
     }
   })
 
-  const modal = Plugins.modal({ title: '自定义UI使用示例', component: h(component) })
+  const modal = Plugins.modal({
+    title: '自定义UI使用示例',
+    component: h(component),
+    afterClose: () => {
+      modal.destroy()
+    }
+  })
 
   return modal
 }

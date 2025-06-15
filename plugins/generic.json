@@ -126,7 +126,7 @@
   {
     "id": "plugin-ui-example",
     "name": "插件UI示例",
-    "version": "v1.0.0",
+    "version": "v1.0.1",
     "description": "插件创建UI示例",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-ui-example.js",
@@ -150,7 +150,7 @@
   {
     "id": "plugin-ui-dev-helper",
     "name": "插件UI开发助手",
-    "version": "v1.0.1",
+    "version": "v1.0.2",
     "description": "可热更新代码，实时预览插件UI改动。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-ui-dev-helper.js",
@@ -800,41 +800,41 @@
     "installed": false
   },
   {
-      "id": "plugin-gitea",
-      "name": "Gitea",
-      "version": "v1.0.0",
-      "description": "🌱 轻量级自托管 Git 服务，支持一键安装与管理。Supported by: Fromsko",
-      "type": "Http",
-      "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-gitea.js",
-      "path": "data/plugins/plugin-gitea.js",
-      "triggers": ["on::manual", "on::startup", "on::shutdown"],
-      "menus": {
-        "运行服务": "Start",
-        "停止服务": "Stop",
-        "配置文件": "Config"
-      },
-      "context": {
-        "profiles": {},
-        "subscriptions": {},
-        "rulesets": {},
-        "plugins": {},
-        "scheduledtasks": {}
-      },
-      "status": 0,
-      "configuration": [
-        {
-          "id": "ID_gytm0oyf",
-          "title": "跟随GUI启动或停止",
-          "description": "",
-          "key": "AutoStartOrStop",
-          "component": "Switch",
-          "value": false,
-          "options": []
-        }
-      ],
-      "disabled": false,
-      "install": true,
-      "installed": false
+    "id": "plugin-gitea",
+    "name": "Gitea",
+    "version": "v1.0.0",
+    "description": "🌱 轻量级自托管 Git 服务，支持一键安装与管理。Supported by: Fromsko",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-gitea.js",
+    "path": "data/plugins/plugin-gitea.js",
+    "triggers": ["on::manual", "on::startup", "on::shutdown"],
+    "menus": {
+      "运行服务": "Start",
+      "停止服务": "Stop",
+      "配置文件": "Config"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_gytm0oyf",
+        "title": "跟随GUI启动或停止",
+        "description": "",
+        "key": "AutoStartOrStop",
+        "component": "Switch",
+        "value": false,
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": true,
+    "installed": false
   },
   {
     "id": "plugin-alist",
@@ -2454,7 +2454,7 @@
   {
     "id": "plugin-relay-proxy-helper",
     "name": "链式代理助手",
-    "version": "v1.0.0",
+    "version": "v1.0.1",
     "description": "帮助用户快速生成可添加代理链的配置脚本。Supported by: 泡泡茶壶",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-relay-proxy-helper.js",

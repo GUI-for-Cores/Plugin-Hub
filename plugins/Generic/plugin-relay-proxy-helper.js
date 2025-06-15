@@ -97,7 +97,15 @@ const home = () => {
             }
           }
         })
-        const modal = Plugins.modal({ title: '配置脚本预览', submit: false, cancelText: '关闭', component: h(previewComponent) })
+        const modal = Plugins.modal({
+          title: '配置脚本预览',
+          submit: false,
+          cancelText: '关闭',
+          component: h(previewComponent),
+          afterClose: () => {
+            modal.destroy()
+          }
+        })
         return modal
       }
 
@@ -109,7 +117,10 @@ const home = () => {
     title: '链式代理列表',
     submit: false,
     cancelText: '关闭',
-    component: h(component)
+    component: h(component),
+    afterClose: () => {
+      modal.destroy()
+    }
   })
 
   return modal

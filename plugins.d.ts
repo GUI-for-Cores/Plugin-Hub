@@ -1,3 +1,5 @@
+type MaybePromise<T> = T | Promise<T>
+
 type UseModalOptions = { component?: any } & Partial<{
   open: boolean
   title?: string
@@ -13,6 +15,10 @@ type UseModalOptions = { component?: any } & Partial<{
   cancelText?: string
   submitText?: string
   maskClosable?: boolean
+  onOk?: () => MaybePromise<boolean | void>
+  onCancel?: () => MaybePromise<boolean | void>
+  beforeClose?: (isOk: boolean) => MaybePromise<boolean | void>
+  afterClose?: (isOk: boolean) => void
 }>
 
 interface Plugins {
