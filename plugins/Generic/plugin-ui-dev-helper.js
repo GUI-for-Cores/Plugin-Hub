@@ -57,6 +57,7 @@ const createUIModal = () => {
       const loading = ref(false)
       const isRunning = ref(false)
 
+      let previewModal
       /*
        * 启动开发服务器
        */
@@ -87,15 +88,12 @@ const createUIModal = () => {
             res.end(200, Headers, '插件UI开发助手运行中...')
           })
           isRunning.value = true
-          const previewModal = Plugins.modal({
+          previewModal = Plugins.modal({
             title: 'UI预览',
             submit: false,
             cancelText: '关闭',
             maskClosable: true,
-            component: Vue.h(component),
-            afterClose: () => {
-              previewModal.destroy()
-            }
+            component: Vue.h(component)
           })
         } catch (error) {
           isRunning.value = false
@@ -109,6 +107,7 @@ const createUIModal = () => {
       const handleStopDevServer = async () => {
         await Plugins.StopServer(Plugin.id).catch(() => {})
         isRunning.value = false
+        previewModal?.destroy()
       }
 
       onMounted(async () => {

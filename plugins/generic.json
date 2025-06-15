@@ -150,7 +150,7 @@
   {
     "id": "plugin-ui-dev-helper",
     "name": "插件UI开发助手",
-    "version": "v1.0.2",
+    "version": "v1.0.3",
     "description": "可热更新代码，实时预览插件UI改动。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-ui-dev-helper.js",
