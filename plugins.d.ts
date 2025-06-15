@@ -1,3 +1,20 @@
+type UseModalOptions = { component?: any } & Partial<{
+  open: boolean
+  title?: string
+  footer?: boolean
+  maxHeight?: string
+  maxWidth?: string
+  minWidth?: string
+  minHeight?: string
+  width?: string
+  height?: string
+  cancel?: boolean
+  submit?: boolean
+  cancelText?: string
+  submitText?: string
+  maskClosable?: boolean
+}>
+
 interface Plugins {
   APP_TITLE: string
   YAML: {
@@ -24,6 +41,14 @@ interface Plugins {
       markdown?: boolean
     }
   ): Promise<boolean>
+  modal(options?: UseModalOptions): {
+    destroy: () => void
+  } & {
+    open: () => void
+    close: () => void
+    setProps: (options: UseModalOptions) => void
+    setComponent: (component: any) => void
+  }
   picker: {
     multi(title: string, options: Array<{ label: string; value: any }>, initialValue?: any[]): Promise<any[]>
     single(
@@ -182,4 +207,5 @@ interface Plugins {
 declare namespace globalThis {
   var Plugins: Plugins
   var Plugin: any
+  var Vue: typeof import('vue')
 }

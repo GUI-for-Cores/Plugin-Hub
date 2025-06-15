@@ -9,6 +9,7 @@
     "path": "data/plugins/plugin-add-rulesets.js",
     "triggers": ["on::manual"],
     "menus": {},
+    "hasUI": false,
     "context": {
       "profiles": {},
       "subscriptions": {},
@@ -32,6 +33,7 @@
     "path": "data/plugins/plugin-register-clash.js",
     "triggers": [],
     "menus": {},
+    "hasUI": false,
     "context": {
       "profiles": {},
       "subscriptions": {},
