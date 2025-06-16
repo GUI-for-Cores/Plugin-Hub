@@ -2454,7 +2454,7 @@
   {
     "id": "plugin-relay-proxy-helper",
     "name": "链式代理助手",
-    "version": "v1.0.1",
+    "version": "v1.0.2",
     "description": "帮助用户快速生成可添加代理链的配置脚本。Supported by: 泡泡茶壶",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-relay-proxy-helper.js",

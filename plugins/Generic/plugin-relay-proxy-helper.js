@@ -48,29 +48,31 @@ const home = () => {
         const relayListStr = `[${relayList.map((v) => `'${v}'`).join(', ')}]`
         if (Plugins.APP_TITLE.includes('SingBox')) {
           configScript = `const relayList = ${relayListStr}
-  const reg = /selector|urltest/g
-  for (let i = 0; i < relayList.length - 1; i++) {
-    config.outbounds.forEach((out) => {
-      if (out.tag === relayList[i]) {
-        if (reg.test(out.type)) {
-          throw '错误：出站分组不能设置上游代理'
-        }
-        out.detour = relayList[i + 1]
-      }
-    })
-  }`
+  const excludeReg = /selector|urltest/
+  const outsMap = Object.fromEntries(config.outbounds.map((out) => [out.tag, out]))
+  relayList.forEach((tag, i, arr) => {
+    if (i === arr.length - 1) return
+    const out = outsMap[tag]
+    const upStream = arr[i + 1]
+    if (!out) throw \`错误：当前配置内未找到节点 \${tag}\`
+    if (excludeReg.test(out.type)) {
+      throw '错误：出站分组不能设置上游代理'
+    }
+    out.detour = upStream
+  })`
         } else {
           configScript = `const relayList = ${relayListStr}
   if (config.proxies.length < 1) {
-    throw '错误：配置文件内未包含有效代理，请在策略组设置内手动选择需要包含到代理链的节点，而不是订阅'
+    throw '错误：配置文件内未包含有效节点，请在策略组设置内手动选择需要包含到代理链的节点，而不是订阅'
   }
-  for (let i = 0; i < relayList.length - 1; i++) {
-    config.proxies.forEach((proxy) => {
-      if (proxy.name === relayList[i]) {
-        proxy['dialer-proxy'] = relayList[i + 1]
-      }
-    })
-  }`
+  const proxiesMap = Object.fromEntries(config.proxies.map((proxy) => [proxy.name, proxy]))
+  relayList.forEach((name, i, arr) => {
+    if (i === arr.length - 1) return
+    const proxy = proxiesMap[name]
+    const upStream = arr[i + 1]
+    if (!proxy) throw \`错误：当前配置内未找到节点 \${name}\`
+    proxy['dialer-proxy'] = upStream
+  })`
         }
         return `const onGenerate = async (config) => {
   ${configScript}
@@ -125,3 +127,4 @@ const home = () => {
 
   return modal
 }
+
