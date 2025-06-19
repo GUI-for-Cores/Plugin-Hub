@@ -181,6 +181,9 @@ const startUnblockMusicService = () => {
         ['-p', Plugin.Port + ':' + (Number(Plugin.Port) + 1), '-a', '127.0.0.1', '-o', ...Plugin.Source],
         async (out) => {
           console.log(`[${Plugin.name}]`, out)
+          if (out.includes('Error: ')) {
+            reject(out)
+          }
           if (out.includes('HTTP Server running')) {
             await Plugins.Writefile(PID_FILE, pid.toString())
             resolve()
