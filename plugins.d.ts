@@ -125,7 +125,7 @@ interface Plugins {
   ): Promise<{ close: () => Promise<void> }>
 
   ProcessInfo(pid: number): Promise<string>
-  KillProcess(pid: number): Promise<void>
+  KillProcess(pid: number, timeout?: number): Promise<void>
   Exec(cmd: string, args?: string[], options?: { convert?: boolean }): Promise<string>
   ExecBackground(
     cmd: string,
@@ -158,10 +158,21 @@ interface Plugins {
     url: string
     headers?: Record<string, string>
     body?: string
-    Insecure?: boolean
-    Redirect?: boolean
+    autoTransformBody?: boolean
+    options?: {
+      Insecure?: boolean
+      Redirect?: boolean
+    }
   }): Promise<{ status: number; body: any }>
-  Download(url: string, path: string, headers?: Record<string, string>, progressCallback?: (progress: number, total: number) => void): Promise<void>
+  Download(
+    url: string,
+    path: string,
+    headers?: Record<string, string>,
+    progressCallback?: (progress: number, total: number) => void,
+    options?: {
+      Method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+    }
+  ): Promise<void>
 
   GetInterfaces(): Promise<string[]>
   CheckPermissions(): Promise<boolean>
