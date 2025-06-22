@@ -28,6 +28,10 @@ const onReady = async () => {
  * params: confirm 是否进行交互式确认
  */
 const Rolling = async (confirm = true) => {
+  // TODO: 稳定后移除
+  if (Plugins.APP_VERSION.includes('Alpha')) {
+    throw 'Alpha版本暂未开放滚动发行'
+  }
   await checkRollingReleaseEnabled()
   await checkLatestVersion()
 
@@ -181,8 +185,9 @@ const checkRollingReleaseEnabled = async () => {
 }
 
 const checkLatestVersion = async () => {
-  const GFC_URL = 'https://api.github.com/repos/GUI-for-Cores/GUI.for.Clash/releases/latest'
-  const GFS_URL = 'https://api.github.com/repos/GUI-for-Cores/GUI.for.SingBox/releases/latest'
+  // TODO: 稳定后改为latest
+  const GFC_URL = 'https://api.github.com/repos/GUI-for-Cores/GUI.for.Clash/releases/tags/v1.9.7'
+  const GFS_URL = 'https://api.github.com/repos/GUI-for-Cores/GUI.for.SingBox/releases/tags/v1.9.7'
   const url = Plugins.APP_TITLE.includes('Clash') ? GFC_URL : GFS_URL
   const { body } = await Plugins.HttpGet(url, {
     Authorization: Plugins.getGitHubApiAuthorization()
@@ -198,7 +203,8 @@ const fetchChangeLog = async () => {
   const { body } = await Plugins.HttpGet(`https://api.github.com/repos/GUI-for-Cores/${Plugins.APP_TITLE}/commits`, {
     Authorization: Plugins.getGitHubApiAuthorization()
   })
-  const releaseIndex = body.findIndex((v) => v.commit.message.startsWith('Release v'))
+  // TODO: 稳定后移除
+  const releaseIndex = body.findIndex((v) => v.commit.message.startsWith('Release v') && !v.commit.message.includes('-Alpha'))
   let currentVersion
   try {
     currentVersion = await (await fetch('/version.txt')).text()

@@ -23,6 +23,7 @@ type UseModalOptions = { component?: any } & Partial<{
 
 interface Plugins {
   APP_TITLE: string
+  APP_VERSION: string
   YAML: {
     parse(text: string): any
     stringify(obj: any): string
