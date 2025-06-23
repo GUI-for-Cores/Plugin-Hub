@@ -837,6 +837,45 @@
     "installed": false
   },
   {
+    "id": "plugin-openlist",
+    "name": "OpenList",
+    "version": "v1.0.0",
+    "description": "A new AList Fork to Anti Trust Crisis",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-openlist.js",
+    "path": "data/plugins/plugin-openlist.js",
+    "triggers": ["on::manual", "on::startup", "on::shutdown"],
+    "hasUI": false,
+    "menus": {
+      "运行服务": "Start",
+      "停止服务": "Stop",
+      "配置文件": "Config",
+      "管理员": "More"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_gytm0oyf",
+        "title": "跟随GUI启动或停止",
+        "description": "",
+        "key": "AutoStartOrStop",
+        "component": "Switch",
+        "value": false,
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": true,
+    "installed": false
+  },
+  {
     "id": "plugin-frp-client",
     "name": "frp 内网穿透",
     "version": "v1.1.0",

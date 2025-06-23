@@ -1,18 +1,18 @@
 /**
- * 本插件使用项目：https://github.com/alist-org/alist
+ * 本插件使用开源项目：https://github.com/OpenListTeam/OpenList
  */
 
-const PATH = 'data/third/alist'
-const PID_FILE = PATH + '/alist.pid'
+const PATH = 'data/third/openlist'
+const PID_FILE = PATH + '/openlist.pid'
 
 const { env } = Plugins.useEnvStore()
-const BIN_FILE = PATH + '/alist' + { linux: '', windows: '.exe', darwin: '' }[env.os]
+const BIN_FILE = PATH + '/openlist' + { linux: '', windows: '.exe', darwin: '' }[env.os]
 
 /**
  * 插件钩子 - 点击安装按钮时
  */
 const onInstall = async () => {
-  await installAlist()
+  await installOpenList()
   const res = await Plugins.Exec(BIN_FILE, ['admin', ...(await defaultArgs())])
   const password = res.match(/password is: (\w+)/)?.[1]
   await Plugins.alert('账号信息', `用户名：admin\n初始密码：${password}\n\n如果你忘记了密码，可点击菜单项【管理员】-【重置密码】。`)
@@ -23,11 +23,11 @@ const onInstall = async () => {
  * 插件钩子 - 点击卸载按钮时
  */
 const onUninstall = async () => {
-  if (await isAlistRunning()) {
-    throw '请先停止运行alist服务！'
+  if (await isOpenListRunning()) {
+    throw '请先停止运行OpenList服务！'
   }
-  await Plugins.confirm('确定要删除alist吗？', '配置文件将不会保留')
-  await uninstallAlist()
+  await Plugins.confirm('确定要删除OpenList吗？', '配置文件将不会保留')
+  await uninstallOpenList()
   return 0
 }
 
@@ -35,8 +35,8 @@ const onUninstall = async () => {
  * 插件钩子 - 启动APP时
  */
 const onStartup = async () => {
-  if (Plugin.AutoStartOrStop && !(await isAlistRunning())) {
-    await startAlistService()
+  if (Plugin.AutoStartOrStop && !(await isOpenListRunning())) {
+    await startOpenListService()
     return 1
   }
 }
@@ -45,8 +45,8 @@ const onStartup = async () => {
  * 插件钩子 - 关闭APP时
  */
 const onShutdown = async () => {
-  if (Plugin.AutoStartOrStop && (await isAlistRunning())) {
-    await stopAlistService()
+  if (Plugin.AutoStartOrStop && (await isOpenListRunning())) {
+    await stopOpenListService()
     return 2
   }
 }
@@ -55,8 +55,8 @@ const onShutdown = async () => {
  * 插件钩子 - 点击运行按钮时
  */
 const onRun = async () => {
-  if (!(await isAlistRunning())) {
-    await startAlistService()
+  if (!(await isOpenListRunning())) {
+    await startOpenListService()
   }
   const config = JSON.parse(await Plugins.Readfile(PATH + '/config.json'))
   Plugins.BrowserOpenURL(`http://127.0.0.1:${config.scheme.http_port}`)
@@ -67,11 +67,11 @@ const onRun = async () => {
  * 插件菜单项 - 启动服务
  */
 const Start = async () => {
-  if (await isAlistRunning()) {
+  if (await isOpenListRunning()) {
     throw '当前服务已经在运行了'
   }
-  await startAlistService()
-  Plugins.message.success('✨alist 启动成功!')
+  await startOpenListService()
+  Plugins.message.success('✨openlist 启动成功!')
   return 1
 }
 
@@ -79,11 +79,11 @@ const Start = async () => {
  * 插件菜单项 - 停止服务
  */
 const Stop = async () => {
-  if (!(await isAlistRunning())) {
+  if (!(await isOpenListRunning())) {
     throw '当前服务并未在运行'
   }
-  await stopAlistService()
-  Plugins.message.success('停止alist成功')
+  await stopOpenListService()
+  Plugins.message.success('停止OpenList成功')
   return 2
 }
 
@@ -129,21 +129,21 @@ const More = async () => {
 }
 
 /**
- * 检测alist是否在运行
+ * 检测OpenList是否在运行
  */
-const isAlistRunning = async () => {
+const isOpenListRunning = async () => {
   const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
   if (pid && pid !== '0') {
     const name = await Plugins.ignoredError(Plugins.ProcessInfo, Number(pid))
-    return ['alist', 'alist.exe'].includes(name)
+    return ['openlist', 'openlist.exe'].includes(name)
   }
   return false
 }
 
 /**
- * 停止alist服务
+ * 停止OpenList服务
  */
-const stopAlistService = async () => {
+const stopOpenListService = async () => {
   const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
   if (pid && pid !== '0') {
     await Plugins.KillProcess(Number(pid))
@@ -152,9 +152,9 @@ const stopAlistService = async () => {
 }
 
 /**
- * 启动alist服务
+ * 启动OpenList服务
  */
-const startAlistService = () => {
+const startOpenListService = () => {
   return new Promise(async (resolve, reject) => {
     try {
       const pid = await Plugins.ExecBackground(
@@ -175,18 +175,18 @@ const startAlistService = () => {
 }
 
 /**
- * 安装alist
+ * 安装OpenList
  */
-const installAlist = async () => {
+const installOpenList = async () => {
   const suffix = env.os === 'windows' ? '.zip' : '.tar.gz'
-  const tmp_file = 'data/.cache/alist' + suffix
-  const { id } = Plugins.message.info('获取alist下载地址', 999999999)
+  const tmp_file = 'data/.cache/openlist' + suffix
+  const { id } = Plugins.message.info('获取OpenList下载地址', 999999999)
   try {
-    const { body } = await Plugins.HttpGet('https://api.github.com/repositories/323965659/releases/tags/v3.45.0', {
+    const { body } = await Plugins.HttpGet('https://api.github.com/repos/OpenListTeam/OpenList/releases/latest', {
       Authorization: Plugins.getGitHubApiAuthorization?.()
     })
     if (body.message) throw body.message
-    const name = `alist-${env.os}-${env.arch}${suffix}`
+    const name = `openlist-${env.os}-${env.arch}${suffix}`
     const asset = body.assets.find((asset) => asset.name === name)
     if (!asset) {
       throw '未找到对应资源: ' + name
@@ -195,27 +195,27 @@ const installAlist = async () => {
       throw '该资源可能非自动构建，存在安全风险'
     }
     const url = asset.browser_download_url
-    Plugins.message.update(id, '下载alist压缩包')
+    Plugins.message.update(id, '下载OpenList压缩包')
     await Plugins.Makedir(PATH)
     await Plugins.Download(url, tmp_file, {}, (progress, total) => {
-      Plugins.message.update(id, '下载alist压缩包：' + ((progress / total) * 100).toFixed(2) + '%')
+      Plugins.message.update(id, '下载OpenList压缩包：' + ((progress / total) * 100).toFixed(2) + '%')
     })
     if (env.os === 'windows') {
       await Plugins.UnzipZIPFile(tmp_file, PATH)
     } else {
       await Plugins.Exec('tar', ['zxvf', tmp_file, '-C', PATH])
-      await Plugins.Exec('chmod', ['+x', PATH + '/alist'])
+      await Plugins.Exec('chmod', ['+x', PATH + '/openlist'])
     }
     await Plugins.Removefile(tmp_file)
-    Plugins.message.update(id, '安装alist完成', 'success')
+    Plugins.message.update(id, '安装OpenList完成', 'success')
   } finally {
     await Plugins.sleep(1000)
     Plugins.message.destroy(id)
   }
 }
 
-/* 卸载alist */
-const uninstallAlist = async () => {
+/* 卸载OpenList */
+const uninstallOpenList = async () => {
   await Plugins.Removefile(PATH)
 }
 
