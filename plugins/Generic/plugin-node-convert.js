@@ -1115,6 +1115,7 @@ function Singbox_Producer() {
     }
     if (/^\d+$/.test(proxy['idle-session-check-interval'])) parsedProxy.idle_session_check_interval = `${proxy['idle-session-check-interval']}s`
     if (/^\d+$/.test(proxy['idle-session-timeout'])) parsedProxy.idle_session_timeout = `${proxy['idle-session-timeout']}s`
+    if (/^\d+$/.test(proxy['min-idle-session'])) parsedProxy.min_idle_session = parseInt(`${proxy['min-idle-session']}`, 10)
     detourParser(proxy, parsedProxy)
     tlsParser(proxy, parsedProxy)
     return parsedProxy
