@@ -41,7 +41,7 @@ const getClashProxies = async (subscription) => {
     if (!(await Plugins.FileExists(tmp))) {
       await Plugins.alert(
         '提示',
-        '你需要先更新此订阅，才能继续使用本功能！\n\n\n一直看见本提示？请`编辑`订阅将用户代理设置为`clash.meta`后再更新订阅。\n\n注：手动管理的订阅不支持导出',
+        '你需要先更新此订阅，才能继续使用本功能！\n\n\n一直看见本提示？请`编辑`订阅在请求头中添加`User-Agent`=`clash.meta`后再更新订阅。\n\n注：手动管理的订阅不支持导出',
         {
           type: 'markdown'
         }
