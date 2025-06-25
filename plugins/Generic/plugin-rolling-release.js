@@ -2,6 +2,9 @@
  * TODO: 更新失败的回滚操作
  */
 
+const isAlphaVersion = Plugins.APP_VERSION.includes('Alpha')
+const RollingReleasePath = `data/rolling-release${isAlphaVersion ? '-alpha' : ''}`
+
 /* 触发器 手动触发 */
 const onRun = async () => {
   await Rolling()
@@ -28,15 +31,11 @@ const onReady = async () => {
  * params: confirm 是否进行交互式确认
  */
 const Rolling = async (confirm = true) => {
-  // TODO: 稳定后移除
-  if (Plugins.APP_VERSION.includes('Alpha')) {
-    throw 'Alpha版本暂未开放滚动发行'
-  }
   await checkRollingReleaseEnabled()
   await checkLatestVersion()
 
-  const GFC_URL = 'https://api.github.com/repos/GUI-for-Cores/GUI.for.Clash/releases/tags/rolling-release'
-  const GFS_URL = 'https://api.github.com/repos/GUI-for-Cores/GUI.for.SingBox/releases/tags/rolling-release'
+  const GFC_URL = 'https://api.github.com/repos/GUI-for-Cores/GUI.for.Clash/releases/tags/rolling-release' + (isAlphaVersion ? '-alpha' : '')
+  const GFS_URL = 'https://api.github.com/repos/GUI-for-Cores/GUI.for.SingBox/releases/tags/rolling-release' + (isAlphaVersion ? '-alpha' : '')
   const url = Plugins.APP_TITLE.includes('Clash') ? GFC_URL : GFS_URL
 
   const { destroy } = Plugins.message.info(`[${Plugin.name}] 检测中...`, 999999)
@@ -53,9 +52,9 @@ const Rolling = async (confirm = true) => {
     throw body.message
   }
 
-  const ZipFile = 'data/.cache/rolling-release.zip'
-  const BackupFile = 'data/.cache/rolling-release.backup'
-  const ZipUrl = body.assets.find((v) => v.name === 'rolling-release.zip')?.browser_download_url
+  const ZipFile = `data/.cache/rolling-release${isAlphaVersion ? '-alpha' : ''}.zip`
+  const BackupFile = `data/.cache/rolling-release${isAlphaVersion ? '-alpha' : ''}.backup`
+  const ZipUrl = body.assets.find((v) => v.name === `rolling-release${isAlphaVersion ? '-alpha' : ''}.zip`)?.browser_download_url
   const VersionUrl = body.assets.find((v) => v.name === 'version.txt')?.browser_download_url
 
   if (!ZipUrl || !VersionUrl) {
@@ -94,7 +93,7 @@ const Rolling = async (confirm = true) => {
     await Plugins.Download(ZipUrl, ZipFile, {}, (progress, total) => {
       update('正在更新...' + ((progress / total) * 100).toFixed(2) + '%')
     })
-    await Plugins.ignoredError(Plugins.Movefile, 'data/rolling-release', BackupFile)
+    await Plugins.ignoredError(Plugins.Movefile, RollingReleasePath, BackupFile)
     await Plugins.UnzipZIPFile(ZipFile, 'data')
     await Plugins.Removefile(ZipFile)
     await Plugins.Removefile(BackupFile)
@@ -113,7 +112,7 @@ const Rolling = async (confirm = true) => {
  */
 const Recovery = async () => {
   await checkRollingReleaseEnabled()
-  if (!(await Plugins.FileExists('data/rolling-release'))) {
+  if (!(await Plugins.FileExists(RollingReleasePath))) {
     Plugins.message.info('无需恢复，此版本已是默认版本。')
     return
   }
@@ -124,7 +123,7 @@ const Recovery = async () => {
       type: 'markdown'
     }
   )
-  await Plugins.Removefile('data/rolling-release')
+  await Plugins.Removefile(RollingReleasePath)
   await Plugins.confirm(Plugin.name, '回滚成功，即将重载界面！').catch(() => true)
   await Plugins.WindowReloadApp()
 }
@@ -185,9 +184,8 @@ const checkRollingReleaseEnabled = async () => {
 }
 
 const checkLatestVersion = async () => {
-  // TODO: 稳定后改为latest
-  const GFC_URL = 'https://api.github.com/repos/GUI-for-Cores/GUI.for.Clash/releases/tags/v1.9.7'
-  const GFS_URL = 'https://api.github.com/repos/GUI-for-Cores/GUI.for.SingBox/releases/tags/v1.9.7'
+  const GFC_URL = `https://api.github.com/repos/GUI-for-Cores/GUI.for.Clash/releases/${isAlphaVersion ? 'latest' : 'tags/v1.9.7'}`
+  const GFS_URL = `https://api.github.com/repos/GUI-for-Cores/GUI.for.SingBox/releases/${isAlphaVersion ? 'latest' : 'tags/v1.9.7'}`
   const url = Plugins.APP_TITLE.includes('Clash') ? GFC_URL : GFS_URL
   const { body } = await Plugins.HttpGet(url, {
     Authorization: Plugins.getGitHubApiAuthorization()
@@ -203,8 +201,9 @@ const fetchChangeLog = async () => {
   const { body } = await Plugins.HttpGet(`https://api.github.com/repos/GUI-for-Cores/${Plugins.APP_TITLE}/commits`, {
     Authorization: Plugins.getGitHubApiAuthorization()
   })
-  // TODO: 稳定后移除
-  const releaseIndex = body.findIndex((v) => v.commit.message.startsWith('Release v') && !v.commit.message.includes('-Alpha'))
+  const releaseIndex = body.findIndex(
+    (v) => v.commit.message.startsWith('Release v') && (isAlphaVersion ? v.commit.message.includes('-Alpha') : !v.commit.message.includes('-Alpha'))
+  )
   let currentVersion
   try {
     currentVersion = await (await fetch('/version.txt')).text()
