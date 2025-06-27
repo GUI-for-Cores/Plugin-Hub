@@ -2346,7 +2346,7 @@
   {
     "id": "plugin-sni-spoofing",
     "name": "SNI 伪造",
-    "version": "v3.0.0",
+    "version": "v3.0.1",
     "description": "通过为浏览器添加启动参数和运行 Nginx 反代服务，实现免代理访问被墙网站。Supported by: 泡泡茶壶",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sni-spoofing.js",

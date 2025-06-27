@@ -26,18 +26,25 @@ const TEMP_DIR = 'data/.cache'
 const HOSTS_START_MARKER = '# Nginx Hosts Start'
 const HOSTS_END_MARKER = '# Nginx Hosts End'
 
+// @ts-ignore
 const BROWSER_EXEC_PATH = (Plugin.BrowserPath || '').replace(/\\/g, '/').replace(/"/g, '').trim()
+// @ts-ignore
 const OPENSSL_EXEC_PATH = (Plugin.OpensslPath || 'C:/Program Files/FireDaemon OpenSSL 3/bin/openssl.exe').replace(/\\/g, '/').replace(/"/g, '').trim()
+// @ts-ignore
 const GLOBAL_SPOOFING = Plugin.GlobalSpoofing || false
+// @ts-ignore
 const CUSTOM_RULES = Plugin.CustomRules || []
+// @ts-ignore
 const EXTRA_START_ARGS = (Plugin.ExtraStartArgs || '').replace(/\\/g, '/').trim()
 
+// @ts-ignore
 window[Plugin.id] = window[Plugin.id] || {}
 
 /**
  * 插件钩子：APP就绪后
  */
 
+// @ts-ignore
 const onReady = async () => {
   return 2
 }
@@ -46,6 +53,7 @@ const onReady = async () => {
  * 插件钩子：运行按钮 - onRun
  */
 
+// @ts-ignore
 const onRun = async () => {
   const appSettings = Plugins.useAppSettingsStore()
   if (appSettings.app.kernel.running) {
@@ -61,9 +69,11 @@ const onRun = async () => {
       await startNginx()
     }
 
+    // @ts-ignore
     if (!window[Plugin.id].isPrompted) {
       Plugins.message.info('为了启动参数能成功注入，请关闭所有浏览器窗口后，再运行插件，并通过插件运行来启动浏览器')
 
+      // @ts-ignore
       window[Plugin.id].isPrompted = true
     }
 
@@ -71,6 +81,7 @@ const onRun = async () => {
     const browserPid = await Plugins.ExecBackground(
       BROWSER_EXEC_PATH,
       startArgs,
+      // @ts-ignore
       async (out) => {},
       async () => {
         if (browserPid && browserPid !== 0) {
@@ -90,6 +101,7 @@ const onRun = async () => {
  * 插件钩子：安装 - onInstall
  */
 
+// @ts-ignore
 const onInstall = async () => {
   const envStore = Plugins.useEnvStore()
   const { os, arch } = envStore.env
@@ -114,6 +126,7 @@ const onInstall = async () => {
  * 插件钩子：卸载 - onUninstall
  */
 
+// @ts-ignore
 const onUninstall = async () => {
   if (await isRunningNginx()) {
     await stopNginx()
@@ -131,6 +144,7 @@ const onUninstall = async () => {
  * 插件钩子：关闭 - onShutdown
  */
 
+// @ts-ignore
 const onShutdown = async () => {
   if (await isRunningNginx()) {
     await stopNginx()
@@ -142,6 +156,7 @@ const onShutdown = async () => {
  * 插件菜单：更新规则 - updateRule
  */
 
+// @ts-ignore
 const updateRule = async () => {
   await Plugins.Download(BASE_RULES_URL, BASE_RULES_FILE_PATH)
   Plugins.message.success('规则更新成功')
@@ -162,6 +177,7 @@ const updateRule = async () => {
  * 插件菜单：启动服务 - onStart
  */
 
+// @ts-ignore
 const onStart = async () => {
   if (GLOBAL_SPOOFING) {
     if (!(await isRunningNginx())) {
@@ -191,6 +207,7 @@ const onStart = async () => {
  * 插件菜单：停止服务 - onStop
  */
 
+// @ts-ignore
 const onStop = async () => {
   if (await isRunningNginx()) {
     try {
@@ -540,79 +557,43 @@ const startNginx = async () => {
   const envStore = Plugins.useEnvStore()
   const { os } = envStore.env
   const absPath = await Plugins.AbsolutePath(THIRD_DIR)
+   const nginxConfAbsPath = await Plugins.AbsolutePath(NGINX_CONF_FILE_PATH)
 
   await Plugins.Writefile(NGINX_ACCESS_LOG_PATH, '')
   await Plugins.Writefile(NGINX_ERROR_LOG_PATH, '')
 
   await generateAndWriteNginxConfigs() // 在启动前生成并写入配置和证书
 
-  return new Promise(async (outerResolve, outerReject) => {
-    try {
-      let nginxStartPromiseResolved = false
-      let nginxStartPromiseRejected = false
-      let nginxStartPromiseResolve
-      let nginxStartPromiseReject
-
-      const nginxStartPromise = new Promise((res, rej) => {
-        nginxStartPromiseResolve = () => {
-          if (!nginxStartPromiseRejected) {
-            nginxStartPromiseResolved = true
-            res()
+  return new Promise(async (resolve, reject) => {
+    const nginxPid = await Plugins.ExecBackground(
+      `${absPath}/nginx${os === 'windows' ? '.exe' : ''}`,
+      ['-c', nginxConfAbsPath, '-p', absPath],
+      async (out) => {
+        if (out.includes('[emerg]')) {
+          if (out.includes('Permission denied')) {
+            Plugins.message.error(os === 'windows' ? '请启用以管理员身份运行' : '请重新安装插件并正确授权')
+          } else if (out.includes('Address in use)')) {
+            Plugins.message.error('HTTP 端口已被占用，请手动结束冲突进程')
+          } else {
+            Plugins.message.error('Nginx 启动失败')
           }
-        }
-        nginxStartPromiseReject = (err) => {
-          if (!nginxStartPromiseResolved) {
-            nginxStartPromiseRejected = true
-            rej(err)
-          }
-        }
-      })
-
-      const nginxConfAbsPath = await Plugins.AbsolutePath(NGINX_CONF_FILE_PATH)
-
-      const nginxPid = await Plugins.ExecBackground(
-        `${absPath}/nginx${os === 'windows' ? '.exe' : ''}`,
-        ['-c', nginxConfAbsPath, '-p', absPath],
-        async (out) => {
-          if (out.includes('[emerg]')) {
-            if (out.includes('Permission denied')) {
-              Plugins.message.error(os === 'windows' ? '请启用以管理员身份运行' : '请重新安装插件并正确授权')
-            } else if (out.includes('Address in use)')) {
-              Plugins.message.error('HTTP 端口已被占用，请手动结束冲突进程')
-            } else {
-              Plugins.message.error(out)
-            }
-            if (nginxPid && nginxPid !== 0) {
-              await Plugins.ignoredError(Plugins.KillProcess, Number(nginxPid))
-            }
-            nginxStartPromiseReject(new Error(out)) // 错误时拒绝内部 Promise
-            outerReject(new Error(out)) // 同时拒绝外部 Promise
-          }
-        },
-        async () => {
           if (nginxPid && nginxPid !== 0) {
             await Plugins.ignoredError(Plugins.KillProcess, Number(nginxPid))
           }
-          nginxStartPromiseReject(new Error('启动失败')) // 进程退出时拒绝内部 Promise
-          outerReject(new Error('启动失败')) // 同时拒绝外部 Promise
+          reject(new Error(out))
         }
-      )
-
-      if (nginxPid && nginxPid !== 0) {
-        await Plugins.sleep(1_000)
-        nginxStartPromiseResolve()
-      } else {
-        nginxStartPromiseReject(new Error('无法启动 Nginx 进程'))
-        outerReject(new Error('无法启动 Nginx 进程'))
+      },
+      async () => {
+        if (nginxPid && nginxPid !== 0) {
+          await Plugins.ignoredError(Plugins.KillProcess, Number(nginxPid))
+        }
       }
-
-      await nginxStartPromise // 等待 Nginx 进程启动成功或失败的信号
-
+    )
+    await Plugins.sleep(3000)
+    if (await isRunningNginx()) {
       await generateAndWriteHostsConfigs()
-      outerResolve()
-    } catch (e) {
-      outerReject(e)
-    }
+      resolve()
+    } else reject(new Error('启动 Nginx 失败：未知原因'))
   })
 }
 
