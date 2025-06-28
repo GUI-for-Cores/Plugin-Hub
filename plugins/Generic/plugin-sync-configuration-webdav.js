@@ -11,7 +11,7 @@ const onRun = async () => {
       { label: '查看备份列表', value: 'List' },
       { label: '管理备份列表', value: 'Remove' }
     ],
-    []
+    ['List']
   )
 
   const handler = { Backup, Sync, List, Remove }
@@ -22,8 +22,7 @@ const onRun = async () => {
  * 插件钩子：右键 - 同步至本地
  */
 const Sync = async () => {
-  if (!window.CryptoJS) throw '请先安装插件或重新安装插件'
-  if (!Plugin.Secret) throw '为了数据安全，请先配置文件加密密钥'
+  await checkConfiguration()
 
   const dav = new WebDAV(Plugin.Address, Plugin.Username, Plugin.Password)
   const list = await dav.propfind(Plugin.DataPath)
@@ -81,8 +80,7 @@ const Sync = async () => {
  * 插件钩子：右键 - 立即备份
  */
 const Backup = async () => {
-  if (!window.CryptoJS) throw '请先安装插件或重新安装插件'
-  if (!Plugin.Secret) throw '为了数据安全，请先配置文件加密密钥'
+  await checkConfiguration()
 
   const backupFilename = await getBackupFilename()
 
@@ -205,6 +203,20 @@ const filterList = (list) => {
     .filter((v) => v.displayname.startsWith(prefix))
     .map((v) => ({ label: v.displayname, value: v.href }))
     .reverse()
+}
+
+const checkConfiguration = async () => {
+  if (!window.CryptoJS) throw '请先安装插件或重新安装插件'
+  if (!Plugin.Secret) throw '为了数据安全，请先配置文件加密密钥'
+  let url
+  try {
+    url = new URL(Plugin.Address)
+  } catch {
+    throw 'WebDAV地址配置不正确'
+  }
+  if (url.pathname !== '/') {
+    throw `请将WebDAV地址中的【${url.pathname}】填写在【保存路径】参数上`
+  }
 }
 
 /**

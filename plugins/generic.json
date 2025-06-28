@@ -1318,7 +1318,7 @@
   {
     "id": "plugin-sync-configuration-webdav",
     "name": "配置同步 - WebDAV",
-    "version": "v2.0.0",
+    "version": "v2.1.0",
     "description": "使用webDAV协议同步GUI配置。",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sync-configuration-webdav.js",
