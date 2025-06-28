@@ -498,6 +498,58 @@
     "installed": false
   },
   {
+    "id": "plugin-download-speed-guard",
+    "version": "v1.0.0",
+    "name": "下载守卫者",
+    "description": "监测下载速率，超出阈值时切换至下一个节点，避免因单个节点流量过大造成的机场限速。",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-download-speed-guard.js",
+    "path": "data/plugins/plugin-download-speed-guard.js",
+    "status": 0,
+    "triggers": ["on::manual"],
+    "hasUI": false,
+    "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "configuration": [
+      {
+        "id": "ID_bdzeqpgn",
+        "title": "策略组名称",
+        "description": "在此策略组中进行轮询切换不同代理",
+        "key": "GroupName",
+        "component": "Input",
+        "value": "🚀 节点选择",
+        "options": []
+      },
+      {
+        "id": "ID_6w2hky4p",
+        "title": "预期下载速率",
+        "description": "节点未达到此下载速率将视为被限速，单位MB/s",
+        "key": "DownloadSpeed",
+        "component": "Input",
+        "value": "10",
+        "options": []
+      },
+      {
+        "id": "ID_4haysu7r",
+        "title": "超时阈值",
+        "description": "等待节点达到预期下载速度的最大时长，超时未达到将切换为下一节点，单位秒",
+        "key": "MaxWaiting",
+        "component": "Input",
+        "value": "10",
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-system-proxy-guard",
     "name": "代理守卫",
     "version": "v2.0.2",
