@@ -402,7 +402,7 @@ function ClashMeta_Producer() {
     const list = proxies
       .filter((proxy) => {
         if (opts['include-unsupported-proxy']) return true
-        if (proxy.type === 'snell' && String(proxy.version) === '4') {
+        if (proxy.type === 'snell' && proxy.version >= 4) {
           return false
         }
         return true
