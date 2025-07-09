@@ -2526,5 +2526,39 @@
     "disabled": false,
     "install": false,
     "installed": false
+  },
+  {
+    "id": "plugin-log-record",
+    "name": "日志记录器",
+    "version": "v1.0.0",
+    "description": "记录内核输出的日志到文件中，方便后续调试。Supported by: 泡泡茶壶",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-log-record.js",
+    "path": "data/plugins/plugin-log-record.js",
+    "triggers": ["on::core::started", "on::core::stopped"],
+    "hasUI": false,
+    "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_imh5ksqp",
+        "title": "最大记录时长（秒）",
+        "description": "",
+        "key": "RecordTime",
+        "component": "Input",
+        "value": "30",
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
   }
 ]
