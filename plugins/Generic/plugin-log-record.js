@@ -74,7 +74,7 @@ const stopRecordLogs = async () => {
 
 const writeLogFile = async (logs) => {
   const logTexts = logs
-    .map((log) => `${formatTime(log.time)} ${log.type.toUpperCase()} ${log.payload}`)
+    .map((log) => `${Plugins.formatDate(log.time, 'YYYY-MM-DD HH:mm:ss')} ${log.type.toUpperCase()} ${log.payload}`)
     .join(`\n`)
     .trim()
   if (Plugins.APP_TITLE.includes('SingBox')) {
@@ -82,15 +82,4 @@ const writeLogFile = async (logs) => {
   } else {
     await Plugins.Writefile(CLASH_LOG_FILE_PATH, logTexts)
   }
-}
-
-const formatTime = (timestamp) => {
-  const date = new Date(timestamp)
-  const year = date.getUTCFullYear()
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0')
-  const day = String(date.getUTCDate()).padStart(2, '0')
-  const hour = String(date.getUTCHours() + 8).padStart(2, '0')
-  const minute = String(date.getUTCMinutes()).padStart(2, '0')
-  const second = String(date.getUTCSeconds()).padStart(2, '0')
-  return `${year}-${month}-${day} ${hour}:${minute}:${second}`
 }
