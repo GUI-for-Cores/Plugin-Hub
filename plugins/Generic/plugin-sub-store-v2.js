@@ -159,7 +159,7 @@ const startSubStoreService = () => {
 const stopSubStoreService = async () => {
   const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
   if (pid && pid !== '0') {
-    await Plugins.KillProcess(Number(pid))
+    await Plugins.ignoredError(Plugins.KillProcess, Number(pid))
     await Plugins.Writefile(PID_FILE, '0')
   }
 }
@@ -171,7 +171,7 @@ const isSubStoreRunning = async () => {
   const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
   if (pid && pid !== '0') {
     const name = await Plugins.ignoredError(Plugins.ProcessInfo, Number(pid))
-    return ['node.exe', 'node'].includes(name)
+    return ['node.exe', 'node', 'MainThread'].includes(name)
   }
   return false
 }
