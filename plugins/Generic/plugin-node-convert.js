@@ -397,12 +397,63 @@ function numberToString(value) {
  * 来源：https://github.com/sub-store-org/Sub-Store/blob/cc556b641d32f5af571101cd825d76f8506a0855/backend/src/core/proxy-utils/producers/clashmeta.js
  */
 function ClashMeta_Producer() {
+  const ipVersions = {
+    dual: 'dual',
+    'v4-only': 'ipv4',
+    'v6-only': 'ipv6',
+    'prefer-v4': 'ipv4-prefer',
+    'prefer-v6': 'ipv6-prefer'
+  }
+
   const type = 'ALL'
   const produce = (proxies, type, opts = {}) => {
     const list = proxies
       .filter((proxy) => {
         if (opts['include-unsupported-proxy']) return true
         if (proxy.type === 'snell' && proxy.version >= 4) {
+          return false
+        } else if (['juicity'].includes(proxy.type)) {
+          return false
+        } else if (
+          ['ss'].includes(proxy.type) &&
+          ![
+            'aes-128-ctr',
+            'aes-192-ctr',
+            'aes-256-ctr',
+            'aes-128-cfb',
+            'aes-192-cfb',
+            'aes-256-cfb',
+            'aes-128-gcm',
+            'aes-192-gcm',
+            'aes-256-gcm',
+            'aes-128-ccm',
+            'aes-192-ccm',
+            'aes-256-ccm',
+            'aes-128-gcm-siv',
+            'aes-256-gcm-siv',
+            'chacha20-ietf',
+            'chacha20',
+            'xchacha20',
+            'chacha20-ietf-poly1305',
+            'xchacha20-ietf-poly1305',
+            'chacha8-ietf-poly1305',
+            'xchacha8-ietf-poly1305',
+            '2022-blake3-aes-128-gcm',
+            '2022-blake3-aes-256-gcm',
+            '2022-blake3-chacha20-poly1305',
+            'lea-128-gcm',
+            'lea-192-gcm',
+            'lea-256-gcm',
+            'rabbit128-poly1305',
+            'aegis-128l',
+            'aegis-256',
+            'aez-384',
+            'deoxys-ii-256-128',
+            'rc4-md5',
+            'none'
+          ].includes(proxy.cipher)
+        ) {
+          // https://wiki.metacubex.one/config/proxies/ss/#cipher
           return false
         }
         return true
@@ -422,7 +473,7 @@ function ClashMeta_Producer() {
           }
           // https://github.com/MetaCubeX/Clash.Meta/blob/Alpha/docs/config.yaml#L400
           // https://stash.wiki/proxy-protocols/proxy-types#vmess
-          if (isPresent(proxy, 'cipher') && !['auto', 'aes-128-gcm', 'chacha20-poly1305', 'none'].includes(proxy.cipher)) {
+          if (isPresent(proxy, 'cipher') && !['auto', 'none', 'zero', 'aes-128-gcm', 'chacha20-poly1305'].includes(proxy.cipher)) {
             proxy.cipher = 'auto'
           }
         } else if (proxy.type === 'tuic') {
@@ -454,6 +505,8 @@ function ClashMeta_Producer() {
           proxy['persistent-keepalive'] = proxy.keepalive
           proxy['preshared-key'] = proxy['preshared-key'] ?? proxy['pre-shared-key']
           proxy['pre-shared-key'] = proxy['preshared-key']
+        } else if (proxy.type === 'snell' && proxy.version < 3) {
+          delete proxy.udp
         } else if (proxy.type === 'vless') {
           if (isPresent(proxy, 'sni')) {
             proxy.servername = proxy.sni
@@ -467,6 +520,9 @@ function ClashMeta_Producer() {
               password: proxy['shadow-tls-password'],
               version: proxy['shadow-tls-version']
             }
+            delete proxy['shadow-tls-password']
+            delete proxy['shadow-tls-sni']
+            delete proxy['shadow-tls-version']
           }
         }
 
@@ -496,7 +552,7 @@ function ClashMeta_Producer() {
             proxy['plugin-opts']['skip-cert-verify'] = proxy['skip-cert-verify']
           }
         }
-        if (['trojan', 'tuic', 'hysteria', 'hysteria2', 'juicity'].includes(proxy.type)) {
+        if (['trojan', 'tuic', 'hysteria', 'hysteria2', 'juicity', 'anytls'].includes(proxy.type)) {
           delete proxy.tls
         }
 
@@ -518,7 +574,7 @@ function ClashMeta_Producer() {
         delete proxy.id
         delete proxy.resolved
         delete proxy['no-resolve']
-        if (type !== 'internal') {
+        if (type !== 'internal' || opts['delete-underscore-fields']) {
           for (const key in proxy) {
             if (proxy[key] == null || /^_/i.test(key)) {
               delete proxy[key]
@@ -527,6 +583,11 @@ function ClashMeta_Producer() {
         }
         if (['grpc'].includes(proxy.network) && proxy[`${proxy.network}-opts`]) {
           delete proxy[`${proxy.network}-opts`]['_grpc-type']
+          delete proxy[`${proxy.network}-opts`]['_grpc-authority']
+        }
+
+        if (proxy['ip-version']) {
+          proxy['ip-version'] = ipVersions[proxy['ip-version']] || proxy['ip-version']
         }
         return proxy
       })
@@ -538,6 +599,26 @@ function ClashMeta_Producer() {
 
 // 来源：https://github.com/sub-store-org/Sub-Store/blob/master/backend/src/core/proxy-utils/producers/sing-box.js
 function Singbox_Producer() {
+  const ipVersions = {
+    ipv4: 'ipv4_only',
+    ipv6: 'ipv6_only',
+    'v4-only': 'ipv4_only',
+    'v6-only': 'ipv6_only',
+    'ipv4-prefer': 'prefer_ipv4',
+    'ipv6-prefer': 'prefer_ipv6',
+    'prefer-v4': 'prefer_ipv4',
+    'prefer-v6': 'prefer_ipv6'
+  }
+
+  const ipVersionParser = (proxy, parsedProxy) => {
+    const strategy = ipVersions[proxy['ip-version']]
+    if (proxy._dns_server && strategy) {
+      parsedProxy.domain_resolver = {
+        server: proxy._dns_server,
+        strategy
+      }
+    }
+  }
   const detourParser = (proxy, parsedProxy) => {
     parsedProxy.detour = proxy['dialer-proxy'] || proxy.detour
   }
@@ -766,6 +847,7 @@ function Singbox_Producer() {
     if (proxy['fast-open']) parsedProxy.udp_fragment = true
     tfoParser(proxy, parsedProxy)
     detourParser(proxy, parsedProxy)
+    ipVersionParser(proxy, parsedProxy)
     return parsedProxy
   }
 
@@ -791,6 +873,7 @@ function Singbox_Producer() {
     tfoParser(proxy, parsedProxy)
     detourParser(proxy, parsedProxy)
     tlsParser(proxy, parsedProxy)
+    ipVersionParser(proxy, parsedProxy)
     return parsedProxy
   }
 
@@ -812,6 +895,7 @@ function Singbox_Producer() {
     networkParser(proxy, parsedProxy)
     tfoParser(proxy, parsedProxy)
     detourParser(proxy, parsedProxy)
+    ipVersionParser(proxy, parsedProxy)
     return parsedProxy
   }
 
@@ -822,6 +906,13 @@ function Singbox_Producer() {
       method: proxy.cipher,
       password: proxy.password,
       detour: `${proxy.name}_shadowtls`
+    }
+    if (proxy.uot) ssPart.udp_over_tcp = true
+    if (proxy['udp-over-tcp']) {
+      ssPart.udp_over_tcp = {
+        enabled: true,
+        version: !proxy['udp-over-tcp-version'] || proxy['udp-over-tcp-version'] === 1 ? 1 : 2
+      }
     }
     const stPart = {
       tag: `${proxy.name}_shadowtls`,
@@ -844,6 +935,7 @@ function Singbox_Producer() {
     tfoParser(proxy, stPart)
     detourParser(proxy, stPart)
     smuxParser(proxy.smux, ssPart)
+    ipVersionParser(proxy, stPart)
     return { type: 'ss-with-st', ssPart, stPart }
   }
   const ssParser = (proxy = {}) => {
@@ -868,6 +960,7 @@ function Singbox_Producer() {
     tfoParser(proxy, parsedProxy)
     detourParser(proxy, parsedProxy)
     smuxParser(proxy.smux, parsedProxy)
+    ipVersionParser(proxy, parsedProxy)
     if (proxy.plugin) {
       const optArr = []
       if (proxy.plugin === 'obfs') {
@@ -938,6 +1031,7 @@ function Singbox_Producer() {
     tfoParser(proxy, parsedProxy)
     detourParser(proxy, parsedProxy)
     smuxParser(proxy.smux, parsedProxy)
+    ipVersionParser(proxy, parsedProxy)
     return parsedProxy
   }
 
@@ -965,6 +1059,7 @@ function Singbox_Producer() {
     detourParser(proxy, parsedProxy)
     tlsParser(proxy, parsedProxy)
     smuxParser(proxy.smux, parsedProxy)
+    ipVersionParser(proxy, parsedProxy)
     return parsedProxy
   }
 
@@ -980,7 +1075,8 @@ function Singbox_Producer() {
     if (parsedProxy.server_port < 0 || parsedProxy.server_port > 65535) throw 'invalid port'
     if (proxy.xudp) parsedProxy.packet_encoding = 'xudp'
     if (proxy['fast-open']) parsedProxy.udp_fragment = true
-    if (proxy.flow === 'xtls-rprx-vision') parsedProxy.flow = proxy.flow
+    // if (['xtls-rprx-vision', ''].includes(proxy.flow)) parsedProxy.flow = proxy.flow;
+    if (proxy.flow != null) parsedProxy.flow = proxy.flow
     if (proxy.network === 'ws') wsParser(proxy, parsedProxy)
     if (proxy.network === 'grpc') grpcParser(proxy, parsedProxy)
     networkParser(proxy, parsedProxy)
@@ -988,6 +1084,7 @@ function Singbox_Producer() {
     detourParser(proxy, parsedProxy)
     smuxParser(proxy.smux, parsedProxy)
     tlsParser(proxy, parsedProxy)
+    ipVersionParser(proxy, parsedProxy)
     return parsedProxy
   }
   const trojanParser = (proxy = {}) => {
@@ -1008,6 +1105,7 @@ function Singbox_Producer() {
     detourParser(proxy, parsedProxy)
     tlsParser(proxy, parsedProxy)
     smuxParser(proxy.smux, parsedProxy)
+    ipVersionParser(proxy, parsedProxy)
     return parsedProxy
   }
   const hysteriaParser = (proxy = {}) => {
@@ -1053,6 +1151,7 @@ function Singbox_Producer() {
     detourParser(proxy, parsedProxy)
     tfoParser(proxy, parsedProxy)
     smuxParser(proxy.smux, parsedProxy)
+    ipVersionParser(proxy, parsedProxy)
     return parsedProxy
   }
   const hysteria2Parser = (proxy = {}, includeUnsupportedProxy) => {
@@ -1078,6 +1177,7 @@ function Singbox_Producer() {
     tfoParser(proxy, parsedProxy)
     detourParser(proxy, parsedProxy)
     smuxParser(proxy.smux, parsedProxy)
+    ipVersionParser(proxy, parsedProxy)
     return parsedProxy
   }
   const tuic5Parser = (proxy = {}) => {
@@ -1102,6 +1202,7 @@ function Singbox_Producer() {
     detourParser(proxy, parsedProxy)
     tlsParser(proxy, parsedProxy)
     smuxParser(proxy.smux, parsedProxy)
+    ipVersionParser(proxy, parsedProxy)
     return parsedProxy
   }
   const anytlsParser = (proxy = {}) => {
@@ -1118,6 +1219,7 @@ function Singbox_Producer() {
     if (/^\d+$/.test(proxy['min-idle-session'])) parsedProxy.min_idle_session = parseInt(`${proxy['min-idle-session']}`, 10)
     detourParser(proxy, parsedProxy)
     tlsParser(proxy, parsedProxy)
+    ipVersionParser(proxy, parsedProxy)
     return parsedProxy
   }
 
@@ -1174,6 +1276,7 @@ function Singbox_Producer() {
     tfoParser(proxy, parsedProxy)
     detourParser(proxy, parsedProxy)
     smuxParser(proxy.smux, parsedProxy)
+    ipVersionParser(proxy, parsedProxy)
     return parsedProxy
   }
 
