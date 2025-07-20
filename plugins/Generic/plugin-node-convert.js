@@ -547,6 +547,18 @@ function ClashMeta_Producer() {
           }
         }
 
+        if (proxy.network === 'ws') {
+          const wsPath = proxy['ws-opts']?.path
+          const reg = /^(.*?)(?:\?ed=(\d+))?$/
+          // eslint-disable-next-line no-unused-vars
+          const [_, path = '', ed = ''] = reg.exec(wsPath)
+          proxy['ws-opts'].path = path
+          if (ed !== '') {
+            proxy['ws-opts']['early-data-header-name'] = 'Sec-WebSocket-Protocol'
+            proxy['ws-opts']['max-early-data'] = parseInt(ed, 10)
+          }
+        }
+
         if (proxy['plugin-opts']?.tls) {
           if (isPresent(proxy, 'skip-cert-verify')) {
             proxy['plugin-opts']['skip-cert-verify'] = proxy['skip-cert-verify']
@@ -653,7 +665,14 @@ function Singbox_Producer() {
   const wsParser = (proxy, parsedProxy) => {
     const transport = { type: 'ws', headers: {} }
     if (proxy['ws-opts']) {
-      const { path: wsPath = '', headers: wsHeaders = {} } = proxy['ws-opts']
+      const {
+        path: wsPath = '',
+        headers: wsHeaders = {},
+        'max-early-data': max_early_data,
+        'early-data-header-name': early_data_header_name
+      } = proxy['ws-opts']
+      transport.early_data_header_name = early_data_header_name
+      transport.max_early_data = parseInt(max_early_data, 10)
       if (wsPath !== '') transport.path = `${wsPath}`
       if (Object.keys(wsHeaders).length > 0) {
         const headers = {}
