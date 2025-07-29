@@ -24,6 +24,8 @@ const onReady = async () => {
     // 延迟检测，确保内核已经启动
     setTimeout(() => Rolling(false), (Plugin.AutoRollingDelay || 10) * 1000)
   }
+
+  addRollingReleaseTagToTitleBar()
 }
 
 /*
@@ -225,6 +227,50 @@ const fetchChangeLog = async () => {
   const changelog =
     '## 滚动发行日志\n\n' + history.map((v) => ` - ${v.isCurrent ? '`你的版本`' : ''}${v.message} 【[${v.time}](${v.html_url} "${v.time}")】`).join('\n') + tip
   return changelog
+}
+
+const addRollingReleaseTagToTitleBar = async () => {
+  let rollingReleaseVersion
+  try {
+    const res = await fetch('/version.txt')
+    const txt = await res.text()
+    if (txt && txt.length === 7) {
+      rollingReleaseVersion = ` (${txt}) - Rolling Release`
+    }
+  } catch (error) {
+    console.log('Not a rolling release', error)
+  }
+
+  if (!rollingReleaseVersion) return
+
+  Plugins.useAppStore().addCustomActions('title_bar', {
+    component: 'div',
+    componentSlots: {
+      default: ({ h, ref }) => {
+        const loading = ref(false)
+
+        const check = async () => {
+          loading.value = true
+          try {
+            await Rolling()
+          } finally {
+            loading.value = false
+          }
+        }
+
+        return h(
+          'Button',
+          {
+            type: 'link',
+            size: 'small',
+            loading: loading.value,
+            onClick: check
+          },
+          () => rollingReleaseVersion
+        )
+      }
+    }
+  })
 }
 
 const windows_icon = `<svg viewBox="0 0 1024 1024" width="12" height="12"><path d="M180.532703 507.367493c158.678976-65.355497 235.486292-30.474059 304.269865 16.21838l-79.440283 273.0447c-69.018933-46.431495-144.083559-84.635609-303.396985-18.776645l77.643358-270.088368L180.532703 507.367493zM526.399965 549.988196c68.989257 46.397726 139.539057 80.43903 301.656341 24.985044l-75.661214 263.243473c-159.14151 65.832358-235.541551 28.585035-304.439734-18.128893L526.399965 549.988196zM498.022661 474.363821c-41.512463-27.970028-86.198198-54.113455-149.667741-54.582129-41.86448-0.322341-91.709725 11.587919-155.011446 37.731346l78.410837-271.752264c159.198815-65.822125 235.701187-28.520567 304.673048 18.128893L498.022661 474.363821zM922.033677 249.996774c-158.988014 65.700351-235.394195 28.753881-304.214606-17.613146l-78.428234 271.986601c68.7672 46.62797 151.876036 84.896552 304.315914 16.685008L922.033677 249.996774z" fill="#000000"></path></svg>`
