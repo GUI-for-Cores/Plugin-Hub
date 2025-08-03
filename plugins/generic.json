@@ -376,7 +376,7 @@
   {
     "id": "plugin-gemini-ai",
     "name": "Gemini 助手",
-    "version": "v1.3.2",
+    "version": "v1.3.3",
     "description": "使用Gemini，GUI高高手！",
     "tags": ["AI助手"],
     "type": "Http",

@@ -249,7 +249,7 @@ const generateContent = async (requestBody) => {
   console.log(`[${Plugin.name}] generateContent req => `, requestBody)
 
   const { status, body } = await Plugins.HttpPost(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-04-17:generateContent?key=${Plugin.API_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${Plugin.API_KEY}`,
     { 'Content-Type': 'application/json' },
     requestBody,
     {
