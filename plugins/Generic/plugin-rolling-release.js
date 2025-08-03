@@ -3,7 +3,7 @@
  */
 
 const isAlphaVersion = Plugins.APP_VERSION.includes('Alpha')
-const RollingReleasePath = `data/rolling-release${isAlphaVersion ? '-alpha' : ''}`
+const RollingReleasePath = `data/rolling-release`
 
 /* 触发器 手动触发 */
 const onRun = async () => {
@@ -36,8 +36,8 @@ const Rolling = async (confirm = true) => {
   await checkRollingReleaseEnabled()
   await checkLatestVersion()
 
-  const GFC_URL = 'https://api.github.com/repos/GUI-for-Cores/GUI.for.Clash/releases/tags/rolling-release' + (isAlphaVersion ? '-alpha' : '')
-  const GFS_URL = 'https://api.github.com/repos/GUI-for-Cores/GUI.for.SingBox/releases/tags/rolling-release' + (isAlphaVersion ? '-alpha' : '')
+  const GFC_URL = 'https://api.github.com/repos/GUI-for-Cores/GUI.for.Clash/releases/tags/rolling-release'
+  const GFS_URL = 'https://api.github.com/repos/GUI-for-Cores/GUI.for.SingBox/releases/tags/rolling-release'
   const url = Plugins.APP_TITLE.includes('Clash') ? GFC_URL : GFS_URL
 
   const { destroy } = Plugins.message.info(`[${Plugin.name}] 检测中...`, 999999)
@@ -54,9 +54,9 @@ const Rolling = async (confirm = true) => {
     throw body.message
   }
 
-  const ZipFile = `data/.cache/rolling-release${isAlphaVersion ? '-alpha' : ''}.zip`
-  const BackupFile = `data/.cache/rolling-release${isAlphaVersion ? '-alpha' : ''}.backup`
-  const ZipUrl = body.assets.find((v) => v.name === `rolling-release${isAlphaVersion ? '-alpha' : ''}.zip`)?.browser_download_url
+  const ZipFile = `data/.cache/rolling-release.zip`
+  const BackupFile = `data/.cache/rolling-release.backup`
+  const ZipUrl = body.assets.find((v) => v.name === `rolling-release.zip`)?.browser_download_url
   const VersionUrl = body.assets.find((v) => v.name === 'version.txt')?.browser_download_url
 
   if (!ZipUrl || !VersionUrl) {
@@ -186,8 +186,11 @@ const checkRollingReleaseEnabled = async () => {
 }
 
 const checkLatestVersion = async () => {
-  const GFC_URL = `https://api.github.com/repos/GUI-for-Cores/GUI.for.Clash/releases/${isAlphaVersion ? 'latest' : 'tags/v1.9.7'}`
-  const GFS_URL = `https://api.github.com/repos/GUI-for-Cores/GUI.for.SingBox/releases/${isAlphaVersion ? 'latest' : 'tags/v1.9.7'}`
+  if (isAlphaVersion) {
+    throw 'v1.9.8-Alpha已转正，请至 设置 - 关于 更新到最新版本！'
+  }
+  const GFC_URL = `https://api.github.com/repos/GUI-for-Cores/GUI.for.Clash/releases/latest`
+  const GFS_URL = `https://api.github.com/repos/GUI-for-Cores/GUI.for.SingBox/releases/latest`
   const url = Plugins.APP_TITLE.includes('Clash') ? GFC_URL : GFS_URL
   const { body } = await Plugins.HttpGet(url, {
     Authorization: Plugins.getGitHubApiAuthorization()
@@ -203,9 +206,7 @@ const fetchChangeLog = async () => {
   const { body } = await Plugins.HttpGet(`https://api.github.com/repos/GUI-for-Cores/${Plugins.APP_TITLE}/commits`, {
     Authorization: Plugins.getGitHubApiAuthorization()
   })
-  const releaseIndex = body.findIndex(
-    (v) => v.commit.message.startsWith('Release v') && (isAlphaVersion ? v.commit.message.includes('-Alpha') : !v.commit.message.includes('-Alpha'))
-  )
+  const releaseIndex = body.findIndex((v) => v.commit.message.startsWith('Release v'))
   let currentVersion
   try {
     currentVersion = await (await fetch('/version.txt')).text()
