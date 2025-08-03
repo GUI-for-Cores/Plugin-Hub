@@ -243,31 +243,34 @@ const addRollingReleaseTagToTitleBar = async () => {
 
   if (!rollingReleaseVersion) return
 
-  Plugins.useAppStore().addCustomActions('title_bar', {
-    component: 'div',
-    componentSlots: {
-      default: ({ h, ref }) => {
-        const loading = ref(false)
+  const appSettings = Plugins.useAppSettingsStore()
 
-        const check = async () => {
-          loading.value = true
-          try {
-            await Rolling()
-          } finally {
-            loading.value = false
-          }
+  Plugins.useAppStore().addCustomActions('title_bar', ({ h, ref }) => {
+    const loading = ref(false)
+    const check = async () => {
+      loading.value = true
+      try {
+        await Rolling()
+      } finally {
+        loading.value = false
+      }
+    }
+
+    return {
+      component: 'div',
+      componentSlots: {
+        default: () => {
+          return h(
+            'Button',
+            {
+              type: appSettings.app.kernel.running ? 'link' : 'text',
+              size: 'small',
+              loading: loading.value,
+              onClick: check
+            },
+            () => rollingReleaseVersion
+          )
         }
-
-        return h(
-          'Button',
-          {
-            type: 'link',
-            size: 'small',
-            loading: loading.value,
-            onClick: check
-          },
-          () => rollingReleaseVersion
-        )
       }
     }
   })
