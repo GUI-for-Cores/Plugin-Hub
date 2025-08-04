@@ -138,15 +138,20 @@ const Share = async (profile) => {
   const type = await Plugins.picker.single(
     '生成的配置类型',
     [
-      { label: 'v1.11.0之前版本', value: 'legacy' },
-      { label: '稳定版(v1.11.0+)', value: 'stable' },
-      { label: '内测版(v1.12.0+)', value: 'alpha' }
+      { label: '远古版(v1.11.0-)', value: 'legacy' },
+      { label: '主流版(v1.11.0+)', value: 'main' },
+      { label: '最新版(v1.12.0+)', value: 'stable' }
     ],
     ['stable']
   )
   const config = await Plugins.generateConfig(profile, type === 'stable' || type === 'legacy')
   if (type === 'legacy') {
+    _adaptToMain(config)
     _adaptToLegacy(config)
+  } else if (type === 'main') {
+    _adaptToMain(config)
+  } else {
+    // 最新版无需适配，GUI生成的就是最新版
   }
   // 新配置且禁用IPv6
   if (!profile.tunConfig && Plugin.Ipv6Mode === 'disabled') {
@@ -189,6 +194,86 @@ const onInstall = async () => {
 const onUninstall = async () => {
   await Plugins.Removefile(PATH)
   return 0
+}
+
+const _adaptToMain = (config) => {
+  const DnsServer = {
+    Local: 'local',
+    Hosts: 'hosts',
+    Tcp: 'tcp',
+    Udp: 'udp',
+    Tls: 'tls',
+    Https: 'https',
+    Quic: 'quic',
+    H3: 'h3',
+    Dhcp: 'dhcp',
+    FakeIP: 'fakeip'
+  }
+
+  const generateDnsServerURL = (dnsServer) => {
+    const { type, server_port, path, server, interface: _interface } = dnsServer
+    let address = ''
+    if (type == DnsServer.Https) {
+      address = `https://${server}${server_port ? ':' + server_port : ''}${path ? path : ''}`
+    } else if (type == DnsServer.H3) {
+      address = `h3://${server}${server_port ? ':' + server_port : ''}${path ? path : ''}`
+    } else if (type == DnsServer.Dhcp) {
+      address = `dhcp://${_interface}`
+    } else if (type == DnsServer.FakeIP) {
+      address =
+        'fake-ip://' +
+        (dnsServer.inet4_range ? dnsServer.inet4_range : '') +
+        (dnsServer.inet6_range ? (dnsServer.inet4_range ? ',' : '') + dnsServer.inet6_range : '')
+    } else if (type === DnsServer.Hosts) {
+      address = 'hosts'
+    } else if (type === DnsServer.Local) {
+      address = 'local'
+    } else {
+      address = `${type}://${server}${server_port ? ':' + server_port : ''}`
+    }
+    return address
+  }
+
+  config.dns.rules.unshift({
+    action: 'route',
+    server: config.route.default_domain_resolver.server,
+    outbound: 'any'
+  })
+  delete config.route.default_domain_resolver
+  config.dns.servers = config.dns.servers.map((server) => {
+    const isFakeIP = server.type === DnsServer.FakeIP
+    if (isFakeIP) {
+      config.dns.fakeip = {
+        enabled: true,
+        inet4_range: server.inet4_range,
+        inet6_range: server.inet6_range
+      }
+    }
+    let detour = server.detour
+    if (!detour) {
+      const isSupportDetour = [
+        DnsServer.Local,
+        DnsServer.Tcp,
+        DnsServer.Udp,
+        DnsServer.Tls,
+        DnsServer.Quic,
+        DnsServer.Https,
+        DnsServer.H3,
+        DnsServer.Dhcp
+      ].includes(server.type)
+      isSupportDetour && (detour = config.outbounds.find((v) => v.type === 'direct')?.tag)
+    }
+    return {
+      tag: server.tag,
+      address: isFakeIP ? 'fakeip' : generateDnsServerURL(server),
+      address_resolver: server.domain_resolver,
+      detour: detour
+    }
+  })
+  config.dns.rules = config.dns.rules.filter((rule) => rule.ip_accept_any === undefined)
+  config.dns.rules.forEach((rule) => {
+    delete rule.strategy
+  })
 }
 
 const _adaptToLegacy = (config) => {
