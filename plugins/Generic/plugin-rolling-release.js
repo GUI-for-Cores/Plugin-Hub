@@ -55,8 +55,8 @@ const Rolling = async (confirm = true) => {
   }
 
   const ZipFile = `data/.cache/rolling-release.zip`
-  const BackupFile = `data/.cache/rolling-release.backup`
-  const ZipUrl = body.assets.find((v) => v.name === `rolling-release.zip`)?.browser_download_url
+  const rollingReleaseAsset = body.assets.find((v) => v.name === `rolling-release.zip`)
+  const ZipUrl = rollingReleaseAsset?.browser_download_url
   const VersionUrl = body.assets.find((v) => v.name === 'version.txt')?.browser_download_url
 
   if (!ZipUrl || !VersionUrl) {
@@ -95,10 +95,9 @@ const Rolling = async (confirm = true) => {
     await Plugins.Download(ZipUrl, ZipFile, {}, (progress, total) => {
       update('正在更新...' + ((progress / total) * 100).toFixed(2) + '%')
     })
-    await Plugins.ignoredError(Plugins.Movefile, RollingReleasePath, BackupFile)
     await Plugins.UnzipZIPFile(ZipFile, 'data')
     await Plugins.Removefile(ZipFile)
-    await Plugins.Removefile(BackupFile)
+    await Plugins.Writefile(`${RollingReleasePath}/updated_at.txt`, Plugins.formatDate(rollingReleaseAsset.updated_at, 'YYYY.MM.DD'))
     destroy2()
     const ok = await Plugins.confirm(Plugin.name, '更新成功，是否立即重载界面？').catch(() => 0)
     ok && Plugins.WindowReloadApp()
@@ -232,17 +231,20 @@ const fetchChangeLog = async () => {
 
 const addRollingReleaseTagToTitleBar = async () => {
   let rollingReleaseVersion
-  try {
-    const res = await fetch('/version.txt')
-    const txt = await res.text()
-    if (txt && txt.length === 7) {
-      rollingReleaseVersion = ` (${txt}) - Rolling Release`
-    }
-  } catch (error) {
-    console.log('Not a rolling release', error)
+
+  const res = await fetch('/version.txt')
+  const txt = await res.text()
+  if (txt && txt.length === 7) {
+    rollingReleaseVersion = `Rolling Release (${txt})`
   }
 
   if (!rollingReleaseVersion) return
+
+  const res2 = await fetch('/updated_at.txt')
+  const txt2 = await res2.text()
+  if (txt2) {
+    rollingReleaseVersion = `Rolling Release (${txt2})`
+  }
 
   const appSettings = Plugins.useAppSettingsStore()
 

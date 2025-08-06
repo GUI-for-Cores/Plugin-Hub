@@ -327,7 +327,7 @@
   {
     "id": "plugin-rolling-release",
     "name": "滚动发行",
-    "version": "v2.7.0",
+    "version": "v2.8.0",
     "description": "提升GUI升级体验，获取更快、更新、更稳定的版本更新。",
     "tags": ["提升体验", "功能扩展"],
     "type": "Http",
