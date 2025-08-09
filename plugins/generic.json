@@ -2134,6 +2134,31 @@
     "installed": false
   },
   {
+    "id": "plugin-global-click-ripple-effect",
+    "name": "点击波纹效果",
+    "version": "v1.0.0",
+    "description": "增加全局点击波纹效果。",
+    "tags": ["UI美化"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-global-click-ripple-effect.js",
+    "path": "data/plugins/plugin-global-click-ripple-effect.js",
+    "triggers": ["on::ready"],
+    "hasUI": false,
+    "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-aliyunpan-signin",
     "name": "阿里云盘签到",
     "version": "v1.0.0",
