@@ -8,7 +8,7 @@ const onReady = async () => {
         border-radius: 50%;
         transform: scale(0);
         pointer-events: none;
-        opacity: 1;
+        opacity: 0.3;
         animation: ${className}-anim 600ms ease-out forwards;
         z-index: 999999;
     }
