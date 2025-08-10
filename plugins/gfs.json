@@ -138,5 +138,30 @@
     "disabled": false,
     "install": false,
     "installed": false
+  },
+  {
+    "id": "plugin-relay-proxy-helper",
+    "name": "链式代理助手",
+    "version": "v2.0.0",
+    "description": "帮助用户快速生成用于添加代理链的配置脚本。Supported by: 泡泡茶壶",
+    "tags": ["实用工具", "功能扩展", "提升体验"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-relay-proxy-helper.js",
+    "path": "data/plugins/plugin-relay-proxy-helper.js",
+    "triggers": ["on::manual"],
+    "hasUI": true,
+    "menus": {},
+    "context": {
+      "profiles": { "添加代理链": "addRelayProxy" },
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [],
+    "disabled": false,
+    "install": false,
+    "installed": false
   }
 ]
