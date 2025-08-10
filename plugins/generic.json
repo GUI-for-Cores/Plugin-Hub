@@ -813,6 +813,43 @@
     "installed": false
   },
   {
+    "id": "plugin-traffic-monitor",
+    "name": "TrafficMonitor",
+    "version": "v1.0.0",
+    "description": "这是一个用于显示当前网速、CPU及内存利用率的桌面悬浮窗软件，并支持任务栏显示，支持更换皮肤。",
+    "tags": ["实用工具"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-traffic-monitor.js",
+    "path": "data/plugins/plugin-traffic-monitor.js",
+    "triggers": ["on::manual", "on::startup", "on::shutdown"],
+    "hasUI": false,
+    "menus": {
+      "停止": "Stop"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_s2gz9fxo",
+        "title": "跟随GUI启动或停止",
+        "description": "",
+        "key": "AutoStartup",
+        "component": "Switch",
+        "value": false,
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": true,
+    "installed": false
+  },
+  {
     "id": "plugin-file-transfer-assistant",
     "name": "文件互传助手",
     "version": "v1.2.1",
