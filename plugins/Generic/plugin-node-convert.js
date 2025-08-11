@@ -394,7 +394,7 @@ function numberToString(value) {
 }
 
 /**
- * 来源：https://github.com/sub-store-org/Sub-Store/blob/cc556b641d32f5af571101cd825d76f8506a0855/backend/src/core/proxy-utils/producers/clashmeta.js
+ * 来源：https://github.com/sub-store-org/Sub-Store/blob/master/backend/src/core/proxy-utils/producers/clashmeta.js
  */
 function ClashMeta_Producer() {
   const ipVersions = {
@@ -546,12 +546,14 @@ function ClashMeta_Producer() {
             proxy['h2-opts'].headers.host = [host]
           }
         }
-
         if (proxy.network === 'ws') {
           const wsPath = proxy['ws-opts']?.path
           const reg = /^(.*?)(?:\?ed=(\d+))?$/
           // eslint-disable-next-line no-unused-vars
           const [_, path = '', ed = ''] = reg.exec(wsPath)
+          if (!proxy['ws-opts']) {
+            proxy['ws-opts'] = {}
+          }
           proxy['ws-opts'].path = path
           if (ed !== '') {
             proxy['ws-opts']['early-data-header-name'] = 'Sec-WebSocket-Protocol'
@@ -764,7 +766,7 @@ function Singbox_Producer() {
       if (!Array.isArray(host)) host = `${host}`.split(',').map((i) => i.trim())
       if (host.length > 0) transport.host = host
     }
-    // if (!transport.host) return
+    // if (!transport.host) return;
     if (proxy['http-path'] && proxy['http-path'] !== '') {
       const path = proxy['http-path']
       if (Array.isArray(path)) {
@@ -1175,7 +1177,7 @@ function Singbox_Producer() {
     ipVersionParser(proxy, parsedProxy)
     return parsedProxy
   }
-  const hysteria2Parser = (proxy = {}, includeUnsupportedProxy) => {
+  const hysteria2Parser = (proxy = {}) => {
     const parsedProxy = {
       tag: proxy.name,
       type: 'hysteria2',
@@ -1817,10 +1819,10 @@ function URI_Producer() {
             } else if (['skip-cert-verify'].includes(key)) {
               if (proxy[key]) {
                 anytlsParams.push(`insecure=1`)
-              } else if (['udp'].includes(key)) {
-                if (proxy[key]) {
-                  anytlsParams.push(`udp=1`)
-                }
+              }
+            } else if (['udp'].includes(key)) {
+              if (proxy[key]) {
+                anytlsParams.push(`udp=1`)
               }
             } else if (proxy[key] && !/^_/i.test(key)) {
               anytlsParams.push(`${i.replace(/-/g, '_')}=${encodeURIComponent(proxy[key])}`)
@@ -1982,6 +1984,7 @@ const PROXY_PARSERS = (() => {
       content = content.split('#')[0] // strip proxy name
       // handle IPV4 and IPV6
       let serverAndPortArray = content.match(/@([^/?]*)(\/|\?|$)/)
+
       let rawUserInfoStr = decodeURIComponent(content.split('@')[0]) // 其实应该分隔之后, 用户名和密码再 decodeURIComponent. 但是问题不大
       let userInfoStr
       if (rawUserInfoStr?.startsWith('2022-blake3-')) {
