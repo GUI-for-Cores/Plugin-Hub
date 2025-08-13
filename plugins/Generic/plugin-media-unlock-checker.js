@@ -4,46 +4,97 @@
 
 /* 触发器 手动触发 */
 const onRun = async () => {
-  const list = Object.values(Checker).filter((v) => !v.skip)
-  const length = list.length
-  let index = 0
-
-  const { update, success, destroy } = Plugins.message.info('正在检测...', 99999)
-
-  const promises = list.map(async (v) => {
-    const startTime = Date.now()
-    const result = await v.check()
-    const endTime = Date.now()
-    update(`检测进度...${++index}/${length}`)
-    return { result, duration: (endTime - startTime) / 1000 + 's' }
+  const modal = Plugins.modal({
+    title: Plugin.name,
+    cancelText: 'common.close',
+    submit: false,
+    afterClose: () => {
+      modal.destroy()
+    }
   })
 
-  const startTime = Date.now()
-  const rows = await Promise.all(promises)
-  const duration = (Date.now() - startTime) / 1000 + 's'
+  const content = {
+    template: `
+    <div v-if="!done" class="flex items-center justify-center min-h-128">
+      <Button @click="onClick" :loading="loading" type="primary" size="large"> 
+        {{ loading ? '正在检测...' + (progress + '/' + length) : '开始检测' }}
+      </Button>
+    </div>
+    <template v-else>
+      <div class="flex items-center justify-between py-16 px-8">
+        <div class="font-bold text-16">检测结束，用时：{{duration}}</div>
+        <Button @click="onClick" type="primary">重新检测</Button>
+      </div>
+      <div class="grid grid-cols-4 gap-8 p-8">
+        <Card v-for="item in result" :key="item.result.name" :title="item.result.name">
+          <div class="flex items-center justify-between">
+            <div>{{item.result.status}} {{item.result.region}}</div>
+            <div class="text-12">{{item.duration}}</div>
+          </div>
+        </Card>
+      </div>
+    </template>
+    `,
+    setup() {
+      const { ref } = Vue
 
-  rows.forEach((row) => {
-    row.result.status = row.result.status?.replace('Yes', '✅')?.replace('No', '❌')
-    row.result.region = row.result.region || '-'
-    if (row.result.status.includes('Client.Timeout')) {
-      row.result.status = '😤连接超时'
+      const list = Object.values(Checker).filter((v) => !v.skip)
+      const length = list.length
+
+      const result = ref([])
+      const loading = ref(false)
+      const progress = ref(0)
+      const done = ref(false)
+      const duration = ref()
+
+      const check = async () => {
+        const promises = list.map(async (v) => {
+          const startTime = Date.now()
+          const result = await v.check()
+          const endTime = Date.now()
+          progress.value += 1
+          return { result, duration: (endTime - startTime) / 1000 + 's' }
+        })
+
+        const startTime = Date.now()
+        const rows = await Promise.all(promises)
+        duration.value = (Date.now() - startTime) / 1000 + 's'
+        rows.forEach((row) => {
+          row.result.status = row.result.status?.replace('Yes', '✅')?.replace('No', '❌')
+          row.result.region = row.result.region || '-'
+          if (row.result.status.includes('Client.Timeout')) {
+            row.result.status = '😤连接超时'
+          }
+          if (row.result.region?.includes('Client.Timeout')) {
+            row.result.region = '😤连接超时'
+          }
+          row.result.region = countryCodeToEmoji(row.result.region) + row.result.region
+        })
+
+        result.value = rows
+      }
+
+      return {
+        loading,
+        result,
+        length,
+        done,
+        progress,
+        duration,
+        async onClick() {
+          done.value = false
+          progress.value = 0
+          loading.value = true
+          await check()
+          loading.value = false
+          done.value = true
+        }
+      }
     }
-    if (row.result.region?.includes('Client.Timeout')) {
-      row.result.region = '😤连接超时'
-    }
-    row.result.region = countryCodeToEmoji(row.result.region) + row.result.region
-  })
+  }
 
-  success('检测完成')
-  setTimeout(destroy, 1000)
-
-  await Plugins.alert(
-    Plugin.name,
-    `> 检测完毕，共检测项目 ${promises.length} 个，总用时 ${duration}\n\n` +
-      ['|名称|解锁情况|地区|用时|', '|--|--|--|--|', ''].join('\n') +
-      rows.map((row) => `|${row.result.name}|${row.result.status}|${row.result.region}|${row.duration}|`).join('\n'),
-    { type: 'markdown' }
-  )
+  modal.setContent(content)
+  modal.open()
 }
 
 function countryCodeToEmoji(input) {

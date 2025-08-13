@@ -1975,7 +1975,7 @@
   },
   {
     "id": "plugin-media-unlock-checker",
-    "version": "v1.0.2",
+    "version": "v2.0.0",
     "name": "流媒体解锁检测",
     "description": "检测当前网络环境下的流媒体解锁情况。",
     "tags": ["实用工具"],
@@ -1983,7 +1983,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-media-unlock-checker.js",
     "path": "data/plugins/plugin-media-unlock-checker.js",
     "triggers": ["on::manual"],
-    "hasUI": false,
+    "hasUI": true,
     "menus": {},
     "context": {
       "profiles": {},
