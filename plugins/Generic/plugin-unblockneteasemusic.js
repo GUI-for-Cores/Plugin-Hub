@@ -2,6 +2,7 @@
  * 本插件使用开源项目：https://github.com/UnblockNeteaseMusic/server
  */
 const MUSIC_PATH = 'data/third/unblock-netease-music'
+const DOWNLOAD_PATH = Plugin.DownloadsPath || MUSIC_PATH + '/downloads'
 const PID_FILE = MUSIC_PATH + '/unblock-netease-music.pid'
 const PROCESS_NAME = 'unblockneteasemusic.exe'
 const PROCESS_PATH = MUSIC_PATH + '/' + PROCESS_NAME
@@ -32,6 +33,7 @@ const ENV = {
 
 // 存储插件全局变量
 window[Plugin.id] = window[Plugin.id] || {
+  unblockHistory: Vue.ref([]),
   onServiceStopped: Plugins.debounce(async () => {
     delete window[Plugin.id]
     console.log(`[${Plugin.name}]`, '插件已停止')
@@ -63,14 +65,75 @@ const onUninstall = async () => {
  * 插件钩子 - 点击运行按钮时
  */
 const onRun = async () => {
-  if (await isUnblockMusicRunning()) {
-    Plugins.message.warn('当前插件已经在运行了')
-    return 1
+  const modal = Plugins.modal({
+    title: Plugin.name,
+    submit: false,
+    height: '70',
+    width: '70',
+    cancelText: 'common.close',
+    maskClosable: true,
+    afterClose() {
+      modal.destroy()
+    }
+  })
+
+  const content = {
+    template: `
+    <div>
+      <Table :columns="columns" :data-source="dataSource">
+
+      </Table>
+    </div>
+    `,
+    setup() {
+      const { h } = Vue
+      const dataSource = window[Plugin.id].unblockHistory
+
+      return {
+        columns: [
+          { title: '解锁时间', key: 'time', customRender: ({ value }) => Plugins.formatDate(value, 'YYYY-MM-DD HH:mm:ss') },
+          { title: '音频ID', key: 'audioId' },
+          { title: '歌曲名', key: 'songName' },
+          {
+            title: '链接',
+            key: 'url',
+            customRender: ({ value, record }) =>
+              h(
+                'div',
+                {
+                  onClick: async () => {
+                    const ext = value.match(/\.(mp3|flac|wav|aac|ogg|m4a)(?:\?.*)?$/i)?.[1]
+                    await Plugins.Download(value, DOWNLOAD_PATH + '/' + (record.songName + (ext ? `.${ext}` : '')), {}, (p, t) => {
+                      record._progress = ((p / t) * 100).toFixed(2) + '%'
+                    })
+                    record._progress = '已下载'
+                  },
+                  class: 'cursor-pointer ',
+                  style: {
+                    color: 'var(--primary-color)'
+                  }
+                },
+                record._progress || '下载'
+              )
+          }
+        ],
+        dataSource
+      }
+    }
   }
-  await startUnblockMusicService()
-  await switchTo(1)
-  Plugins.message.success('✨ 插件启动成功!')
-  return 1
+
+  modal.setContent(content)
+  modal.open()
+
+  // return
+  // if (await isUnblockMusicRunning()) {
+  //   Plugins.message.warn('当前插件已经在运行了')
+  //   return 1
+  // }
+  // await startUnblockMusicService()
+  // await switchTo(1)
+  // Plugins.message.success('✨ 插件启动成功!')
+  // return 1
 }
 
 /* 触发器 核心启动前 */
@@ -181,6 +244,11 @@ const startUnblockMusicService = () => {
         ['-p', Plugin.Port + ':' + (Number(Plugin.Port) + 1), '-a', '127.0.0.1', '-o', ...Plugin.Source],
         async (out) => {
           console.log(`[${Plugin.name}]`, out)
+          // 保存解锁信息
+          const data = JSON.parse(out)
+          if (data.songName && data.url) {
+            window[Plugin.id].unblockHistory.value.unshift(data)
+          }
           if (out.includes('Error: ')) {
             reject(out)
           }
