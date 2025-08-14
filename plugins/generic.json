@@ -1499,7 +1499,7 @@
   {
     "id": "plugin-unblockneteasemusic",
     "name": "解锁网易云音乐",
-    "version": "v5.0.0",
+    "version": "v5.1.0",
     "description": "解锁网易云音乐插件，需要安装CA证书。请在音乐客户端内开启：使用IE代理设置。（Revive unavailable songs for Netease Cloud Music (Refactored & Enhanced version)）",
     "tags": ["实用工具", "功能扩展"],
     "type": "Http",

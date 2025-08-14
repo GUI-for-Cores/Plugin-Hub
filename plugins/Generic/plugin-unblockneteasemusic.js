@@ -68,7 +68,6 @@ const onRun = async () => {
   const modal = Plugins.modal({
     title: Plugin.name,
     submit: false,
-    height: '70',
     width: '70',
     cancelText: 'common.close',
     maskClosable: true,
@@ -79,24 +78,50 @@ const onRun = async () => {
 
   const content = {
     template: `
-    <div>
-      <Table :columns="columns" :data-source="dataSource">
+    <div class="min-w-256 min-h-256">
+      <Card>
+        <div  class="flex items-center justify-between p-8">
+          <div class="font-bold" :style="{color: isRunning ? 'green' : 'red'}">
+            {{isRunning ? '服务运行中...' : '服务已停止'}}
+          </div>
+          <Button @click="handleToggle" :loading="loading" type="primary">
+            {{isRunning ? '停止服务' : '运行服务'}}
+          </Button>
+        </div>
+      </Card>
 
-      </Table>
+      <Card class="mt-16" title="本次解锁记录">
+        <Table :columns="columns" :data-source="dataSource" />
+        <Empty v-if="dataSource.length === 0" class="mt-16" />
+        <div class="pt-16 text-12">注：重载界面后，需要重新启动服务才能开始记录解锁日志。</div>
+
+        <template #extra>
+          <Button type="link" @click="handleOpen" icon="folder">打开下载目录</Button>
+          <Button type="link" @click="handleClear" icon="clear">清除日志</Button>
+        </template>
+      </Card>
     </div>
     `,
     setup() {
-      const { h } = Vue
+      const { ref, h } = Vue
       const dataSource = window[Plugin.id].unblockHistory
+      const loading = ref(false)
+      const isRunning = ref()
+
+      isUnblockMusicRunning().then((res) => {
+        isRunning.value = res
+      })
 
       return {
         columns: [
-          { title: '解锁时间', key: 'time', customRender: ({ value }) => Plugins.formatDate(value, 'YYYY-MM-DD HH:mm:ss') },
-          { title: '音频ID', key: 'audioId' },
-          { title: '歌曲名', key: 'songName' },
+          { title: '解锁时间', key: 'time', align: 'center', customRender: ({ value }) => Plugins.formatDate(value, 'YYYY-MM-DD HH:mm:ss') },
+          { title: '音频ID', key: 'audioId', align: 'center' },
+          { title: '歌曲名', key: 'songName', align: 'center' },
           {
             title: '链接',
             key: 'url',
+            align: 'center',
+            minWidth: '100px',
             customRender: ({ value, record }) =>
               h(
                 'div',
@@ -117,23 +142,32 @@ const onRun = async () => {
               )
           }
         ],
-        dataSource
+        dataSource,
+        loading,
+        isRunning,
+        handleToggle: async () => {
+          loading.value = true
+          if (isRunning.value) {
+            await stopUnblockMusicService()
+          } else {
+            await startUnblockMusicService()
+          }
+          loading.value = false
+          isRunning.value = !isRunning.value
+        },
+        handleClear: () => {
+          dataSource.value.splice(0)
+        },
+        handleOpen: async () => {
+          const path = await Plugins.AbsolutePath(DOWNLOAD_PATH)
+          Plugins.BrowserOpenURL(path)
+        }
       }
     }
   }
 
   modal.setContent(content)
   modal.open()
-
-  // return
-  // if (await isUnblockMusicRunning()) {
-  //   Plugins.message.warn('当前插件已经在运行了')
-  //   return 1
-  // }
-  // await startUnblockMusicService()
-  // await switchTo(1)
-  // Plugins.message.success('✨ 插件启动成功!')
-  // return 1
 }
 
 /* 触发器 核心启动前 */
