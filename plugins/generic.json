@@ -1499,7 +1499,7 @@
   {
     "id": "plugin-unblockneteasemusic",
     "name": "解锁网易云音乐",
-    "version": "v5.1.0",
+    "version": "v6.0.0",
     "description": "解锁网易云音乐插件，需要安装CA证书。请在音乐客户端内开启：使用IE代理设置。（Revive unavailable songs for Netease Cloud Music (Refactored & Enhanced version)）",
     "tags": ["实用工具", "功能扩展"],
     "type": "Http",
@@ -1522,8 +1522,8 @@
     "configuration": [
       {
         "id": "ID_45aos2xh",
-        "title": "下载保存路径",
-        "description": "",
+        "title": "音乐下载保存路径",
+        "description": "默认保存在插件目录内，不修改卸载插件时会被清空。",
         "key": "DownloadsPath",
         "component": "Input",
         "value": "",
@@ -1541,11 +1541,11 @@
       {
         "id": "ID_8aiktkuq",
         "title": "音源",
-        "description": "选择有兴趣的音源，咪咕、QQ需要填写Cookie，Youtube需要yt-dlp。",
+        "description": "选择有兴趣的音源，部分音源还需在下方配置Cookie。",
         "key": "Source",
         "component": "CheckBox",
-        "value": ["kugou", "kuwo"],
-        "options": ["酷狗音乐,kugou", "酷我音乐,kuwo", "咪咕音乐,migu", "YouTube,ytdlp", "B 站音乐,bilibili", "QQ音乐,qq", "第三方网易云,pyncmd"]
+        "value": ["kugou", "ytdlp", "pyncmd"],
+        "options": ["QQ音乐,qq", "酷狗音乐,kugou", "酷我音乐,kuwo", "咪咕音乐,migu", "JOOX,joox", "YouTube,ytdlp", "B 站音乐,bilibili", "第三方网易云,pyncmd"]
       },
       {
         "id": "ID_yl8s60lj",
@@ -1575,33 +1575,6 @@
         "options": []
       },
       {
-        "id": "ID_6k7ywtwh",
-        "title": "QQ音乐Cookie",
-        "description": "格式：uin=<your_uin>; qm_keyst=<your_qm_keyst>",
-        "key": "QQ_COOKIE",
-        "component": "Input",
-        "value": "",
-        "options": []
-      },
-      {
-        "id": "ID_j278znb7",
-        "title": "网易云音乐Cookie",
-        "description": "格式：MUSIC_U=007554xxx",
-        "key": "NETEASE_COOKIE",
-        "component": "Input",
-        "value": "",
-        "options": []
-      },
-      {
-        "id": "ID_fjap2br3",
-        "title": "咪咕音源的 aversionid cookie",
-        "description": "格式：<your_aversionid>",
-        "key": "MIGU_COOKIE",
-        "component": "Input",
-        "value": "",
-        "options": []
-      },
-      {
         "id": "ID_6n0tgftx",
         "title": "激活本地黑胶 VIP",
         "description": "",
@@ -1615,33 +1588,6 @@
         "title": "激活无损音质获取",
         "description": "",
         "key": "ENABLE_FLAC",
-        "component": "Switch",
-        "value": false,
-        "options": []
-      },
-      {
-        "id": "ID_v48ayal3",
-        "title": "屏蔽应用内部分广告",
-        "description": "",
-        "key": "BLOCK_ADS",
-        "component": "Switch",
-        "value": true,
-        "options": []
-      },
-      {
-        "id": "ID_6g4mvtlr",
-        "title": "禁用更新检测",
-        "description": "",
-        "key": "DISABLE_UPGRADE_CHECK",
-        "component": "Switch",
-        "value": false,
-        "options": []
-      },
-      {
-        "id": "ID_2mfxvepu",
-        "title": "停用缓存",
-        "description": "",
-        "key": "NO_CACHE",
         "component": "Switch",
         "value": false,
         "options": []
@@ -1662,6 +1608,20 @@
         "key": "SELECT_MAX_BR",
         "component": "Switch",
         "value": false,
+        "options": []
+      },
+      {
+        "id": "ID_n889cz6h",
+        "title": "各大音源的Cookie",
+        "description": "格式参考：https://github.com/UnblockNeteaseMusic/server?tab=readme-ov-file#音源清单",
+        "key": "CookieMap",
+        "component": "KeyValueEditor",
+        "value": {
+          "QQ_COOKIE": "",
+          "MIGU_COOKIE": "",
+          "JOOX_COOKIE": "",
+          "NETEASE_COOKIE": ""
+        },
         "options": []
       }
     ],
