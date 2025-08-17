@@ -51,61 +51,41 @@ const getOutTags = async (profile) => {
 }
 
 const home = () => {
-  const { ref, h, defineComponent, computed, watch } = Vue
-  const component = defineComponent({
+  const { ref, h, computed, watch } = Vue
+  const component = {
     template: `
-    <div>
-      <Card class="mt-8" style="display:flex; flex-direction:column; min-height:320px; padding:16px;">
-        <!-- 顶部控制栏：新增链 + 全局出站选择 + 目标链下拉 + 添加到目标链 -->
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
-          <div style="display:flex; gap:8px; align-items:center;">
-            <Button plain @click="addChain" type="primary" title="添加新的代理链">添加代理链</Button>
-          </div>
+    <div class="pr-8">
+      <div class="py-8 flex items-center gap-4">
+        快速添加：向
+        <Select v-model="targetChainIndex" :options="chainOptions" />
+        添加出站
+        <Select v-model="globalOutSelected" :options="outList" placeholder="选择出站标签" />
+        <Button @click="addOutToTargetChain" type="link">立即执行</Button>
+        <Button @click="relayConfigGenerate" type="primary" class="ml-auto">生成最终脚本</Button>
+      </div>
 
-          <div style="display:flex; gap:8px; align-items:center;">
-            <Select v-model="globalOutSelected" :options="outList" placeholder="选择出站标签" style="min-width:180px;" />
-            <Select v-model="targetChainIndex" :options="chainOptions" style="min-width:120px;" />
-            <Button @click="addOutToTargetChain" type="primary" title="将选中出站添加到目标链">添加到目标链</Button>
-          </div>
-        </div>
+      <!-- 多条链区域 -->
+      <div class="flex flex-col gap-8 mt-8">
+        <Card v-for="(chain, idx) in relayChains" :key="idx" :title="'第 ' + (idx+1) + ' 条代理链'">
+          <template #title-suffix>
+            <div v-if="relayChains[idx].length < 2" class="text-12 px-8" style="color: #ff6b6b">至少需要 2 个出站</div>
+          </template>
+          <template #extra>
+            <Button @click="() => removeChain(idx)" v-if="relayChains.length > 1" type="text" size="small">删除</Button>
+          </template>
+          <InputList v-model="relayChains[idx]" placeholder="Outbound" class="w-full" />
+        </Card>
+      </div>
 
-        <!-- 多条链区域 -->
-        <div style="display:flex; flex-direction:column; gap:12px; margin-top:12px;">
-          <div v-for="(chain, idx) in relayChains" :key="idx" style="display:flex; gap:8px; align-items:flex-start;">
-            <div style="flex:1;">
-              <InputList v-model="relayChains[idx]" placeholder="Outbound" style="width:100%;" />
-            </div>
+      <div class="mt-8">
+        <Button @click="addChain" type="text" class="w-full" icon="add">添加代理链</Button>
+      </div>
 
-            <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end; min-width:96px;">
-              <Button plain @click="() => removeChain(idx)" v-if="relayChains.length > 1" type="primary" title="删除这条代理链">删除</Button>
-              <div :style="{ fontSize: '12px', color: relayChains[idx].length < 2 ? '#ff6b6b' : 'var(--muted-color)' }">
-                {{ relayChains[idx].length }} 个出站
-              </div>
-              <div style="font-size:12px; color:var(--muted-color);">第 {{ idx + 1 }} 条代理链</div>
-              <div v-if="relayChains[idx].length < 2" style="font-size:12px; color:#ff6b6b;">至少需要 2 个出站</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 说明与底部按钮：按钮靠底，最后一段与生成按钮在同一行 -->
-        <div style="display:flex; flex-direction:column; flex:1; margin-top:12px;">
-          <p style="margin:6px 0; white-space:normal; word-break:break-word; line-height:1.4;">
-            请添加你想要包含在代理链中的出站或分组，流量走向从上而下。
-          </p>
-          <p style="margin:6px 0; white-space:normal; word-break:break-word; line-height:1.4;">
-            如果为分组指定上游，将会为分组内包含的所有非分组出站添加上游。
-          </p>
-
-          <div style="display:flex; align-items:flex-end; width:100%; margin-top:auto;">
-            <p style="margin:6px 0; white-space:normal; word-break:break-word; line-height:1.4; flex:1;">
-              如果需要添加多个代理链，请使用上方的“添加代理链”按钮，每条链为一组。
-            </p>
-            <div style="margin-left:12px;">
-              <Button @click="relayConfigGenerate" type="primary" title="生成代理链的配置脚本">生成</Button>
-            </div>
-          </div>
-        </div>
-      </Card>
+      <div class="text-12 flex flex-col gap-4 py-16" style="color: #5c5c5c">
+        <div>请添加你想要包含在代理链中的出站或分组，流量走向从上而下。</div>
+        <div>如果为分组指定上游，将会为分组内包含的所有非分组出站添加上游。</div>
+        <div>如果需要添加多个代理链，请使用上方的“添加代理链”按钮，每条链为一组。</div>
+      </div>
     </div>
     `,
     setup() {
@@ -121,7 +101,7 @@ const home = () => {
       // 生成链下拉选项：链 1, 链 2, ...
       const chainOptions = computed(() =>
         relayChains.value.map((_, i) => ({
-          label: `链 ${i + 1}`,
+          label: `第 ${i + 1} 条代理链`,
           value: i
         }))
       )
@@ -270,29 +250,14 @@ ${configScript}
       }
 
       const displayConfigScript = (configScript) => {
-        const previewComponent = defineComponent({
+        const previewComponent = {
           template: `
-          <div>
-            <Card class="mt-8" style="padding:16px;">
-              <div 
-                style="
-                  display:flex; 
-                  justify-content:space-between; 
-                  align-items:flex-start; 
-                  gap:12px; 
-                  background:var(--card-secondary-bg, #f5f5f5); 
-                  border-radius:6px; 
-                  padding:10px 12px; 
-                  margin-bottom:12px;
-                "
-              >
-                <div 
-                  style="
-                    flex:1; 
-                    font-size:15px; 
-                    color:var(--muted-color, #666); 
-                    line-height:1.5;
-                  "
+          <div class="pr-8">
+            <Card>
+              <div class="flex justify-between items-start gap-12 rounded px-12 py-8">
+                <div
+                  class="flex-1"
+                  style="line-height: 1.5"
                 >
                   你可以点击右侧的 <b>复制脚本</b> 按钮将脚本复制到剪贴板，然后到对应配置的
                   “设置 → 混入和脚本 → 脚本操作”中粘贴使用，或点击右侧的
@@ -345,7 +310,7 @@ ${configScript}
               onCopy
             }
           }
-        })
+        }
 
         const modal = Plugins.modal({
           title: '配置脚本预览',
@@ -375,11 +340,12 @@ ${configScript}
         displayConfigScript
       }
     }
-  })
+  }
 
   const modal = Plugins.modal({
     title: '链式代理列表',
     submit: false,
+    width: '90',
     cancelText: '关闭',
     component: h(component),
     afterClose: () => {
