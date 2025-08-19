@@ -128,7 +128,7 @@
   {
     "id": "plugin-ui-example",
     "name": "插件UI示例",
-    "version": "v1.0.1",
+    "version": "v1.1.0",
     "description": "插件创建UI示例",
     "tags": ["插件示例"],
     "type": "Http",

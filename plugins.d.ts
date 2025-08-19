@@ -21,6 +21,14 @@ type UseModalOptions = { component?: any } & Partial<{
   afterClose?: (isOk: boolean) => void
 }>
 
+interface UseModalSlots {
+  title?: () => any
+  toolbar?: () => any
+  action?: () => any
+  cancel?: () => any
+  submit?: () => any
+}
+
 interface Plugins {
   APP_TITLE: string
   APP_VERSION: string
@@ -48,13 +56,20 @@ interface Plugins {
       markdown?: boolean
     }
   ): Promise<boolean>
-  modal(options?: UseModalOptions): {
+  modal(
+    options?: UseModalOptions,
+    slots?: UseModalSlots
+  ): {
     destroy: () => void
   } & {
     open: () => void
     close: () => void
     setProps: (options: UseModalOptions) => void
+    patchProps: (options: Partial<UseModalOptions>) => void
+    setSlots: (slots: UseModalSlots) => void
+    patchSlots: (slots: UseModalSlots) => void
     setComponent: (component: any) => void
+    setContent<C = any>(Comp: C, _props?: InstanceType<C>['$props'], _slots?: InstanceType<C>['$slots'], replace = true)
   }
   picker: {
     multi(title: string, options: Array<{ label: string; value: any }>, initialValue?: any[]): Promise<any[]>

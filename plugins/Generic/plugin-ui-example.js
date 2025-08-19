@@ -4,8 +4,9 @@ const onRun = async () => {
 }
 
 const createUIModal = () => {
-  const { ref, h, defineComponent } = Vue
+  const { ref, h, defineComponent, resolveComponent } = Vue
 
+  // 这是一个组件
   const component = defineComponent({
     template: /* html */ `
     <div>
@@ -168,13 +169,77 @@ const createUIModal = () => {
     }
   })
 
-  const modal = Plugins.modal({
-    title: '自定义UI使用示例',
-    component: h(component),
-    afterClose: () => {
-      modal.destroy()
+  const modal = Plugins.modal(
+    // 第一个参数是modal的属性，详见仓库内src\components\Modal\index.vue:44
+    {
+      title: '自定义UI使用示例',
+      afterClose: () => {
+        // 通常需要在关闭时销毁弹窗，否则会有残留。
+        // 如果需要缓存到全局变量，避免每次都重新创建，则不需要销毁
+        modal.destroy()
+      }
+    },
+    // 第二个参数是modal的插槽：title左上角、toolbar右上角、action底部、cancel右下角取消按钮、submit右下角提交按钮、default默认插槽
+    // 插槽可在创建modal时直接传入，也可使用setSlots patchSlots动态设置，也可定义在一个组件内，通过expose({modalSlots})抛出，然后调用setContent设置默认插槽并渲染剩余插槽
+    {
+      title: () =>
+        h(
+          resolveComponent('Button'),
+          {
+            type: 'link'
+          },
+          () => '自定义标题'
+        ),
+      toolbar: () => [
+        h(
+          resolveComponent('Button'),
+          {
+            type: 'text',
+            onClick: () => {
+              Plugins.message.info('工具栏1')
+            }
+          },
+          () => '工具栏1'
+        ),
+        h(
+          resolveComponent('Button'),
+          {
+            type: 'text',
+            onClick: () => {
+              Plugins.message.info('工具栏2')
+            }
+          },
+          () => '工具栏2'
+        )
+      ],
+      action: () => h('div', { class: 'mr-auto text-14' }, '更多的底部操作'),
+      cancel: () => h('div', { onClick: () => modal.close() }, ' ❌ '),
+      submit: () => h('div', { onClick: () => modal.close() }, ' ✅ ')
     }
-  })
+  )
+
+  // 这是一个组件
+  const comp = {
+    setup(_, { expose }) {
+      // 组件里抛出了modalSlots变量，里面定义了modal的插槽
+      expose({
+        // 此变量会在调用setContent时，由内部自动调用patchSlots更新到对应的插槽里
+        modalSlots: {
+          cancel: () => h('div', ' 不给关闭 ')
+        }
+      })
+      return () => h('div', { class: 'flex items-center justify-center min-h-128' }, 'loading...')
+    }
+  }
+
+  // 参数：组件、组件属性、组件插槽、是否替换掉modal原有的所有插槽
+  // setContent相当于patchSlots({default: component})
+  // 但是会从component抛出来的modalSlots变量里提取对应的modal插槽，并调用patchSlots更新到modal上
+  modal.setContent(comp, null, null, false)
+
+  setTimeout(() => {
+    modal.setContent(component, null, null, false)
+  }, 3000)
 
   return modal
 }
