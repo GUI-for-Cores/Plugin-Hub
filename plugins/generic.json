@@ -461,7 +461,7 @@
   {
     "id": "plugin-tun-assistant",
     "name": "TUN模式助手",
-    "version": "v1.0.0",
+    "version": "v1.0.1",
     "description": "TUN模式食用指南！",
     "tags": ["提升体验"],
     "type": "Http",

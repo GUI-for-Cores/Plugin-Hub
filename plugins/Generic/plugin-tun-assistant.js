@@ -6,7 +6,7 @@ const onRun = async () => {
   const common = ['常见问题：', ' - 没有网络：请更换tun堆栈', ' - 出现ssl错误：请手动设置系统dns为223.5.5.5或8.8.8.8']
 
   if (os === 'windows') {
-    const arr = ['1、请转至设置，开启已管理员身份运行', '2、退出程序，重新打开（不要使用重启）', '3、修改配置，开启TUN模式', '4、启动内核\n'].concat(common)
+    const arr = ['1、请转至设置，开启以管理员身份运行', '2、退出程序，重新打开（不要使用重启）', '3、修改配置，开启TUN模式', '4、启动内核\n'].concat(common)
     await Plugins.alert(Plugin.name, arr.join('\n'))
     return
   }
@@ -45,18 +45,12 @@ const onRun = async () => {
 }
 
 async function getKernelFilePath(isAlpha = false) {
-  const envStore = Plugins.useEnvStore()
-  const { os, arch, x64Level } = envStore.env
-  const fileSuffix = { windows: '.exe', linux: '', darwin: '' }[os]
-
+  const bin = Plugins.getKernelFileName(isAlpha)
   // GFC
   if (Plugins.APP_TITLE.includes('Clash')) {
-    const alpha = isAlpha ? '-alpha' : ''
-    const amd64Compatible = arch === 'amd64' && x64Level < 3 ? '-compatible' : ''
-    return await Plugins.AbsolutePath(`data/mihomo/mihomo-${os}-${arch}${amd64Compatible}${alpha}${fileSuffix}`)
+    return await Plugins.AbsolutePath(`data/mihomo/${bin}`)
   }
 
   // GFS
-  const latest = isAlpha ? '-latest' : ''
-  return await Plugins.AbsolutePath(`data/sing-box/sing-box${latest}${fileSuffix}`)
+  return await Plugins.AbsolutePath(`data/sing-box/${bin}`)
 }
