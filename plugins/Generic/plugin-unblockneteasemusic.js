@@ -14,7 +14,7 @@ window[Plugin.id] = window[Plugin.id] || {
   onServiceStopped: Plugins.debounce(async () => {
     console.log(`[${Plugin.name}]`, '插件已停止')
     await Plugins.Writefile(PID_FILE, '0')
-  }, 100)
+  }, 0)
 }
 
 /* 触发器 安装 */
