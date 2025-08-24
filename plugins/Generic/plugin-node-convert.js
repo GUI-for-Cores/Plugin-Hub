@@ -1,5 +1,5 @@
 /**
- * 本插件参考项目：SubStore中节点转换相关功能，具体看下面引用的源码
+ * 本插件使用项目：SubStore中节点转换相关功能，具体看下面引用的源码
  */
 
 /**
@@ -454,6 +454,12 @@ function ClashMeta_Producer() {
           ].includes(proxy.cipher)
         ) {
           // https://wiki.metacubex.one/config/proxies/ss/#cipher
+          return false
+        } else if (
+          ['anytls'].includes(proxy.type) &&
+          proxy.network &&
+          (!['tcp'].includes(proxy.network) || (['tcp'].includes(proxy.network) && proxy['reality-opts']))
+        ) {
           return false
         }
         return true
@@ -1242,6 +1248,7 @@ function Singbox_Producer() {
     if (/^\d+$/.test(proxy['idle-session-check-interval'])) parsedProxy.idle_session_check_interval = `${proxy['idle-session-check-interval']}s`
     if (/^\d+$/.test(proxy['idle-session-timeout'])) parsedProxy.idle_session_timeout = `${proxy['idle-session-timeout']}s`
     if (/^\d+$/.test(proxy['min-idle-session'])) parsedProxy.min_idle_session = parseInt(`${proxy['min-idle-session']}`, 10)
+    networkParser(proxy, parsedProxy)
     detourParser(proxy, parsedProxy)
     tlsParser(proxy, parsedProxy)
     ipVersionParser(proxy, parsedProxy)
@@ -1429,6 +1436,98 @@ function Singbox_Producer() {
  * 来源：https://github.com/sub-store-org/Sub-Store/blob/master/backend/src/core/proxy-utils/producers/uri.js
  */
 function URI_Producer() {
+  function vless(proxy) {
+    let security = 'none'
+    const isReality = proxy['reality-opts']
+    let sid = ''
+    let pbk = ''
+    let spx = ''
+    if (isReality) {
+      security = 'reality'
+      const publicKey = proxy['reality-opts']?.['public-key']
+      if (publicKey) {
+        pbk = `&pbk=${encodeURIComponent(publicKey)}`
+      }
+      const shortId = proxy['reality-opts']?.['short-id']
+      if (shortId) {
+        sid = `&sid=${encodeURIComponent(shortId)}`
+      }
+      const spiderX = proxy['reality-opts']?.['_spider-x']
+      if (spiderX) {
+        spx = `&spx=${encodeURIComponent(spiderX)}`
+      }
+    } else if (proxy.tls) {
+      security = 'tls'
+    }
+    let alpn = ''
+    if (proxy.alpn) {
+      alpn = `&alpn=${encodeURIComponent(Array.isArray(proxy.alpn) ? proxy.alpn : proxy.alpn.join(','))}`
+    }
+    let allowInsecure = ''
+    if (proxy['skip-cert-verify']) {
+      allowInsecure = `&allowInsecure=1`
+    }
+    let sni = ''
+    if (proxy.sni) {
+      sni = `&sni=${encodeURIComponent(proxy.sni)}`
+    }
+    let fp = ''
+    if (proxy['client-fingerprint']) {
+      fp = `&fp=${encodeURIComponent(proxy['client-fingerprint'])}`
+    }
+    let flow = ''
+    if (proxy.flow) {
+      flow = `&flow=${encodeURIComponent(proxy.flow)}`
+    }
+    let extra = ''
+    if (proxy._extra) {
+      extra = `&extra=${encodeURIComponent(proxy._extra)}`
+    }
+    let mode = ''
+    if (proxy._mode) {
+      mode = `&mode=${encodeURIComponent(proxy._mode)}`
+    }
+    let vlessType = proxy.network
+    if (proxy.network === 'ws' && proxy['ws-opts']?.['v2ray-http-upgrade']) {
+      vlessType = 'httpupgrade'
+    }
+
+    let vlessTransport = `&type=${encodeURIComponent(vlessType)}`
+    if (['grpc'].includes(proxy.network)) {
+      // https://github.com/XTLS/Xray-core/issues/91
+      vlessTransport += `&mode=${encodeURIComponent(proxy[`${proxy.network}-opts`]?.['_grpc-type'] || 'gun')}`
+      const authority = proxy[`${proxy.network}-opts`]?.['_grpc-authority']
+      if (authority) {
+        vlessTransport += `&authority=${encodeURIComponent(authority)}`
+      }
+    }
+
+    let vlessTransportServiceName = proxy[`${proxy.network}-opts`]?.[`${proxy.network}-service-name`]
+    let vlessTransportPath = proxy[`${proxy.network}-opts`]?.path
+    let vlessTransportHost = proxy[`${proxy.network}-opts`]?.headers?.Host
+    if (vlessTransportPath) {
+      vlessTransport += `&path=${encodeURIComponent(Array.isArray(vlessTransportPath) ? vlessTransportPath[0] : vlessTransportPath)}`
+    }
+    if (vlessTransportHost) {
+      vlessTransport += `&host=${encodeURIComponent(Array.isArray(vlessTransportHost) ? vlessTransportHost[0] : vlessTransportHost)}`
+    }
+    if (vlessTransportServiceName) {
+      vlessTransport += `&serviceName=${encodeURIComponent(vlessTransportServiceName)}`
+    }
+    if (proxy.network === 'kcp') {
+      if (proxy.seed) {
+        vlessTransport += `&seed=${encodeURIComponent(proxy.seed)}`
+      }
+      if (proxy.headerType) {
+        vlessTransport += `&headerType=${encodeURIComponent(proxy.headerType)}`
+      }
+    }
+
+    return `vless://${proxy.uuid}@${proxy.server}:${proxy.port}?security=${encodeURIComponent(
+      security
+    )}${vlessTransport}${alpn}${allowInsecure}${sni}${fp}${flow}${sid}${spx}${pbk}${mode}${extra}#${encodeURIComponent(proxy.name)}`
+  }
+
   const type = 'SINGLE'
   const produce = (proxy) => {
     let result = ''
@@ -1543,95 +1642,7 @@ function URI_Producer() {
         result = 'vmess://' + Base64.encode(JSON.stringify(result))
         break
       case 'vless':
-        let security = 'none'
-        const isReality = proxy['reality-opts']
-        let sid = ''
-        let pbk = ''
-        let spx = ''
-        if (isReality) {
-          security = 'reality'
-          const publicKey = proxy['reality-opts']?.['public-key']
-          if (publicKey) {
-            pbk = `&pbk=${encodeURIComponent(publicKey)}`
-          }
-          const shortId = proxy['reality-opts']?.['short-id']
-          if (shortId) {
-            sid = `&sid=${encodeURIComponent(shortId)}`
-          }
-          const spiderX = proxy['reality-opts']?.['_spider-x']
-          if (spiderX) {
-            spx = `&spx=${encodeURIComponent(spiderX)}`
-          }
-        } else if (proxy.tls) {
-          security = 'tls'
-        }
-        let alpn = ''
-        if (proxy.alpn) {
-          alpn = `&alpn=${encodeURIComponent(Array.isArray(proxy.alpn) ? proxy.alpn : proxy.alpn.join(','))}`
-        }
-        let allowInsecure = ''
-        if (proxy['skip-cert-verify']) {
-          allowInsecure = `&allowInsecure=1`
-        }
-        let sni = ''
-        if (proxy.sni) {
-          sni = `&sni=${encodeURIComponent(proxy.sni)}`
-        }
-        let fp = ''
-        if (proxy['client-fingerprint']) {
-          fp = `&fp=${encodeURIComponent(proxy['client-fingerprint'])}`
-        }
-        let flow = ''
-        if (proxy.flow) {
-          flow = `&flow=${encodeURIComponent(proxy.flow)}`
-        }
-        let extra = ''
-        if (proxy._extra) {
-          extra = `&extra=${encodeURIComponent(proxy._extra)}`
-        }
-        let mode = ''
-        if (proxy._mode) {
-          mode = `&mode=${encodeURIComponent(proxy._mode)}`
-        }
-        let vlessType = proxy.network
-        if (proxy.network === 'ws' && proxy['ws-opts']?.['v2ray-http-upgrade']) {
-          vlessType = 'httpupgrade'
-        }
-
-        let vlessTransport = `&type=${encodeURIComponent(vlessType)}`
-        if (['grpc'].includes(proxy.network)) {
-          // https://github.com/XTLS/Xray-core/issues/91
-          vlessTransport += `&mode=${encodeURIComponent(proxy[`${proxy.network}-opts`]?.['_grpc-type'] || 'gun')}`
-          const authority = proxy[`${proxy.network}-opts`]?.['_grpc-authority']
-          if (authority) {
-            vlessTransport += `&authority=${encodeURIComponent(authority)}`
-          }
-        }
-
-        let vlessTransportServiceName = proxy[`${proxy.network}-opts`]?.[`${proxy.network}-service-name`]
-        let vlessTransportPath = proxy[`${proxy.network}-opts`]?.path
-        let vlessTransportHost = proxy[`${proxy.network}-opts`]?.headers?.Host
-        if (vlessTransportPath) {
-          vlessTransport += `&path=${encodeURIComponent(Array.isArray(vlessTransportPath) ? vlessTransportPath[0] : vlessTransportPath)}`
-        }
-        if (vlessTransportHost) {
-          vlessTransport += `&host=${encodeURIComponent(Array.isArray(vlessTransportHost) ? vlessTransportHost[0] : vlessTransportHost)}`
-        }
-        if (vlessTransportServiceName) {
-          vlessTransport += `&serviceName=${encodeURIComponent(vlessTransportServiceName)}`
-        }
-        if (proxy.network === 'kcp') {
-          if (proxy.seed) {
-            vlessTransport += `&seed=${encodeURIComponent(proxy.seed)}`
-          }
-          if (proxy.headerType) {
-            vlessTransport += `&headerType=${encodeURIComponent(proxy.headerType)}`
-          }
-        }
-
-        result = `vless://${proxy.uuid}@${proxy.server}:${proxy.port}?security=${encodeURIComponent(
-          security
-        )}${vlessTransport}${alpn}${allowInsecure}${sni}${fp}${flow}${sid}${spx}${pbk}${mode}${extra}#${encodeURIComponent(proxy.name)}`
+        result = vless(proxy)
         break
       case 'trojan':
         let trojanTransport = ''
@@ -1810,6 +1821,12 @@ function URI_Producer() {
         }
         break
       case 'anytls':
+        result = vless({
+          ...proxy,
+          uuid: proxy.password,
+          network: proxy.network || 'tcp'
+        }).replace('vless', 'anytls')
+        // 偷个懒
         let anytlsParams = []
         Object.keys(proxy).forEach((key) => {
           if (!['name', 'type', 'password', 'server', 'port', 'tls'].includes(key)) {
@@ -1826,13 +1843,51 @@ function URI_Producer() {
               if (proxy[key]) {
                 anytlsParams.push(`udp=1`)
               }
-            } else if (proxy[key] && !/^_/i.test(key)) {
+            } else if (proxy[key] && !/^_|client-fingerprint/i.test(key) && ['number', 'string', 'boolean'].includes(typeof proxy[key])) {
               anytlsParams.push(`${i.replace(/-/g, '_')}=${encodeURIComponent(proxy[key])}`)
             }
           }
         })
 
-        result = `anytls://${encodeURIComponent(proxy.password)}@${proxy.server}:${proxy.port}/?${anytlsParams.join('&')}#${encodeURIComponent(proxy.name)}`
+        // Parse existing query parameters from result
+        const urlParts = result.split('?')
+        let baseUrl = urlParts[0]
+        let existingParams = {}
+
+        if (urlParts.length > 1) {
+          const queryString = urlParts[1].split('#')[0] // Remove fragment if exists
+          const pairs = queryString.split('&')
+          pairs.forEach((pair) => {
+            const [key, value] = pair.split('=')
+            if (key) {
+              existingParams[key] = value
+            }
+          })
+        }
+
+        // Merge anytlsParams with existing parameters
+        anytlsParams.forEach((param) => {
+          const [key, value] = param.split('=')
+          if (key) {
+            existingParams[key] = value
+          }
+        })
+
+        // Reconstruct query string
+        const newParams = Object.keys(existingParams)
+          .map((key) => `${key}=${existingParams[key]}`)
+          .join('&')
+
+        // Get fragment part if exists
+        const fragmentMatch = result.match(/#(.*)$/)
+        const fragment = fragmentMatch ? `#${fragmentMatch[1]}` : ''
+
+        result = `${baseUrl}?${newParams}${fragment}`
+        // result = `anytls://${encodeURIComponent(proxy.password)}@${
+        //     proxy.server
+        // }:${proxy.port}/?${anytlsParams.join('&')}#${encodeURIComponent(
+        //     proxy.name,
+        // )}`;
         break
       case 'wireguard':
         let wireguardParams = []
@@ -2404,10 +2459,12 @@ const PROXY_PARSERS = (() => {
       }
       const params = {}
       for (const addon of addons.split('&')) {
-        const [key, valueRaw] = addon.split('=')
-        let value = valueRaw
-        value = decodeURIComponent(valueRaw)
-        params[key] = value
+        if (addon) {
+          const [key, valueRaw] = addon.split('=')
+          let value = valueRaw
+          value = decodeURIComponent(valueRaw)
+          params[key] = value
+        }
       }
 
       proxy.name = name ?? params.remarks ?? params.remark ?? `VLESS ${server}:${port}`
@@ -2530,6 +2587,8 @@ const PROXY_PARSERS = (() => {
       return /^anytls:\/\//.test(line)
     }
     const parse = (line) => {
+      const parsed = URI_VLESS().parse(line.replace('anytls', 'vless'))
+      // 偷个懒
       line = line.split(/anytls:\/\//)[1]
       // eslint-disable-next-line no-unused-vars
       let [__, password, server, port, addons = '', name] = /^(.*?)@(.*?)(?::(\d+))?\/?(?:\?(.*?))?(?:#(.*?))?$/.exec(line)
@@ -2545,6 +2604,8 @@ const PROXY_PARSERS = (() => {
       name = name ?? `AnyTLS ${server}:${port}`
 
       const proxy = {
+        ...parsed,
+        uuid: undefined,
         type: 'anytls',
         name,
         server,
@@ -2553,18 +2614,25 @@ const PROXY_PARSERS = (() => {
       }
 
       for (const addon of addons.split('&')) {
-        let [key, value] = addon.split('=')
-        key = key.replace(/_/g, '-')
-        value = decodeURIComponent(value)
-        if (['alpn'].includes(key)) {
-          proxy[key] = value ? value.split(',') : undefined
-        } else if (['insecure'].includes(key)) {
-          proxy['skip-cert-verify'] = /(TRUE)|1/i.test(value)
-        } else if (['udp'].includes(key)) {
-          proxy[key] = /(TRUE)|1/i.test(value)
-        } else {
-          proxy[key] = value
+        if (addon) {
+          let [key, value] = addon.split('=')
+          key = key.replace(/_/g, '-')
+          value = decodeURIComponent(value)
+          if (['alpn'].includes(key)) {
+            proxy[key] = value ? value.split(',') : undefined
+          } else if (['insecure'].includes(key)) {
+            proxy['skip-cert-verify'] = /(TRUE)|1/i.test(value)
+          } else if (['udp'].includes(key)) {
+            proxy[key] = /(TRUE)|1/i.test(value)
+          } else if (!Object.keys(proxy).includes(key)) {
+            proxy[key] = value
+          }
         }
+      }
+
+      if (['tcp'].includes(proxy.network) && !proxy['reality-opts']) {
+        delete proxy.network
+        delete proxy.security
       }
 
       return proxy
@@ -2618,10 +2686,12 @@ const PROXY_PARSERS = (() => {
 
       const params = {}
       for (const addon of addons.split('&')) {
-        const [key, valueRaw] = addon.split('=')
-        let value = valueRaw
-        value = decodeURIComponent(valueRaw)
-        params[key] = value
+        if (addon) {
+          const [key, valueRaw] = addon.split('=')
+          let value = valueRaw
+          value = decodeURIComponent(valueRaw)
+          params[key] = value
+        }
       }
 
       proxy.sni = params.sni
@@ -2679,30 +2749,32 @@ const PROXY_PARSERS = (() => {
       }
       const params = {}
       for (const addon of addons.split('&')) {
-        let [key, value] = addon.split('=')
-        key = key.replace(/_/, '-')
-        value = decodeURIComponent(value)
-        if (['alpn'].includes(key)) {
-          proxy[key] = value ? value.split(',') : undefined
-        } else if (['insecure'].includes(key)) {
-          proxy['skip-cert-verify'] = /(TRUE)|1/i.test(value)
-        } else if (['auth'].includes(key)) {
-          proxy['auth-str'] = value
-        } else if (['mport'].includes(key)) {
-          proxy['ports'] = value
-        } else if (['obfsParam'].includes(key)) {
-          proxy['obfs'] = value
-        } else if (['upmbps'].includes(key)) {
-          proxy['up'] = value
-        } else if (['downmbps'].includes(key)) {
-          proxy['down'] = value
-        } else if (['obfs'].includes(key)) {
-          // obfs: Obfuscation mode (optional, empty or "xplus")
-          proxy['_obfs'] = value || ''
-        } else if (['fast-open', 'peer'].includes(key)) {
-          params[key] = value
-        } else {
-          proxy[key] = value
+        if (addon) {
+          let [key, value] = addon.split('=')
+          key = key.replace(/_/, '-')
+          value = decodeURIComponent(value)
+          if (['alpn'].includes(key)) {
+            proxy[key] = value ? value.split(',') : undefined
+          } else if (['insecure'].includes(key)) {
+            proxy['skip-cert-verify'] = /(TRUE)|1/i.test(value)
+          } else if (['auth'].includes(key)) {
+            proxy['auth-str'] = value
+          } else if (['mport'].includes(key)) {
+            proxy['ports'] = value
+          } else if (['obfsParam'].includes(key)) {
+            proxy['obfs'] = value
+          } else if (['upmbps'].includes(key)) {
+            proxy['up'] = value
+          } else if (['downmbps'].includes(key)) {
+            proxy['down'] = value
+          } else if (['obfs'].includes(key)) {
+            // obfs: Obfuscation mode (optional, empty or "xplus")
+            proxy['_obfs'] = value || ''
+          } else if (['fast-open', 'peer'].includes(key)) {
+            params[key] = value
+          } else if (!Object.keys(proxy).includes(key)) {
+            proxy[key] = value
+          }
         }
       }
 
@@ -2753,22 +2825,24 @@ const PROXY_PARSERS = (() => {
       }
 
       for (const addon of addons.split('&')) {
-        let [key, value] = addon.split('=')
-        key = key.replace(/_/g, '-')
-        value = decodeURIComponent(value)
-        if (['alpn'].includes(key)) {
-          proxy[key] = value ? value.split(',') : undefined
-        } else if (['allow-insecure'].includes(key)) {
-          proxy['skip-cert-verify'] = /(TRUE)|1/i.test(value)
-        } else if (['fast-open'].includes(key)) {
-          proxy.tfo = true
-        } else if (['disable-sni', 'reduce-rtt'].includes(key)) {
-          proxy[key] = /(TRUE)|1/i.test(value)
-        } else if (key === 'congestion-control') {
-          proxy['congestion-controller'] = value
-          delete proxy[key]
-        } else {
-          proxy[key] = value
+        if (addon) {
+          let [key, value] = addon.split('=')
+          key = key.replace(/_/g, '-')
+          value = decodeURIComponent(value)
+          if (['alpn'].includes(key)) {
+            proxy[key] = value ? value.split(',') : undefined
+          } else if (['allow-insecure', 'insecure'].includes(key)) {
+            proxy['skip-cert-verify'] = /(TRUE)|1/i.test(value)
+          } else if (['fast-open'].includes(key)) {
+            proxy.tfo = true
+          } else if (['disable-sni', 'reduce-rtt'].includes(key)) {
+            proxy[key] = /(TRUE)|1/i.test(value)
+          } else if (key === 'congestion-control') {
+            proxy['congestion-controller'] = value
+            delete proxy[key]
+          } else if (!Object.keys(proxy).includes(key)) {
+            proxy[key] = value
+          }
         }
       }
 
@@ -2805,43 +2879,45 @@ const PROXY_PARSERS = (() => {
         udp: true
       }
       for (const addon of addons.split('&')) {
-        let [key, value] = addon.split('=')
-        key = key.replace(/_/, '-')
-        value = decodeURIComponent(value)
-        if (['reserved'].includes(key)) {
-          const parsed = value
-            .split(',')
-            .map((i) => parseInt(i.trim(), 10))
-            .filter((i) => Number.isInteger(i))
-          if (parsed.length === 3) {
-            proxy[key] = parsed
-          }
-        } else if (['address', 'ip'].includes(key)) {
-          value.split(',').map((i) => {
-            const ip = i
-              .trim()
-              .replace(/\/\d+$/, '')
-              .replace(/^\[/, '')
-              .replace(/\]$/, '')
-            if (isIPv4(ip)) {
-              proxy.ip = ip
-            } else if (isIPv6(ip)) {
-              proxy.ipv6 = ip
+        if (addon) {
+          let [key, value] = addon.split('=')
+          key = key.replace(/_/, '-')
+          value = decodeURIComponent(value)
+          if (['reserved'].includes(key)) {
+            const parsed = value
+              .split(',')
+              .map((i) => parseInt(i.trim(), 10))
+              .filter((i) => Number.isInteger(i))
+            if (parsed.length === 3) {
+              proxy[key] = parsed
             }
-          })
-        } else if (['mtu'].includes(key)) {
-          const parsed = parseInt(value.trim(), 10)
-          if (Number.isInteger(parsed)) {
-            proxy[key] = parsed
+          } else if (['address', 'ip'].includes(key)) {
+            value.split(',').map((i) => {
+              const ip = i
+                .trim()
+                .replace(/\/\d+$/, '')
+                .replace(/^\[/, '')
+                .replace(/\]$/, '')
+              if (isIPv4(ip)) {
+                proxy.ip = ip
+              } else if (isIPv6(ip)) {
+                proxy.ipv6 = ip
+              }
+            })
+          } else if (['mtu'].includes(key)) {
+            const parsed = parseInt(value.trim(), 10)
+            if (Number.isInteger(parsed)) {
+              proxy[key] = parsed
+            }
+          } else if (/publickey/i.test(key)) {
+            proxy['public-key'] = value
+          } else if (/privatekey/i.test(key)) {
+            proxy['private-key'] = value
+          } else if (['udp'].includes(key)) {
+            proxy[key] = /(TRUE)|1/i.test(value)
+          } else if (![...Object.keys(proxy), 'flag'].includes(key)) {
+            proxy[key] = value
           }
-        } else if (/publickey/i.test(key)) {
-          proxy['public-key'] = value
-        } else if (/privatekey/i.test(key)) {
-          proxy['private-key'] = value
-        } else if (['udp'].includes(key)) {
-          proxy[key] = /(TRUE)|1/i.test(value)
-        } else if (!['flag'].includes(key)) {
-          proxy[key] = value
         }
       }
 
