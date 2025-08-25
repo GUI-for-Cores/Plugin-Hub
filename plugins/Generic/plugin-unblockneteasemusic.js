@@ -46,17 +46,21 @@ const onConfigure = async (config, old) => {
 
 /* 触发器 手动触发 */
 const onRun = async () => {
-  console.log(`[${Plugin.name}]`, Plugin)
-  const modal = Plugins.modal({
-    title: Plugin.name,
-    submit: false,
-    width: '80',
-    cancelText: 'common.close',
-    maskClosable: true,
-    afterClose() {
-      modal.destroy()
+  const modal = Plugins.modal(
+    {
+      title: Plugin.name,
+      submit: false,
+      width: '80',
+      cancelText: 'common.close',
+      maskClosable: true,
+      afterClose() {
+        modal.destroy()
+      }
+    },
+    {
+      action: () => Vue.h('div', { class: 'mr-auto text-12', style: { color: 'var(--card-color)' } }, '注：重载界面后，需要重启服务才能记录解锁日志。')
     }
-  })
+  )
 
   const content = {
     template: `
@@ -64,17 +68,17 @@ const onRun = async () => {
       <Card>
         <Table :columns="columns" :data-source="dataSource" />
         <Empty v-if="dataSource.length === 0" class="mt-32 mb-32" />
-        <div class="pt-16 text-12">注：重载界面后，需要重新启动服务才能开始记录解锁日志。</div>
 
         <template #title-prefix>
-          <div class="font-bold" :style="{color: isRunning ? 'green' : 'red'}">
+          <div class="w-8 h-24 rounded-full" :style="{background: isRunning ? 'var(--primary-color)' : 'var(--card-color)'}"></div>
+          <div class="font-bold ml-4" :style="{color: isRunning ? 'var(--primary-color)' : 'var(--card-color)'}">
             {{isRunning ? '服务运行中' : '服务已停止'}}
           </div>
         </template>
         <template #extra>
-          <Button type="link" @click="handleOpen" icon="folder">打开下载目录</Button>
+          <Button type="link" @click="handleOpen" icon="folder">下载目录</Button>
           <Button type="link" @click="handleClear" icon="clear">清除日志</Button>
-          <Button @click="handleToggle" :loading="loading" type="primary">
+          <Button @click="handleToggle" :loading="loading" type="primary" class="ml-8">
             {{isRunning ? '停止服务' : '运行服务'}}
           </Button>
         </template>
@@ -158,7 +162,7 @@ const onRun = async () => {
     }
   }
 
-  modal.setContent(content)
+  modal.setContent(content, null, null, false)
   modal.open()
 }
 
