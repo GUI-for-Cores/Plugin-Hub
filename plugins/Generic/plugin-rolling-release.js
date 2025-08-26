@@ -252,11 +252,8 @@ const addRollingReleaseTagToTitleBar = async () => {
     const loading = ref(false)
     const check = async () => {
       loading.value = true
-      try {
-        await Rolling()
-      } finally {
-        loading.value = false
-      }
+      await Rolling().catch((err) => Plugins.message.error(err))
+      loading.value = false
     }
 
     return {
