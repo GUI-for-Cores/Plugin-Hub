@@ -179,7 +179,12 @@ const Share = async (profile) => {
   const { close } = await Plugins.StartServer('0.0.0.0:' + Plugin.Port, Plugin.id, async (req, res) => {
     res.end(200, { 'Content-Type': 'application/json; charset=utf-8' }, JSON.stringify(config, null, 2))
   })
-  await Plugins.alert(Plugin.name, '|分享链接|二维码|\n|-|-|\n' + urls.map((url) => `|${url.url}|![](${url.qrcode})|`).join('\n'), { type: 'markdown' })
+  await Plugins.alert(
+    Plugin.name,
+    '### 注意事项： \n\n - 请保证电脑和手机处于同一局域网内\n - 请关闭电脑防火墙\n - 如果仍无法导入，请更换不同二维码尝试\n\n|分享链接|二维码|\n|-|-|\n' +
+      urls.map((url) => `|${url.url}|![](${url.qrcode})|`).join('\n'),
+    { type: 'markdown' }
+  )
   close()
 }
 
