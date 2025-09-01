@@ -142,7 +142,7 @@
   {
     "id": "plugin-relay-proxy-helper",
     "name": "链式代理助手",
-    "version": "v2.1.0",
+    "version": "v2.2.0",
     "description": "帮助用户快速生成用于添加代理链的配置脚本。Supported by: 泡泡茶壶",
     "tags": ["实用工具", "功能扩展", "提升体验"],
     "type": "Http",

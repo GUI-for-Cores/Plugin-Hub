@@ -265,18 +265,18 @@ ${configScript}
                 </div>
                 <div style="flex:0 0 auto; display:flex; flex-direction:column; gap:6px;">
                   <Button 
-                    @click="onOverWrite" 
-                    type="primary"
-                    title="点击后代理链脚本将直接覆盖当前配置的脚本"
-                  >
-                    覆盖写入
-                  </Button>
-                  <Button 
                     @click="onCopy" 
                     type="primary"
                     title="将脚本复制到剪贴板"
                   >
                     复制脚本
+                  </Button>
+                  <Button 
+                    @click="onOverWrite" 
+                    type="link"
+                    title="点击后代理链脚本将直接覆盖当前配置的脚本"
+                  >
+                    覆盖写入
                   </Button>
                 </div>
               </div>
