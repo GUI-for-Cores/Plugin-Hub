@@ -8,6 +8,8 @@ const PID_FILE = PATH + '/sub-store.pid'
 const FRONTEND_PATH = PATH + '/frontend'
 const BACKEND_FILE = PATH + '/sub-store.bundle.js'
 
+window[Plugin.id] = window[Plugin.id] || {}
+
 /**
  * 插件钩子 - 点击安装按钮时
  */
@@ -38,8 +40,7 @@ const onRun = async () => {
     }
     await startSubStoreService()
   }
-  const url = 'http://127.0.0.1:' + Plugin.SUB_STORE_FRONTEND_API_PORT + '?api=http://127.0.0.1:' + Plugin.SUB_STORE_BACKEND_API_PORT
-  Plugins.BrowserOpenURL(url)
+  openSubStoreUI()
   return 1
 }
 
@@ -150,6 +151,8 @@ const startSubStoreService = () => {
     } catch (error) {
       reject(error.message || error)
     }
+
+    addToCoreStatePanel()
   })
 }
 
@@ -157,6 +160,7 @@ const startSubStoreService = () => {
  * 停止Sub-Store服务
  */
 const stopSubStoreService = async () => {
+  removeFromCoreStatePanel()
   const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
   if (pid && pid !== '0') {
     await Plugins.KillProcess(Number(pid))
@@ -205,4 +209,79 @@ const installSubStore = async () => {
     await Plugins.sleep(1000)
     Plugins.message.destroy(id)
   }
+}
+
+/**
+ * 添加到概览页
+ */
+const addToCoreStatePanel = () => {
+  window[Plugin.id].remove?.()
+  const appStore = Plugins.useAppStore()
+  window[Plugin.id].remove = appStore.addCustomActions('core_state', {
+    component: 'div',
+    componentSlots: {
+      default: ({ h }) => {
+        return h(
+          'Button',
+          {
+            type: 'link',
+            size: 'small',
+            onClick: openSubStoreUI
+          },
+          () => [
+            h('img', {
+              src: 'https://raw.githubusercontent.com/sub-store-org/Sub-Store-Front-End/refs/heads/master/public/favicon.ico',
+              width: '16px',
+              height: '16px',
+              style: {
+                borderRadius: '4px',
+                marginRight: '4px'
+              }
+            }),
+            'Sub-Store'
+          ]
+        )
+      }
+    }
+  })
+}
+
+/**
+ * 从概览页移除
+ */
+const removeFromCoreStatePanel = () => {
+  window[Plugin.id].remove?.()
+}
+
+const openSubStoreUI = () => {
+  const src = 'http://127.0.0.1:' + Plugin.SUB_STORE_FRONTEND_API_PORT + '?api=http://127.0.0.1:' + Plugin.SUB_STORE_BACKEND_API_PORT
+  const modal = Plugins.modal(
+    {
+      title: 'Sub-Store',
+      width: '90',
+      height: '90',
+      footer: false,
+      maskClosable: true,
+      afterClose() {
+        modal.destroy()
+      }
+    },
+    {
+      toolbar: () =>
+        Vue.h(Vue.resolveComponent('Button'), {
+          type: 'text',
+          icon: 'close',
+          onClick: () => modal.destroy()
+        }),
+      default: () =>
+        Vue.h('iframe', {
+          src: src,
+          class: 'w-full h-full border-0',
+          style: {
+            height: 'calc(100% - 6px)'
+          }
+        })
+    }
+  )
+  modal.open()
 }

@@ -35,7 +35,7 @@ const onRun = async () => {
   if (!(await isSubStoreRunning())) {
     await startSubStoreService()
   }
-  Plugins.BrowserOpenURL('https://sub-store.vercel.app/subs?api=http://' + Plugin.Address)
+  openSubStoreUI()
   return 1
 }
 
@@ -105,7 +105,6 @@ const startSubStoreService = async () => {
   Plugins.SubStoreCache = {
     data: JSON.parse((await Plugins.ignoredError(Plugins.Readfile, USER_PROFILE)) || '{}'),
     sync: Plugins.debounce(() => {
-      // FIXME: this.data不存在，大大滴有问题
       Plugins.Writefile(USER_PROFILE, JSON.stringify(Plugins.SubStoreCache.data, null, 2))
     }, 1000),
     get(key) {
@@ -182,14 +181,13 @@ const addToCoreStatePanel = () => {
   window[Plugin.id].remove = appStore.addCustomActions('core_state', {
     component: 'div',
     componentSlots: {
-      default: ({ h, ref }) => {
-        const open = ref(false)
+      default: ({ h }) => {
         return h(
           'Button',
           {
             type: 'link',
             size: 'small',
-            onClick: () => (open.value = true)
+            onClick: openSubStoreUI
           },
           () => [
             h('img', {
@@ -201,28 +199,7 @@ const addToCoreStatePanel = () => {
                 marginRight: '4px'
               }
             }),
-            'Sub-Store',
-            h(
-              'Modal',
-              {
-                title: 'Sub-Store',
-                width: '90',
-                height: '90',
-                cancelText: 'common.close',
-                submit: false,
-                open: open.value,
-                'onUpdate:open': (val) => (open.value = val)
-              },
-              () =>
-                h('iframe', {
-                  src: 'https://sub-store.vercel.app/subs?api=http://' + Plugin.Address,
-                  style: {
-                    width: '100%',
-                    height: 'calc(100% - 5px)',
-                    border: 'none'
-                  }
-                })
-            )
+            'Sub-Store'
           ]
         )
       }
@@ -235,4 +212,36 @@ const addToCoreStatePanel = () => {
  */
 const removeFromCoreStatePanel = () => {
   window[Plugin.id].remove?.()
+}
+
+const openSubStoreUI = () => {
+  const modal = Plugins.modal(
+    {
+      title: 'Sub-Store',
+      width: '90',
+      height: '90',
+      footer: false,
+      maskClosable: true,
+      afterClose() {
+        modal.destroy()
+      }
+    },
+    {
+      toolbar: () =>
+        Vue.h(Vue.resolveComponent('Button'), {
+          type: 'text',
+          icon: 'close',
+          onClick: () => modal.destroy()
+        }),
+      default: () =>
+        Vue.h('iframe', {
+          src: `https://sub-store.vercel.app/subs?api=http://${Plugin.Address}`,
+          class: 'w-full h-full border-0',
+          style: {
+            height: 'calc(100% - 6px)'
+          }
+        })
+    }
+  )
+  modal.open()
 }

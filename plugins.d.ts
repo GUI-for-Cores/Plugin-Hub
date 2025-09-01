@@ -27,6 +27,7 @@ interface UseModalSlots {
   action?: () => any
   cancel?: () => any
   submit?: () => any
+  default?: () => any
 }
 
 interface Plugins {
@@ -241,4 +242,5 @@ declare namespace globalThis {
   var Plugins: Plugins
   var Plugin: any
   var Vue: typeof import('vue')
+  var AsyncFunction: FunctionConstructor
 }
