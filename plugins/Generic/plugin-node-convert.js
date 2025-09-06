@@ -682,7 +682,7 @@ function Singbox_Producer() {
         'early-data-header-name': early_data_header_name
       } = proxy['ws-opts']
       transport.early_data_header_name = early_data_header_name
-      transport.max_early_data = parseInt(max_early_data, 10)
+      transport.max_early_data = max_early_data ? parseInt(max_early_data, 10) : undefined
       if (wsPath !== '') transport.path = `${wsPath}`
       if (Object.keys(wsHeaders).length > 0) {
         const headers = {}
@@ -1149,6 +1149,12 @@ function Singbox_Producer() {
       tls: { enabled: true, server_name: proxy.server, insecure: false }
     }
     if (parsedProxy.server_port < 0 || parsedProxy.server_port > 65535) throw 'invalid port'
+    if (proxy['hop-interval']) parsedProxy.hop_interval = /^\d+$/.test(proxy['hop-interval']) ? `${proxy['hop-interval']}s` : proxy['hop-interval']
+    if (proxy['ports'])
+      parsedProxy.server_ports = proxy['ports'].split(/\s*,\s*/).map((p) => {
+        const range = p.replace(/\s*-\s*/g, ':')
+        return range.includes(':') ? range : `${range}:${range}`
+      })
     if (proxy.auth_str) parsedProxy.auth_str = `${proxy.auth_str}`
     if (proxy['auth-str']) parsedProxy.auth_str = `${proxy['auth-str']}`
     if (proxy['fast-open']) parsedProxy.udp_fragment = true
@@ -1197,7 +1203,11 @@ function Singbox_Producer() {
     }
     if (parsedProxy.server_port < 0 || parsedProxy.server_port > 65535) throw 'invalid port'
     if (proxy['hop-interval']) parsedProxy.hop_interval = /^\d+$/.test(proxy['hop-interval']) ? `${proxy['hop-interval']}s` : proxy['hop-interval']
-    if (proxy['ports']) parsedProxy.server_ports = proxy['ports'].split(/\s*,\s*/).map((p) => p.replace(/\s*-\s*/g, ':'))
+    if (proxy['ports'])
+      parsedProxy.server_ports = proxy['ports'].split(/\s*,\s*/).map((p) => {
+        const range = p.replace(/\s*-\s*/g, ':')
+        return range.includes(':') ? range : `${range}:${range}`
+      })
     if (proxy.up) parsedProxy.up_mbps = parseInt(`${proxy.up}`, 10)
     if (proxy.down) parsedProxy.down_mbps = parseInt(`${proxy.down}`, 10)
     if (proxy.obfs === 'salamander') parsedProxy.obfs.type = 'salamander'
