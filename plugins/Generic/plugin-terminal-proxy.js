@@ -2,8 +2,8 @@
 window[Plugin.id] = window[Plugin.id] || {}
 
 const getProxyServer = async () => {
-  const appSettings = Plugins.useAppSettingsStore()
-  if (!appSettings.app.kernel.running) throw '请先启动内核程序'
+  const kernelApiStore = Plugins.useKernelApiStore()
+  if (!kernelApiStore.running) throw '请先启动内核程序'
 
   const kernelStore = Plugins.useKernelApiStore()
 

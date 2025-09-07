@@ -55,8 +55,8 @@ const onReady = async () => {
 
 // @ts-ignore
 const onRun = async () => {
-  const appSettings = Plugins.useAppSettingsStore()
-  if (appSettings.app.kernel.running) {
+  const kernelApiStore = Plugins.useKernelApiStore()
+  if (kernelApiStore.running) {
     throw '为了插件能正常工作，请先停止内核'
   }
 
@@ -181,8 +181,8 @@ const updateRule = async () => {
 const onStart = async () => {
   if (GLOBAL_SPOOFING) {
     if (!(await isRunningNginx())) {
-      const appSettings = Plugins.useAppSettingsStore()
-      if (appSettings.app.kernel.running) {
+      const kernelApiStore = Plugins.useKernelApiStore()
+      if (kernelApiStore.running) {
         Plugins.message.info('为了插件能正常工作，建议停止内核')
       }
       try {
@@ -557,7 +557,7 @@ const startNginx = async () => {
   const envStore = Plugins.useEnvStore()
   const { os } = envStore.env
   const absPath = await Plugins.AbsolutePath(THIRD_DIR)
-   const nginxConfAbsPath = await Plugins.AbsolutePath(NGINX_CONF_FILE_PATH)
+  const nginxConfAbsPath = await Plugins.AbsolutePath(NGINX_CONF_FILE_PATH)
 
   await Plugins.Writefile(NGINX_ACCESS_LOG_PATH, '')
   await Plugins.Writefile(NGINX_ERROR_LOG_PATH, '')

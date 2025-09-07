@@ -45,8 +45,8 @@ window[Plugin.id] = window[Plugin.id] || {
 
 /* 触发器 手动触发 */
 const onRun = async () => {
-  const appSettings = Plugins.useAppSettingsStore()
-  if (!appSettings.app.kernel.running) {
+  const kernelApiStore = Plugins.useKernelApiStore()
+  if (!kernelApiStore.running) {
     throw '请先启动内核'
   }
 

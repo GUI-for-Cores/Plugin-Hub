@@ -347,9 +347,8 @@ const stopUnblockMusicService = async () => {
  */
 const switchTo = async (index) => {
   console.log(`[${Plugin.name}]`, '切换为', ['直连模式', '解锁模式'][index])
-  const appSettings = Plugins.useAppSettingsStore()
-  if (!appSettings.app.kernel.running) return
   const kernelApiStore = Plugins.useKernelApiStore()
+  if (!kernelApiStore.running) return
   const group = kernelApiStore.proxies[Plugin.ProxyGroup]
   const proxy = group?.all[index]
   if (group && proxy) {

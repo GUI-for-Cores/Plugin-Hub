@@ -2,8 +2,8 @@
  * 插件钩子：运行按钮 - onRun
  */
 const onRun = async () => {
-  const appSettings = Plugins.useAppSettingsStore()
-  if (!appSettings.app.kernel.running) {
+  const kernelApiStore = Plugins.useKernelApiStore()
+  if (!kernelApiStore.running) {
     throw '请先启动内核'
   }
   await openDash()

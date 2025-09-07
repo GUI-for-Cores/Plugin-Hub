@@ -52,8 +52,8 @@ const startProxyGuard = (interval) => {
   clearInterval(window[Plugin.id].interval)
   window[Plugin.id].interval = Plugins.setIntervalImmediately(
     () => {
-      const appSettings = Plugins.useAppSettingsStore()
-      if (!appSettings.app.kernel.running) return
+      const kernelApiStore = Plugins.useKernelApiStore()
+      if (!kernelApiStore.running) return
 
       const envStore = Plugins.useEnvStore()
       const flag = !envStore.systemProxy

@@ -246,7 +246,7 @@ const addRollingReleaseTagToTitleBar = async () => {
     rollingReleaseVersion = `Rolling Release (${txt2})`
   }
 
-  const appSettings = Plugins.useAppSettingsStore()
+  const kernelApiStore = Plugins.useKernelApiStore()
 
   Plugins.useAppStore().addCustomActions('title_bar', ({ h, ref }) => {
     const loading = ref(false)
@@ -263,7 +263,7 @@ const addRollingReleaseTagToTitleBar = async () => {
           return h(
             'Button',
             {
-              type: appSettings.app.kernel.running ? 'link' : 'text',
+              type: kernelApiStore.running ? 'link' : 'text',
               size: 'small',
               loading: loading.value,
               onClick: check
