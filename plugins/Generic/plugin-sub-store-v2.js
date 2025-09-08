@@ -172,10 +172,16 @@ const stopSubStoreService = async () => {
  * 检测Sub-Store是否在运行
  */
 const isSubStoreRunning = async () => {
+  const { env } = Plugins.useEnvStore()
   const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
   if (pid && pid !== '0') {
-    const name = await Plugins.ignoredError(Plugins.ProcessInfo, Number(pid))
-    return ['node.exe', 'node'].includes(name)
+    if (env.os !== 'linux') {
+      const name = await Plugins.ignoredError(Plugins.ProcessInfo, Number(pid))
+      return ['node.exe', 'node', 'node-default'].includes(name)
+    }
+    const processCommand = await Plugins.ignoredError(Plugins.Exec, '/usr/bin/ps', ['-p', pid.toString(), '-o', 'cmd='])
+    const match = `.*${Plugin.NODE_PATH || 'node'}\\s+${env.basePath}/${BACKEND_FILE}`
+    return new RegExp(match, 'g').test(String(processCommand).trim())
   }
   return false
 }
