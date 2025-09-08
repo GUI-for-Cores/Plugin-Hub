@@ -177,7 +177,7 @@ const isSubStoreRunning = async () => {
   if (pid && pid !== '0') {
     if (env.os !== 'linux') {
       const name = await Plugins.ignoredError(Plugins.ProcessInfo, Number(pid))
-      return ['node.exe', 'node'].includes(name)
+      return ['node.exe', 'node', 'node-default'].includes(name)
     }
     const processCommand = await Plugins.ignoredError(Plugins.Exec, '/usr/bin/ps', ['-p', pid.toString(), '-o', 'cmd='])
     const match = `.*${Plugin.NODE_PATH || 'node'}\\s+${env.basePath}/${BACKEND_FILE}`
