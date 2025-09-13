@@ -2619,5 +2619,30 @@
     "disabled": false,
     "install": false,
     "installed": false
+  },
+  {
+    "id": "plugin-duplicate-proxies-removal",
+    "name": "重复节点移除",
+    "version": "v1.0.0",
+    "description": "订阅更新时候移除重复的节点（根据节点{地址:端口}匹配）Supported by: lancelotly",
+    "tags": ["节点处理"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-duplicate-proxies-removal.js",
+    "path": "data/plugins/plugin-duplicate-proxies-removal.js",
+    "triggers": ["on::subscribe"],
+    "hasUI": false,
+    "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [],
+    "disabled": false,
+    "install": false,
+    "installed": false
   }
 ]
