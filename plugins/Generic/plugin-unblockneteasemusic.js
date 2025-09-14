@@ -104,30 +104,43 @@ const onRun = async () => {
             title: '链接',
             key: 'url',
             align: 'center',
-            minWidth: '100px',
+            minWidth: '160px',
             customRender: ({ value, record }) =>
               h(
                 'div',
                 {
                   onClick: async () => {
-                    if (record._progress === '已下载') {
+                    if (record._status === '已下载') {
                       await Plugins.confirm('提示', '已下载，你想重新下载吗？')
-                    } else if (record._progress) {
+                    } else if (record._status === '失败') {
+                    } else if (record._status) {
                       Plugins.message.info('正在下载，稍等片刻')
                       return
                     }
                     const ext = value.match(/\.(mp3|flac|wav|aac|ogg|m4a)(?:\?.*)?$/i)?.[1]
-                    await Plugins.Download(value, DOWNLOAD_PATH + '/' + (record.songName + (ext ? `.${ext}` : '.mp3')), {}, (p, t) => {
-                      record._progress = ((p / t) * 100).toFixed(2) + '%'
+                    const filePath = DOWNLOAD_PATH + '/' + (record.songName + (ext ? `.${ext}` : '.mp3'))
+                    let failed = false
+                    await Plugins.Download(value, filePath, {}, (p, t) => {
+                      record._status = Plugins.formatBytes(p) + '/' + Plugins.formatBytes(t) + ' (' + ((p / t) * 100).toFixed(2) + '%)'
+                      // 小于4K，非正常的音频文件
+                      if (p === t && t < 4096) {
+                        failed = true
+                      }
                     })
-                    record._progress = '已下载'
+                    if (failed) {
+                      Plugins.message.error('音频文件过小，已删除')
+                      Plugins.RemoveFile(filePath)
+                      record._status = '失败'
+                    } else {
+                      record._status = '已下载'
+                    }
                   },
                   class: 'cursor-pointer ',
                   style: {
                     color: 'var(--primary-color)'
                   }
                 },
-                record._progress || '下载'
+                record._status || '下载'
               )
           }
         ],

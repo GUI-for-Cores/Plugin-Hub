@@ -106,14 +106,14 @@ interface Plugins {
   }
 
   AbsolutePath(relativePath: string): Promise<string>
-  Copyfile(src: string, dest: string): Promise<void>
-  Makedir(path: string): Promise<void>
-  Readdir(path: string): Promise<Array<{ name: string; isDir: boolean; size: number }>>
+  CopyFile(src: string, dest: string): Promise<void>
+  MakeDir(path: string): Promise<void>
+  ReadDir(path: string): Promise<Array<{ name: string; isDir: boolean; size: number }>>
   FileExists(path: string): Promise<boolean>
-  Removefile(path: string): Promise<void>
-  Movefile(src: string, dest: string): Promise<void>
-  Readfile(path: string, options?: { Mode?: 'Binary' | 'Text' }): Promise<string>
-  Writefile(path: string, content: string, options?: { Mode?: 'Binary' | 'Text' }): Promise<void>
+  RemoveFile(path: string): Promise<void>
+  MoveFile(src: string, dest: string): Promise<void>
+  ReadFile(path: string, options?: { Mode?: 'Binary' | 'Text' }): Promise<string>
+  WriteFile(path: string, content: string, options?: { Mode?: 'Binary' | 'Text' }): Promise<void>
   UnzipGZFile(gzPath: string, destPath: string): Promise<void>
   UnzipZIPFile(zipPath: string, destPath: string): Promise<void>
 
