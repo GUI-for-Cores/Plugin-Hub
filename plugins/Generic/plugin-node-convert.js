@@ -1497,6 +1497,14 @@ function URI_Producer() {
     if (proxy._mode) {
       mode = `&mode=${encodeURIComponent(proxy._mode)}`
     }
+    let pqv = ''
+    if (proxy._pqv) {
+      pqv = `&pqv=${encodeURIComponent(proxy._pqv)}`
+    }
+    let encryption = ''
+    if (proxy._encryption) {
+      encryption = `&encryption=${encodeURIComponent(proxy._encryption)}`
+    }
     let vlessType = proxy.network
     if (proxy.network === 'ws' && proxy['ws-opts']?.['v2ray-http-upgrade']) {
       vlessType = 'httpupgrade'
@@ -1535,7 +1543,7 @@ function URI_Producer() {
 
     return `vless://${proxy.uuid}@${proxy.server}:${proxy.port}?security=${encodeURIComponent(
       security
-    )}${vlessTransport}${alpn}${allowInsecure}${sni}${fp}${flow}${sid}${spx}${pbk}${mode}${extra}#${encodeURIComponent(proxy.name)}`
+    )}${vlessTransport}${alpn}${allowInsecure}${sni}${fp}${flow}${sid}${spx}${pbk}${mode}${extra}${pqv}${encryption}#${encodeURIComponent(proxy.name)}`
   }
 
   const type = 'SINGLE'
@@ -1967,7 +1975,7 @@ const PROXY_PARSERS = (() => {
       // parse url
       // eslint-disable-next-line no-unused-vars
       let [__, type, tls, username, password, server, port, query, name] = line.match(
-        /^(socks5|http|http)(\+tls|s)?:\/\/(?:(.*?):(.*?)@)?(.*?)(?::(\d+?))?(\?.*?)?(?:#(.*?))?$/
+        /^(socks5|http|http)(\+tls|s)?:\/\/(?:(.*?):(.*?)@)?(.*?)(?::(\d+?))?\/?(\?.*?)?(?:#(.*?))?$/
       )
       if (port) {
         port = parseInt(port, 10)
@@ -2584,6 +2592,12 @@ const PROXY_PARSERS = (() => {
         }
         if (params.extra) {
           proxy._extra = params.extra
+        }
+        if (params.encryption) {
+          proxy._encryption = params.encryption
+        }
+        if (params.pqv) {
+          proxy._pqv = params.pqv
         }
       }
 
