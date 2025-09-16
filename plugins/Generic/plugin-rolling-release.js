@@ -34,7 +34,11 @@ const onReady = async () => {
  */
 const Rolling = async (confirm = true) => {
   await checkRollingReleaseEnabled()
-  await checkLatestVersion()
+  const isLatest = await checkLatestVersion()
+  if (!isLatest) {
+    Plugins.useAppStore().showAbout = true
+    return
+  }
 
   const GFC_URL = 'https://api.github.com/repos/GUI-for-Cores/GUI.for.Clash/releases/tags/rolling-release'
   const GFS_URL = 'https://api.github.com/repos/GUI-for-Cores/GUI.for.SingBox/releases/tags/rolling-release'
@@ -196,9 +200,7 @@ const checkLatestVersion = async () => {
   })
   const { tag_name, message } = body
   if (message) throw message
-  if (tag_name !== Plugins.APP_VERSION) {
-    throw '无法跨大版本升级，请通过 设置 - 关于，更新APP！'
-  }
+  return tag_name === Plugins.APP_VERSION
 }
 
 const fetchChangeLog = async () => {
