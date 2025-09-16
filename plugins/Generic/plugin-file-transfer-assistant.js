@@ -16,7 +16,7 @@ const onRun = async () => {
   if (!(await isRunning())) {
     await startService()
   }
-  Plugins.BrowserOpenURL('http://127.0.0.1:5233')
+  openTransferUI()
   return 1
 }
 
@@ -71,6 +71,49 @@ const Saved = async () => {
  */
 const Share = async () => {
   Plugins.BrowserOpenURL(SharePath)
+}
+
+const openTransferUI = () => {
+  const modal = Plugins.modal(
+    {
+      title: Plugin.name,
+      width: '90',
+      height: '90',
+      footer: false,
+      maskClosable: true,
+      beforeClose() {
+        modal.destroy()
+      }
+    },
+    {
+      toolbar: () => [
+        Vue.h(
+          Vue.resolveComponent('Button'),
+          {
+            type: 'text',
+            onClick: () => {
+              Plugins.BrowserOpenURL(`http://127.0.0.1:5233`)
+            }
+          },
+          () => '浏览器中打开'
+        ),
+        Vue.h(Vue.resolveComponent('Button'), {
+          type: 'text',
+          icon: 'close',
+          onClick: () => modal.destroy()
+        })
+      ],
+      default: () =>
+        Vue.h('iframe', {
+          src: `http://127.0.0.1:5233`,
+          class: 'w-full h-full border-0',
+          style: {
+            height: 'calc(100% - 6px)'
+          }
+        })
+    }
+  )
+  modal.open()
 }
 
 /**

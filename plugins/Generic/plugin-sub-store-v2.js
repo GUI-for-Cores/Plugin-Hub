@@ -273,12 +273,23 @@ const openSubStoreUI = () => {
       }
     },
     {
-      toolbar: () =>
+      toolbar: () => [
+        Vue.h(
+          Vue.resolveComponent('Button'),
+          {
+            type: 'text',
+            onClick: () => {
+              Plugins.BrowserOpenURL(src)
+            }
+          },
+          () => '浏览器中打开'
+        ),
         Vue.h(Vue.resolveComponent('Button'), {
           type: 'text',
           icon: 'close',
           onClick: () => modal.destroy()
-        }),
+        })
+      ],
       default: () =>
         Vue.h('iframe', {
           src: src,

@@ -852,7 +852,7 @@
   {
     "id": "plugin-file-transfer-assistant",
     "name": "文件互传助手",
-    "version": "v1.2.1",
+    "version": "v1.3.0",
     "description": "文件互传助手，支持Siri快捷指令。",
     "tags": ["实用工具", "功能扩展"],
     "type": "Http",
@@ -1035,7 +1035,7 @@
   {
     "id": "plugin-sub-store-v3",
     "name": "Sub-Store 纯净版",
-    "version": "v1.2.0",
+    "version": "v1.3.0",
     "description": "高级订阅管理工具。无Node.js、无MITM，优雅。（Advanced Subscription Manager for QX, Loon, Surge, Stash and Shadowrocket!）",
     "tags": ["实用工具"],
     "type": "Http",
@@ -1083,7 +1083,7 @@
   {
     "id": "plugin-sub-store-v2",
     "name": "Sub-Store Nodejs版",
-    "version": "v1.2.0",
+    "version": "v1.3.0",
     "description": "高级订阅管理工具，Node.js版，无需编译。（Advanced Subscription Manager for QX, Loon, Surge, Stash and Shadowrocket!）",
     "tags": ["实用工具"],
     "type": "Http",
