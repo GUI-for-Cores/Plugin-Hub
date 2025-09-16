@@ -13,7 +13,11 @@ const onRun = async () => {
       'https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Resources/plugin-ui-dev-helper/plugin-ui-template.html',
       TemplateFile
     )
-    Plugins.message.success('已下载插件UI开发模板文件至：' + TemplateFile)
+    Plugins.alert('提示', '已下载开发模板至：' + TemplateFile + '\n\n删除插件不会自动删除此目录\n你可以手动删除此目录以便下载最新模板')
+  }
+  if (!Plugin.Token) {
+    Plugins.message.warn('请先配置开发Token，并填入开发模板文件内')
+    return
   }
   createUIModal().open()
 }
@@ -62,10 +66,6 @@ const createUIModal = () => {
        * 启动开发服务器
        */
       const handleStartDevServer = async () => {
-        if (!Plugin.Token) {
-          Plugins.message.warn('请先配置开发Token，并填入开发模板文件内')
-          return
-        }
         loading.value = true
         try {
           await Plugins.StartServer('127.0.0.1:28888', Plugin.id, (req, res) => {
@@ -82,19 +82,23 @@ const createUIModal = () => {
               const setup = new Function(`${script}; return setup`)
               const component = { template, setup: setup() }
               previewModal.open()
-              previewModal.setComponent(Vue.h(component))
+              previewModal.setContent(component)
               res.end(200, Headers, '热更新成功')
             }
             res.end(200, Headers, '插件UI开发助手运行中...')
           })
           isRunning.value = true
-          previewModal = Plugins.modal({
-            title: 'UI预览',
-            submit: false,
-            cancelText: '关闭',
-            maskClosable: true,
-            component: Vue.h(component)
-          })
+          previewModal = Plugins.modal(
+            {
+              title: 'UI预览',
+              submit: false,
+              cancelText: '关闭',
+              maskClosable: true
+            },
+            {
+              default: () => Vue.h(component)
+            }
+          )
         } catch (error) {
           isRunning.value = false
         }
@@ -128,16 +132,20 @@ const createUIModal = () => {
     }
   }
 
-  const modal = Plugins.modal({
-    title: Plugin.name,
-    submit: false,
-    cancelText: '关闭',
-    maskClosable: false,
-    component: Vue.h(component),
-    afterClose: () => {
-      modal.destroy()
+  const modal = Plugins.modal(
+    {
+      title: Plugin.name,
+      submit: false,
+      cancelText: '关闭',
+      maskClosable: false,
+      afterClose: () => {
+        modal.destroy()
+      }
+    },
+    {
+      default: () => Vue.h(component)
     }
-  })
+  )
 
   return modal
 }

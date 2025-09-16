@@ -1,6 +1,6 @@
 type MaybePromise<T> = T | Promise<T>
 
-type UseModalOptions = { component?: any } & Partial<{
+type UseModalOptions = Partial<{
   open: boolean
   title?: string
   footer?: boolean
