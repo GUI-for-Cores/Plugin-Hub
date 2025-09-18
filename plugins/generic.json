@@ -215,6 +215,31 @@
     "installed": false
   },
   {
+    "id": "plugin-subscribe-in-one-click",
+    "name": "一键导入订阅助手",
+    "version": "v1.0.0",
+    "description": "运行此插件，帮助你使用机场的一键导入订阅功能。",
+    "tags": ["提升体验", "功能扩展"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-subscribe-in-one-click.js",
+    "path": "data/plugins/plugin-subscribe-in-one-click.js",
+    "triggers": ["on::manual"],
+    "hasUI": true,
+    "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-smart-proxy-switcher",
     "version": "v2.1.0",
     "name": "节点智能切换",

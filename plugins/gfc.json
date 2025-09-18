@@ -23,30 +23,5 @@
     "disabled": false,
     "install": false,
     "installed": false
-  },
-  {
-    "id": "plugin-register-clash",
-    "name": "注册Clash协议到注册表",
-    "version": "v1.0.0",
-    "description": "注册后，你可以使用机场的一键导入订阅功能。",
-    "tags": ["功能扩展", "提升体验"],
-    "type": "Http",
-    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFC/plugin-register-clash.js",
-    "path": "data/plugins/plugin-register-clash.js",
-    "triggers": [],
-    "menus": {},
-    "hasUI": false,
-    "context": {
-      "profiles": {},
-      "subscriptions": {},
-      "rulesets": {},
-      "plugins": {},
-      "scheduledtasks": {}
-    },
-    "status": 0,
-    "configuration": [],
-    "disabled": false,
-    "install": true,
-    "installed": false
   }
 ]

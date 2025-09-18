@@ -71,31 +71,6 @@
     "installed": false
   },
   {
-    "id": "plugin-register-sing-box",
-    "name": "注册SingBox协议到注册表",
-    "version": "v1.0.0",
-    "description": "注册后，你可以使用机场的一键导入订阅功能。",
-    "tags": ["功能扩展", "提升体验"],
-    "type": "Http",
-    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-register-sing-box.js",
-    "path": "data/plugins/plugin-register-sing-box.js",
-    "triggers": [],
-    "menus": {},
-    "hasUI": false,
-    "context": {
-      "profiles": {},
-      "subscriptions": {},
-      "rulesets": {},
-      "plugins": {},
-      "scheduledtasks": {}
-    },
-    "status": 0,
-    "configuration": [],
-    "disabled": false,
-    "install": true,
-    "installed": false
-  },
-  {
     "id": "plugin-sync-singbox-configuration-gists",
     "name": "一键同步config.json",
     "version": "v1.0.1",
