@@ -1502,8 +1502,8 @@ function URI_Producer() {
       pqv = `&pqv=${encodeURIComponent(proxy._pqv)}`
     }
     let encryption = ''
-    if (proxy._encryption) {
-      encryption = `&encryption=${encodeURIComponent(proxy._encryption)}`
+    if (proxy.encryption) {
+      encryption = `&encryption=${encodeURIComponent(proxy.encryption)}`
     }
     let vlessType = proxy.network
     if (proxy.network === 'ws' && proxy['ws-opts']?.['v2ray-http-upgrade']) {
@@ -2593,12 +2593,13 @@ const PROXY_PARSERS = (() => {
         if (params.extra) {
           proxy._extra = params.extra
         }
-        if (params.encryption) {
-          proxy._encryption = params.encryption
-        }
-        if (params.pqv) {
-          proxy._pqv = params.pqv
-        }
+      }
+
+      if (params.encryption) {
+        proxy.encryption = params.encryption
+      }
+      if (params.pqv) {
+        proxy._pqv = params.pqv
       }
 
       return proxy
