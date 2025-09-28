@@ -392,9 +392,9 @@ const installUnblockMusic = async () => {
 
   const { id } = Plugins.message.info('正在下载...', 999999)
   try {
-    const BinaryFileUrl = `https://github.com/UnblockNeteaseMusic/server/releases/download/v0.27.10/unblockneteasemusic-${isWin ? 'win' : 'linux'}-${isX64 ? 'x64' : 'arm64'}${isWin ? '.exe' : ''}`
+    const BinaryFileUrl = `https://github.com/UnblockNeteaseMusic/server/releases/download/v0.28.0/unblockneteasemusic-${isWin ? 'win' : 'linux'}-${isX64 ? 'x64' : 'arm64'}${isWin ? '.exe' : ''}`
 
-    const YtDLPFileUrl = `https://github.com/yt-dlp/yt-dlp/releases/download/2025.08.11/yt-dlp${isWin ? '' : '_linux'}${isX64 ? '' : '_x86'}${isWin ? '.exe' : ''}`
+    const YtDLPFileUrl = `https://github.com/yt-dlp/yt-dlp/releases/download/2025.09.26/yt-dlp${isWin ? '' : '_linux'}${isX64 ? '' : '_x86'}${isWin ? '.exe' : ''}`
 
     // 下载1
     await Plugins.Makedir(MUSIC_PATH)

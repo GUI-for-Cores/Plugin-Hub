@@ -1524,7 +1524,7 @@
   {
     "id": "plugin-unblockneteasemusic",
     "name": "解锁网易云音乐",
-    "version": "v6.2.1",
+    "version": "v7.0.0",
     "description": "解锁网易云音乐插件，需要安装CA证书。请在音乐客户端内开启：使用IE代理设置。（Revive unavailable songs for Netease Cloud Music (Refactored & Enhanced version)）",
     "tags": ["实用工具", "功能扩展"],
     "type": "Http",
@@ -1569,8 +1569,18 @@
         "description": "选择有兴趣的音源，部分音源还需在下方配置Cookie。",
         "key": "Source",
         "component": "CheckBox",
-        "value": ["kugou", "ytdlp", "pyncmd"],
-        "options": ["QQ音乐,qq", "酷狗音乐,kugou", "酷我音乐,kuwo", "咪咕音乐,migu", "JOOX,joox", "YouTube,ytdlp", "B 站音乐,bilibili", "第三方网易云,pyncmd"]
+        "value": ["kugou", "bodian", "ytdlp", "pyncmd"],
+        "options": [
+          "QQ音乐,qq",
+          "酷狗音乐,kugou",
+          "酷我音乐,kuwo",
+          "波点音乐,bodian",
+          "咪咕音乐,migu",
+          "JOOX,joox",
+          "YouTube,ytdlp",
+          "B 站音乐,bilibili",
+          "第三方网易云,pyncmd"
+        ]
       },
       {
         "id": "ID_yl8s60lj",
