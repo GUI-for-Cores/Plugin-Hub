@@ -485,9 +485,10 @@ function ClashMeta_Producer() {
         } else if (proxy.type === 'tuic') {
           if (isPresent(proxy, 'alpn')) {
             proxy.alpn = Array.isArray(proxy.alpn) ? proxy.alpn : [proxy.alpn]
-          } else {
-            proxy.alpn = ['h3']
           }
+          //  else {
+          //     proxy.alpn = ['h3'];
+          // }
           if (isPresent(proxy, 'tfo') && !isPresent(proxy, 'fast-open')) {
             proxy['fast-open'] = proxy.tfo
           }
