@@ -57,6 +57,11 @@ const Outbound = {
   Urltest: 'urltest'
 }
 
+const BuiltOutboundType = {
+  BuiltIn: 'Built-in',
+  Subscription: 'Subscription'
+}
+
 const RuleType = {
   Inbound: 'inbound',
   Network: 'network',
@@ -78,6 +83,7 @@ const RuleType = {
   IpIsPrivate: 'ip_is_private',
   ClashMode: 'clash_mode',
   IpAcceptAny: 'ip_accept_any',
+  // GUI
   Inline: 'inline'
 }
 
@@ -89,6 +95,12 @@ const RuleAction = {
   Sniff: 'sniff',
   Resolve: 'resolve',
   Predefined: 'predefined'
+}
+
+const RuleActionReject = {
+  Default: 'default',
+  Drop: 'drop',
+  Reply: 'reply'
 }
 
 const DnsServer = {
@@ -142,7 +154,8 @@ const DefaultExperimental = () => ({
     external_ui: '',
     external_ui_download_url: '',
     external_ui_download_detour: '',
-    secret: '',
+    // @ts-ignore
+    secret: Plugins.generateSecureKey(),
     default_mode: ClashMode.Rule,
     access_control_allow_origin: ['*'],
     access_control_allow_private_network: false
@@ -157,13 +170,140 @@ const DefaultExperimental = () => ({
   }
 })
 
+const DefaultInboundListen = () => ({
+  listen: '127.0.0.1',
+  listen_port: 20120,
+  tcp_fast_open: false,
+  tcp_multi_path: false,
+  udp_fragment: false
+})
+
+const DefaultInboundTun = () => ({
+  interface_name: '',
+  address: DefaultTunAddress,
+  mtu: 9000,
+  auto_route: true,
+  strict_route: true,
+  route_address: [],
+  route_exclude_address: [],
+  endpoint_independent_nat: false,
+  stack: TunStack.Mixed
+})
+
+const DefaultOutbound = () => ({
+  id: Plugins.sampleID(),
+  tag: '',
+  type: '',
+  outbounds: [],
+  interrupt_exist_connections: true,
+  url: DefaultTestURL,
+  interval: '3m',
+  tolerance: 150,
+  include: '',
+  exclude: ''
+})
+
+const DefaultRouteRule = () => ({
+  id: Plugins.sampleID(),
+  type: RuleType.RuleSet,
+  payload: '',
+  invert: false,
+  action: RuleAction.Route,
+  outbound: '',
+  sniffer: [],
+  strategy: Strategy.Default,
+  server: ''
+})
+
+const DefaultRouteRuleset = () => ({
+  id: Plugins.sampleID(),
+  type: RulesetType.Local,
+  tag: '',
+  format: RulesetFormat.Binary,
+  url: '',
+  download_detour: '',
+  update_interval: '',
+  rules: '',
+  path: ''
+})
+
+const DefaultRouteGeneral = () => ({
+  auto_detect_interface: true,
+  default_interface: '',
+  final: '',
+  find_process: false,
+  default_domain_resolver: {
+    server: '',
+    client_subnet: ''
+  }
+})
+
+const DefaultDnsServer = () => ({
+  id: Plugins.sampleID(),
+  tag: '',
+  type: DnsServer.Local,
+  detour: '',
+  domain_resolver: '',
+  server: '',
+  server_port: '',
+  path: '',
+  interface: '',
+  inet4_range: '',
+  inet6_range: '',
+  hosts_path: [],
+  predefined: {}
+})
+
+const DefaultDnsRule = () => ({
+  id: Plugins.sampleID(),
+  type: RuleType.RuleSet,
+  payload: '',
+  action: RuleAction.Route,
+  invert: false,
+  server: '',
+  strategy: Strategy.Default,
+  disable_cache: false,
+  client_subnet: ''
+})
+
+const DefaultDnsGeneral = () => ({
+  disable_cache: false,
+  disable_expire: false,
+  independent_cache: false,
+  client_subnet: '',
+  final: '',
+  strategy: Strategy.Default
+})
+
 const DefaultMixin = () => ({
   priority: 'gui',
   format: 'json',
-  config: '{}'
+  config: JSON.stringify({})
 })
+
 const DefaultScript = () => ({
   code: `const onGenerate = async (config) => {\n  return config\n}`
+})
+
+const DefaultGuiProfile = () => ({
+  id: Plugins.sampleID(),
+  name: '',
+  log: DefaultLog(),
+  experimental: DefaultExperimental(),
+  inbounds: [],
+  outbounds: [],
+  route: {
+    rule_set: [],
+    rules: [],
+    ...DefaultRouteGeneral()
+  },
+  dns: {
+    servers: [],
+    rules: [],
+    ...DefaultDnsGeneral()
+  },
+  mixin: DefaultMixin(),
+  script: DefaultScript()
 })
 
 /* 打开文件选择器 */
@@ -217,157 +357,122 @@ const readAndParseSelectedFile = (file) => {
   })
 }
 
+const FilterMode = {
+  Include: 'include',
+  Exclude: 'exclude'
+}
+
+/* 根据指定的键列表和模式过滤对象 */
+const filterObjectKeys = (sourceObj, keyList, mode = FilterMode.Include) => {
+  if (!sourceObj || typeof sourceObj !== 'object') {
+    return {}
+  }
+
+  const keySet = new Set(keyList)
+  const allKeys = Object.keys(sourceObj)
+
+  const filteredKeys = allKeys.filter((key) => {
+    const keyExistsInList = keySet.has(key)
+    if (mode === FilterMode.Include) {
+      return keyExistsInList
+    } else if (mode === FilterMode.Exclude) {
+      return !keyExistsInList
+    }
+    return false
+  })
+
+  return filteredKeys.reduce((acc, key) => {
+    acc[key] = sourceObj[key]
+    return acc
+  }, {})
+}
+
 /* 将原始配置解析为 GUI 格式 */
 class ConfigParser {
   constructor(originConfig) {
     this.origConfig = originConfig
     // 初始化 GUI 配置对象
-    this.guiProfile = {
-      id: Plugins.sampleID(),
-      name: '',
-      log: DefaultLog(),
-      experimental: DefaultExperimental(),
-      inbounds: [],
-      outbounds: [],
-      route: {
-        rule_set: [],
-        rules: [],
-        auto_detect_interface: true,
-        find_process: false,
-        default_interface: '',
-        final: '',
-        default_domain_resolver: { server: '', client_subnet: '' }
-      },
-      dns: {
-        servers: [],
-        rules: [],
-        disable_cache: false,
-        disable_expire: false,
-        independent_cache: false,
-        client_subnet: '',
-        final: '',
-        strategy: Strategy.Default
-      },
-      mixin: DefaultMixin(),
-      script: DefaultScript()
-    }
-  }
-
-  /* 解析通用设置 */
-  parseGeneral() {
-    // @ts-ignore
-    const outboundTagToId = window[Plugin.id]?.outboundTagToId || {}
-    const { log, experimental } = this.origConfig
-
-    this.guiProfile.log = { ...DefaultLog(), ...log }
-
-    if (!experimental) return
-
-    const { clash_api, cache_file } = experimental
-    const defaultExperimental = DefaultExperimental()
-
-    if (clash_api) {
-      this.guiProfile.experimental.clash_api = {
-        ...defaultExperimental.clash_api,
-        ...clash_api,
-        // 单独处理特殊属性
-        external_ui_download_detour: outboundTagToId[clash_api.external_ui_download_detour] ?? '',
-        // `secret` 若未提供，则动态生成
-        // @ts-ignore
-        secret: clash_api.secret ?? Plugins.generateSecureKey()
-      }
-    }
-
-    if (cache_file) {
-      this.guiProfile.experimental.cache_file = { ...defaultExperimental.cache_file, ...cache_file }
-    }
+    this.guiProfile = DefaultGuiProfile()
   }
 
   /* 解析入站设置 */
-  parseInbounds() {
+  _parseInbounds() {
+    const { inbounds: origInbounds } = this.origConfig
+    if (!origInbounds || origInbounds.length === 0) return
     const supportedTypes = new Set(Object.values(Inbound))
     // @ts-ignore
-    const inboundTagToId = window[Plugin.id].inboundTagToId
-
-    this.guiProfile.inbounds = (this.origConfig.inbounds ?? [])
+    const { inboundTagToId } = window[Plugin.id]
+    this.guiProfile.inbounds = origInbounds
       .filter((ib) => supportedTypes.has(ib.type))
       .map((ib, idx) => {
         const newId = Plugins.sampleID()
         inboundTagToId[ib.tag] = newId
 
-        const baseInbound = { id: newId, tag: ib.tag, type: ib.type, enable: true }
+        const DefaultInboundHeader = () => ({
+          id: newId,
+          type: ib.type,
+          tag: ib.tag,
+          enable: true
+        })
 
         if (ib.type === Inbound.Tun) {
           return {
-            ...baseInbound,
+            ...DefaultInboundHeader(),
             tun: {
-              interface_name: ib.interface_name ?? '',
-              address: ib.address || DefaultTunAddress,
-              mtu: ib.mtu ?? 9000,
-              auto_route: ib.auto_route ?? true,
-              strict_route: ib.strict_route ?? true,
-              route_address: ib.route_address ?? [],
-              route_exclude_address: ib.route_exclude_address ?? [],
-              endpoint_independent_nat: ib.endpoint_independent_nat ?? false,
-              stack: ib.stack ?? TunStack.Mixed
+              ...DefaultInboundTun(),
+              ...filterObjectKeys(ib, Object.keys(DefaultInboundTun()), FilterMode.Include)
             }
           }
         }
 
         return {
-          ...baseInbound,
+          ...DefaultInboundHeader(),
           [ib.type]: {
             listen: {
-              listen: ib.listen ?? '127.0.0.1',
-              listen_port: ib.listen_port ?? 20120 + idx,
-              tcp_fast_open: ib.tcp_fast_open ?? false,
-              tcp_multi_path: ib.tcp_multi_path ?? false,
-              udp_fragment: ib.udp_fragment ?? false
+              ...DefaultInboundListen(),
+              ...filterObjectKeys(ib, Object.keys(DefaultInboundListen()), FilterMode.Include)
             },
-            users: (ib.users ?? []).map((u) => `${u.username}:${u.password}`)
+            users: ib.users?.map((u) => `${u.username}:${u.password}`) || []
           }
         }
       })
   }
 
   /* 解析出站设置 */
-  parseOutbounds() {
+  _parseOutbounds() {
+    const { outbounds: origOutbounds } = this.origConfig
+    if (!origOutbounds || origOutbounds.length === 0) return
     const supportedTypes = new Set(Object.values(Outbound))
     // @ts-ignore
-    const { outboundTagToId, proxyTagToIdMap, subscribeId, subscribeName } = window[Plugin.id]
-    const outbounds = (this.origConfig.outbounds ?? []).filter((ob) => supportedTypes.has(ob.type))
+    const { outboundTagToId, proxyTagToId, subscribeId, subscribeName } = window[Plugin.id]
+    const supportedOutbounds = origOutbounds.filter((ob) => supportedTypes.has(ob.type))
 
-    outbounds.forEach((ob) => {
+    supportedOutbounds.forEach((ob) => {
       outboundTagToId[ob.tag] = Plugins.sampleID()
     })
 
-    this.guiProfile.outbounds = outbounds.map((ob) => {
+    this.guiProfile.outbounds = supportedOutbounds.map((ob) => {
       const guiOutbound = {
+        ...DefaultOutbound(),
+        ...ob,
         id: outboundTagToId[ob.tag],
-        tag: ob.tag,
-        type: ob.type,
-        outbounds: [],
-        url: ob.url ?? DefaultTestURL,
-        interval: ob.interval ?? '3m',
-        tolerance: ob.tolerance ?? 150,
-        interrupt_exist_connections: ob.interrupt_exist_connections ?? true,
-        include: '',
-        exclude: ''
+        outbounds: []
       }
 
       if (ob.type === Outbound.Selector || ob.type === Outbound.Urltest) {
-        guiOutbound.outbounds = (ob.outbounds ?? [])
-          .map((tag) => {
-            // 引用的是一个内置出站
-            if (outboundTagToId[tag]) return { id: outboundTagToId[tag], tag, type: 'Built-in' }
-            // 引用的是订阅中的节点
-            if (proxyTagToIdMap[tag]) return { id: proxyTagToIdMap[tag], tag, type: subscribeId }
-            return null
-          })
-          .filter(Boolean)
+        guiOutbound.outbounds =
+          ob.outbounds
+            ?.map((tag) => {
+              // 引用的是一个内置出站
+              if (outboundTagToId[tag]) return { id: outboundTagToId[tag], tag, type: BuiltOutboundType.BuiltIn }
+              // 引用的是订阅中的节点
+              if (proxyTagToId[tag]) return { id: proxyTagToId[tag], tag, type: subscribeId }
+              return null
+            })
+            .filter(Boolean) || []
 
         // 如果出站引用了订阅中的所有节点，则简化为引用整个订阅
-        const allProxyTagsInSub = Object.keys(proxyTagToIdMap)
+        const allProxyTagsInSub = Object.keys(proxyTagToId)
         const outboundProxyTags = new Set(guiOutbound.outbounds.filter((o) => o.type === subscribeId).map((o) => o.tag))
 
         if (
@@ -377,14 +482,63 @@ class ConfigParser {
           allProxyTagsInSub.every((tag) => outboundProxyTags.has(tag))
         ) {
           const nonSubOutbounds = guiOutbound.outbounds.filter((o) => o.type !== subscribeId)
-          guiOutbound.outbounds = [{ id: subscribeId, tag: subscribeName, type: 'Subscription' }, ...nonSubOutbounds]
+          guiOutbound.outbounds = [{ id: subscribeId, tag: subscribeName, type: BuiltOutboundType.Subscription }, ...nonSubOutbounds]
         }
       }
       return guiOutbound
     })
   }
 
-  /* 格式化 hosts 类型的 predefined 属性 */
+  /* 解析通用设置 */
+  _parseGeneral() {
+    // @ts-ignore
+    const { outboundTagToId } = window[Plugin.id]
+    const { log: origLog, experimental: origExperimental } = this.origConfig
+
+    if (origLog) {
+      this.guiProfile.log = { ...this.guiProfile.log, ...origLog }
+    }
+
+    if (!origExperimental) return
+
+    const { clash_api: origClashApi, cache_file: origCacheFile } = origExperimental
+
+    if (origClashApi) {
+      this.guiProfile.experimental.clash_api = {
+        ...this.guiProfile.experimental.clash_api,
+        ...origClashApi,
+        // 单独处理特殊属性
+        external_ui_download_detour: outboundTagToId[origClashApi.external_ui_download_detour] ?? ''
+      }
+    }
+
+    if (origCacheFile) {
+      this.guiProfile.experimental.cache_file = {
+        ...this.guiProfile.experimental.cache_file,
+        ...origCacheFile
+      }
+    }
+  }
+
+  /* 解析路由规则集 */
+  _parseRouteRuleset(origRuleset) {
+    // @ts-ignore
+    const { rulesetTagToId, outboundTagToId } = window[Plugin.id]
+
+    origRuleset.forEach((rs) => {
+      rulesetTagToId[rs.tag] = Plugins.sampleID()
+    })
+
+    this.guiProfile.route.rule_set = origRuleset.map((rs) => ({
+      ...DefaultRouteRuleset(),
+      ...rs,
+      id: rulesetTagToId[rs.tag],
+      download_detour: outboundTagToId[rs.download_detour] ?? '',
+      rules: rs.rules ? JSON.stringify(rs.rules, null, 2) : JSON.stringify([])
+    }))
+  }
+
+  /* 格式化 Hosts 服务器的 Predefined 属性 */
   _formatHostsPredefined(predefinedObject) {
     if (!predefinedObject || typeof predefinedObject !== 'object') {
       return {}
@@ -397,74 +551,29 @@ class ConfigParser {
     return Object.fromEntries(formattedEntries)
   }
 
-  /* 交叉解析路由和 DNS */
-  parseRouteAndDNS() {
-    const { route, dns } = this.origConfig
-    if (!route && !dns) return
-
+  /* 解析 DNS 服务器 */
+  _parseDnsServers(origDnsServers) {
     // @ts-ignore
-    const { dnsServerTagToId, rulesetTagToId, outboundTagToId, inboundTagToId } = window[Plugin.id]
+    const { dnsServerTagToId, outboundTagToId } = window[Plugin.id]
 
-    ;(dns?.servers ?? []).forEach((s) => {
+    origDnsServers.forEach((s) => {
       dnsServerTagToId[s.tag] = Plugins.sampleID()
-    })
-    ;(route?.rule_set ?? []).forEach((rs) => {
-      rulesetTagToId[rs.tag] = Plugins.sampleID()
     })
 
     const supportedDNSServerTypes = new Set(Object.values(DnsServer))
-    this.guiProfile.dns.servers = (dns?.servers ?? [])
+    this.guiProfile.dns.servers = origDnsServers
       .filter((s) => supportedDNSServerTypes.has(s.type))
       .map((s) => ({
+        ...DefaultDnsServer(),
+        ...filterObjectKeys(s, Object.keys(DefaultDnsServer()), FilterMode.Include),
         id: dnsServerTagToId[s.tag],
-        tag: s.tag,
-        type: s.type,
         detour: outboundTagToId[s.detour] ?? '',
         domain_resolver: dnsServerTagToId[s.domain_resolver] ?? '',
-        server: s.address ?? s.server ?? '',
         server_port: String(s.server_port ?? ''),
-        path: s.path ?? '',
-        interface: s.interface ?? '',
-        inet4_range: s.inet4_range ?? '198.18.0.0/15',
-        inet6_range: s.inet6_range ?? 'fc00::/18',
-        hosts_path: s.path ?? [],
+        path: [DnsServer.Https, DnsServer.H3].includes(s.type) ? (s.path ?? '') : '',
+        hosts_path: s.type === DnsServer.Hosts ? (s.path ?? []) : [],
         predefined: s.type === DnsServer.Hosts ? this._formatHostsPredefined(s.predefined) : {}
       }))
-
-    this.guiProfile.route.rule_set = (route?.rule_set ?? []).map((rs) => ({
-      id: rulesetTagToId[rs.tag],
-      type: rs.type ?? RulesetType.Remote,
-      tag: rs.tag,
-      format: rs.format ?? RulesetFormat.Binary,
-      url: rs.url ?? '',
-      download_detour: outboundTagToId[rs.download_detour] ?? '',
-      update_interval: rs.update_interval ?? '',
-      rules: rs.rules ? JSON.stringify(rs.rules) : '',
-      path: rs.path ?? ''
-    }))
-
-    const routeRuleMaps = { outbound: outboundTagToId, ruleset: rulesetTagToId, inbound: inboundTagToId }
-    this.guiProfile.route.rules = (route?.rules ?? []).map((r) => this._parseRule(r, routeRuleMaps))
-
-    const dnsRuleMaps = { server: dnsServerTagToId, ruleset: rulesetTagToId, inbound: inboundTagToId }
-    this.guiProfile.dns.rules = (dns?.rules ?? []).map((r) => this._parseRule(r, dnsRuleMaps))
-
-    if (route) {
-      this.guiProfile.route.final = outboundTagToId[route.final] ?? ''
-      this.guiProfile.route.auto_detect_interface = route.auto_detect_interface ?? true
-      this.guiProfile.route.default_interface = route.default_interface ?? ''
-      this.guiProfile.route.find_process = route.find_process ?? false
-      this.guiProfile.route.default_domain_resolver.server = dnsServerTagToId[route.default_domain_resolver?.server] ?? ''
-      this.guiProfile.route.default_domain_resolver.client_subnet = route.default_domain_resolver?.client_subnet ?? ''
-    }
-    if (dns) {
-      this.guiProfile.dns.disable_cache = dns.disable_cache ?? false
-      this.guiProfile.dns.disable_expire = dns.disable_expire ?? false
-      this.guiProfile.dns.independent_cache = dns.independent_cache ?? false
-      this.guiProfile.dns.client_subnet = dns.client_subnet ?? ''
-      this.guiProfile.dns.final = dnsServerTagToId[dns.final] ?? ''
-      this.guiProfile.dns.strategy = dns.strategy ?? Strategy.Default
-    }
   }
 
   /* 解析规则的匹配条件部分 */
@@ -491,64 +600,136 @@ class ConfigParser {
     }
 
     // 其他所有情况（0个或多个类型，或不支持的类型）都视为内联规则
-    return { type: RuleType.Inline, payload: JSON.stringify(condition) }
+    return { type: RuleType.Inline, payload: typeof condition === 'object' ? JSON.stringify(condition, null, 2) : String(condition) }
   }
 
-  /* 解析单条规则（路由或DNS）*/
-  _parseRule(rule, maps) {
-    const {
-      action = RuleAction.Route,
-      outbound,
-      server,
-      invert = false,
-      sniffer,
-      method,
-      strategy,
-      disable_cache = false,
-      client_subnet = '',
-      rcode,
-      answer,
-      ns,
-      extra,
-      ...matchingCondition
-    } = rule
-    const { type, payload } = this._parseMatchingCondition(matchingCondition, maps)
+  /* 解析路由规则 */
+  _parseRouteRules(origRouteRules) {
+    // @ts-ignore
+    const { dnsServerTagToId, rulesetTagToId, inboundTagToId, outboundTagToId } = window[Plugin.id]
+    const maps = { ruleset: rulesetTagToId, inbound: inboundTagToId }
 
-    const guiRule = {
-      id: Plugins.sampleID(),
-      type,
-      payload,
-      invert,
-      action,
-      outbound: '',
-      sniffer: [],
-      strategy: Strategy.Default,
-      server: '',
-      disable_cache,
-      client_subnet
+    this.guiProfile.route.rules = origRouteRules.map((rule) => {
+      const { invert, action, outbound, sniffer, strategy, server, method, ...matchingCondition } = rule
+      const { type, payload } = this._parseMatchingCondition(matchingCondition, maps)
+
+      const guiRule = {
+        ...DefaultRouteRule(),
+        ...filterObjectKeys(rule, Object.keys(DefaultRouteRule()), FilterMode.Include),
+        id: Plugins.sampleID(),
+        type,
+        payload,
+        outbound:
+          action === RuleAction.Reject
+            ? (method ?? RuleActionReject.Default)
+            : action === RuleAction.RouteOptions
+              ? JSON.stringify(filterObjectKeys(rule, Object.values(RuleType), FilterMode.Exclude), null, 2)
+              : (outboundTagToId[outbound] ?? ''),
+        server: dnsServerTagToId[server] ?? ''
+      }
+      return guiRule
+    })
+  }
+
+  /* 解析路由设置 */
+  _parseRoute() {
+    const { route: origRoute, dns: origDns } = this.origConfig
+    if (!origRoute && !origDns) return
+    // @ts-ignore
+    const { dnsServerTagToId, outboundTagToId } = window[Plugin.id]
+    if (origRoute.rule_set && origRoute.rule_set.length > 0) {
+      this._parseRouteRuleset(origRoute.rule_set)
+    }
+    if (origDns.servers && origDns.servers.length > 0) {
+      this._parseDnsServers(origDns.servers)
+    }
+    if (origRoute.rules && origRoute.rules.length > 0) {
+      this._parseRouteRules(origRoute.rules)
+    }
+    if (origRoute) {
+      this.guiProfile.route = {
+        ...this.guiProfile.route,
+        ...filterObjectKeys(origRoute, Object.keys(DefaultRouteGeneral()), FilterMode.Include),
+        final: outboundTagToId[origRoute.final] ?? '',
+        default_domain_resolver: {
+          ...this.guiProfile.route.default_domain_resolver,
+          ...(origRoute.default_domain_resolver && typeof origRoute.default_domain_resolver === 'object'
+            ? filterObjectKeys(origRoute.default_domain_resolver, Object.keys(DefaultRouteGeneral().default_domain_resolver), FilterMode.Include)
+            : {}),
+          server: dnsServerTagToId[origRoute.default_domain_resolver?.server ?? origRoute.default_domain_resolver] ?? ''
+        }
+      }
+    }
+  }
+
+  /* 解析 DNS 规则 */
+  _parseDnsRules(origDnsRules) {
+    // @ts-ignore
+    const { dnsServerTagToId, rulesetTagToId, inboundTagToId } = window[Plugin.id]
+    const maps = { ruleset: rulesetTagToId, inbound: inboundTagToId }
+
+    this.guiProfile.dns.rules = origDnsRules.map((rule) => {
+      const { action, invert, server, strategy, disable_cache, client_subnet, method, rcode, answer, ns, extra, ...matchingCondition } = rule
+      const { type, payload } = this._parseMatchingCondition(matchingCondition, maps)
+
+      const guiRule = {
+        ...DefaultDnsRule(),
+        ...filterObjectKeys(rule, Object.keys(DefaultDnsRule()), FilterMode.Include),
+        id: Plugins.sampleID(),
+        type,
+        payload,
+        server:
+          action === RuleAction.Reject
+            ? (method ?? RuleActionReject.Default)
+            : action === RuleAction.Predefined
+              ? JSON.stringify({ rcode, answer, ns, extra }, null, 2)
+              : action === RuleAction.RouteOptions
+                ? JSON.stringify(filterObjectKeys(rule, Object.values(RuleType), FilterMode.Exclude), null, 2)
+                : (dnsServerTagToId[server] ?? '')
+      }
+
+      return guiRule
+    })
+  }
+
+  /* 解析 DNS 设置 */
+  _parseDns() {
+    const { dns: origDns } = this.origConfig
+    if (!origDns) return
+    // @ts-ignore
+    const { dnsServerTagToId } = window[Plugin.id]
+
+    if (origDns.rules && origDns.rules.length > 0) {
+      this._parseDnsRules(origDns.rules)
     }
 
-    if (action === RuleAction.Reject) {
-      guiRule.server = method ?? 'default'
-    } else if (action === RuleAction.Predefined) {
-      const { rcode, answer, ns, extra } = rule
-      guiRule.server = JSON.stringify({ rcode, answer, ns, extra })
-    } else {
-      guiRule.outbound = maps.outbound?.[outbound] ?? ''
-      guiRule.server = maps.server?.[server] ?? ''
-      guiRule.sniffer = sniffer ?? []
-      guiRule.strategy = strategy ?? Strategy.Default
+    this.guiProfile.dns = {
+      ...this.guiProfile.dns,
+      ...filterObjectKeys(origDns, Object.keys(DefaultDnsGeneral()), FilterMode.Include),
+      final: dnsServerTagToId[origDns.final] ?? ''
     }
+  }
 
-    return guiRule
+  /* 解析额外字段 */
+  _parseExtraFields() {
+    const supportedFields = Object.keys(DefaultGuiProfile())
+
+    // 过滤出原始配置中所有未被支持的顶级字段
+    const unsupportedFields = filterObjectKeys(this.origConfig, supportedFields, FilterMode.Exclude)
+
+    if (Object.keys(unsupportedFields).length > 0) {
+      this.guiProfile.mixin.config = JSON.stringify(unsupportedFields, null, 2)
+    }
   }
 
   async process(fileName) {
     this.guiProfile.name = `${fileName.replace(/\.json$/, '')}-profile`
-    this.parseInbounds()
-    this.parseOutbounds()
-    this.parseGeneral()
-    this.parseRouteAndDNS()
+    this._parseInbounds()
+    this._parseOutbounds()
+    this._parseGeneral()
+    this._parseRoute()
+    this._parseDns()
+    this._parseExtraFields()
     return this.guiProfile
   }
 }
@@ -570,12 +751,12 @@ class ConfigImporter {
 
     this.config.outbounds = this.config.outbounds.filter((o) => excludeTypes.has(o.type))
 
-    const proxyTagToIdMap = Object.fromEntries(proxies.map((p) => [p.tag, Plugins.sampleID()]))
+    const proxyTagToId = Object.fromEntries(proxies.map((p) => [p.tag, Plugins.sampleID()]))
 
     // @ts-ignore
     window[Plugin.id] = {
       // @ts-ignore
-      proxyTagToIdMap,
+      proxyTagToId,
       subscribeId: '',
       subscribeName: '',
       inboundTagToId: {},
@@ -626,7 +807,7 @@ class ConfigImporter {
       requestMethod: RequestMethod.Get,
       header: { request: {}, response: {} },
       // @ts-ignore
-      proxies: proxies.map((p) => ({ id: window[Plugin.id].proxyTagToIdMap[p.tag], tag: p.tag, type: p.type })),
+      proxies: proxies.map((p) => ({ id: window[Plugin.id].proxyTagToId[p.tag], tag: p.tag, type: p.type })),
       script: DefaultSubscribeScript
     })
   }
@@ -736,7 +917,8 @@ const selectImportType = async () => {
 const onRun = async () => {
   await Plugins.alert(
     '插件使用须知：',
-    `此插件只解析 GUI 支持的配置字段，如果你的配置文件中包含 GUI 不支持的配置字段，在导入后可能还需要通过 **混入和脚本** 功能手动添加。
+    `此插件将解析所有 GUI 支持的配置字段，如果你的配置文件中包含 GUI 不支持的配置字段，
+对于顶级字段将会写入 **混入配置** 中，其他字段可能还需要你通过 **混入和脚本** 功能手动添加。
 如果你不知道自己在做什么，请不要使用此插件，而是应该考虑 **快速开始** 或添加 **默认配置**。`,
     { type: 'markdown' }
   )
