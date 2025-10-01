@@ -321,12 +321,12 @@ const selectFile = (options = {}) => {
     }
 
     const onFocus = () => {
-      requestAnimationFrame(() => {
+      setTimeout(() => {
         if (fileInput.files.length === 0) {
           resolve(null)
           cleanup()
         }
-      })
+      }, 200)
     }
 
     fileInput.addEventListener('change', () => {
