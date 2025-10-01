@@ -508,6 +508,7 @@ class ConfigParser {
         ...this.guiProfile.experimental.clash_api,
         ...origClashApi,
         // 单独处理特殊属性
+        default_mode: origClashApi.default_mode ? origClashApi.default_mode.toLowerCase() : ClashMode.Rule,
         external_ui_download_detour: outboundTagToId[origClashApi.external_ui_download_detour] ?? ''
       }
     }
@@ -593,6 +594,8 @@ class ConfigParser {
           .join(',')
       } else if (type === RuleType.Inbound && maps.inbound) {
         payload = maps.inbound[payload] ?? payload
+      } else if (type === RuleType.ClashMode) {
+        payload = payload.toLowerCase()
       } else if (Array.isArray(payload)) {
         payload = payload.join(',')
       }
