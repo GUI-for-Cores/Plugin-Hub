@@ -862,7 +862,12 @@ const importLocalConfig = async () => {
 /* 获取并解析远程文件 */
 const getAndParseRemoteFile = async (url) => {
   try {
-    const { body } = await Plugins.HttpGet(url, { 'User-Agent': 'sing-box' })
+    const { body } = await Plugins.Requests({
+      method: 'GET',
+      url,
+      headers: { 'User-Agent': 'sing-box' },
+      autoTransformBody: false
+    })
     return JSON.parse(body)
   } catch (err) {
     throw `链接 "${url}" 解析失败: ${err.message || err}`
