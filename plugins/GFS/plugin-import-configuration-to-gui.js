@@ -943,3 +943,21 @@ const onRun = async () => {
     Plugins.message.error(e.message || e)
   }
 }
+
+/* 触发器 APP就绪后 */
+const onReady = async () => {
+  const appStore = Plugins.useAppStore()
+  // appStore.removeCustomActions('profiles_header', Plugin.id)
+  appStore.addCustomActions('profiles_header', {
+    id: Plugin.id,
+    component: 'Dropdown',
+    componentSlots: {
+      default: ({ h }) => h('Button', { type: 'link' }, () => Plugin.name),
+      overlay: ({ h }) =>
+        h('div', { class: 'flex flex-col gap-4 min-w-64 p-4' }, [
+          h('Button', { type: 'text', onClick: importLocalConfig }, () => '从文件导入'),
+          h('Button', { type: 'text', onClick: importRemoteConfig }, () => '从URL导入')
+        ])
+    }
+  })
+}
