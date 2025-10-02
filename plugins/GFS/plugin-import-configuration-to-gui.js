@@ -130,6 +130,11 @@ const SubscribeType = {
   Manual: 'Manual'
 }
 
+const FilterMode = {
+  Include: 'include',
+  Exclude: 'exclude'
+}
+
 const ImportType = { Local: 'local', Remote: 'remote' }
 
 const DefaultTunAddress = ['172.18.0.1/30', 'fdfe:dcba:9876::1/126']
@@ -215,6 +220,21 @@ const DefaultRouteRule = () => ({
   server: ''
 })
 
+const RouteRuleActionProperties = () => ({
+  ...DefaultRouteRule(),
+  method: RuleActionReject.Default,
+  override_address: '',
+  override_port: 0,
+  network_strategy: '',
+  fallback_delay: '',
+  udp_disable_domain_unmapping: false,
+  udp_connect: false,
+  udp_timeout: '',
+  tls_fragment: false,
+  tls_fragment_fallback_delay: '',
+  tls_record_fragment: ''
+})
+
 const DefaultRouteRuleset = () => ({
   id: Plugins.sampleID(),
   type: RulesetType.Local,
@@ -264,6 +284,15 @@ const DefaultDnsRule = () => ({
   strategy: Strategy.Default,
   disable_cache: false,
   client_subnet: ''
+})
+
+const DnsRuleActionProperties = () => ({
+  ...DefaultDnsRule(),
+  method: RuleActionReject.Default,
+  rcode: '',
+  answer: [],
+  ns: [],
+  extra: []
 })
 
 const DefaultDnsGeneral = () => ({
@@ -355,11 +384,6 @@ const readAndParseSelectedFile = (file) => {
     reader.onerror = () => reject(`无法读取文件 "${file.name}"`)
     reader.readAsText(file)
   })
-}
-
-const FilterMode = {
-  Include: 'include',
-  Exclude: 'exclude'
 }
 
 /* 根据指定的键列表和模式过滤对象 */
@@ -508,7 +532,7 @@ class ConfigParser {
         ...this.guiProfile.experimental.clash_api,
         ...origClashApi,
         // 单独处理特殊属性
-        default_mode: origClashApi.default_mode ? origClashApi.default_mode.toLowerCase() : ClashMode.Rule,
+        default_mode: origClashApi.default_mode ? String(origClashApi.default_mode).toLowerCase() : ClashMode.Rule,
         external_ui_download_detour: outboundTagToId[origClashApi.external_ui_download_detour] ?? ''
       }
     }
@@ -579,27 +603,35 @@ class ConfigParser {
 
   /* 解析规则的匹配条件部分 */
   _parseMatchingCondition(condition, maps) {
-    const supportedTypes = new Set(Object.values(RuleType))
-    const matchingTypeKeys = Object.keys(condition).filter((key) => supportedTypes.has(key))
+    const ruleTypeList = Object.values(RuleType)
+    const supportedTypes = Object.keys(filterObjectKeys(condition, ruleTypeList, FilterMode.Include))
+    const unsupportedTypes = Object.keys(filterObjectKeys(condition, ruleTypeList, FilterMode.Exclude))
 
-    // 当只有一个匹配的类型时，视为简单规则
-    if (matchingTypeKeys.length === 1) {
-      const type = matchingTypeKeys[0]
+    // 当只有一个支持的类型时，视为简单规则
+    if (supportedTypes.length === 1 && unsupportedTypes.length === 0) {
+      const type = supportedTypes[0]
       let payload = condition[type]
 
-      if (type === RuleType.RuleSet && maps.ruleset) {
+      if (type === RuleType.RuleSet) {
         payload = (Array.isArray(payload) ? payload : [payload])
           .map((tag) => maps.ruleset[tag])
           .filter(Boolean)
           .join(',')
-      } else if (type === RuleType.Inbound && maps.inbound) {
-        payload = maps.inbound[payload] ?? payload
+      } else if (type === RuleType.Inbound) {
+        if (Array.isArray(payload) && payload.length > 1) {
+          return { type: RuleType.Inline, payload: JSON.stringify(condition, null, 2) }
+        }
+        payload = Array.isArray(payload) && payload.length === 1 ? (maps.inbound[payload[0]] ?? '') : (maps.inbound[payload] ?? '')
       } else if (type === RuleType.ClashMode) {
-        payload = payload.toLowerCase()
+        payload = String(payload).toLowerCase()
       } else if (Array.isArray(payload)) {
         payload = payload.join(',')
       }
       return { type, payload: String(payload) }
+    }
+
+    if (condition.clash_mode) {
+      condition.clash_mode = String(condition.clash_mode).toLowerCase()
     }
 
     // 其他所有情况（0个或多个类型，或不支持的类型）都视为内联规则
@@ -613,22 +645,27 @@ class ConfigParser {
     const maps = { ruleset: rulesetTagToId, inbound: inboundTagToId }
 
     this.guiProfile.route.rules = origRouteRules.map((rule) => {
-      const { invert, action, outbound, sniffer, strategy, server, method, ...matchingCondition } = rule
+      const actionProperties = filterObjectKeys(rule, Object.keys(RouteRuleActionProperties()), FilterMode.Include)
+      const matchingCondition = filterObjectKeys(rule, Object.keys(RouteRuleActionProperties()), FilterMode.Exclude)
+
+      if (rule.type) {
+        matchingCondition.type = rule.type
+      }
       const { type, payload } = this._parseMatchingCondition(matchingCondition, maps)
 
       const guiRule = {
         ...DefaultRouteRule(),
-        ...filterObjectKeys(rule, Object.keys(DefaultRouteRule()), FilterMode.Include),
+        ...filterObjectKeys(actionProperties, Object.keys(DefaultRouteRule()), FilterMode.Include),
         id: Plugins.sampleID(),
         type,
         payload,
         outbound:
-          action === RuleAction.Reject
-            ? (method ?? RuleActionReject.Default)
-            : action === RuleAction.RouteOptions
-              ? JSON.stringify(filterObjectKeys(rule, Object.values(RuleType), FilterMode.Exclude), null, 2)
-              : (outboundTagToId[outbound] ?? ''),
-        server: dnsServerTagToId[server] ?? ''
+          actionProperties.action === RuleAction.Reject
+            ? (actionProperties.method ?? RuleActionReject.Default)
+            : actionProperties.action === RuleAction.RouteOptions
+              ? JSON.stringify(filterObjectKeys(actionProperties, Object.keys(DefaultRouteRule()), FilterMode.Exclude), null, 2)
+              : (outboundTagToId[actionProperties.outbound] ?? ''),
+        server: dnsServerTagToId[actionProperties.server] ?? ''
       }
       return guiRule
     })
@@ -672,23 +709,26 @@ class ConfigParser {
     const maps = { ruleset: rulesetTagToId, inbound: inboundTagToId }
 
     this.guiProfile.dns.rules = origDnsRules.map((rule) => {
-      const { action, invert, server, strategy, disable_cache, client_subnet, method, rcode, answer, ns, extra, ...matchingCondition } = rule
+      const actionProperties = filterObjectKeys(rule, Object.keys(DnsRuleActionProperties()), FilterMode.Include)
+      const matchingCondition = filterObjectKeys(rule, Object.keys(DnsRuleActionProperties()), FilterMode.Exclude)
+
+      if (rule.type) {
+        matchingCondition.type = rule.type
+      }
       const { type, payload } = this._parseMatchingCondition(matchingCondition, maps)
 
       const guiRule = {
         ...DefaultDnsRule(),
-        ...filterObjectKeys(rule, Object.keys(DefaultDnsRule()), FilterMode.Include),
+        ...filterObjectKeys(actionProperties, Object.keys(DefaultDnsRule()), FilterMode.Include),
         id: Plugins.sampleID(),
         type,
         payload,
         server:
-          action === RuleAction.Reject
-            ? (method ?? RuleActionReject.Default)
-            : action === RuleAction.Predefined
-              ? JSON.stringify({ rcode, answer, ns, extra }, null, 2)
-              : action === RuleAction.RouteOptions
-                ? JSON.stringify(filterObjectKeys(rule, Object.values(RuleType), FilterMode.Exclude), null, 2)
-                : (dnsServerTagToId[server] ?? '')
+          actionProperties.action === RuleAction.Reject
+            ? (actionProperties.method ?? RuleActionReject.Default)
+            : actionProperties.action === RuleAction.Predefined || actionProperties.action === RuleAction.RouteOptions
+              ? JSON.stringify(filterObjectKeys(actionProperties, Object.keys(DefaultDnsRule()), FilterMode.Exclude), null, 2)
+              : (dnsServerTagToId[actionProperties.server] ?? '')
       }
 
       return guiRule
