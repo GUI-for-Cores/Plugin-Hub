@@ -2469,13 +2469,13 @@
   {
     "id": "plugin-clash-api-dashboard",
     "name": "Clash API 仪表板",
-    "version": "v2.1.0",
+    "version": "v3.0.0",
     "description": "方便的切换和访问 Clash 面板。Supported by: 泡泡茶壶",
     "tags": ["提升体验", "功能扩展"],
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-clash-api-dashboard.js",
     "path": "data/plugins/plugin-clash-api-dashboard.js",
-    "triggers": ["on::manual", "on::generate", "on::ready"],
+    "triggers": ["on::manual", "on::core::started", "on::core::stopped"],
     "hasUI": false,
     "menus": {},
     "context": {
@@ -2488,22 +2488,22 @@
     "status": 0,
     "configuration": [
       {
-        "id": "ID_sypicnrf",
-        "title": "仪表板类型",
-        "description": "本地仪表板依赖 onGenerate 钩子，如果在配置的混入与脚本内修改了对应配置项，则可能无法正常访问",
-        "key": "dashType",
+        "id": "ID_vdiv901m",
+        "title": "选择仪表板",
+        "description": "",
+        "key": "DashboardName",
         "component": "Radio",
-        "value": "online",
-        "options": ["在线,online", "本地,local"]
+        "value": "Zashboard",
+        "options": ["Yacd,Yacd", "Zashboard,Zashboard", "MetaCubeXD,MetaCubeXD"]
       },
       {
-        "id": "ID_vdiv901m",
-        "title": "仪表板名称",
+        "id": "ID_m1ipygpg",
+        "title": "更多 Clash 模式切换",
         "description": "",
-        "key": "dashName",
-        "component": "Radio",
-        "value": "yacdmeta",
-        "options": ["Yacd-meta,yacdmeta", "Metacubexd,metacubexd", "Zashboard,zashboard"]
+        "key": "ClashModeAction",
+        "component": "Switch",
+        "value": false,
+        "options": []
       }
     ],
     "disabled": false,

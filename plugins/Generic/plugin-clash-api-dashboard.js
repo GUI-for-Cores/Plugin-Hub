@@ -1,145 +1,208 @@
-/**
- * 插件钩子：运行按钮 - onRun
- */
-const onRun = async () => {
-  const kernelApiStore = Plugins.useKernelApiStore()
-  if (!kernelApiStore.running) {
-    throw '请先启动内核'
+window[Plugin.id] = window[Plugin.id] || {}
+
+const Dashboard = {
+  Yacd: {
+    Link: 'http://yacd.metacubex.one',
+    Icon: 'https://raw.githubusercontent.com/haishanh/yacd/refs/heads/master/assets/yacd.ico'
+  },
+  Zashboard: {
+    Link: 'http://board.zash.run.place/#/setup',
+    Icon: 'https://raw.githubusercontent.com/Zephyruso/zashboard/refs/heads/main/public/icon.svg'
+  },
+  MetaCubeXD: {
+    Link: 'http://metacubex.github.io/metacubexd/#/setup',
+    Icon: 'https://raw.githubusercontent.com/MetaCubeX/metacubexd/refs/heads/main/public/favicon.svg'
   }
-  await openDash()
 }
 
-/* 触发器 APP就绪后 */
-const onReady = async () => {
+/* 创建仪表板链接 */
+const generateDashboardUrl = (dashboardName) => {
+  const { port, secret } = getClashApiConfig()
+  const dashboardLink = Dashboard[dashboardName]?.Link
+  return `${dashboardLink}?hostname=127.0.0.1&port=${port}${secret ? `&secret=${secret}` : ''}&http=1`
+}
+
+/* 获取 Clash API 配置 */
+const getClashApiConfig = () => {
+  const appSettingsStore = Plugins.useAppSettingsStore()
+  const profilesStore = Plugins.useProfilesStore()
+  const profile = profilesStore.getProfileById(appSettingsStore.app.kernel.profile)
+  let port = 20123
+  let secret = ''
+  if (Plugins.APP_TITLE.includes('SingBox')) {
+    const controller = profile.experimental.clash_api.external_controller || '127.0.0.1:20123'
+    port = controller.split(':')[1]
+    secret = profile.experimental.clash_api.secret || ''
+  } else {
+    const controller = profile.advancedConfig['external-controller'] || '127.0.0.1:20113'
+    port = controller.split(':')[1]
+    secret = profile.advancedConfig.secret || ''
+  }
+  return { port, secret }
+}
+
+/* 加载 WebUI 组件 */
+const loadWebUIComponent = (dashboardName) => {
+  window[Plugin.id].removeWebUI?.()
   const appStore = Plugins.useAppStore()
-  appStore.addCustomActions('core_state', {
-    component: 'Dropdown',
-    componentProps: {
-      trigger: ['hover']
-    },
+  window[Plugin.id].removeWebUI = appStore.addCustomActions('core_state', {
+    component: 'div',
     componentSlots: {
       default: ({ h }) => {
-        return h('Button', { type: 'link', size: 'small' }, () => 'WebUI')
-      },
-      overlay: ({ h }) => {
-        return h('div', [
-          h('Button', { type: 'link', size: 'small', onClick: () => openDash('yacdmeta') }, () => 'Yacd'),
-          h('Button', { type: 'link', size: 'small', onClick: () => openDash('metacubexd') }, () => 'MetaCubeXD'),
-          h('Button', { type: 'link', size: 'small', onClick: () => openDash('zashboard') }, () => 'Zashboard')
-        ])
+        return h(
+          'Button',
+          {
+            type: 'link',
+            size: 'small',
+            onClick: () => openWebUI(dashboardName)
+          },
+          () => [
+            h('img', {
+              src: Dashboard[dashboardName]?.Icon,
+              width: '16px',
+              height: '16px',
+              style: {
+                borderRadius: '4px',
+                marginRight: '4px'
+              }
+            }),
+            dashboardName
+          ]
+        )
       }
     }
   })
 }
 
-/**
- * 生成本地仪表板配置
- */
-const onGenerate = async (config) => {
-  if (Plugin.dashType !== 'local') return config
+/* 获取 Clash 模式 */
+const getClashModeList = () => {
+  const { config } = Plugins.useKernelApiStore()
+  return { currentMode: config.mode, modeList: config['mode-list'] }
+}
 
-  let uiPath, uiDownloadUrl
-  switch (Plugin.dashName) {
-    case 'yacdmeta':
-      uiPath = 'ui/yacdmeta'
-      uiDownloadUrl = 'https://github.com/MetaCubeX/Yacd-meta/archive/gh-pages.zip'
-      break
-    case 'metacubexd':
-      uiPath = 'ui/metacubexd'
-      uiDownloadUrl = 'https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip'
-      break
-    case 'zashboard':
-      uiPath = 'ui/zashboard'
-      uiDownloadUrl = 'https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip'
-      break
-  }
+const capitalizeFirstLetter = (string) => {
+  if (!string) return ''
+  return string.charAt(0).toUpperCase() + string.slice(1)
+}
 
-  if (Plugins.APP_TITLE.includes('SingBox')) {
-    config = {
-      ...config,
-      experimental: {
-        ...config.experimental,
-        clash_api: {
-          ...config.experimental.clash_api,
-          external_ui: uiPath,
-          external_ui_download_url: uiDownloadUrl
+/* 加载 Clash Mode 组件 */
+const loadClashModeComponent = () => {
+  window[Plugin.id].removeClashMode?.()
+  const appStore = Plugins.useAppStore()
+
+  window[Plugin.id].removeClashMode = appStore.addCustomActions('core_state', [
+    {
+      component: 'Dropdown',
+      componentProps: {
+        trigger: ['hover']
+      },
+      componentSlots: {
+        default: ({ h }) => {
+          return h(
+            'Button',
+            {
+              type: 'link',
+              icon: 'more',
+              size: 'small'
+            },
+            () => capitalizeFirstLetter(getClashModeList().currentMode)
+          )
+        },
+        overlay: ({ h }) => {
+          return h(
+            'div',
+            { class: 'flex flex-col gap-4 min-w-64 p-4' },
+            getClashModeList().modeList.map((mode) =>
+              h(
+                'Button',
+                {
+                  type: 'link',
+                  size: 'small',
+                  onClick: () => Plugins.handleChangeMode(mode)
+                },
+                () => capitalizeFirstLetter(mode)
+              )
+            )
+          )
         }
       }
     }
-  } else {
-    config = {
-      ...config,
-      'external-ui': uiPath,
-      'external-ui-url': uiDownloadUrl
-    }
-  }
-  return config
+  ])
 }
 
-/**
- * 创建仪表板链接，并访问
- */
-const openDash = async (dashName = Plugin.dashName) => {
-  const { external_controller: controller, external_ui: configUiPath, secret } = await getApiConfig()
-  const [, port] = controller.split(':')
-  let openUrl
-  if (Plugin.dashType === 'online') {
-    let dashLink
-    switch (dashName) {
-      case 'yacdmeta':
-        dashLink = 'http://yacd.metacubex.one/'
-        break
-      case 'metacubexd':
-        dashLink = 'http://metacubex.github.io/metacubexd/#/setup'
-        break
-      case 'zashboard':
-        dashLink = 'http://board.zash.run.place/#/setup'
-        break
-    }
-    openUrl = `${dashLink}?hostname=127.0.0.1&port=${port}${secret ? `&secret=${secret}` : ''}&http=1`
-  } else {
-    let uiPath, urlPath
-    switch (dashName) {
-      case 'yacdmeta':
-        uiPath = 'ui/yacdmeta'
-        urlPath = '/'
-        break
-      case 'metacubexd':
-        uiPath = 'ui/metacubexd'
-        urlPath = '/#/setup'
-        break
-      case 'zashboard':
-        uiPath = 'ui/zashboard'
-        urlPath = '/#/setup'
-        break
-    }
-    openUrl = `http://127.0.0.1:${port}/ui${urlPath}?hostname=127.0.0.1&port=${port}${secret ? `&secret=${secret}` : ''}&http=1`
-    if (configUiPath !== uiPath) {
-      const kernelApiStore = Plugins.useKernelApiStore()
-      kernelApiStore.restartKernel()
-      await Plugins.sleep(3_000)
-    }
+/* 添加到概览页 */
+const addToCoreStatePanel = () => {
+  loadWebUIComponent(Plugin.DashboardName)
+  if (Plugin.ClashModeAction) {
+    loadClashModeComponent()
   }
-  Plugins.BrowserOpenURL(openUrl)
 }
 
-/**
- * 获取 Clash API 配置
- */
-const getApiConfig = async () => {
-  if (Plugins.APP_TITLE.includes('SingBox')) {
-    const coreConfigFilePath = 'data/sing-box/config.json'
-    const coreConfig = await Plugins.Readfile(coreConfigFilePath)
-    const {
-      experimental: {
-        clash_api: { external_controller, external_ui, secret }
+/* 从概览页移除 */
+const removeFromCoreStatePanel = () => {
+  window[Plugin.id].removeWebUI?.()
+  window[Plugin.id].removeClashMode?.()
+}
+
+const openWebUI = (dashboardName) => {
+  const src = generateDashboardUrl(dashboardName)
+  const modal = Plugins.modal(
+    {
+      title: dashboardName,
+      width: '90',
+      height: '90',
+      footer: false,
+      maskClosable: true,
+      afterClose() {
+        modal.destroy()
       }
-    } = JSON.parse(coreConfig)
-    return { external_controller, external_ui, secret }
-  } else {
-    const coreConfigFilePath = 'data/mihomo/config.yaml'
-    const coreConfig = await Plugins.Readfile(coreConfigFilePath)
-    const { 'external-controller': external_controller, 'external-ui': external_ui, secret } = Plugins.YAML.parse(coreConfig)
-    return { external_controller, external_ui, secret }
+    },
+    {
+      toolbar: () => [
+        Vue.h(
+          Vue.resolveComponent('Button'),
+          {
+            type: 'text',
+            onClick: () => {
+              Plugins.BrowserOpenURL(src)
+            }
+          },
+          () => '浏览器中打开'
+        ),
+        Vue.h(Vue.resolveComponent('Button'), {
+          type: 'text',
+          icon: 'close',
+          onClick: () => modal.destroy()
+        })
+      ],
+      default: () =>
+        Vue.h('iframe', {
+          src: src,
+          class: 'w-full h-full border-0',
+          style: {
+            height: 'calc(100% - 6px)'
+          }
+        })
+    }
+  )
+  modal.open()
+}
+
+/* 触发器 手动触发 */
+const onRun = () => {
+  const kernelApiStore = Plugins.useKernelApiStore()
+  if (!kernelApiStore.running) {
+    throw '请先启动内核'
   }
+  openWebUI(Plugin.DashboardName)
+}
+
+/* 触发器 核心启动后 */
+const onCoreStarted = () => {
+  addToCoreStatePanel()
+}
+
+/* 触发器 核心停止后 */
+const onCoreStopped = () => {
+  removeFromCoreStatePanel()
 }
