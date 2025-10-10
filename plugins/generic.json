@@ -2,7 +2,7 @@
   {
     "id": "plugin-configuration-example",
     "name": "插件配置示例",
-    "version": "v1.0.0",
+    "version": "v2.0.0",
     "description": "插件配置示例，该示例包含了多种数据格式：字符串数组、长文本、键值对、布尔值、单文本。开发者可在编辑插件中配置插件源码中使用到的参数，通过相关API进行引用。用户可右键【配置插件】对这些参数按需修改。",
     "tags": ["插件示例"],
     "type": "Http",
@@ -85,6 +85,15 @@
         "component": "Select",
         "value": "option2",
         "options": ["google.com", "baidu.com", "bing.com"]
+      },
+      {
+        "id": "ID_mtme6ryq",
+        "title": "请选择你喜爱的客户端？",
+        "description": "多选下拉示例，用于替换选项过多的 CheckBox 组件",
+        "key": "multipleSelect",
+        "component": "MultipleSelect",
+        "value": ["GUI.for.SingBox", "GUI.for.Clash", "GUI.for.Xray", "Clash Verge Rev", "Clash for Windows", "V2rayN"],
+        "options": ["GUI.for.SingBox", "GUI.for.Clash", "GUI.for.Xray", "Clash Verge Rev", "Clash for Windows", "V2rayN"]
       },
       {
         "id": "ID_sgnvsolc",
