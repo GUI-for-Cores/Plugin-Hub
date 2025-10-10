@@ -335,57 +335,6 @@ const DefaultGuiProfile = () => ({
   script: DefaultScript()
 })
 
-/* 打开文件选择器 */
-const selectFile = (options = {}) => {
-  return new Promise((resolve) => {
-    const fileInput = document.createElement('input')
-    fileInput.type = 'file'
-    fileInput.style.display = 'none'
-    fileInput.multiple = options.multiple ?? false
-    fileInput.accept = options.accept ?? ''
-
-    const cleanup = () => {
-      window.removeEventListener('focus', onFocus)
-      document.body.removeChild(fileInput)
-    }
-
-    const onFocus = () => {
-      setTimeout(() => {
-        if (fileInput.files.length === 0) {
-          resolve(null)
-          cleanup()
-        }
-      }, 200)
-    }
-
-    fileInput.addEventListener('change', () => {
-      resolve(fileInput.files.length > 0 ? fileInput.files : null)
-      cleanup()
-    })
-
-    window.addEventListener('focus', onFocus, { once: true })
-    document.body.appendChild(fileInput)
-    fileInput.click()
-  })
-}
-
-/* 读取单个文件并解析 */
-const readAndParseSelectedFile = (file) => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      try {
-        const text = event.target?.result
-        resolve(JSON.parse(String(text)))
-      } catch (err) {
-        reject(`文件 "${file.name}" 解析失败: ${err.message || err}`)
-      }
-    }
-    reader.onerror = () => reject(`无法读取文件 "${file.name}"`)
-    reader.readAsText(file)
-  })
-}
-
 /* 根据指定的键列表和模式过滤对象 */
 const filterObjectKeys = (sourceObj, keyList, mode = FilterMode.Include) => {
   if (!sourceObj || typeof sourceObj !== 'object') {
@@ -755,13 +704,31 @@ class ConfigParser {
 
   /* 解析额外字段 */
   _parseExtraFields() {
-    const supportedFields = Object.keys(DefaultGuiProfile())
+    const topFields = filterObjectKeys(this.origConfig, Object.keys(DefaultGuiProfile()), FilterMode.Exclude)
+    const routeFields = filterObjectKeys(this.origConfig.route, Object.keys(DefaultGuiProfile().route), FilterMode.Exclude)
+    const defaultDomainResolver = filterObjectKeys(
+      this.origConfig.route?.default_domain_resolver,
+      Object.keys(DefaultRouteGeneral().default_domain_resolver),
+      FilterMode.Exclude
+    )
+    const dnsFields = filterObjectKeys(this.origConfig.dns, Object.keys(DefaultGuiProfile().dns), FilterMode.Exclude)
 
-    // 过滤出原始配置中所有未被支持的顶级字段
-    const unsupportedFields = filterObjectKeys(this.origConfig, supportedFields, FilterMode.Exclude)
+    delete routeFields.geoip
+    delete routeFields.geosite
+    delete dnsFields.fakeip
 
-    if (Object.keys(unsupportedFields).length > 0) {
-      this.guiProfile.mixin.config = JSON.stringify(unsupportedFields, null, 2)
+    if (Object.keys(defaultDomainResolver).length > 0) {
+      routeFields.default_domain_resolver = defaultDomainResolver
+    }
+    if (Object.keys(routeFields).length > 0) {
+      topFields.route = routeFields
+    }
+    if (Object.keys(dnsFields).length > 0) {
+      topFields.dns = dnsFields
+    }
+
+    if (Object.keys(topFields).length > 0) {
+      this.guiProfile.mixin.config = JSON.stringify(topFields, null, 2)
     }
   }
 
@@ -870,6 +837,57 @@ class ConfigImporter {
   }
 }
 
+/* 打开文件选择器 */
+const selectFile = (options = {}) => {
+  return new Promise((resolve) => {
+    const fileInput = document.createElement('input')
+    fileInput.type = 'file'
+    fileInput.style.display = 'none'
+    fileInput.multiple = options.multiple ?? false
+    fileInput.accept = options.accept ?? ''
+
+    const cleanup = () => {
+      window.removeEventListener('focus', onFocus)
+      document.body.removeChild(fileInput)
+    }
+
+    const onFocus = () => {
+      setTimeout(() => {
+        if (fileInput.files.length === 0) {
+          resolve(null)
+          cleanup()
+        }
+      }, 200)
+    }
+
+    fileInput.addEventListener('change', () => {
+      resolve(fileInput.files.length > 0 ? fileInput.files : null)
+      cleanup()
+    })
+
+    window.addEventListener('focus', onFocus, { once: true })
+    document.body.appendChild(fileInput)
+    fileInput.click()
+  })
+}
+
+/* 读取单个文件并解析 */
+const readAndParseSelectedFile = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      try {
+        const text = event.target?.result
+        resolve(JSON.parse(String(text)))
+      } catch (err) {
+        reject(`文件 "${file.name}" 解析失败: ${err.message || err}`)
+      }
+    }
+    reader.onerror = () => reject(`无法读取文件 "${file.name}"`)
+    reader.readAsText(file)
+  })
+}
+
 /* 导入本地配置 */
 const importLocalConfig = async () => {
   Plugins.message.info('请选择一个或多个 JSON 文件...')
@@ -965,8 +983,8 @@ const selectImportType = async () => {
 const onRun = async () => {
   await Plugins.alert(
     '插件使用须知：',
-    `此插件将解析所有 GUI 支持的配置字段，如果你的配置文件中包含 GUI 不支持的配置字段，
-对于顶级字段将会写入 **混入配置** 中，其他字段可能还需要你通过 **混入和脚本** 功能手动添加。
+    `此插件将解析并导入所有 GUI 支持的配置字段，如果你的配置文件中包含 GUI 不支持的配置字段，
+对于非数组内字段将会写入 **混入配置** 中，其他字段可能还需要你通过 **混入和脚本** 功能手动添加。
 如果你不知道自己在做什么，请不要使用此插件，而是应该考虑 **快速开始** 或添加 **默认配置**。`,
     { type: 'markdown' }
   )
