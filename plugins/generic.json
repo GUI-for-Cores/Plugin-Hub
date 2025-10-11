@@ -250,18 +250,19 @@
   },
   {
     "id": "plugin-smart-proxy-switcher",
-    "version": "v2.1.0",
+    "version": "v3.0.0",
     "name": "节点智能切换",
     "description": "实现动态代理选择机制，包含故障转移、断路器、EWMA 延迟跟踪、基于分数调度与滞后控制。",
     "tags": ["提升体验", "功能扩展"],
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-smart-proxy-switcher.js",
     "path": "data/plugins/plugin-smart-proxy-switcher.js",
-    "triggers": ["on::manual", "on::ready"],
+    "triggers": ["on::manual", "on::ready", "on::core::started", "on::core::stopped"],
     "hasUI": false,
     "menus": {
-      "查看节点状态": "ViewStat",
-      "停止": "Stop"
+      "启动": "Start",
+      "停止": "Stop",
+      "查看节点状态": "ViewStat"
     },
     "context": {
       "profiles": {},

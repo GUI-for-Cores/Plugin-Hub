@@ -51,9 +51,19 @@ const onRun = async () => {
   }
 
   const presetMap = {
-    Stable: Plugin.StableMode,
-    LatencyFirst: Plugin.LatencyFirstMode,
-    Custom: Plugin.CustomMode
+    Stable: {
+      ewmaAlpha: 0.1, // 更平滑，更看重历史表现
+      failureThreshold: 5, // 更容忍失败，不容易触发断路
+      hysteresisMargin: 0.5, // 减少切换频率，保持更稳定
+      latencyWeight: 50.0 // 降低延迟影响，更重视稳定性
+    },
+    LatencyFirst: {
+      ewmaAlpha: 0.5, // 更敏感，延迟波动响应更快
+      failureThreshold: 2, // 更快识别故障，更敏捷
+      hysteresisMargin: 0.1, // 更敏感，容易发生代理抖动
+      latencyWeight: 200.0 // 更关注低延迟，代理切换更频繁
+    },
+    CustomMode: JSON.parse(Plugin.CustomMode)
   }
   if (!presetMap[Plugin.Preset]) {
     throw '预设使用场景不存在，请检查插件配置'
@@ -68,7 +78,7 @@ const onRun = async () => {
   Stop()
 
   const options = {
-    ...JSON.parse(presetMap[Plugin.Preset]),
+    ...presetMap[Plugin.Preset],
     monitoringInterval: Number(Plugin.MonitoringInterval),
     requestTimeout: Number(Plugin.RequestTimeout)
   }
@@ -102,6 +112,13 @@ const onRun = async () => {
 const onReady = async () => {
   // 返回2，将插件状态始终置为已停止
   return 2
+}
+
+/*
+ * 右键菜单 - 立即测试
+ */
+const Test = async () => {
+  window[Plugin.id].managers.forEach((manager) => manager.checkAllAndEvaluateSwitch())
 }
 
 /*
@@ -227,30 +244,24 @@ class ProxyServer {
   // 成功响应时更新延迟与状态
   recordSuccess(latency) {
     const now = Date.now()
-    const alpha = this.options.ewmaAlpha
-    if (this.ewmaLatency === null) {
-      this.ewmaLatency = latency
-    } else {
-      this.ewmaLatency = alpha * latency + (1 - alpha) * this.ewmaLatency
-    }
+    const { ewmaAlpha, penaltyDecayRate } = this.options
+    this.ewmaLatency = this.ewmaLatency === null ? latency : ewmaAlpha * latency + (1 - ewmaAlpha) * this.ewmaLatency
     this.failureCount = 0
     this.lastDelay = latency
-    if (this.state === 'HALF_OPEN' || this.state === 'OPEN') {
-      this.state = 'CLOSED'
-    }
-    const dt = (now - this.lastPenaltyUpdate) / 1000
-    this.penalty *= Math.exp(-this.options.penaltyDecayRate * dt)
+    if (this.state !== 'CLOSED') this.state = 'CLOSED'
+    this.penalty *= Math.exp((-penaltyDecayRate * (now - this.lastPenaltyUpdate)) / 1000)
     this.lastPenaltyUpdate = now
   }
 
   // 失败时更新指标和断路器状态
   recordFailure() {
     const now = Date.now()
+    const { failureThreshold, penaltyIncrement } = this.options
     this.failureCount += 1
     this.lastDelay = ''
-    this.penalty += this.options.penaltyIncrement
+    this.penalty += penaltyIncrement
     this.lastPenaltyUpdate = now
-    if (this.failureCount >= this.options.failureThreshold) {
+    if (this.failureCount >= failureThreshold) {
       this.state = 'OPEN'
       this.nextAttempt = now + this.options.circuitBreakerTimeout
     }
@@ -259,29 +270,19 @@ class ProxyServer {
   // 判断代理是否可用（断路器逻辑）
   isAvailable() {
     const now = Date.now()
-    if (this.state === 'OPEN') {
-      if (now >= this.nextAttempt) {
-        this.state = 'HALF_OPEN'
-        return true
-      }
-      return false
+    if (this.state === 'OPEN' && now >= this.nextAttempt) {
+      this.state = 'HALF_OPEN'
+      return true
     }
-    return true
+    return this.state !== 'OPEN'
   }
 
   // 根据优先级、延迟与惩罚计算综合得分
   getScore() {
-    if (!this.isAvailable() || this.ewmaLatency === null) {
-      return -Infinity
-    }
-    const now = Date.now()
-    const dt = (now - this.lastPenaltyUpdate) / 1000
-    const decayedPenalty = this.penalty * Math.exp(-this.options.penaltyDecayRate * dt)
-
-    const pScore = this.options.priorityWeight * this.priority
-    const lScore = this.options.latencyWeight * (1 / this.ewmaLatency)
-    const penScore = this.options.penaltyWeight * decayedPenalty
-    return pScore + lScore - penScore
+    if (!this.isAvailable() || this.ewmaLatency === null) return -Infinity
+    const { latencyWeight, priorityWeight, penaltyWeight, penaltyDecayRate } = this.options
+    const decayedPenalty = this.penalty * Math.exp((-penaltyDecayRate * (Date.now() - this.lastPenaltyUpdate)) / 1000)
+    return priorityWeight * this.priority + latencyWeight / this.ewmaLatency - penaltyWeight * decayedPenalty
   }
 }
 
@@ -289,15 +290,15 @@ class ProxyManager {
   constructor(proxyConfigs, options) {
     this.options = Object.assign(
       {
-        ewmaAlpha: 0.3, // 延迟 EWMA 平滑因子
-        failureThreshold: 3, // 最大允许连续失败次数
+        ewmaAlpha: 0.1, // 延迟 EWMA 平滑因子
+        failureThreshold: 5, // 最大允许连续失败次数
         circuitBreakerTimeout: 360 * 1000, // 断路器开启后的超时时间（ms）
         penaltyIncrement: 5, // 每次失败增加的惩罚值
         penaltyDecayRate: 0.1, // 惩罚值衰减速率（每秒）
         priorityWeight: 1.0, // 优先级权重
-        latencyWeight: 100.0, // 延迟得分权重
+        latencyWeight: 50.0, // 延迟得分权重
         penaltyWeight: 1.0, // 惩罚惩权重
-        hysteresisMargin: 0.1, // 滞后阈值（防止频繁切换）
+        hysteresisMargin: 0.5, // 滞后阈值（防止频繁切换）
         monitoringInterval: 60 * 1000, // 监控间隔（ms）
         requestTimeout: 5000 // 代理请求超时（ms）
       },
@@ -311,11 +312,7 @@ class ProxyManager {
 
   // 启动监控循环
   startMonitoring() {
-    this.monitoringTimer = Plugins.setIntervalImmediately(() => {
-      this.checkAll().then(() => {
-        this.evaluateSwitch()
-      })
-    }, this.options.monitoringInterval)
+    this.monitoringTimer = Plugins.setIntervalImmediately(() => this.checkAllAndEvaluateSwitch(), this.options.monitoringInterval)
   }
 
   // 停止监控
@@ -345,45 +342,39 @@ class ProxyManager {
 
   // 判断是否应切换代理
   evaluateSwitch() {
-    const now = Date.now()
-    let best = null
-    let bestScore = -Infinity
-    for (const p of this.proxies) {
-      const score = p.getScore()
-      if (score > bestScore) {
-        bestScore = score
-        best = p
-      }
-    }
+    const best = this.proxies.reduce((best, proxy) => {
+      const score = proxy.getScore()
+      return score > (best?.score ?? -Infinity) ? { proxy, score } : best
+    }, null)
+
     if (!best) return
 
-    if (!this.current) {
-      this.switchTo(best)
-      return
-    }
-
     // 更新current，用户可能手动改变了当前的代理，造成数据不一致的情况
-    const kernelApi = Plugins.useKernelApiStore()
-    const proxyName = kernelApi.proxies[this.current.group].now
-    const proxy = this.proxies.find((v) => v.id === proxyName)
-    if (proxy) {
-      this.current = proxy
-    }
+    this.updateCurrent()
 
-    const currentScore = this.current.getScore()
-    if (best.id !== this.current.id && bestScore >= currentScore + this.options.hysteresisMargin) {
-      this.switchTo(best)
+    const currentScore = this.current?.getScore() ?? -Infinity
+    if (!this.current || (best.proxy.id !== this.current.id && best.score >= currentScore + this.options.hysteresisMargin)) {
+      this.switchTo(best.proxy)
     }
   }
 
   // 执行代理切换逻辑
   switchTo(proxy) {
-    console.log(`[${Plugin.name}]`, proxy)
     console.log(`[${Plugin.name}]`, `策略组【${proxy.group}】切换代理: ${this.current?.id || '无'} -> ${proxy.id}`)
     this.current = proxy
 
     const kernelApi = Plugins.useKernelApiStore()
 
     Plugins.handleUseProxy(kernelApi.proxies[proxy.group], kernelApi.proxies[proxy.id])
+  }
+
+  checkAllAndEvaluateSwitch() {
+    this.checkAll().then(() => this.evaluateSwitch())
+  }
+  // 更新当前代理
+  updateCurrent() {
+    const kernelApi = Plugins.useKernelApiStore()
+    const currentName = kernelApi.proxies[this.proxies[0].group]?.now
+    this.current = this.proxies.find((proxy) => proxy.id === currentName) || this.current
   }
 }
