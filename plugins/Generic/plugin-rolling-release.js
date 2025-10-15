@@ -222,6 +222,9 @@ const fetchChangeLog = async () => {
     isCurrent: v.sha.slice(0, 7) === currentVersion,
     html_url: v.html_url
   }))
+  if (history.length === 0) {
+    return `暂无滚动发行日志`
+  }
   let tip = ''
   if (!currentVersion) {
     tip = '\n\n注意：你当前使用的不是滚动发行版本，请执行本插件以获取上述更新特性。'
