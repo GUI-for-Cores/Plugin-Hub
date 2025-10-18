@@ -1,7 +1,7 @@
 /* Trigger on::manual */
 const onRun = async () => {
   await Plugins.ignoredError(Stop, false)
-  await Start({ feedback: true, ...Plugin })
+  await Start(Plugin)
   return 1
 }
 
@@ -37,6 +37,8 @@ const Start = async (params = Plugin) => {
   registerRulesets(router)
   registerPlugins(router)
   registerScheduledTasks(router)
+  registerCores(router)
+  registerGUI(router)
 
   registerDocument(router)
 
@@ -626,6 +628,125 @@ function registerScheduledTasks(router) {
       }
       const result = await store.runScheduledTask(id)
       res.json(200, result)
+    }
+  )
+}
+
+/**
+ * 核心管理
+ * @param {Router} router
+ */
+function registerCores(router) {
+  router.post(
+    '/v1/cores/mode',
+    {
+      description: {
+        zh: '切换核心工作模式'
+      }
+    },
+    async (req, res) => {
+      await Plugins.handleChangeMode(req.body.mode)
+      res.json(200, '已切换')
+    }
+  )
+
+  router.post(
+    '/v1/cores/start',
+    {
+      description: {
+        zh: '启动核心'
+      }
+    },
+    async (req, res) => {
+      const kernelApiStore = Plugins.useKernelApiStore()
+      await kernelApiStore.startCore()
+      res.json(200, '已启动')
+    }
+  )
+
+  router.post(
+    '/v1/cores/stop',
+    {
+      description: {
+        zh: '停止核心'
+      }
+    },
+    async (req, res) => {
+      const kernelApiStore = Plugins.useKernelApiStore()
+      await kernelApiStore.stopCore()
+      res.json(200, '已停止')
+    }
+  )
+
+  router.post(
+    '/v1/cores/restart',
+    {
+      description: {
+        zh: '重启核心'
+      }
+    },
+    async (req, res) => {
+      const kernelApiStore = Plugins.useKernelApiStore()
+      await kernelApiStore.restartCore()
+      res.json(200, '已重新启动')
+    }
+  )
+
+  router.post(
+    '/v1/cores/tun',
+    {
+      description: {
+        zh: '开启/关闭TUN'
+      }
+    },
+    async (req, res) => {
+      const mode = req.body.mode
+      const kernelApiStore = Plugins.useKernelApiStore()
+      await kernelApiStore.updateConfig('tun', { enable: mode === 'on' })
+      res.json(200, '已完成')
+    }
+  )
+}
+
+/**
+ * GUI管理
+ * @param {Router} router
+ */
+function registerGUI(router) {
+  router.post(
+    '/v1/gui/window',
+    {
+      description: {
+        zh: '切换GUI窗口状态'
+      }
+    },
+    async (req, res) => {
+      const mode = req.body.mode
+      if (mode === 'hide') {
+        await Plugins.WindowHide()
+      } else if (mode == 'show') {
+        await Plugins.WindowShow()
+      }
+      res.json(200, '已切换')
+    }
+  )
+
+  router.post(
+    '/v1/gui/systemproxy',
+    {
+      description: {
+        zh: '设置/清除系统代理'
+      }
+    },
+    async (req, res) => {
+      const mode = req.body.mode
+      const envStore = Plugins.useEnvStore()
+      if (mode === 'set') {
+        await envStore.setSystemProxy()
+      } else if (mode == 'clear') {
+        await envStore.clearSystemProxy()
+      }
+      res.json(200, '已完成')
     }
   )
 }

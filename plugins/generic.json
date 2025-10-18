@@ -2385,7 +2385,7 @@
   {
     "id": "plugin-gui-restful-api-v1",
     "name": "RESTful-Api v1",
-    "version": "v1.0.0",
+    "version": "v1.1.0",
     "description": "GUI RESTful-Api，可通过HTTP协议控制GUI。",
     "tags": ["功能扩展"],
     "type": "Http",
