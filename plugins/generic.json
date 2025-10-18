@@ -1675,6 +1675,71 @@
     "installed": false
   },
   {
+    "id": "plugin-hotkey-api-bridge",
+    "name": "全局热键",
+    "version": "v1.0.0",
+    "description": "请配合【RESTful-Api v1】插件使用。",
+    "tags": ["功能扩展", "提升体验"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-hotkey-api-bridge.js",
+    "path": "data/plugins/plugin-hotkey-api-bridge.js",
+    "triggers": ["on::manual", "on::startup", "on::shutdown"],
+    "hasUI": true,
+    "menus": {
+      "运行服务": "Start",
+      "停止服务": "Stop"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_qz3y1pmc",
+        "title": "全局热键后端监听地址",
+        "description": "",
+        "key": "HOTKEY_API_ADDRESS",
+        "component": "Input",
+        "value": "127.0.0.1:32325",
+        "options": []
+      },
+      {
+        "id": "ID_4ab8oosx",
+        "title": "全局热键后端认证 TOKEN",
+        "description": "",
+        "key": "HOTKEY_API_TOKEN",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_pdd63nvb",
+        "title": "RESTful-Api v1 插件的连接地址",
+        "description": "",
+        "key": "ApiAddress",
+        "component": "Input",
+        "value": "http://127.0.0.1:20234",
+        "options": []
+      },
+      {
+        "id": "ID_s8a4spoi",
+        "title": "RESTful-Api v1 插件的认证 TOKEN",
+        "description": "",
+        "key": "ApiSecret",
+        "component": "Input",
+        "value": "",
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": true,
+    "installed": false
+  },
+  {
     "id": "plugin-index-the-proxy-name",
     "name": "防代理重名",
     "version": "v1.0.0",
