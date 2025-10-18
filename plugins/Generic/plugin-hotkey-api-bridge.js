@@ -56,14 +56,21 @@ const Start = async () => {
   if (!Plugin.HOTKEY_API_ADDRESS || !Plugin.HOTKEY_API_TOKEN) {
     throw '请先配置全局热键后端服务'
   }
+
+  const { promise, resolve, reject } = Promise.withResolvers()
+
   const pid = await Plugins.ExecBackground(
     BIN_FILE,
     ['--address', Plugin.HOTKEY_API_ADDRESS],
     async (out) => {
       console.log(`[${Plugin.name}]`, out)
+      if (out.includes('Hotkey manager is ready. Add hotkeys via the API.')) {
+        resolve()
+      }
     },
     async () => {
       console.log(`[${Plugin.name}]`, '插件停止了')
+      reject()
     },
     {
       Env: {
@@ -71,6 +78,9 @@ const Start = async () => {
       }
     }
   )
+
+  await promise
+
   await Plugins.WriteFile(PID_FILE, String(pid))
   const localHotkeys = await loadLocalHotKeys()
 
@@ -511,7 +521,7 @@ const loadLocalHotKeys = async () => {
 
 // 获取所有已注册的热键
 const getHotkeys = async () => {
-  const res = await Plugins.HttpGet(`http://${Plugin.HOTKEY_API_ADDRESS}/hotkeys`, {
+  const res = await Plugins.HttpGet(`http://127.0.0.1:32325/hotkeys`, {
     Authorization: `Bearer ${Plugin.HOTKEY_API_TOKEN}`
   })
   console.log(`[${Plugin.name}]`, 'getHotkeys', res)
@@ -520,7 +530,7 @@ const getHotkeys = async () => {
 
 // 移除所有热键
 const removeHotkeys = async () => {
-  const res = await Plugins.HttpDelete(`http://${Plugin.HOTKEY_API_ADDRESS}/hotkeys`, {
+  const res = await Plugins.HttpDelete('http://127.0.0.1:32325/hotkeys', {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${Plugin.HOTKEY_API_TOKEN}`
   })
@@ -534,7 +544,7 @@ const removeHotkeys = async () => {
 // 批量添加热键
 const addHotkeys = async (body) => {
   const res = await Plugins.HttpPost(
-    `http://${Plugin.HOTKEY_API_ADDRESS}/hotkeys`,
+    'http://127.0.0.1:32325/hotkeys',
     {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${Plugin.HOTKEY_API_TOKEN}`
