@@ -511,7 +511,7 @@ const loadLocalHotKeys = async () => {
 
 // 获取所有已注册的热键
 const getHotkeys = async () => {
-  const res = await Plugins.HttpGet(`http://127.0.0.1:32325/hotkeys`, {
+  const res = await Plugins.HttpGet(`http://${Plugin.HOTKEY_API_ADDRESS}/hotkeys`, {
     Authorization: `Bearer ${Plugin.HOTKEY_API_TOKEN}`
   })
   console.log(`[${Plugin.name}]`, 'getHotkeys', res)
@@ -520,7 +520,7 @@ const getHotkeys = async () => {
 
 // 移除所有热键
 const removeHotkeys = async () => {
-  const res = await Plugins.HttpDelete('http://127.0.0.1:32325/hotkeys', {
+  const res = await Plugins.HttpDelete(`http://${Plugin.HOTKEY_API_ADDRESS}/hotkeys`, {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${Plugin.HOTKEY_API_TOKEN}`
   })
@@ -534,7 +534,7 @@ const removeHotkeys = async () => {
 // 批量添加热键
 const addHotkeys = async (body) => {
   const res = await Plugins.HttpPost(
-    'http://127.0.0.1:32325/hotkeys',
+    `http://${Plugin.HOTKEY_API_ADDRESS}/hotkeys`,
     {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${Plugin.HOTKEY_API_TOKEN}`

@@ -1677,7 +1677,7 @@
   {
     "id": "plugin-hotkey-api-bridge",
     "name": "全局热键",
-    "version": "v1.0.0",
+    "version": "v1.0.1",
     "description": "请配合【RESTful-Api v1】插件使用。",
     "tags": ["功能扩展", "提升体验"],
     "type": "Http",
