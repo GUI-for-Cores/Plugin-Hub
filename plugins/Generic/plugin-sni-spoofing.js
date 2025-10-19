@@ -64,6 +64,14 @@ const onRun = async () => {
     throw '请配置浏览器路径'
   }
 
+  await Plugins.alert(
+    '⚠️ 重要通知',
+    '由于 **Chromium** 在 **141.0.7356.0** 中的一个变更导致浏览器伪造失效，如果你遇到伪造失败的问题，请尝试安装 **旧版本** 的浏览器。',
+    {
+      markdown: true
+    }
+  )
+
   try {
     if (!(await isRunningNginx()) && GLOBAL_SPOOFING) {
       await startNginx()
