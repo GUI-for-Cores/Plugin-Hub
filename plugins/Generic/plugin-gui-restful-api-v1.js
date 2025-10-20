@@ -532,6 +532,21 @@ function registerPlugins(router) {
       res.json(204, 'No Content')
     }
   )
+
+  router.post(
+    '/v1/plugins/:id/run',
+    {
+      description: {
+        zh: '执行一个插件'
+      }
+    },
+    async (req, res, { id }) => {
+      const method = req.body.method || 'onRun'
+      const args = req.body.args || []
+      const result = await store.manualTrigger(id, method, ...args)
+      res.json(200, result ?? '插件执行完毕，无返回值')
+    }
+  )
 }
 
 /**
