@@ -461,6 +461,8 @@ function ClashMeta_Producer() {
           (!['tcp'].includes(proxy.network) || (['tcp'].includes(proxy.network) && proxy['reality-opts']))
         ) {
           return false
+        } else if (['xhttp'].includes(proxy.network)) {
+          return false
         }
         return true
       })
