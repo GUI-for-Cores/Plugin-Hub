@@ -741,6 +741,11 @@ function registerGUI(router) {
         await Plugins.WindowHide()
       } else if (mode == 'show') {
         await Plugins.WindowShow()
+        // 临时设置总在顶部显示
+        Plugins.WindowSetAlwaysOnTop(true).then(async () => {
+          await Plugins.sleep(100)
+          await Plugins.WindowSetAlwaysOnTop(false)
+        })
       }
       res.json(200, '已切换')
     }

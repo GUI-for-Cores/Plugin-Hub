@@ -196,6 +196,9 @@ interface Plugins {
   RestartApp(): Promise<void>
   BrowserOpenURL(url: string): void
   WindowReloadApp(): Promise<void>
+  WindowHide(): Promise<void>
+  WindowShow(): Promise<void>
+  WindowSetAlwaysOnTop(v: boolean): Promise<void>
 
   ClipboardSetText(text: string): Promise<void>
   ClipboardGetText(): Promise<string>
