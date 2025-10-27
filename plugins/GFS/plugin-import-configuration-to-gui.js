@@ -393,7 +393,8 @@ class ConfigParser {
             ...DefaultInboundHeader(),
             tun: {
               ...DefaultInboundTun(),
-              ...filterObjectKeys(ib, Object.keys(DefaultInboundTun()), FilterMode.Include)
+              ...filterObjectKeys(ib, Object.keys(DefaultInboundTun()), FilterMode.Include),
+              address: typeof ib.address === 'string' ? [ib.address] : ib.address
             }
           }
         }
