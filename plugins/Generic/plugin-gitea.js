@@ -6,8 +6,8 @@
 
 // 统一路径钩子
 function useGiteaPaths() {
-  const GITEA_VERSION = "1.24.0"
-  const GITEA_PATH = "data/third/gitea"
+  const GITEA_VERSION = '1.24.0'
+  const GITEA_PATH = 'data/third/gitea'
   const PID_FILE = `${GITEA_PATH}/gitea.pid`
   const CONFIG_FILE = `${GITEA_PATH}/custom/conf/app.ini`
   const { env } = Plugins.useEnvStore()
@@ -62,7 +62,7 @@ const onInstall = async () => {
   if (!(await Plugins.FileExists(BIN_FILE))) {
     throw `Gitea 文件未能成功安装在 ${BIN_FILE}`
   }
-  Plugins.message.success("Gitea 安装成功！")
+  Plugins.message.success('Gitea 安装成功！')
   return 0
 }
 
@@ -71,9 +71,9 @@ const onInstall = async () => {
  */
 const onUninstall = async () => {
   if (await isGiteaRunning()) {
-    throw "请先停止 Gitea 服务！"
+    throw '请先停止 Gitea 服务！'
   }
-  await Plugins.confirm("确定要删除 Gitea 吗？", "配置文件将不会保留")
+  await Plugins.confirm('确定要删除 Gitea 吗？', '配置文件将不会保留')
   await uninstallGitea()
   return 0
 }
@@ -115,10 +115,10 @@ const onRun = async () => {
  */
 const Start = async () => {
   if (await isGiteaRunning()) {
-    throw "当前服务已经在运行了"
+    throw '当前服务已经在运行了'
   }
   await startGiteaService()
-  Plugins.message.success("✨ Gitea 启动成功!")
+  Plugins.message.success('✨ Gitea 启动成功!')
   return 1
 }
 
@@ -127,10 +127,10 @@ const Start = async () => {
  */
 const Stop = async () => {
   if (!(await isGiteaRunning())) {
-    throw "当前服务并未在运行"
+    throw '当前服务并未在运行'
   }
   await stopGiteaService()
-  Plugins.message.success("停止 Gitea 成功")
+  Plugins.message.success('停止 Gitea 成功')
   return 2
 }
 
@@ -150,7 +150,7 @@ const readGiteaConfigPort = async () => {
   if (!(await Plugins.FileExists(CONFIG_FILE))) {
     return 3000
   }
-  const configContent = await Plugins.Readfile(CONFIG_FILE)
+  const configContent = await Plugins.ReadFile(CONFIG_FILE)
   const portMatch = configContent.match(/^HTTP_PORT\s*=\s*(\d+)/m)
   if (portMatch && portMatch[1]) {
     return portMatch[1]
@@ -170,22 +170,22 @@ const isGiteaRunning = async () => {
   try {
     const port = await readGiteaConfigPort()
     if (!port) {
-      throw new Error("无法从 gitea.ini 中读取端口")
+      throw new Error('无法从 gitea.ini 中读取端口')
     }
     const response = await Plugins.HttpGet(`http://127.0.0.1:${port}`)
     if (response.status === 200) {
       return true
     }
-    const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
-    if (pid && pid !== "0") {
+    const pid = await Plugins.ignoredError(Plugins.ReadFile, PID_FILE)
+    if (pid && pid !== '0') {
       const name = await Plugins.ignoredError(Plugins.ProcessInfo, Number(pid))
-      if ([fileName, "gitea", "gitea.exe"].includes(name)) {
+      if ([fileName, 'gitea', 'gitea.exe'].includes(name)) {
         return true
       }
     }
     return false
   } catch (e) {
-    console.error("检测 Gitea 是否运行失败:", e)
+    console.error('检测 Gitea 是否运行失败:', e)
     return false
   }
 }
@@ -195,18 +195,18 @@ const isGiteaRunning = async () => {
  */
 const stopGiteaService = async () => {
   const { PID_FILE, fileName } = useGiteaPaths()
-  const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
-  if (pid && pid !== "0") {
+  const pid = await Plugins.ignoredError(Plugins.ReadFile, PID_FILE)
+  if (pid && pid !== '0') {
     const name = await Plugins.ignoredError(Plugins.ProcessInfo, Number(pid))
-    if (name && [fileName, "gitea", "gitea.exe"].includes(name)) {
+    if (name && [fileName, 'gitea', 'gitea.exe'].includes(name)) {
       await Plugins.KillProcess(Number(pid))
-      await Plugins.Writefile(PID_FILE, "0")
-      Plugins.message.success("Gitea 服务已成功停止！")
+      await Plugins.WriteFile(PID_FILE, '0')
+      Plugins.message.success('Gitea 服务已成功停止！')
     } else {
-      throw "找不到运行中的 Gitea 进程"
+      throw '找不到运行中的 Gitea 进程'
     }
   } else {
-    throw "当前没有运行的 Gitea 服务"
+    throw '当前没有运行的 Gitea 服务'
   }
 }
 
@@ -216,23 +216,24 @@ const stopGiteaService = async () => {
 const startGiteaService = () => {
   const { BIN_FILE, CONFIG_FILE, PID_FILE } = useGiteaPaths()
   return new Promise(async (resolve, reject) => {
-    let runArgs = ["web"]
+    let runArgs = ['web']
     const absConfigPath = await Plugins.AbsolutePath(CONFIG_FILE)
     if (await Plugins.FileExists(BIN_FILE)) {
-      runArgs = ["web", "--config", absConfigPath]
+      runArgs = ['web', '--config', absConfigPath]
     }
     try {
       const pid = await Plugins.ExecBackground(
-        BIN_FILE, runArgs,
+        BIN_FILE,
+        runArgs,
         async (out) => {
-          if (out.includes("Starting new Web server")) {
-            await Plugins.Writefile(PID_FILE, String(pid))
+          if (out.includes('Starting new Web server')) {
+            await Plugins.WriteFile(PID_FILE, String(pid))
             resolve()
           }
         },
         (error) => {
-          console.error("启动 Gitea 失败:", error)
-          Plugins.Writefile(PID_FILE, "0")
+          console.error('启动 Gitea 失败:', error)
+          Plugins.WriteFile(PID_FILE, '0')
           reject(error)
         }
       )
@@ -247,37 +248,29 @@ const startGiteaService = () => {
  */
 const installGitea = async () => {
   const { BIN_FILE, TMP_FILE, GITEA_PATH, env, url } = useGiteaPaths()
-  const { id } = Plugins.message.info("下载 Gitea 安装包...", 999999999)
+  const { id } = Plugins.message.info('下载 Gitea 安装包...', 999999999)
   try {
-    await Plugins.Makedir(GITEA_PATH)
-    await Plugins.Download(
-      url,
-      TMP_FILE,
-      {},
-      (progress, total) => {
-        Plugins.message.update(
-          id,
-          `下载 Gitea 安装包：${((progress / total) * 100).toFixed(2)}%`
-        )
-      }
-    )
+    await Plugins.MakeDir(GITEA_PATH)
+    await Plugins.Download(url, TMP_FILE, {}, (progress, total) => {
+      Plugins.message.update(id, `下载 Gitea 安装包：${((progress / total) * 100).toFixed(2)}%`)
+    })
     if (!(await Plugins.FileExists(TMP_FILE))) {
-      throw "Gitea 安装包下载失败！"
+      throw 'Gitea 安装包下载失败！'
     }
-    await Plugins.Movefile(TMP_FILE, BIN_FILE)
+    await Plugins.MoveFile(TMP_FILE, BIN_FILE)
     if (!(await Plugins.FileExists(BIN_FILE))) {
       throw `无法移动文件到目标路径: ${BIN_FILE}`
     }
-    await Plugins.Removefile(TMP_FILE)
+    await Plugins.RemoveFile(TMP_FILE)
     if (env.os !== 'windows') {
       const absPath = await Plugins.AbsolutePath(BIN_FILE)
       await Plugins.Exec('chmod', ['+x', absPath])
     }
-    Plugins.message.update(id, "Gitea 安装包下载完成", "success")
-    Plugins.message.info("Gitea 安装成功！")
+    Plugins.message.update(id, 'Gitea 安装包下载完成', 'success')
+    Plugins.message.info('Gitea 安装成功！')
   } catch (error) {
     Plugins.message.error(`Gitea 安装失败: ${error.message || error}`)
-    console.error("Gitea 安装失败:", error)
+    console.error('Gitea 安装失败:', error)
     throw error
   } finally {
     await Plugins.sleep(1000)
@@ -291,5 +284,5 @@ const installGitea = async () => {
 const uninstallGitea = async () => {
   const { GITEA_PATH } = useGiteaPaths()
   const absPath = await Plugins.AbsolutePath(GITEA_PATH)
-  await Plugins.Removefile(absPath)
+  await Plugins.RemoveFile(absPath)
 }

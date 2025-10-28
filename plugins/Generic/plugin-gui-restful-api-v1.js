@@ -310,7 +310,7 @@ function registerSubscriptions(router) {
       if (!subscription) {
         return res.json(404, '订阅不存在')
       }
-      let proxies = await Plugins.Readfile(subscription.path)
+      let proxies = await Plugins.ReadFile(subscription.path)
       if (Plugins.APP_TITLE.includes('Clash')) {
         proxies = Plugins.YAML.parse(proxies).proxies
       } else {

@@ -312,15 +312,19 @@ ${configScript}
           }
         }
 
-        const modal = Plugins.modal({
-          title: '配置脚本预览',
-          submit: false,
-          cancelText: '关闭',
-          component: h(previewComponent),
-          afterClose: () => {
-            modal.destroy()
+        const modal = Plugins.modal(
+          {
+            title: '配置脚本预览',
+            submit: false,
+            cancelText: '关闭',
+            afterClose: () => {
+              modal.destroy()
+            }
+          },
+          {
+            default: () => h(previewComponent)
           }
-        })
+        )
         return modal
       }
 
@@ -342,16 +346,20 @@ ${configScript}
     }
   }
 
-  const modal = Plugins.modal({
-    title: '链式代理列表',
-    submit: false,
-    width: '90',
-    cancelText: '关闭',
-    component: h(component),
-    afterClose: () => {
-      modal.destroy()
+  const modal = Plugins.modal(
+    {
+      title: '链式代理列表',
+      submit: false,
+      width: '90',
+      cancelText: '关闭',
+      afterClose: () => {
+        modal.destroy()
+      }
+    },
+    {
+      default: () => h(component)
     }
-  })
+  )
 
   return modal
 }

@@ -100,8 +100,8 @@ const Rolling = async (confirm = true) => {
       update('正在更新...' + ((progress / total) * 100).toFixed(2) + '%')
     })
     await Plugins.UnzipZIPFile(ZipFile, 'data')
-    await Plugins.Removefile(ZipFile)
-    await Plugins.Writefile(`${RollingReleasePath}/updated_at.txt`, Plugins.formatDate(rollingReleaseAsset.updated_at, 'YYYY.MM.DD'))
+    await Plugins.RemoveFile(ZipFile)
+    await Plugins.WriteFile(`${RollingReleasePath}/updated_at.txt`, Plugins.formatDate(rollingReleaseAsset.updated_at, 'YYYY.MM.DD'))
     destroy2()
     const ok = await Plugins.confirm(Plugin.name, '更新成功，是否立即重载界面？').catch(() => 0)
     ok && Plugins.WindowReloadApp()
@@ -128,7 +128,7 @@ const Recovery = async () => {
       type: 'markdown'
     }
   )
-  await Plugins.Removefile(RollingReleasePath)
+  await Plugins.RemoveFile(RollingReleasePath)
   await Plugins.confirm(Plugin.name, '回滚成功，即将重载界面！').catch(() => true)
   await Plugins.WindowReloadApp()
 }

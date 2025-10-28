@@ -26,7 +26,7 @@ const onUninstall = async () => {
     throw '请先停止Sub-Store服务！'
   }
   await Plugins.confirm('确定要删除Sub-Store吗？', '配置文件将不会保留！')
-  await Plugins.Removefile(PATH)
+  await Plugins.RemoveFile(PATH)
   return 0
 }
 
@@ -98,8 +98,8 @@ const Update = async () => {
   const isRunning = await isSubStoreRunning()
   isRunning && (await stopSubStoreService())
 
-  await Plugins.Removefile(PATH + '/frontend')
-  await Plugins.Removefile(PATH + '/sub-store.bundle.js')
+  await Plugins.RemoveFile(PATH + '/frontend')
+  await Plugins.RemoveFile(PATH + '/sub-store.bundle.js')
 
   await installSubStore()
 
@@ -126,12 +126,12 @@ const startSubStoreService = () => {
             backendFlag = true
           }
           if (out.includes('[sub-store] INFO: [FRONTEND]') && backendFlag) {
-            Plugins.Writefile(PID_FILE, pid.toString())
+            Plugins.WriteFile(PID_FILE, pid.toString())
             timeout = false
             resolve()
           }
         },
-        () => Plugins.Writefile(PID_FILE, '0'),
+        () => Plugins.WriteFile(PID_FILE, '0'),
         {
           env: {
             SUB_STORE_BACKEND_API_HOST: Plugin.SUB_STORE_BACKEND_API_HOST,
@@ -161,10 +161,10 @@ const startSubStoreService = () => {
  */
 const stopSubStoreService = async () => {
   removeFromCoreStatePanel()
-  const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
+  const pid = await Plugins.ignoredError(Plugins.ReadFile, PID_FILE)
   if (pid && pid !== '0') {
     await Plugins.KillProcess(Number(pid))
-    await Plugins.Writefile(PID_FILE, '0')
+    await Plugins.WriteFile(PID_FILE, '0')
   }
 }
 
@@ -173,7 +173,7 @@ const stopSubStoreService = async () => {
  */
 const isSubStoreRunning = async () => {
   const { env } = Plugins.useEnvStore()
-  const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
+  const pid = await Plugins.ignoredError(Plugins.ReadFile, PID_FILE)
   if (pid && pid !== '0') {
     if (env.os !== 'linux') {
       const name = await Plugins.ignoredError(Plugins.ProcessInfo, Number(pid))
@@ -203,10 +203,10 @@ const installSubStore = async () => {
     Plugins.message.update(id, '前端资源下载完成，正在解压...')
     await Plugins.sleep(1000)
     await Plugins.UnzipZIPFile(tmpZip, tmpDir)
-    await Plugins.Makedir(PATH)
-    await Plugins.Movefile(tmpDir + '/dist', FRONTEND_PATH)
-    await Plugins.Removefile(tmpDir)
-    await Plugins.Removefile(tmpZip)
+    await Plugins.MakeDir(PATH)
+    await Plugins.MoveFile(tmpDir + '/dist', FRONTEND_PATH)
+    await Plugins.RemoveFile(tmpDir)
+    await Plugins.RemoveFile(tmpZip)
     Plugins.message.update(id, '安装前端完成, 正在安装后端...')
     await Plugins.sleep(1000)
     await Plugins.Download(BackendUrl, BACKEND_FILE)

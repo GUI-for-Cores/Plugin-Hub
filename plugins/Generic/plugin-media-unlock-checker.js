@@ -1,5 +1,5 @@
 /**
- * 本插件参考代码：https://github.com/clash-verge-rev/clash-verge-rev/blob/dev/src-tauri/src/cmd/media_unlock_checker.rs
+ * 本插件参考代码：https://github.com/clash-verge-rev/clash-verge-rev/tree/dev/src-tauri/src/cmd/media_unlock_checker
  */
 
 /* 触发器 手动触发 */
@@ -283,8 +283,7 @@ const Checker = {
       const url1 = 'https://www.netflix.com/title/81280792'
       const url2 = 'https://www.netflix.com/title/70143836'
       try {
-        const { status: status1 } = await Plugins.HttpGet(url1)
-        const { status: status2 } = await Plugins.HttpGet(url2)
+        const [{ status: status1 }, { status: status2 }] = await Promise.all([Plugins.HttpGet(url1), Plugins.HttpGet(url2)])
 
         if (status1 === 404 && status2 === 404) {
           return new CheckResult(this.name, 'Originals Only', null)

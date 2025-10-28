@@ -103,7 +103,7 @@ const generatePrivateKey = async (openSslExecPath) => {
   const args2 = ['pkey', '-in', privateKeyAbsPath, '-text', '-noout']
   await Plugins.Exec(openSslExecPath, args1)
   const output = await Plugins.Exec(openSslExecPath, args2)
-  await Plugins.Removefile(PRIVATE_KEY_PATH)
+  await Plugins.RemoveFile(PRIVATE_KEY_PATH)
   return parseOpenSslOutput(output)
 }
 

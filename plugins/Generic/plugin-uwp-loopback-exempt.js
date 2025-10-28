@@ -11,7 +11,7 @@ const getUWPList = async () => {
   const sids = res
     .split('\n')
     .filter((v) => v.startsWith('HKEY_CURRENT_USER'))
-    .map((v) => v.trim('\r'))
+    .map((v) => v.trim())
 
   const list = []
 

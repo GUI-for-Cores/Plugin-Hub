@@ -81,7 +81,7 @@ const SignIn = async () => {
 
   const TOKEN_CONFIG = 'data/third/aliyunpan-signin/config.json'
 
-  const tokenConfig = (await Plugins.ignoredError(Plugins.Readfile, TOKEN_CONFIG)) || '{}'
+  const tokenConfig = (await Plugins.ignoredError(Plugins.ReadFile, TOKEN_CONFIG)) || '{}'
   const TokenMap = JSON.parse(tokenConfig)
 
   async function refreshAccessToken(token, refreshToken) {
@@ -117,7 +117,7 @@ const SignIn = async () => {
     }
   }
 
-  await Plugins.Writefile(TOKEN_CONFIG, JSON.stringify(TokenMap, null, 2))
+  await Plugins.WriteFile(TOKEN_CONFIG, JSON.stringify(TokenMap, null, 2))
 
   return res
 }

@@ -23,26 +23,20 @@ const onRun = async () => {
     const pingDuration = pingend - pingstart
 
     if (pingDuration > 10000) {
-      Exists = false
-
       pingduration = 'Error'
       Plugins.message.update(id, '延迟测试失败')
     } else {
       pingduration = pingDuration.toFixed(2) + ' ms  ' // 保留两位小数
 
-      Exists = true
       Plugins.message.update(id, '延迟测试成功')
     }
   } catch (error) {
-    Exists = false
-
     pingduration = 'Error'
-    Plugins.message.destroy(arch)
     Plugins.message.update(id, '延迟测试失败')
   }
 
   await Plugins.sleep(1_000)
-  Plugins.message.update(id, '下行速度测试中，请稍后...', 20000_000)
+  Plugins.message.update(id, '下行速度测试中，请稍后...')
 
   let end
   let speed
@@ -50,22 +44,23 @@ const onRun = async () => {
 
   const start = Date.now()
 
+  let fileExists
   try {
     await Plugins.Download(url, path)
     end = Date.now()
 
-    FileExists = true
+    fileExists = true
   } catch (error) {
-    FileExists = false
+    fileExists = false
 
     speed = 'Error'
     duration = 'Error'
 
-    Plugins.message.update(id, '下行速度测试失败', 1_000)
+    Plugins.message.update(id, '下行速度测试失败')
   }
 
-  if (FileExists) {
-    Plugins.message.update(id, '下行速度测试完成', 1_000)
+  if (fileExists) {
+    Plugins.message.update(id, '下行速度测试完成')
 
     const Duration = (end - start) / 1000
     const Speed = mb / Duration
@@ -73,7 +68,7 @@ const onRun = async () => {
     duration = Duration.toFixed(2) + ' s  ' // 保留两位小数
     speed = Speed.toFixed(2) + ' MB/s  ' // 保留两位小数
 
-    Plugins.Removefile(path)
+    Plugins.RemoveFile(path)
   }
 
   await Plugins.sleep(1_000)

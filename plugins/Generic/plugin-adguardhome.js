@@ -10,7 +10,7 @@ const BACKUP_FILE = 'data/third/AdGuardHome.yaml.bak'
  * 检测AdGuardHome是否在运行
  */
 const isAdGuardHomeRunning = async () => {
-  const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
+  const pid = await Plugins.ignoredError(Plugins.ReadFile, PID_FILE)
   const envStore = Plugins.useEnvStore()
   const { os } = envStore.env
   if (pid && pid !== '0') {
@@ -24,10 +24,10 @@ const isAdGuardHomeRunning = async () => {
  * 停止AdGuardHome服务
  */
 const stopAdGuardHomeService = async () => {
-  const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
+  const pid = await Plugins.ignoredError(Plugins.ReadFile, PID_FILE)
   if (pid && pid !== '0') {
     await Plugins.KillProcess(Number(pid))
-    await Plugins.Writefile(PID_FILE, '0')
+    await Plugins.WriteFile(PID_FILE, '0')
   }
 }
 
@@ -43,15 +43,15 @@ const startAdguardHomeService = async () => {
     const dnsPort = Number(Plugin.dnsPort) || 20053
     const adgConfigFilePath = `${ADGUARDHOME_PATH}/AdGuardHome.yaml`
     if (await Plugins.FileExists(adgConfigFilePath)) {
-      const adgConfigFile = await Plugins.Readfile(adgConfigFilePath)
+      const adgConfigFile = await Plugins.ReadFile(adgConfigFilePath)
       const adgConfig = Plugins.YAML.parse(adgConfigFile)
       if (adgConfig.dns.port !== dnsPort) {
         adgConfig.dns.port = dnsPort
-        await Plugins.Writefile(adgConfigFilePath, Plugins.YAML.stringify(adgConfig))
+        await Plugins.WriteFile(adgConfigFilePath, Plugins.YAML.stringify(adgConfig))
       }
     } else {
       const initConfig = { dns: { port: dnsPort } }
-      await Plugins.Writefile(adgConfigFilePath, Plugins.YAML.stringify(initConfig))
+      await Plugins.WriteFile(adgConfigFilePath, Plugins.YAML.stringify(initConfig))
     }
 
     try {
@@ -77,13 +77,13 @@ const startAdguardHomeService = async () => {
           } else if (out.includes('entering listener loop')) {
             if (!isOK && !isFatalError) {
               isOK = true
-              await Plugins.Writefile(PID_FILE, pid.toString())
+              await Plugins.WriteFile(PID_FILE, pid.toString())
               resolve()
             }
           }
         },
         async () => {
-          await Plugins.Writefile(PID_FILE, '0')
+          await Plugins.WriteFile(PID_FILE, '0')
           if (!isOK && !isFatalError) {
             Plugins.message.error('AdGuardHome 进程意外退出')
             reject(new Error('AdGuardHome process exited unexpectedly'))
@@ -125,13 +125,13 @@ const installAdGuardHome = async (isUpdate = false) => {
       } else {
         await Plugins.UnzipTarGZFile(tmpZip, tmpDir)
       }
-      await Plugins.Movefile(
+      await Plugins.MoveFile(
         `${tmpDir}/AdGuardHome/AdGuardHome${os === 'windows' ? '.exe' : ''}`,
         `${destDir}/AdGuardHome/AdGuardHome${os === 'windows' ? '.exe' : ''}`
       )
-      await Plugins.Removefile(`${tmpDir}/AdGuardHome`)
+      await Plugins.RemoveFile(`${tmpDir}/AdGuardHome`)
     }
-    await Plugins.Removefile(tmpZip)
+    await Plugins.RemoveFile(tmpZip)
     Plugins.message.update(id, isUpdate ? '更新 AdGuardHome 成功' : '安装 AdGuardHome 完成', 'success')
   } finally {
     await Plugins.sleep(1000)
@@ -141,7 +141,7 @@ const installAdGuardHome = async (isUpdate = false) => {
 
 /* 卸载AdGuardHome */
 const uninstallAdGuardHome = async () => {
-  await Plugins.Removefile(ADGUARDHOME_PATH)
+  await Plugins.RemoveFile(ADGUARDHOME_PATH)
 }
 
 /**
@@ -276,8 +276,8 @@ const Backup = async () => {
   if (!(await Plugins.FileExists(ADGUARDHOME_PATH + '/AdGuardHome.yaml'))) {
     throw '没有可备份的配置文件'
   }
-  const config_content = await Plugins.Readfile(ADGUARDHOME_PATH + '/AdGuardHome.yaml')
-  await Plugins.Writefile(BACKUP_FILE, config_content)
+  const config_content = await Plugins.ReadFile(ADGUARDHOME_PATH + '/AdGuardHome.yaml')
+  await Plugins.WriteFile(BACKUP_FILE, config_content)
   Plugins.message.success('配置文件备份成功')
 }
 
@@ -291,7 +291,7 @@ const Restore = async () => {
   if (await isAdGuardHomeRunning()) {
     throw '请先停止运行AdGuardHome'
   }
-  const config_content = await Plugins.Readfile(BACKUP_FILE)
-  await Plugins.Writefile(ADGUARDHOME_PATH + '/AdGuardHome.yaml', config_content)
+  const config_content = await Plugins.ReadFile(BACKUP_FILE)
+  await Plugins.WriteFile(ADGUARDHOME_PATH + '/AdGuardHome.yaml', config_content)
   Plugins.message.success('配置文件恢复成功')
 }

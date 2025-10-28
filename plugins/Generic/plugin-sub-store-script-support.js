@@ -11,7 +11,7 @@ const onRun = async () => {
 
 /* Trigger Install */
 const onInstall = async () => {
-  await Plugins.Makedir(PATH)
+  await Plugins.MakeDir(PATH)
   const { body } = await Plugins.HttpGet('https://api.github.com/repos/MetaCubeX/mihomo/releases/latest', {
     Authorization: Plugins.getGitHubApiAuthorization?.() || ''
   })
@@ -41,8 +41,8 @@ const onInstall = async () => {
   } else {
     await Plugins.UnzipGZFile(tmp, PATH)
   }
-  await Plugins.Movefile(PATH + '/' + binName, PATH + '/meta.exe')
-  await Plugins.Removefile(tmp)
+  await Plugins.MoveFile(PATH + '/' + binName, PATH + '/meta.exe')
+  await Plugins.RemoveFile(tmp)
   if (['darwin', 'linux'].includes(os)) {
     await Plugins.ignoredError(Plugins.Exec, 'chmod', ['+x', await Plugins.AbsolutePath(PATH + '/meta.exe')])
   }
@@ -54,7 +54,7 @@ const onUninstall = async () => {
   if (await isRunning()) {
     throw '请先停止该服务'
   }
-  await Plugins.Removefile(PATH)
+  await Plugins.RemoveFile(PATH)
   return 0
 }
 
@@ -137,7 +137,7 @@ const startService = async () => {
         })
       }
 
-      await Plugins.Writefile(PATH + '/config.yaml', Plugins.YAML.stringify(config))
+      await Plugins.WriteFile(PATH + '/config.yaml', Plugins.YAML.stringify(config))
 
       meta_pid = await Plugins.ExecBackground(
         PATH + '/meta.exe',

@@ -22,13 +22,13 @@ const InstallFont = async () => {
 
   const { id: id2 } = Plugins.message.info('正在安装字体', 5 * 60 * 1000)
   try {
-    await Plugins.Writefile(
+    await Plugins.WriteFile(
       batFile,
       `set "zt=${tmpFile}"\nmshta "javascript:new ActiveXObject('Shell.Application').NameSpace(20).CopyHere('%zt:\\=\\\\%',0x0010);close()"`
     )
     await Plugins.Exec(batFile)
-    await Plugins.Removefile(batFile)
-    await Plugins.Removefile(tmpFile)
+    await Plugins.RemoveFile(batFile)
+    await Plugins.RemoveFile(tmpFile)
     Plugins.message.update(id2, '安装字体成功，请重启APP', 'success')
   } catch (err) {
     console.log(err)

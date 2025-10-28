@@ -116,6 +116,7 @@ interface Plugins {
   WriteFile(path: string, content: string, options?: { Mode?: 'Binary' | 'Text' }): Promise<void>
   UnzipGZFile(gzPath: string, destPath: string): Promise<void>
   UnzipZIPFile(zipPath: string, destPath: string): Promise<void>
+  UnzipTarGZFile(targzPath: string, destPath: string): Promise<void>
 
   ListServer(): Promise<string[]>
   StopServer(id: string): Promise<void>
@@ -235,6 +236,7 @@ interface Plugins {
   debounce(fn: (...args: any[]) => void, delay: number): (...args: any[]) => void
   getKernelFileName(isAlpha: boolean): Promise<string>
   getUserAgent(): Promise<string>
+  GetSystemProxy(): Promise<string>
   getGitHubApiAuthorization?(): string
   sleep(ms: number): Promise<void>
   ignoredError<T extends (...args: any[]) => any>(fn: T, ...args: Parameters<T>): Promise<ReturnType<T> | undefined>

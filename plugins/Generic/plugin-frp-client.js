@@ -11,7 +11,7 @@ const PID_FILE = FRP_PATH + '/frpc.pid'
  * 检测FRP是否在运行
  */
 const isFRPRunning = async () => {
-  const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
+  const pid = await Plugins.ignoredError(Plugins.ReadFile, PID_FILE)
   if (pid && pid !== '0') {
     const name = await Plugins.ignoredError(Plugins.ProcessInfo, Number(pid))
     return name === PROCESS_NAME
@@ -23,10 +23,10 @@ const isFRPRunning = async () => {
  * 停止FRP服务
  */
 const stopFRPService = async () => {
-  const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
+  const pid = await Plugins.ignoredError(Plugins.ReadFile, PID_FILE)
   if (pid && pid !== '0') {
     await Plugins.KillProcess(Number(pid))
-    await Plugins.Writefile(PID_FILE, '0')
+    await Plugins.WriteFile(PID_FILE, '0')
   }
 }
 
@@ -35,7 +35,7 @@ const stopFRPService = async () => {
  */
 const startFRPService = async () => {
   const config = await Plugins.AbsolutePath(FRP_PATH + '/frpc.toml')
-  await Plugins.Writefile(config, Plugin.Config)
+  await Plugins.WriteFile(config, Plugin.Config)
   return new Promise(async (resolve, reject) => {
     try {
       const pid = await Plugins.ExecBackground(
@@ -43,14 +43,14 @@ const startFRPService = async () => {
         ['-c', config],
         async (out) => {
           if (out.includes('login to server success')) {
-            await Plugins.Writefile(PID_FILE, pid.toString())
+            await Plugins.WriteFile(PID_FILE, pid.toString())
             resolve()
           } else if (out.includes('login to the server failed')) {
             reject(out)
           }
         },
         async () => {
-          await Plugins.Writefile(PID_FILE, '0')
+          await Plugins.WriteFile(PID_FILE, '0')
         }
       )
     } catch (error) {
@@ -73,10 +73,10 @@ const installFRP = async () => {
       Plugins.message.update(id, '下载FRP压缩包...' + ((progress / total) * 100).toFixed(2) + '%')
     })
     await Plugins.UnzipZIPFile(tmpZip, 'data/.cache')
-    await Plugins.Makedir(FRP_PATH)
-    await Plugins.Movefile(tmpDir + '/frpc.exe', FRP_FILE)
-    await Plugins.Removefile(tmpZip)
-    await Plugins.Removefile(tmpDir)
+    await Plugins.MakeDir(FRP_PATH)
+    await Plugins.MoveFile(tmpDir + '/frpc.exe', FRP_FILE)
+    await Plugins.RemoveFile(tmpZip)
+    await Plugins.RemoveFile(tmpDir)
     Plugins.message.update(id, '安装FRP完成', 'success')
   } finally {
     await Plugins.sleep(1000)
@@ -86,7 +86,7 @@ const installFRP = async () => {
 
 /* 卸载FRP */
 const uninstallFRP = async () => {
-  await Plugins.Removefile(FRP_PATH)
+  await Plugins.RemoveFile(FRP_PATH)
 }
 
 /**

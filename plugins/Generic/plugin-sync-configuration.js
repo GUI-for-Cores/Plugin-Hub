@@ -108,7 +108,7 @@ const Backup = async () => {
     const file = files[i]
     update(`正在加密文件...[ ${i + 1}/${files.length} ]`, 'info')
     try {
-      const text = await Plugins.Readfile(file)
+      const text = await Plugins.ReadFile(file)
       data.files[file] = encrypt(text)
     } catch (error) {
       console.log(error)
@@ -189,7 +189,7 @@ const onInstall = async () => {
 const onUninstall = async () => {
   const dom = document.getElementById(Plugin.id)
   dom && dom.remove()
-  await Plugins.Removefile(PATH)
+  await Plugins.RemoveFile(PATH)
   return 0
 }
 
@@ -207,7 +207,7 @@ function loadDependence() {
       return
     }
     try {
-      const text = await Plugins.Readfile(JS_FILE)
+      const text = await Plugins.ReadFile(JS_FILE)
       const script = document.createElement('script')
       script.id = Plugin.id
       script.text = text

@@ -44,8 +44,8 @@ const onInstall = async () => {
   }
 
   await Plugins.UnzipZIPFile(TMP_FILE, 'data/.cache')
-  await Plugins.Movefile('data/.cache/TrafficMonitor', PATH)
-  await Plugins.Removefile(TMP_FILE)
+  await Plugins.MoveFile('data/.cache/TrafficMonitor', PATH)
+  await Plugins.RemoveFile(TMP_FILE)
 
   Plugins.message.success('安装成功')
   return 0
@@ -56,7 +56,7 @@ const onUninstall = async () => {
   if (await isRunning()) {
     throw '请先停止插件'
   }
-  await Plugins.Removefile(PATH)
+  await Plugins.RemoveFile(PATH)
   return 0
 }
 
@@ -83,7 +83,7 @@ const Stop = async () => {
   if (pid) {
     // 小小进程还挺难杀
     await Plugins.KillProcess(pid, 1).catch(() => false)
-    await Plugins.Removefile(PID)
+    await Plugins.RemoveFile(PID)
   }
   return 2
 }
@@ -99,11 +99,11 @@ const startService = async () => {
       console.log(`[${Plugin.name}]`, '已停止')
     }
   )
-  await Plugins.Writefile(PID, String(pid))
+  await Plugins.WriteFile(PID, String(pid))
 }
 
 const isRunning = async () => {
-  const pid = await Plugins.ignoredError(Plugins.Readfile, PID)
+  const pid = await Plugins.ignoredError(Plugins.ReadFile, PID)
   if (!pid || pid === '0') {
     return false
   }

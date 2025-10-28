@@ -42,7 +42,7 @@ async function transformLocalRuleset(profile) {
           ruleset.path = ''
         } else if (['File', 'Manual'].includes(_ruleset.type)) {
           if (_ruleset.format === 'source') {
-            const _rules = JSON.parse(await Plugins.Readfile(_ruleset.path)).rules
+            const _rules = JSON.parse(await Plugins.ReadFile(_ruleset.path)).rules
             ruleset.type = 'inline'
             ruleset.rules = JSON.stringify(_rules)
             ruleset.url = ''

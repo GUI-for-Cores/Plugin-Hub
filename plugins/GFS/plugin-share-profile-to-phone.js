@@ -123,7 +123,7 @@ const Share = async (profile) => {
             ruleset.path = ''
           } else if (['File', 'Manual'].includes(_ruleset.type)) {
             if (_ruleset.format === 'source') {
-              const _rules = JSON.parse(await Plugins.Readfile(_ruleset.path)).rules
+              const _rules = JSON.parse(await Plugins.ReadFile(_ruleset.path)).rules
               ruleset.type = 'inline'
               ruleset.rules = JSON.stringify(_rules)
               ruleset.url = ''
@@ -197,7 +197,7 @@ const onInstall = async () => {
 
 /* 触发器 卸载 */
 const onUninstall = async () => {
-  await Plugins.Removefile(PATH)
+  await Plugins.RemoveFile(PATH)
   return 0
 }
 
@@ -339,7 +339,7 @@ function loadDependence() {
       return
     }
     try {
-      const text = await Plugins.Readfile(PATH + '/qrcode.min.js')
+      const text = await Plugins.ReadFile(PATH + '/qrcode.min.js')
       const script = document.createElement('script')
       script.id = Plugin.id
       script.text = text

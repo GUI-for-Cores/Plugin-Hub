@@ -117,15 +117,15 @@ const onInstall = async () => {
     throw '本插件目前仅适配 Windows 和 Linux 系统，以及 AMD64(x86_64) 架构'
   }
   try {
-    if (!(await Plugins.FileExists(THIRD_DIR)) || (await Plugins.Readdir(THIRD_DIR)).length < 6) {
-      await Plugins.ignoredError(Plugins.Removefile, THIRD_DIR)
-      await Plugins.Makedir(THIRD_DIR)
+    if (!(await Plugins.FileExists(THIRD_DIR)) || (await Plugins.ReadDir(THIRD_DIR)).length < 6) {
+      await Plugins.ignoredError(Plugins.RemoveFile, THIRD_DIR)
+      await Plugins.MakeDir(THIRD_DIR)
       await Plugins.Download(BASE_RULES_URL, BASE_RULES_FILE_PATH)
       await installNginxCore()
     }
     return 0
   } catch (e) {
-    await Plugins.ignoredError(Plugins.Removefile, THIRD_DIR)
+    await Plugins.ignoredError(Plugins.RemoveFile, THIRD_DIR)
     throw e
   }
 }
@@ -141,7 +141,7 @@ const onUninstall = async () => {
   }
   await manageRootCertInSystemTrust(CERT_ACTION.UNINSTALL) // 移除根证书
   if (await Plugins.FileExists(THIRD_DIR)) {
-    await Plugins.Removefile(THIRD_DIR)
+    await Plugins.RemoveFile(THIRD_DIR)
   }
 
   Plugins.message.success('卸载成功')
@@ -267,10 +267,10 @@ const installNginxCore = async () => {
 
   try {
     await Plugins.Download(`${NGINX_BIN_URL_PREFIX}/${nginxBinFile}`, `${THIRD_DIR}/nginx${os === 'windows' ? '.exe' : ''}`)
-    await Plugins.Makedir(NGINX_TEMP_DIR)
-    await Plugins.Makedir(NGINX_LOGS_DIR)
-    await Plugins.Writefile(NGINX_ACCESS_LOG_PATH, '')
-    await Plugins.Writefile(NGINX_ERROR_LOG_PATH, '')
+    await Plugins.MakeDir(NGINX_TEMP_DIR)
+    await Plugins.MakeDir(NGINX_LOGS_DIR)
+    await Plugins.WriteFile(NGINX_ACCESS_LOG_PATH, '')
+    await Plugins.WriteFile(NGINX_ERROR_LOG_PATH, '')
   } catch (e) {
     throw `安装 Nginx 失败 ${e.message || e}`
   }
@@ -336,7 +336,7 @@ const generateAndInstallRootCert = async (opensslExecPath) => {
 
     if (os === 'windows') {
       const rootCrtSha1 = await getRootCertSha1(opensslExecPath, rootCrtPath)
-      await Plugins.Writefile(ROOT_CA_CRT_SHA1, rootCrtSha1)
+      await Plugins.WriteFile(ROOT_CA_CRT_SHA1, rootCrtSha1)
       Plugins.message.success('写入根证书 SHA1 值成功。')
     }
 
@@ -425,7 +425,7 @@ const generateChildCertWithSans = async (jsonData) => {
 
     // 写入临时 SAN 配置文件
     const sanConfigContent = `[req]\ndistinguished_name=req\n[SAN]\nsubjectAltName=${sanList}\n\n[v3_extensions]\nsubjectAltName=${sanList}`
-    await Plugins.Writefile(sanConfigPath, sanConfigContent)
+    await Plugins.WriteFile(sanConfigPath, sanConfigContent)
 
     // 生成子证书私钥
     await Plugins.Exec(opensslExecPath, ['genrsa', '-out', childKeyPath, '2048'])
@@ -469,8 +469,8 @@ const generateChildCertWithSans = async (jsonData) => {
     ])
 
     // 清理临时文件
-    await Plugins.Removefile(sanConfigPath)
-    await Plugins.Removefile(childCsrPath)
+    await Plugins.RemoveFile(sanConfigPath)
+    await Plugins.RemoveFile(childCsrPath)
 
     if (!(await Plugins.FileExists(childKeyPath)) || !(await Plugins.FileExists(childCrtPath))) {
       throw new Error('子证书文件未成功生成。')
@@ -479,10 +479,10 @@ const generateChildCertWithSans = async (jsonData) => {
     Plugins.message.success('子证书生成成功。')
   } catch (e) {
     // 尝试清理可能生成的文件
-    await Plugins.ignoredError(Plugins.Removefile, childKeyPath)
-    await Plugins.ignoredError(Plugins.Removefile, childCrtPath)
-    await Plugins.ignoredError(Plugins.Removefile, childCsrPath)
-    await Plugins.ignoredError(Plugins.Removefile, sanConfigPath)
+    await Plugins.ignoredError(Plugins.RemoveFile, childKeyPath)
+    await Plugins.ignoredError(Plugins.RemoveFile, childCrtPath)
+    await Plugins.ignoredError(Plugins.RemoveFile, childCsrPath)
+    await Plugins.ignoredError(Plugins.RemoveFile, sanConfigPath)
     throw `生成子证书失败: ${e.message || e}`
   }
 }
@@ -533,7 +533,7 @@ const manageRootCertInSystemTrust = async (action) => {
     try {
       let isDeleted = false
       if (os === 'windows') {
-        const rootCrtSha1 = (await Plugins.Readfile(ROOT_CA_CRT_SHA1)).trim()
+        const rootCrtSha1 = (await Plugins.ReadFile(ROOT_CA_CRT_SHA1)).trim()
         await Plugins.Exec('certutil', ['-delstore', 'ROOT', rootCrtSha1])
         isDeleted = true
       } else {
@@ -567,8 +567,8 @@ const startNginx = async () => {
   const absPath = await Plugins.AbsolutePath(THIRD_DIR)
   const nginxConfAbsPath = await Plugins.AbsolutePath(NGINX_CONF_FILE_PATH)
 
-  await Plugins.Writefile(NGINX_ACCESS_LOG_PATH, '')
-  await Plugins.Writefile(NGINX_ERROR_LOG_PATH, '')
+  await Plugins.WriteFile(NGINX_ACCESS_LOG_PATH, '')
+  await Plugins.WriteFile(NGINX_ERROR_LOG_PATH, '')
 
   await generateAndWriteNginxConfigs() // 在启动前生成并写入配置和证书
 
@@ -634,7 +634,7 @@ const stopNginx = async () => {
  */
 const isRunningNginx = async () => {
   if (await Plugins.FileExists(NGINX_PID_FILE_PATH)) {
-    const pid = Number(await Plugins.Readfile(NGINX_PID_FILE_PATH))
+    const pid = Number(await Plugins.ReadFile(NGINX_PID_FILE_PATH))
     if (pid && pid > 0) {
       const name = await Plugins.ignoredError(Plugins.ProcessInfo, pid)
       if (name && name.includes('nginx')) {
@@ -649,7 +649,7 @@ const isRunningNginx = async () => {
  * 获取合并后的规则
  */
 const getMergedRules = async () => {
-  const baseRules = await Plugins.Readfile(BASE_RULES_FILE_PATH)
+  const baseRules = await Plugins.ReadFile(BASE_RULES_FILE_PATH)
   try {
     const completeRules = [...JSON.parse(baseRules), ...JSON.parse(CUSTOM_RULES)]
     return completeRules
@@ -757,7 +757,7 @@ const generateAndWriteNginxConfigs = async () => {
   await generateChildCertWithSans(jsonData)
   // 生成并写入 Nginx 配置 (使用新生成的子证书)
   const nginxConfContent = await generateNginxConfContent(jsonData)
-  await Plugins.Writefile(NGINX_CONF_FILE_PATH, nginxConfContent)
+  await Plugins.WriteFile(NGINX_CONF_FILE_PATH, nginxConfContent)
   Plugins.message.info(`Nginx 配置文件已更新`)
 }
 
@@ -829,7 +829,7 @@ const updateSystemHostsFile = async (action, dynamicHostsContent) => {
   const hostsFilePath = await getHostsFilePath()
   let baseContent = ''
   try {
-    baseContent = await Plugins.Readfile(hostsFilePath)
+    baseContent = await Plugins.ReadFile(hostsFilePath)
   } catch (e) {
     throw `读取 Hosts 文件失败: ${e.message || e}`
   }
@@ -865,16 +865,16 @@ const updateSystemHostsFile = async (action, dynamicHostsContent) => {
   try {
     if (os === 'windows') {
       // 在 Windows 上直接写入，需要管理员权限运行整个应用
-      await Plugins.Writefile(hostsFilePath, newContent)
+      await Plugins.WriteFile(hostsFilePath, newContent)
     } else {
-      await Plugins.Writefile(tempFileAbsPath, newContent)
+      await Plugins.WriteFile(tempFileAbsPath, newContent)
       // 使用 pkexec cp 需要用户授权
       await Plugins.Exec('pkexec', ['cp', tempFileAbsPath, hostsFilePath])
-      await Plugins.Removefile(tempFileAbsPath)
+      await Plugins.RemoveFile(tempFileAbsPath)
     }
     Plugins.message.info(`Hosts 文件已更新。`)
   } catch (e) {
-    await Plugins.ignoredError(Plugins.Removefile, tempFileAbsPath)
+    await Plugins.ignoredError(Plugins.RemoveFile, tempFileAbsPath)
     throw `写入 Hosts 文件失败: ${e.message || e}. 请确保应用以管理员权限运行。`
   }
 }

@@ -1,3 +1,7 @@
+/**
+ * 本插件使用开源项目：https://github.com/GUI-for-Cores/Hotkey-API-Bridge
+ */
+
 const PATH = 'data/third/hotkey-api-bridge'
 const HOTKEY_FILE = PATH + '/hotkey.json'
 const BIN_FILE = PATH + '/hotkey-api-bridge.exe'

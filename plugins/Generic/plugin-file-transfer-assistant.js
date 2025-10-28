@@ -131,7 +131,7 @@ const startService = async () => {
   }
 
   if (!(await Plugins.FileExists(SharePath))) {
-    await Plugins.Makedir(SharePath)
+    await Plugins.MakeDir(SharePath)
     Plugins.message.success('已自动创建共享文件夹')
   }
 
@@ -140,7 +140,7 @@ const startService = async () => {
   const Shortcut = SharePath + '/文件互传.shortcut'
 
   const versionFile = PATH + '/version.txt'
-  const version = await Plugins.Readfile(versionFile).catch(() => '')
+  const version = await Plugins.ReadFile(versionFile).catch(() => '')
   // 如果插件升级了，则总是获取最新资源文件
   const shouldFetch = Plugin.version !== version
   if (shouldFetch) {
@@ -161,7 +161,7 @@ const startService = async () => {
         Shortcut
       )
     ])
-    await Plugins.Writefile(versionFile, Plugin.version)
+    await Plugins.WriteFile(versionFile, Plugin.version)
   }
 
   await Plugins.StartServer(
@@ -169,12 +169,12 @@ const startService = async () => {
     Plugin.id,
     async (req, res) => {
       if (req.url == '/' || req.url == '/index.html') {
-        const html = await Plugins.Readfile(ShareHtml)
+        const html = await Plugins.ReadFile(ShareHtml)
         return res.end(200, { 'Content-Type': MIME_MAPPING.html }, html)
       }
 
       if (req.url == '/upload.html') {
-        const html = await Plugins.Readfile(UploadHtml)
+        const html = await Plugins.ReadFile(UploadHtml)
         return res.end(200, { 'Content-Type': MIME_MAPPING.html }, html)
       }
 
@@ -224,6 +224,6 @@ const handleDir = async (req, res) => {
   if (!fullPath?.startsWith(SharePath)) {
     return res.end(403, { 'Content-Type': MIME_MAPPING.txt }, '禁止访问此目录:' + path)
   }
-  const dirs = await Plugins.Readdir(fullPath)
+  const dirs = await Plugins.ReadDir(fullPath)
   res.end(200, { 'Content-Type': MIME_MAPPING.json }, JSON.stringify(dirs.map((v) => ({ ...v, size: Plugins.formatBytes(v.size) }))))
 }

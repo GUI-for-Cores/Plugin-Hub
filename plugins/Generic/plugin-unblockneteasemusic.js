@@ -13,7 +13,7 @@ window[Plugin.id] = window[Plugin.id] || {
   unblockHistory: Vue.ref([]),
   onServiceStopped: Plugins.debounce(async () => {
     console.log(`[${Plugin.name}]`, '插件已停止')
-    await Plugins.Writefile(PID_FILE, '0')
+    await Plugins.WriteFile(PID_FILE, '0')
   }, 0)
 }
 
@@ -29,7 +29,7 @@ const onUninstall = async () => {
     throw '请先停止插件服务！'
   }
   await Plugins.confirm('确定要卸载吗', '将删除插件资源：' + MUSIC_PATH + '\n\n若已安装CA证书，记得手动卸载哦')
-  await Plugins.Removefile(MUSIC_PATH)
+  await Plugins.RemoveFile(MUSIC_PATH)
   return 0
 }
 
@@ -303,7 +303,7 @@ const startUnblockMusicService = (config = Plugin) => {
             reject(out)
           }
           if (out.includes('HTTP Server running')) {
-            await Plugins.Writefile(PID_FILE, pid.toString())
+            await Plugins.WriteFile(PID_FILE, pid.toString())
             resolve()
           }
         },
@@ -345,7 +345,7 @@ const startUnblockMusicService = (config = Plugin) => {
  * 停止服务
  */
 const stopUnblockMusicService = async () => {
-  const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
+  const pid = await Plugins.ignoredError(Plugins.ReadFile, PID_FILE)
   if (pid && pid !== '0') {
     await Plugins.KillProcess(Number(pid))
     console.log(`[${Plugin.name}]`, 'KillProcess 已杀死进程')
@@ -373,7 +373,7 @@ const switchTo = async (index) => {
  * 检测是否在运行
  */
 const isUnblockMusicRunning = async () => {
-  const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
+  const pid = await Plugins.ignoredError(Plugins.ReadFile, PID_FILE)
   if (pid && pid !== '0') {
     const name = await Plugins.ignoredError(Plugins.ProcessInfo, Number(pid))
     return name === PROCESS_NAME
@@ -397,7 +397,7 @@ const installUnblockMusic = async () => {
     const YtDLPFileUrl = `https://github.com/yt-dlp/yt-dlp/releases/download/2025.09.26/yt-dlp${isWin ? '' : '_linux'}${isX64 ? '' : '_x86'}${isWin ? '.exe' : ''}`
 
     // 下载1
-    await Plugins.Makedir(MUSIC_PATH)
+    await Plugins.MakeDir(MUSIC_PATH)
     await Plugins.Download(BinaryFileUrl, PROCESS_PATH, {}, (c, t) => {
       Plugins.message.update(id, '正在下载主体程序...' + ((c / t) * 100).toFixed(2) + '%')
     })

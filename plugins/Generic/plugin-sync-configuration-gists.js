@@ -42,7 +42,7 @@ const Sync = async () => {
     Plugins.message.update(id, `正在同步...[ ${i + 1}/${files.length} ]`)
     try {
       const { body: encrypted } = await Plugins.HttpGet(file.raw_url)
-      await Plugins.Writefile(file.filename.replaceAll('\\', '/'), decrypt(encrypted))
+      await Plugins.WriteFile(file.filename.replaceAll('\\', '/'), decrypt(encrypted))
     } catch (error) {
       console.log(error)
       Plugins.message.update(id, `[${file.filename}] 同步失败`, 'error')
@@ -87,7 +87,7 @@ const Backup = async () => {
     const file = files[i]
     Plugins.message.update(id, `正在创建备份...[ ${i + 1}/${files.length} ]`)
     try {
-      const text = await Plugins.ignoredError(Plugins.Readfile, file)
+      const text = await Plugins.ignoredError(Plugins.ReadFile, file)
       if (text) {
         filesMap[file.replaceAll('/', '\\')] = { content: encrypt(text) }
       }
@@ -143,7 +143,7 @@ const onInstall = async () => {
 const onUninstall = async () => {
   const dom = document.getElementById(Plugin.id)
   dom && dom.remove()
-  await Plugins.Removefile(PATH)
+  await Plugins.RemoveFile(PATH)
   return 0
 }
 
@@ -170,7 +170,7 @@ function loadDependence() {
       return
     }
     try {
-      const text = await Plugins.Readfile(JS_FILE)
+      const text = await Plugins.ReadFile(JS_FILE)
       const script = document.createElement('script')
       script.id = Plugin.id
       script.text = text

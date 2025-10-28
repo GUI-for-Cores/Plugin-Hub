@@ -70,6 +70,6 @@ const onInstall = async () => {
 
 /* Trigger Uninstall */
 const onUninstall = async () => {
-  await Plugins.Removefile(PATH)
+  await Plugins.RemoveFile(PATH)
   return 0
 }

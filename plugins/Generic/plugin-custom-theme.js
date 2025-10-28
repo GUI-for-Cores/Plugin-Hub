@@ -182,19 +182,19 @@ const onInstall = async () => {
 
 const onUninstall = async () => {
   await Plugins.confirm('提示', '卸载后，主题文件将被删除！')
-  await Plugins.Removefile(PATH)
+  await Plugins.RemoveFile(PATH)
   Clear()
 }
 
 const onReady = async () => {
-  const config = JSON.parse(await Plugins.Readfile(THEME_FILE))
+  const config = JSON.parse(await Plugins.ReadFile(THEME_FILE))
   await setVariable(config)
   await setBackground(config)
   await setCustomCSS()
 }
 
 const onRun = async () => {
-  const config = JSON.parse(await Plugins.Readfile(THEME_FILE))
+  const config = JSON.parse(await Plugins.ReadFile(THEME_FILE))
   await setVariable(config)
   await setBackground(config)
   await setCustomCSS()
@@ -210,7 +210,7 @@ const onConfigure = async (config, old) => {
  * 插件钩子 - 右键：选取背景
  */
 const Select = async () => {
-  const config = JSON.parse(await Plugins.Readfile(THEME_FILE))
+  const config = JSON.parse(await Plugins.ReadFile(THEME_FILE))
   const backgroundColor = document.body.style.backgroundColor
   const backgroundImage = document.body.style.backgroundImage
   try {
@@ -230,7 +230,7 @@ const Select = async () => {
       []
     )
     config.backgroundIndex = index
-    await Plugins.Writefile(THEME_FILE, JSON.stringify(config, null, 2))
+    await Plugins.WriteFile(THEME_FILE, JSON.stringify(config, null, 2))
     await setBackground(config)
   } catch (error) {
     document.body.style.backgroundColor = backgroundColor
@@ -263,7 +263,7 @@ const Reset = async (isReset = true) => {
     config.variable[property] = theme.getPropertyValue(property)
   })
 
-  await Plugins.Writefile(THEME_FILE, JSON.stringify(config, null, 2))
+  await Plugins.WriteFile(THEME_FILE, JSON.stringify(config, null, 2))
 
   isReset && Plugins.message.success('重置成功')
 
@@ -332,24 +332,24 @@ const CustomIcon = async () => {
 
     if (iconMap[iconId]) {
       if (iconId === Plugins.APP_TITLE) {
-        await Plugins.Removefile('data/.cache/icons')
+        await Plugins.RemoveFile('data/.cache/icons')
       } else {
         const { destroy } = Plugins.message.info('正在下载图标...', 9999)
         const [normal, proxy, tun] = iconMap[iconId].icons
         await Promise.all([
           Plugins.Download(normal, 'data/.cache/icons/tray_normal_dark.ico').then(() => {
-            Plugins.Copyfile('data/.cache/icons/tray_normal_dark.ico', 'data/.cache/icons/tray_normal_light.ico')
+            Plugins.CopyFile('data/.cache/icons/tray_normal_dark.ico', 'data/.cache/icons/tray_normal_light.ico')
           }),
           Plugins.Download(proxy, 'data/.cache/icons/tray_proxy_dark.ico').then(() => {
-            Plugins.Copyfile('data/.cache/icons/tray_proxy_dark.ico', 'data/.cache/icons/tray_proxy_light.ico')
+            Plugins.CopyFile('data/.cache/icons/tray_proxy_dark.ico', 'data/.cache/icons/tray_proxy_light.ico')
           }),
           Plugins.Download(tun, 'data/.cache/icons/tray_tun_dark.ico').then(() => {
-            Plugins.Copyfile('data/.cache/icons/tray_tun_dark.ico', 'data/.cache/icons/tray_tun_light.ico')
+            Plugins.CopyFile('data/.cache/icons/tray_tun_dark.ico', 'data/.cache/icons/tray_tun_light.ico')
           })
         ])
         destroy()
       }
-      if (await Plugins.confirm('替换成功', '是否立即重启客户端？').catch(0)) {
+      if (await Plugins.confirm('替换成功', '是否立即重启客户端？').catch(() => 0)) {
         await Plugins.RestartApp()
       }
     }
@@ -401,7 +401,7 @@ const setBackground = async (config) => {
       return
     }
 
-    const base64 = await Plugins.ignoredError(Plugins.Readfile, Plugin.BgImagePath, { Mode: 'Binary' })
+    const base64 = await Plugins.ignoredError(Plugins.ReadFile, Plugin.BgImagePath, { Mode: 'Binary' })
     if (!base64) {
       console.log(`[${Plugin.name}]`, '读取背景图片失败，跳过。')
       return

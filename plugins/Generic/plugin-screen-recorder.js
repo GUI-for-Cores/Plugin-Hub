@@ -32,7 +32,7 @@ const onRun = async () => {
         reader.readAsDataURL(blob)
         reader.onload = async (e) => {
           const result = e.target.result
-          await Plugins.Writefile(Plugin.FileSavePath + '/' + fileName, result.slice(result.indexOf('base64') + 7), { Mode: 'Binary' })
+          await Plugins.WriteFile(Plugin.FileSavePath + '/' + fileName, result.slice(result.indexOf('base64') + 7), { Mode: 'Binary' })
           Plugins.message.success('已保存')
         }
       }

@@ -50,7 +50,7 @@ const getClashProxies = async (subscription) => {
     }
     sub_path = tmp
   }
-  const { proxies } = Plugins.YAML.parse(await Plugins.Readfile(sub_path))
+  const { proxies } = Plugins.YAML.parse(await Plugins.ReadFile(sub_path))
   return proxies
 }
 
@@ -94,7 +94,7 @@ const onSubscribe = async (proxies, subscription) => {
   // 缓存clash格式，导出URI时需要此格式
   if (isClashProxies && isGFS) {
     const tmp = 'data/.cache/tmp_subscription_' + subscription.id
-    Plugins.Writefile(tmp, Plugins.YAML.stringify({ proxies }))
+    Plugins.WriteFile(tmp, Plugins.YAML.stringify({ proxies }))
   }
 
   // 如果是clash格式，并且是GFS，则转为sing-box格式

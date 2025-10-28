@@ -49,14 +49,14 @@ const onInstall = async () => {
 
   if (download_url.endsWith('.tgz')) {
     // 以下代码未在对应平台测试，欢迎PR
-    await Plugins.Makedir(PATH)
+    await Plugins.MakeDir(PATH)
     await Plugins.UnzipGZFile(tmp, bin_path)
     await Plugins.Exec('chmod', ['+x', await Plugins.AbsolutePath(bin_path)])
   } else {
     await Plugins.UnzipZIPFile(tmp, PATH)
   }
 
-  await Plugins.Removefile(tmp)
+  await Plugins.RemoveFile(tmp)
   success('安装完成')
 
   Plugins.sleep(3000).then(() => destroy())
@@ -65,7 +65,7 @@ const onInstall = async () => {
 
 /* 触发器 卸载 */
 const onUninstall = async () => {
-  await Plugins.Removefile(PATH)
+  await Plugins.RemoveFile(PATH)
   return 0
 }
 
@@ -153,7 +153,7 @@ const speedtestHistory = async () => {
   if (!(await Plugins.FileExists(History_File))) {
     throw '还没有测过速，来测测吧！'
   }
-  const history = JSON.parse(await Plugins.Readfile(History_File))
+  const history = JSON.parse(await Plugins.ReadFile(History_File))
   let header = `
 |带宽|延迟|服务器|时间|详情|
 |--|--|--|--|--|
@@ -186,7 +186,7 @@ const clearHistory = async () => {
   if (!(await Plugins.FileExists(History_File))) {
     throw '无需清理'
   }
-  const history = JSON.parse(await Plugins.Readfile(History_File))
+  const history = JSON.parse(await Plugins.ReadFile(History_File))
   if (history.length === 0) throw '无需清理'
   const ids = await Plugins.picker.multi(
     '请选择要清理的测速结果',
@@ -199,13 +199,13 @@ const clearHistory = async () => {
   )
   if (ids.length === 0) return
   const filtered = history.filter((v) => !ids.includes(v.result.id))
-  await Plugins.Writefile(History_File, JSON.stringify(filtered))
+  await Plugins.WriteFile(History_File, JSON.stringify(filtered))
   Plugins.message.success('清理完成')
 }
 
 // 保存测速结果
 const saveResult = async (result) => {
-  const history = JSON.parse((await Plugins.ignoredError(Plugins.Readfile, History_File)) || '[]')
+  const history = JSON.parse((await Plugins.ignoredError(Plugins.ReadFile, History_File)) || '[]')
   history.push(JSON.parse(result))
-  Plugins.Writefile(History_File, JSON.stringify(history))
+  Plugins.WriteFile(History_File, JSON.stringify(history))
 }

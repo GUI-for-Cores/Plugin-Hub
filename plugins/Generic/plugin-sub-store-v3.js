@@ -24,7 +24,7 @@ const onUninstall = async () => {
     throw '请先停止Sub-Store服务！'
   }
   await Plugins.confirm('确定要删除Sub-Store吗？', '配置文件将不会保留！')
-  await Plugins.Removefile(PATH)
+  await Plugins.RemoveFile(PATH)
   return 0
 }
 
@@ -96,16 +96,16 @@ const Update = async () => {
  * 启动Sub-Store服务
  */
 const startSubStoreService = async () => {
-  const SUBSTORE_SOURCE_CODE = await Plugins.Readfile(BACKEND_FILE)
+  const SUBSTORE_SOURCE_CODE = await Plugins.ReadFile(BACKEND_FILE)
 
   /**
    * 提供此方法供Sub-Store进行类似localStorage.setItem/getItem/removeItem的操作
    * 此方法必须是同步的; 同时加入防抖进行性能优化:)
    */
   Plugins.SubStoreCache = {
-    data: JSON.parse((await Plugins.ignoredError(Plugins.Readfile, USER_PROFILE)) || '{}'),
+    data: JSON.parse((await Plugins.ignoredError(Plugins.ReadFile, USER_PROFILE)) || '{}'),
     sync: Plugins.debounce(() => {
-      Plugins.Writefile(USER_PROFILE, JSON.stringify(Plugins.SubStoreCache.data, null, 2))
+      Plugins.WriteFile(USER_PROFILE, JSON.stringify(Plugins.SubStoreCache.data, null, 2))
     }, 1000),
     get(key) {
       return this.data[key]

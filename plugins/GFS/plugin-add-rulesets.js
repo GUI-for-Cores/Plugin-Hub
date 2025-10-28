@@ -172,13 +172,13 @@ const onRun = async () => {
   }
 
   if (ids.includes('direct') && !(await Plugins.FileExists('data/rulesets/direct.json'))) {
-    Plugins.Writefile('data/rulesets/direct.json', '{\n  "version": 1,\n  "rules": []\n}')
+    Plugins.WriteFile('data/rulesets/direct.json', '{\n  "version": 1,\n  "rules": []\n}')
   }
   if (ids.includes('reject') && !(await Plugins.FileExists('data/rulesets/reject.json'))) {
-    Plugins.Writefile('data/rulesets/reject.json', '{\n  "version": 1,\n  "rules": []\n}')
+    Plugins.WriteFile('data/rulesets/reject.json', '{\n  "version": 1,\n  "rules": []\n}')
   }
   if (ids.includes('proxy') && !(await Plugins.FileExists('data/rulesets/proxy.json'))) {
-    Plugins.Writefile('data/rulesets/proxy.json', '{\n  "version": 1,\n  "rules": []\n}')
+    Plugins.WriteFile('data/rulesets/proxy.json', '{\n  "version": 1,\n  "rules": []\n}')
   }
 
   Plugins.message.success('添加完毕')

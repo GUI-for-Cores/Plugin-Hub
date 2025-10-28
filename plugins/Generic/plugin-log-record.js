@@ -78,8 +78,8 @@ const writeLogFile = async (logs) => {
     .join(`\n`)
     .trim()
   if (Plugins.APP_TITLE.includes('SingBox')) {
-    await Plugins.Writefile(SINGBOX_LOG_FILE_PATH, logTexts)
+    await Plugins.WriteFile(SINGBOX_LOG_FILE_PATH, logTexts)
   } else {
-    await Plugins.Writefile(CLASH_LOG_FILE_PATH, logTexts)
+    await Plugins.WriteFile(CLASH_LOG_FILE_PATH, logTexts)
   }
 }

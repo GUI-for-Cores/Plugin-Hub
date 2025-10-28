@@ -21,19 +21,19 @@ const onRun = async () => {
 
 const Normal = async () => {
   if (!Plugin.NormalHosts) throw '普通hosts为空，请先配置'
-  await Plugins.Writefile(getHostsFilePath(), Plugin.NormalHosts)
+  await Plugins.WriteFile(getHostsFilePath(), Plugin.NormalHosts)
   Plugins.message.success('Hosts文件已切换为普通配置')
 }
 
 const Development = async () => {
   if (!Plugin.DevHosts) throw '开发hosts为空，请先配置'
-  await Plugins.Writefile(getHostsFilePath(), Plugin.DevHosts)
+  await Plugins.WriteFile(getHostsFilePath(), Plugin.DevHosts)
   Plugins.message.success('Hosts文件已切换为开发配置')
 }
 
 const Production = async () => {
   if (!Plugin.ProdHosts) throw '生产hosts为空，请先配置'
-  await Plugins.Writefile(getHostsFilePath(), Plugin.ProdHosts)
+  await Plugins.WriteFile(getHostsFilePath(), Plugin.ProdHosts)
   Plugins.message.success('Hosts文件已切换为生产配置')
 }
 

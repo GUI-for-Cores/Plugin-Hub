@@ -58,7 +58,7 @@ const onRun = async () => {
   if (!(await isOpenListRunning())) {
     await startOpenListService()
   }
-  const config = JSON.parse(await Plugins.Readfile(PATH + '/config.json'))
+  const config = JSON.parse(await Plugins.ReadFile(PATH + '/config.json'))
   Plugins.BrowserOpenURL(`http://127.0.0.1:${config.scheme.http_port}`)
   return 1
 }
@@ -132,7 +132,7 @@ const More = async () => {
  * 检测OpenList是否在运行
  */
 const isOpenListRunning = async () => {
-  const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
+  const pid = await Plugins.ignoredError(Plugins.ReadFile, PID_FILE)
   if (pid && pid !== '0') {
     const name = await Plugins.ignoredError(Plugins.ProcessInfo, Number(pid))
     return ['openlist', 'openlist.exe'].includes(name)
@@ -144,10 +144,10 @@ const isOpenListRunning = async () => {
  * 停止OpenList服务
  */
 const stopOpenListService = async () => {
-  const pid = await Plugins.ignoredError(Plugins.Readfile, PID_FILE)
+  const pid = await Plugins.ignoredError(Plugins.ReadFile, PID_FILE)
   if (pid && pid !== '0') {
     await Plugins.KillProcess(Number(pid))
-    await Plugins.Writefile(PID_FILE, '0')
+    await Plugins.WriteFile(PID_FILE, '0')
   }
 }
 
@@ -162,11 +162,11 @@ const startOpenListService = () => {
         ['server', ...(await defaultArgs())],
         async (out) => {
           if (out.includes('start HTTP server')) {
-            await Plugins.Writefile(PID_FILE, String(pid))
+            await Plugins.WriteFile(PID_FILE, String(pid))
             resolve()
           }
         },
-        () => Plugins.Writefile(PID_FILE, '0')
+        () => Plugins.WriteFile(PID_FILE, '0')
       )
     } catch (error) {
       reject(error.message || error)
@@ -196,7 +196,7 @@ const installOpenList = async () => {
     }
     const url = asset.browser_download_url
     Plugins.message.update(id, '下载OpenList压缩包')
-    await Plugins.Makedir(PATH)
+    await Plugins.MakeDir(PATH)
     await Plugins.Download(url, tmp_file, {}, (progress, total) => {
       Plugins.message.update(id, '下载OpenList压缩包：' + ((progress / total) * 100).toFixed(2) + '%')
     })
@@ -206,7 +206,7 @@ const installOpenList = async () => {
       await Plugins.Exec('tar', ['zxvf', tmp_file, '-C', PATH])
       await Plugins.Exec('chmod', ['+x', PATH + '/openlist'])
     }
-    await Plugins.Removefile(tmp_file)
+    await Plugins.RemoveFile(tmp_file)
     Plugins.message.update(id, '安装OpenList完成', 'success')
   } finally {
     await Plugins.sleep(1000)
@@ -216,7 +216,7 @@ const installOpenList = async () => {
 
 /* 卸载OpenList */
 const uninstallOpenList = async () => {
-  await Plugins.Removefile(PATH)
+  await Plugins.RemoveFile(PATH)
 }
 
 const defaultArgs = async () => {

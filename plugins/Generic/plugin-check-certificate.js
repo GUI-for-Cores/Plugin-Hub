@@ -9,7 +9,7 @@ const onRun = async () => {
   await checkOS()
   const output = await Plugins.Exec(PATH + '/sigcheck.exe', ['-nobanner', '-accepteula', '-tuv', '-c'])
   if (output.includes('No certificates found')) {
-    const img = await Plugins.Readfile('data/.cache/imgs/notify_success.png', { Mode: 'Binary' })
+    const img = await Plugins.ReadFile('data/.cache/imgs/notify_success.png', { Mode: 'Binary' })
     // prettier-ignore
     await Plugins.alert(Plugin.name, `<center>
       <img src="data:image/png;base64,${img}">
@@ -23,7 +23,7 @@ const onRun = async () => {
     const [Store, Subject, Status, ValidUsage, Issuer, SerialNumber, Thumbprint, Algorithm, ValidFrom, ValidTo] = line.split(',')
     return { Store, Subject, Status, ValidUsage, Issuer, SerialNumber, Thumbprint, Algorithm, ValidFrom, ValidTo }
   })
-  const img = await Plugins.Readfile('data/.cache/imgs/notify_error.png', { Mode: 'Binary' })
+  const img = await Plugins.ReadFile('data/.cache/imgs/notify_error.png', { Mode: 'Binary' })
   // prettier-ignore
   await Plugins.alert(Plugin.name, `<center>
   <img src="data:image/png;base64,${img}">
@@ -49,7 +49,7 @@ const onInstall = async () => {
     })
     update('正在解压...')
     await Plugins.UnzipZIPFile(TMP_FILE, PATH)
-    await Plugins.Removefile(TMP_FILE)
+    await Plugins.RemoveFile(TMP_FILE)
     success('安装成功')
   } catch (err) {
     error('下载失败：' + (err.message || err))
@@ -63,7 +63,7 @@ const onInstall = async () => {
 /* 触发器 卸载 */
 const onUninstall = async () => {
   await checkOS()
-  await Plugins.Removefile(PATH)
+  await Plugins.RemoveFile(PATH)
   return 0
 }
 

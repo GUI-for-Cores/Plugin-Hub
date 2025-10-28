@@ -9,7 +9,7 @@ const openClashDashboard = async () => {
     const configpath = './data/sing-box/config.json'
 
     // 读取 JSON 文件
-    const jsonContent = await Plugins.Readfile(configpath)
+    const jsonContent = await Plugins.ReadFile(configpath)
 
     // 解析 JSON 内容
     const jsonData = JSON.parse(jsonContent)
@@ -27,7 +27,7 @@ const openClashDashboard = async () => {
     const configpath = './data/mihomo/config.yaml'
 
     // 读取 YAML 文件
-    const yamlContent = await Plugins.Readfile(configpath)
+    const yamlContent = await Plugins.ReadFile(configpath)
 
     // 解析 YAML 内容
     const yamlData = Plugins.YAML.parse(yamlContent)

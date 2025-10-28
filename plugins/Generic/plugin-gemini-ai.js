@@ -66,7 +66,7 @@ const McpFunctionMap = {
   },
   search_rulesets_by_keywords_in_ruleset_hub: async ({ keywords }) => {
     // TODO: 等待客户端把规则集中心改到store里
-    const { list } = JSON.parse(await Plugins.Readfile('data/.cache/ruleset-list.json').catch(() => '{"list": []}'))
+    const { list } = JSON.parse(await Plugins.ReadFile('data/.cache/ruleset-list.json').catch(() => '{"list": []}'))
     const filtered = list.filter((v) => keywords.some((keyword) => v.name.toLowerCase().includes(keyword.toLowerCase())))
     if (filtered.length === 0) {
       return '没有找到符合条件的规则集'
@@ -138,8 +138,8 @@ const McpFunctionMap = {
 
 const onRun = async () => {
   await initAi()
-  const systemInstruction = (await Plugins.Readfile(SystemInstructionPath)).replace('${APP_TITLE}', Plugins.APP_TITLE)
-  const functionDeclarations = JSON.parse(await Plugins.Readfile(FunctionCallPath))
+  const systemInstruction = (await Plugins.ReadFile(SystemInstructionPath)).replace('${APP_TITLE}', Plugins.APP_TITLE)
+  const functionDeclarations = JSON.parse(await Plugins.ReadFile(FunctionCallPath))
   while (await Ask(systemInstruction, functionDeclarations)) {}
 }
 
@@ -225,7 +225,7 @@ const initAi = async () => {
     throw '需要API_KEY'
   }
   const versionFile = PATH + '/version.txt'
-  const version = await Plugins.Readfile(versionFile).catch(() => '')
+  const version = await Plugins.ReadFile(versionFile).catch(() => '')
   // 如果插件升级了，则总是获取最新资源文件
   const shouldFetch = Plugin.version !== version
   if (shouldFetch) {
@@ -241,7 +241,7 @@ const initAi = async () => {
         FunctionCallPath
       )
     ])
-    await Plugins.Writefile(versionFile, Plugin.version)
+    await Plugins.WriteFile(versionFile, Plugin.version)
   }
 }
 

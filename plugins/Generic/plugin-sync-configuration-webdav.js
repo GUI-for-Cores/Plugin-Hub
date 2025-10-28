@@ -49,7 +49,7 @@ const Sync = async () => {
     const processedFile = file.replaceAll(/\//g, separator).replaceAll(/\\/g, separator)
     update(`正在恢复文件...[ ${i + 1}/${_files.length} ]`, 'info')
     try {
-      await Plugins.Writefile(processedFile, decrypt(encrypted))
+      await Plugins.WriteFile(processedFile, decrypt(encrypted))
     } catch (error) {
       if (error === '解密失败') {
         failed = true
@@ -104,7 +104,7 @@ const Backup = async () => {
     const file = files[i]
     Plugins.message.update(id, `正在创建备份...[ ${i + 1}/${files.length} ]`)
     try {
-      const text = await Plugins.ignoredError(Plugins.Readfile, file)
+      const text = await Plugins.ignoredError(Plugins.ReadFile, file)
       if (text) {
         filesMap[file] = { content: encrypt(text) }
       }
@@ -229,7 +229,7 @@ function loadDependence() {
       return
     }
     try {
-      const text = await Plugins.Readfile(JS_FILE)
+      const text = await Plugins.ReadFile(JS_FILE)
       const script = document.createElement('script')
       script.id = Plugin.id
       script.text = text
