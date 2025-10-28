@@ -112,7 +112,7 @@
   {
     "id": "plugin-mmdb-example",
     "name": "GeoLite2 操作示例",
-    "version": "v1.0.1",
+    "version": "v1.0.2",
     "description": "插件API MMDB操作示例",
     "tags": ["插件示例"],
     "type": "Http",
@@ -1247,7 +1247,7 @@
   {
     "id": "plugin-sub-store-script-support",
     "name": "Sub-Store 脚本支持",
-    "version": "v1.0.1",
+    "version": "v1.0.2",
     "description": "安装后Sub-Store可正常使用测落地的相关脚本。",
     "tags": ["实用工具"],
     "type": "Http",
@@ -2663,7 +2663,7 @@
   {
     "id": "plugin-generate-warp-config",
     "name": "WARP 配置生成",
-    "version": "v1.0.1",
+    "version": "v1.0.2",
     "description": "自动注册并生成 Cloudflare WARP 的配置信息。Supported by: 泡泡茶壶",
     "tags": ["实用工具"],
     "type": "Http",

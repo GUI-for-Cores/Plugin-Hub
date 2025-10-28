@@ -1,4 +1,8 @@
+type Recordable<T = any> = { [x: string]: T }
+
 type MaybePromise<T> = T | Promise<T>
+
+type Vue = typeof import('vue')
 
 type UseModalOptions = Partial<{
   open: boolean
@@ -28,6 +32,23 @@ interface UseModalSlots {
   cancel?: () => any
   submit?: () => any
   default?: () => any
+}
+
+// Custom Action
+interface CustomActionApi {
+  h: Vue['h']
+  ref: Vue['ref']
+}
+type CustomActionProps = Recordable
+type CustomActionSlots = Recordable<((api: CustomActionApi) => VNode | string | number | boolean) | VNode | string | number | boolean>
+interface CustomAction<P = CustomActionProps, S = CustomActionSlots> {
+  id?: string
+  component: string
+  componentProps?: P | ((api: CustomActionApi) => P)
+  componentSlots?: S | ((api: CustomActionApi) => S)
+}
+type CustomActionFn = ((api: CustomActionApi) => CustomAction) & {
+  id?: string
 }
 
 interface Plugins {
@@ -210,15 +231,87 @@ interface Plugins {
   CloseMMDB(path: string, id: string): Promise<void>
   QueryMMDB(path: string, ip: string, type?: 'ASN' | 'AnonymousIP' | 'City' | 'ConnectionType' | 'Country' | 'Domain' | 'Enterprise'): Promise<any> // Define return type if known
 
-  useAppStore(): any
-  useKernelApiStore(): any
-  usePluginsStore(): any
-  useRulesetsStore(): any
-  useSubscribesStore(): any
-  useEnvStore(): any
-  useAppSettingsStore(): any
-  useProfilesStore(): any
-  useScheduledTasksStore(): any
+  useAppStore(): {
+    showAbout: boolean
+    addCustomActions: (
+      target: 'core_state' | 'title_bar' | 'profiles_header' | 'subscriptions_header',
+      actions: CustomAction | CustomAction[] | CustomActionFn | CustomActionFn[]
+    ) => () => void
+    removeCustomActions: (target: 'core_state' | 'title_bar' | 'profiles_header' | 'subscriptions_header', id: string | string[]) => void
+  }
+  useKernelApiStore(): {
+    startCore: (profile?: Recordable) => Promise<void>
+    stopCore: () => Promise<void>
+    restartCore: (cleanupTask?: () => Promise<any>, keepRuntimeProfile = true) => Promise<void>
+    pid: number
+    running: boolean
+    config: Recordable
+    proxies: Recordable[]
+    onLogs: (data: { type: string; payload: string }) => () => void
+    onMemory: (data: { inuse: number; oslimit: number }) => () => void
+    onTraffic: (data: { down: number; up: number }) => () => void
+    onConnections: (data: Recordable) => () => void
+    updateConfig(field: string, value: any): Promise<void>
+  }
+  usePluginsStore(): {
+    plugins: Recordable[]
+    pluginHub: Recordable[]
+    manualTrigger: (id: string, event: string, ...args: any[]) => Promise<void>
+    addPlugin(plugin: Recordable): Promise<void>
+    getPluginById(id: string): Recordable
+    editPlugin(id: string, plugin: Recordable): Promise<void>
+    deletePlugin(id: string): Promise<void>
+    updatePlugin(id: string): Promise<void>
+  }
+  useRulesetsStore(): {
+    rulesets: Recordable[]
+    updateRuleset(id: string): Promise<void>
+    updateRulesets(): Promise<void>
+    addRuleset(ruleset: Recordable): Promise<void>
+    getRulesetById(id: string): Recordable
+    editRuleset(id: string, ruleset: Recordable): Promise<void>
+    deleteRuleset(id: string): Promise<void>
+  }
+  useSubscribesStore(): {
+    subscribes: Recordable[]
+    updateSubscribe(id: string): Promise<void>
+    updateSubscribes(): Promise<void>
+    getSubscribeById(id: string): Recordable
+    addSubscribe(subscription: Recordable): Promise<void>
+    editSubscribe(id: string, subscription: Recordable): Promise<void>
+    deleteSubscribe(id: string): Promise<void>
+  }
+  useEnvStore(): {
+    env: {
+      appName: string
+      appVersion: string
+      basePath: string
+      os: string
+      arch: string
+    }
+    systemProxy(): Promise<void>
+    setSystemProxy(): Promise<void>
+    clearSystemProxy(): Promise<void>
+    switchSystemProxy: (enable: boolean) => Promise<void>
+  }
+  useAppSettingsStore(): {
+    app: Recordable
+  }
+  useProfilesStore(): {
+    profiles: Recordable[]
+    getProfileById: (id: string) => Recordable
+    addProfile(profile: Recordable): Promise<void>
+    editProfile(id: string, profile: Recordable): Promise<void>
+    deleteProfile(id: string): Promise<void>
+  }
+  useScheduledTasksStore(): {
+    scheduledtasks: Recordable[]
+    getScheduledTaskById(id: string): Recordable
+    addScheduledTask(task: Recordable): Promise<void>
+    editScheduledTask(id: string, task: Recordable): Promise<void>
+    deleteScheduledTask(id: string): Promise<void>
+    runScheduledTask(id: string): Promise<any>
+  }
 
   setIntervalImmediately(fn: () => void, delay: number): number
   formatRelativeTime(dateString: string): string
@@ -229,10 +322,11 @@ interface Plugins {
   asyncPool: <T>(poolLimit: number, array: T[], iteratorFn: (item: T, array: T[]) => Promise<any>) => Promise<any[]>
   sampleID(): string
   isValidIPv4(ip: string): boolean
-  generateConfig(profile: any, stable?: boolean): Promise<any>
+  generateConfig(profile: any, stable?: boolean): Promise<Record<string, any>>
   formatBytes(bytes: number): string
-  formatDate(date: string | number, format: string)
-  handleUseProxy(group: any, proxy: { name: string }): Promise<void>
+  formatDate(date: string | number, format: string): string
+  handleUseProxy(group: any, proxy: Recordable): Promise<void>
+  handleChangeMode(mode: 'direct' | 'global' | 'rule'): Promise<void>
   debounce(fn: (...args: any[]) => void, delay: number): (...args: any[]) => void
   getKernelFileName(isAlpha: boolean): Promise<string>
   getUserAgent(): Promise<string>
@@ -246,6 +340,6 @@ interface Plugins {
 declare namespace globalThis {
   var Plugins: Plugins
   var Plugin: any
-  var Vue: typeof import('vue')
+  var Vue: Vue
   var AsyncFunction: FunctionConstructor
 }

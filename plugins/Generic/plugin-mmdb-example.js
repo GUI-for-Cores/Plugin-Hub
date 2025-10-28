@@ -59,7 +59,7 @@ const onInstall = async () => {
       success('下载完成')
     })
     .catch((err) => {
-      error('下载失败,原因：', err.message || err)
+      error('下载失败,原因：' + (err.message || err))
     })
     .finally(async () => {
       await Plugins.sleep(1000)

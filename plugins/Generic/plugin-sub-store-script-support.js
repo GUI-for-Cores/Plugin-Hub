@@ -18,9 +18,9 @@ const onInstall = async () => {
   const { assets, tag_name, message: msg } = body
   if (msg) throw msg
   const {
-    env: { os, arch, x64Level }
+    env: { os, arch }
   } = Plugins.useEnvStore()
-  const amd64Compatible = arch === 'amd64' && x64Level < 3 ? '-compatible' : ''
+  const amd64Compatible = arch === 'amd64' ? '-v2' : ''
   const suffix = { windows: '.zip', linux: '.gz', darwin: '.gz' }[os]
   const binSuffix = { windows: '.exe', linux: '', darwin: '' }[os]
   const binName = `mihomo-${os}-${arch}${amd64Compatible}${binSuffix}`

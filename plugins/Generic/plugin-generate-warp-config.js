@@ -7,7 +7,7 @@ const CLOUDFLARE_API_URL = 'https://api.cloudflareclient.com/v0a2158/reg'
 const WINDOWS_INSTALL_COMMAND = 'winget.exe install --id=FireDaemon.OpenSSL -e'
 // @ts-ignore
 const OPENSSL_EXEC_PATH = Plugin.OpenSslExecPath || 'C:/Program Files/FireDaemon OpenSSL 3/bin/openssl.exe'
-const env = Plugins.useEnvStore()
+const { env } = Plugins.useEnvStore()
 /**
  * 插件钩子：运行按钮 - onRun
  */
