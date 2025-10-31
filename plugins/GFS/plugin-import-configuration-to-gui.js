@@ -430,7 +430,9 @@ class ConfigParser {
         ...DefaultOutbound(),
         ...ob,
         id: outboundTagToId[ob.tag],
-        outbounds: []
+        outbounds: [],
+        include: '',
+        exclude: ''
       }
 
       if (ob.type === Outbound.Selector || ob.type === Outbound.Urltest) {
