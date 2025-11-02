@@ -1283,6 +1283,50 @@
     "installed": false
   },
   {
+    "id": "plugin-github-commit-history",
+    "name": "GitHub提交记录",
+    "version": "v1.0.0",
+    "description": "添加目标仓库，查看其历史提交记录",
+    "tags": ["实用工具"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-github-commit-history.js",
+    "path": "data/plugins/plugin-github-commit-history.js",
+    "triggers": ["on::manual"],
+    "hasUI": true,
+    "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_goqh9w8i",
+        "title": "GitHub API TOKEN 来源",
+        "description": "提供token以免被GitHub限制请求",
+        "key": "TOKEN_MODE",
+        "component": "Radio",
+        "value": "gui",
+        "options": ["使用GUI内配置的,gui", "使用插件单独配置的,plugin", "不使用任何TOKEN,none"]
+      },
+      {
+        "id": "ID_ya8r6f5g",
+        "title": "为此插件单独配置TOKEN",
+        "description": "",
+        "key": "TOKEN",
+        "component": "Input",
+        "value": "",
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-sync-configuration",
     "name": "配置同步",
     "version": "v1.0.1",
