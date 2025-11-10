@@ -245,6 +245,7 @@ interface Plugins {
     restartCore: (cleanupTask?: () => Promise<any>, keepRuntimeProfile = true) => Promise<void>
     pid: number
     running: boolean
+    needRestart: boolean
     config: Recordable
     proxies: Recordable[]
     onLogs: (data: { type: string; payload: string }) => () => void

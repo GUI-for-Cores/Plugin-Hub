@@ -282,20 +282,27 @@ const _adaptToMain = (config) => {
 }
 
 const _adaptToLegacy = (config) => {
-  config.outbounds.push(
-    {
+  const isExists = (id) => config.outbounds.find((v) => v.type === id && v.tag === id)
+
+  if (!isExists('direct')) {
+    config.outbounds.push({
       type: 'direct',
       tag: 'direct'
-    },
-    {
-      type: 'dns',
-      tag: 'dns-out'
-    },
-    {
+    })
+  }
+
+  if (!isExists('block')) {
+    config.outbounds.push({
       type: 'block',
       tag: 'block'
-    }
-  )
+    })
+  }
+
+  config.outbounds.push({
+    type: 'dns',
+    tag: 'dns-out'
+  })
+
   config.route.rules = config.route.rules.flatMap((rule) => {
     if (rule.action === 'sniff') {
       if (rule.inbound) {
