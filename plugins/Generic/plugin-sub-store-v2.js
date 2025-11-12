@@ -293,6 +293,7 @@ const openSubStoreUI = () => {
       default: () =>
         Vue.h('iframe', {
           src: src,
+          allow: 'clipboard-read; clipboard-write',
           class: 'w-full h-full border-0',
           style: {
             height: 'calc(100% - 6px)'

@@ -1136,7 +1136,7 @@
   {
     "id": "plugin-sub-store-v3",
     "name": "Sub-Store 纯净版",
-    "version": "v1.3.1",
+    "version": "v1.3.2",
     "description": "高级订阅管理工具。无Node.js、无MITM，优雅。（Advanced Subscription Manager for QX, Loon, Surge, Stash and Shadowrocket!）",
     "tags": ["实用工具"],
     "type": "Http",
@@ -1184,7 +1184,7 @@
   {
     "id": "plugin-sub-store-v2",
     "name": "Sub-Store Nodejs版",
-    "version": "v1.3.1",
+    "version": "v1.3.2",
     "description": "高级订阅管理工具，Node.js版，无需编译。（Advanced Subscription Manager for QX, Loon, Surge, Stash and Shadowrocket!）",
     "tags": ["实用工具"],
     "type": "Http",
