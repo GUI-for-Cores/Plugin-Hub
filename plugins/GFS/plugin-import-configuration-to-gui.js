@@ -53,6 +53,7 @@ const Inbound = {
 
 const Outbound = {
   Direct: 'direct',
+  Block: 'block',
   Selector: 'selector',
   Urltest: 'urltest'
 }
