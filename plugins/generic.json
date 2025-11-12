@@ -1021,6 +1021,72 @@
     "installed": false
   },
   {
+    "id": "plugin-meilisearch",
+    "name": "Meilisearch",
+    "version": "v1.0.0",
+    "description": "集成 Meilisearch 程序，一个强大、快速、开源的搜索引擎。Supported by: Alkacid",
+    "tags": ["实用工具"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-meilisearch.js",
+    "path": "data/plugins/plugin-meilisearch.js",
+    "triggers": ["on::manual", "on::startup", "on::shutdown"],
+    "hasUI": false,
+    "menus": {
+      "运行服务": "Start",
+      "停止服务": "Stop",
+      "打开目录": "OpenDataDir"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_xh130ial",
+        "title": "跟随GUI启动或停止",
+        "description": "",
+        "key": "AutoStartOrStop",
+        "component": "Switch",
+        "value": false,
+        "options": []
+      },
+      {
+        "id": "ID_h15qrvcs",
+        "title": "HTTP 地址",
+        "description": "Meilisearch 监听的地址和端口，例如：127.0.0.1:7700",
+        "key": "HttpAddress",
+        "component": "Input",
+        "value": "127.0.0.1:7700",
+        "options": []
+      },
+      {
+        "id": "ID_simzjfu4",
+        "title": "Master Key",
+        "description": "设置密码（Master Key）来保护你的 Meilisearch 实例，留空则不启用",
+        "key": "MasterKey",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_1e6s3uzi",
+        "title": "数据库路径",
+        "description": "数据库文件的存放位置；留空则使用默认路径",
+        "key": "DbPath",
+        "component": "Input",
+        "value": "",
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": true,
+    "installed": false
+  },
+  {
     "id": "plugin-frp-client",
     "name": "frp 内网穿透",
     "version": "v1.1.1",
@@ -2797,72 +2863,6 @@
     "configuration": [],
     "disabled": false,
     "install": false,
-    "installed": false
-  },
-  {
-    "id": "plugin-meilisearch",
-    "name": "Meilisearch",
-    "version": "v1.0.0",
-    "description": "集成 Meilisearch 程序，一个强大、快速、开源的搜索引擎。",
-    "tags": ["实用工具"],
-    "type": "Http",
-    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-meilisearch.js",
-    "path": "data/plugins/plugin-meilisearch.js",
-    "triggers": ["on::manual", "on::startup", "on::shutdown"],
-    "hasUI": false,
-    "menus": {
-      "运行服务": "Start",
-      "停止服务": "Stop",
-      "打开目录": "OpenDataDir"
-    },
-    "context": {
-      "profiles": {},
-      "subscriptions": {},
-      "rulesets": {},
-      "plugins": {},
-      "scheduledtasks": {}
-    },
-    "status": 0,
-    "configuration": [
-      {
-        "id": "ID_xh130ial",
-        "title": "跟随GUI启动或停止",
-        "description": "",
-        "key": "AutoStartOrStop",
-        "component": "Switch",
-        "value": false,
-        "options": []
-      },
-      {
-        "id": "ID_h15qrvcs",
-        "title": "HTTP 地址",
-        "description": "Meilisearch 监听的地址和端口，例如：127.0.0.1:7700",
-        "key": "HttpAddress",
-        "component": "Input",
-        "value": "127.0.0.1:7700",
-        "options": []
-      },
-      {
-        "id": "ID_simzjfu4",
-        "title": "Master Key",
-        "description": "设置密码（Master Key）来保护你的 Meilisearch 实例，留空则不启用",
-        "key": "MasterKey",
-        "component": "Input",
-        "value": "",
-        "options": []
-      },
-      {
-        "id": "ID_1e6s3uzi",
-        "title": "数据库路径",
-        "description": "数据库文件的存放位置；留空则使用默认路径",
-        "key": "DbPath",
-        "component": "Input",
-        "value": "",
-        "options": []
-      }
-    ],
-    "disabled": false,
-    "install": true,
     "installed": false
   }
 ]
