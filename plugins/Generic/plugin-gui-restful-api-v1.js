@@ -1,3 +1,5 @@
+const PATH = `data/third/${Plugin.id}`
+
 /* Trigger on::manual */
 const onRun = async () => {
   await Plugins.ignoredError(Stop, false)
@@ -39,6 +41,7 @@ const Start = async (params = Plugin) => {
   registerScheduledTasks(router)
   registerCores(router)
   registerGUI(router)
+  registerMMDB(router)
 
   registerDocument(router)
 
@@ -769,6 +772,257 @@ function registerGUI(router) {
         await envStore.clearSystemProxy()
       }
       res.json(200, '已完成')
+    }
+  )
+}
+
+/**
+ * MMDB 操作
+ * @param {Router} router
+ */
+function registerMMDB(router) {
+  const dbsDir = `${PATH}/mmdbs`
+  const dbsConfig = `${PATH}/mmdbs_config.json`
+  const dbTypes = ['ASN', 'AnonymousIP', 'City', 'ConnectionType', 'Country', 'Domain', 'Enterprise']
+  const creationDbInfo = {
+    type: 'object',
+    properties: {
+      id: {
+        type: 'string',
+        description: '数据库的唯一标识'
+      },
+      type: {
+        type: 'string',
+        enum: dbTypes,
+        description: '数据库的类型'
+      },
+      url: {
+        type: 'string',
+        description: '数据库的下载链接'
+      }
+    },
+    required: ['id', 'type', 'url']
+  }
+  /* const savedDbInfo = {
+    ...creationDbInfo,
+    properties: {
+      ...creationDbInfo.properties,
+      path: {
+        type: 'string',
+        description: '数据库的保存路径'
+      }
+    },
+    required: [...creationDbInfo.required, 'path']
+  } */
+
+  const readCurrentDbInfos = async () => {
+    const data = await Plugins.ignoredError(Plugins.ReadFile, dbsConfig)
+    try {
+      const dbInfos = JSON.parse(data)
+      return dbInfos
+    } catch (e) {
+      return []
+    }
+  }
+
+  router.get(
+    '/v1/mmdbs',
+    {
+      description: {
+        zh: '获取所有数据库'
+      }
+    },
+    async (req, res) => {
+      const notFoundMsg = '没有任何数据库'
+      const dbInfos = await readCurrentDbInfos()
+      if (dbInfos.length === 0) {
+        return res.json(404, notFoundMsg)
+      }
+      res.json(200, dbInfos)
+    }
+  )
+
+  router.get(
+    '/v1/mmdbs/:id',
+    {
+      description: {
+        zh: '获取某个数据库的信息'
+      }
+    },
+    async (req, res, { id }) => {
+      const notFoundMsg = '数据库不存在'
+      const dbInfos = await readCurrentDbInfos()
+      const dbInfo = dbInfos.find((v) => v.id === id)
+      if (!dbInfo) {
+        return res.json(404, notFoundMsg)
+      }
+      res.json(200, dbInfo)
+    }
+  )
+
+  router.post(
+    '/v1/mmdbs',
+    {
+      description: {
+        zh: '添加一个数据库'
+      }
+    },
+    async (req, res) => {
+      const missing = creationDbInfo.required.filter((k) => !req.body[k] || req.body[k].trim() === '')
+      if (missing.length > 0) {
+        return res.json(400, `缺少必要的参数：${missing.join(', ')}`)
+      }
+      const { id, type, url } = req.body
+      const dbInfos = await readCurrentDbInfos()
+      if (dbInfos.find((v) => v.id === id)) {
+        return res.json(400, '数据库已存在')
+      }
+      if (!dbTypes.includes(type)) {
+        return res.json(422, '数据库的类型错误')
+      }
+      if (!(await Plugins.FileExists(dbsDir))) {
+        await Plugins.MakeDir(dbsDir)
+      }
+      const savedPath = `${dbsDir}/${id}.mmdb`
+      try {
+        await Plugins.Download(url, savedPath)
+      } catch (e) {
+        return res.json(500, `下载数据库失败：${e.message || e}`)
+      }
+      const savedDbInfo = {
+        id,
+        type,
+        url,
+        path: savedPath
+      }
+      dbInfos.push(savedDbInfo)
+      await Plugins.WriteFile(dbsConfig, JSON.stringify(dbInfos))
+      res.json(201, '添加数据库成功')
+    }
+  )
+
+  router.delete(
+    '/v1/mmdbs/:id',
+    {
+      description: {
+        zh: '删除一个数据库'
+      }
+    },
+    async (req, res, { id }) => {
+      const notFoundMsg = '数据库不存在'
+      const dbInfos = await readCurrentDbInfos()
+      const deletedDbInfo = dbInfos.filter((v) => v.id === id)
+      const updatedDbInfos = dbInfos.filter((v) => v.id !== id)
+      if (deletedDbInfo.length === 0) {
+        return res.json(404, notFoundMsg)
+      }
+      await Plugins.RemoveFile(deletedDbInfo[0].path)
+      await Plugins.WriteFile(dbsConfig, JSON.stringify(updatedDbInfos))
+      res.json(200, '删除数据库成功')
+    }
+  )
+
+  router.put(
+    '/v1/mmdbs/:id/update',
+    {
+      description: {
+        zh: '更新一个数据库'
+      }
+    },
+    async (req, res, { id }) => {
+      const dbInfos = await readCurrentDbInfos()
+      const dbInfo = dbInfos.find((v) => v.id === id)
+      if (!dbInfo) {
+        return res.json(404, '数据库不存在')
+      }
+      try {
+        await Plugins.Download(dbInfo.url, dbInfo.path)
+      } catch (e) {
+        return res.json(500, `更新数据库失败：${e.message || e}`)
+      }
+      res.json(200, '更新数据库成功')
+    }
+  )
+
+  router.post(
+    '/v1/mmdbs/:id/open',
+    {
+      description: {
+        zh: '打开一个数据库'
+      }
+    },
+    async (req, res, { id }) => {
+      const notFoundMsg = '数据库不存在'
+      const dbInfos = await readCurrentDbInfos()
+      const dbInfo = dbInfos.find((v) => v.id === id)
+      if (!dbInfo) {
+        return res.json(404, notFoundMsg)
+      }
+      try {
+        await Plugins.OpenMMDB(dbInfo.path, Plugin.id)
+      } catch (e) {
+        return res.json(500, `打开数据库失败：${e.message || e}`)
+      }
+      res.json(200, '打开数据库成功')
+    }
+  )
+
+  router.post(
+    '/v1/mmdbs/:id/close',
+    {
+      description: {
+        zh: '关闭一个数据库'
+      }
+    },
+    async (req, res, { id }) => {
+      const notFoundMsg = '数据库不存在'
+      const dbInfos = await readCurrentDbInfos()
+      const dbInfo = dbInfos.find((v) => v.id === id)
+      if (!dbInfo) {
+        return res.json(404, notFoundMsg)
+      }
+      try {
+        await Plugins.CloseMMDB(dbInfo.path, Plugin.id)
+      } catch (e) {
+        return res.json(500, `关闭数据库失败：${e.message || e}`)
+      }
+      res.json(200, '关闭数据库成功')
+    }
+  )
+
+  router.post(
+    '/v1/mmdbs/:id/query',
+    {
+      description: {
+        zh: '查询一个数据库'
+      }
+    },
+    async (req, res, { id }) => {
+      if (!req.body.ip) {
+        return res.json(400, '缺少必要的参数：ip')
+      }
+      const { ip, type = 'Country' } = req.body
+      const notFoundMsg = '数据库不存在'
+      const dbInfos = await readCurrentDbInfos()
+      const dbInfo = dbInfos.find((v) => v.id === id)
+      if (!dbInfo) {
+        return res.json(404, notFoundMsg)
+      }
+      if (!dbTypes.includes(type)) {
+        return res.json(422, '查询的类型错误')
+      }
+      try {
+        const ipInfo = await Plugins.QueryMMDB(dbInfo.path, ip, type)
+        return res.json(200, ipInfo)
+      } catch (e) {
+        const errMsg = e.message || String(e)
+        if (errMsg.includes('Database not open')) {
+          await Plugins.OpenMMDB(dbInfo.path, Plugin.id)
+          const ipInfo = await Plugins.QueryMMDB(dbInfo.path, ip, type)
+          return res.json(200, ipInfo)
+        }
+        return res.json(500, `查询数据库失败：${e.message || e}`)
+      }
     }
   )
 }
