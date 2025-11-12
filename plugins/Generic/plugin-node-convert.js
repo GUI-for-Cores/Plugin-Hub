@@ -249,6 +249,9 @@ const PROXY_PRODUCERS = {
 }
 
 const $ = {
+  env: {
+    isNode: false
+  },
   info: (msg) => {
     console.log(`[${Plugin.name}]`, msg)
   },
