@@ -597,6 +597,44 @@
     "installed": false
   },
   {
+    "id": "plugin-pac-server",
+    "version": "v1.0.0",
+    "name": "PAC 服务器",
+    "description": "适用于使用代理自动配置的用户。",
+    "tags": ["提升体验", "功能扩展"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-pac-server.js",
+    "path": "data/plugins/plugin-pac-server",
+    "status": 0,
+    "triggers": ["on::manual", "on::core::stopped", "on::core::started"],
+    "hasUI": false,
+    "menus": {
+      "启动服务": "Start",
+      "停止服务": "Stop"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "configuration": [
+      {
+        "id": "ID_ud5xpt5w",
+        "title": "PAC服务监听地址",
+        "description": "",
+        "key": "Address",
+        "component": "Input",
+        "value": "0.0.0.0:4532",
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-system-proxy-guard",
     "name": "代理守卫",
     "version": "v2.1.0",
