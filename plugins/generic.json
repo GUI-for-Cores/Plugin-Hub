@@ -604,7 +604,7 @@
     "tags": ["提升体验", "功能扩展"],
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-pac-server.js",
-    "path": "data/plugins/plugin-pac-server",
+    "path": "data/plugins/plugin-pac-server.js",
     "status": 0,
     "triggers": ["on::manual", "on::core::stopped", "on::core::started"],
     "hasUI": false,
