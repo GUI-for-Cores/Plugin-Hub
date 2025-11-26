@@ -1405,7 +1405,7 @@ function Singbox_Producer() {
               }
               break
             case 'vmess':
-              if (!proxy.network || ['ws', 'grpc', 'h2', 'http'].includes(proxy.network)) {
+              if (!proxy.network || ['tcp', 'ws', 'grpc', 'h2', 'http'].includes(proxy.network)) {
                 list.push(vmessParser(proxy))
               } else {
                 throw new Error(`Platform sing-box does not support proxy type: ${proxy.type} with network ${proxy.network}`)
