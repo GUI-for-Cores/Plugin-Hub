@@ -1348,7 +1348,7 @@
   {
     "id": "plugin-sync-configuration",
     "name": "配置同步",
-    "version": "v1.0.1",
+    "version": "v1.0.2",
     "description": "使用自建服务同步GUI配置。",
     "tags": ["提升体验", "功能扩展", "提升体验"],
     "type": "Http",
@@ -1433,7 +1433,7 @@
   {
     "id": "plugin-sync-configuration-gists",
     "name": "配置同步 - Gists",
-    "version": "v1.0.1",
+    "version": "v1.0.2",
     "description": "使用Gists同步GUI配置。",
     "tags": ["实用工具", "功能扩展", "提升体验"],
     "type": "Http",
@@ -1480,7 +1480,7 @@
   {
     "id": "plugin-sync-configuration-webdav",
     "name": "配置同步 - WebDAV",
-    "version": "v2.1.1",
+    "version": "v2.1.2",
     "description": "使用webDAV协议同步GUI配置。",
     "tags": ["实用工具", "功能扩展", "提升体验"],
     "type": "Http",

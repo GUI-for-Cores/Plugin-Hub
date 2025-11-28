@@ -72,7 +72,9 @@ const Sync = async () => {
   await Plugins.sleep(1500).then(() => destroy())
 
   const kernelApiStore = Plugins.useKernelApiStore()
-  await kernelApiStore.stopKernel()
+  if (kernelApiStore.running) {
+    await kernelApiStore.stopCore()
+  }
 
   await Plugins.WindowReloadApp()
 }
