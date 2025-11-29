@@ -187,7 +187,7 @@ const DefaultInboundListen = () => ({
 const DefaultInboundTun = () => ({
   interface_name: '',
   address: DefaultTunAddress,
-  mtu: 9000,
+  mtu: 0,
   auto_route: true,
   strict_route: true,
   route_address: [],

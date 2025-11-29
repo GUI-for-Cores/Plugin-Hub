@@ -2761,7 +2761,7 @@
   {
     "id": "plugin-log-record",
     "name": "日志记录器",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "description": "记录内核输出的日志到文件中，方便后续调试。Supported by: 泡泡茶壶",
     "tags": ["提升体验", "功能扩展"],
     "type": "Http",
