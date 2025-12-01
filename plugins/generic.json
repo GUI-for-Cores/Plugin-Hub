@@ -674,13 +674,13 @@
   {
     "id": "plugin-install-font",
     "name": "Twemoji.Mozilla",
-    "version": "v1.0.1",
+    "version": "v2.0.0",
     "description": "下载并安装字体“Twemoji.Mozilla.ttf”，你的节点将正常显示国旗图标。（Twemoji font in COLR/CPAL layered format）",
     "tags": ["实用工具", "提升体验"],
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-install-font.js",
     "path": "data/plugins/plugin-install-font.js",
-    "triggers": [],
+    "triggers": ["on::manual"],
     "hasUI": false,
     "menus": {},
     "context": {
@@ -693,7 +693,7 @@
     "status": 0,
     "configuration": [],
     "disabled": false,
-    "install": true,
+    "install": false,
     "installed": false
   },
   {
