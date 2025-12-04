@@ -282,6 +282,7 @@ interface Plugins {
     addSubscribe(subscription: Recordable): Promise<void>
     editSubscribe(id: string, subscription: Recordable): Promise<void>
     deleteSubscribe(id: string): Promise<void>
+    getSubscribeTemplate(name: string, options: { url: string }): Recordable
   }
   useEnvStore(): {
     env: {
@@ -305,6 +306,7 @@ interface Plugins {
     addProfile(profile: Recordable): Promise<void>
     editProfile(id: string, profile: Recordable): Promise<void>
     deleteProfile(id: string): Promise<void>
+    getProfileTemplate(name: string): Recordable
   }
   useScheduledTasksStore(): {
     scheduledtasks: Recordable[]
