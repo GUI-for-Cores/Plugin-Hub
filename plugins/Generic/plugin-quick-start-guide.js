@@ -20,19 +20,16 @@ const onReady = async () => {
 }
 
 const showUI = () => {
-  if (Plugins.APP_TITLE.includes('Clash')) {
-    throw '暂未适配'
-  }
   const { h, ref, watch, computed, resolveComponent } = Vue
 
   const currentStep = ref(0)
   const isDirectIPv6Enabled = ref(false)
   const isProxyIPv6Enabled = ref(false)
   const isAllowLanEnabled = ref(false)
-  const lanPort = ref(0)
+  const lanPort = ref()
   const isTUNEnabled = ref(false)
   const isFakeIPEnabled = ref(false)
-  const isQuicElabled = ref(false)
+  const isBanQUICEnabled = ref(true)
 
   const name = ref(Plugins.sampleID())
   const subsMap = ref({})
@@ -51,7 +48,7 @@ const showUI = () => {
     <div>
       <Progress :percent="(currentStep / 7) * 100" />
       <div v-if="currentStep === 0">
-        <div class="text-32 py-8 font-bold">欢迎使用网络配置向导</div>
+        <div class="text-32 py-8 font-bold">欢迎使用快速配置向导</div>
         <p>此向导可帮你生成一份不会出错的配置。开始前请：</p>
         <ul>
           <li class="my-16">关闭所有代理软件（避免影响IPv6判断）</li>
@@ -88,7 +85,7 @@ const showUI = () => {
         </div>
         <template v-if="isAllowLanEnabled">
           <h4>如果你想自定义开放的端口，请填写：</h4>
-          <Input v-model="lanPort" placeholder="20112" type="number" />
+          <Input v-model="lanPort" placeholder="请输入端口号" />
         </template>
       </div>
 
@@ -114,8 +111,8 @@ const showUI = () => {
         <div class="text-32 py-8 font-bold">是否需要禁用QUIC？</div>
         <Tag>部分网站会使用QUIC协议，这通常会影响访问代理网站的速度</Tag>
         <div class="flex gap-8">
-          <Card @click="isQuicElabled = false" :selected="!isQuicElabled" title="需要" class="flex-1" selected subtitle="阻止网站使用 QUIC，避免影响代理速度" />
-          <Card @click="isQuicElabled = true" :selected="isQuicElabled" title="不需要" class="flex-1" subtitle="允许网站使用 QUIC 协议" />
+          <Card @click="isBanQUICEnabled = true" :selected="isBanQUICEnabled" title="需要" class="flex-1" selected subtitle="阻止网站使用 QUIC，避免影响代理速度" />
+          <Card @click="isBanQUICEnabled = false" :selected="!isBanQUICEnabled" title="不需要" class="flex-1" subtitle="允许网站使用 QUIC 协议" />
         </div>
       </div>
 
@@ -129,7 +126,7 @@ const showUI = () => {
             <Card v-for="sub in subs" :key="sub.id" :title="sub.name" @click="toggleSubRef(sub)" :selected="subsRef.includes(sub)" />
           </div>
         </template>
-        <p v-if="Object.keys(subsMap).length > 1 || subsRef.length > 1">如果你打算引用多个订阅，这些订阅中可能包含相同名称的节点，造成核心启动失败。但你可以在插件中心找到解决方案。</p>
+        <p v-if="Object.keys(subsMap).length + subsRef.length > 1">如果你打算引用多个订阅，这些订阅中可能包含相同名称的节点，造成核心启动失败。但你可以在插件中心找到解决方案。</p>
       </div>
     </div>
     `,
@@ -147,7 +144,7 @@ const showUI = () => {
         lanPort,
         isTUNEnabled,
         isFakeIPEnabled,
-        isQuicElabled,
+        isBanQUICEnabled,
         subsMap,
         subsRef,
         subs,
@@ -190,8 +187,13 @@ const showUI = () => {
         // 2、导入配置
         const profile = profilesStore.getProfileTemplate(name.value)
         ;[...subIds, ...subsRef.value].forEach(({ name, id }) => {
-          profile.outbounds[0].outbounds.push({ id: id, tag: name, type: 'Subscription' })
-          profile.outbounds[1].outbounds.push({ id: id, tag: name, type: 'Subscription' })
+          if (Plugins.APP_TITLE.includes('SingBox')) {
+            profile.outbounds[0].outbounds.push({ id: id, tag: name, type: 'Subscription' })
+            profile.outbounds[1].outbounds.push({ id: id, tag: name, type: 'Subscription' })
+          } else if (Plugins.APP_TITLE.includes('Clash')) {
+            profile.proxyGroupsConfig[0].use.push(id)
+            profile.proxyGroupsConfig[1].use.push(id)
+          }
         })
 
         // 3、个性化配置
@@ -202,7 +204,7 @@ const showUI = () => {
           lanPort: lanPort.value,
           isTUNEnabled: isTUNEnabled.value,
           isFakeIPEnabled: isFakeIPEnabled.value,
-          isQuicElabled: isQuicElabled.value
+          isBanQUICEnabled: isBanQUICEnabled.value
         })
 
         await profilesStore.addProfile(profile)
@@ -264,10 +266,12 @@ const personalizeProfile = async (profile, options) => {
     if (options.isProxyIPv6Enabled) {
       profile.dns.strategy = 'prefer_ipv6'
       profile.dns.rules[1].strategy = 'prefer_ipv6'
+      profile.dns.rules[4].strategy = 'prefer_ipv6'
       profile.dns.rules[5].strategy = 'prefer_ipv6'
     } else {
       profile.dns.strategy = 'ipv4_only'
       profile.dns.rules[1].strategy = 'ipv4_only'
+      profile.dns.rules[4].strategy = 'ipv4_only'
       profile.dns.rules[5].strategy = 'ipv4_only'
     }
 
@@ -277,29 +281,28 @@ const personalizeProfile = async (profile, options) => {
     }
     profile.inbounds[1].enable = options.isTUNEnabled
     profile.dns.rules[4].enable = options.isFakeIPEnabled
-    profile.route.rules[6].enable = !options.isQuicElabled
+    profile.route.rules[6].enable = options.isBanQUICEnabled
   } else if (Plugins.APP_TITLE.includes('Clash')) {
-    if (options.isDirectIPv6Enabled) {
-      profile.generalConfig.ipv6 = true
-    } else {
-      profile.generalConfig.ipv6 = false
+    profile.generalConfig.ipv6 = options.isDirectIPv6Enabled || options.isProxyIPv6Enabled
+    profile.dnsConfig.ipv6 = options.isDirectIPv6Enabled || options.isProxyIPv6Enabled
+
+    if (!options.isDirectIPv6Enabled) {
+      profile.dnsConfig['nameserver-policy']['rule-set:GEOSITE-CN'] += '&disable-ipv6=true'
     }
-    if (options.isAllowLanEnabled) {
-      profile.generalConfig.ipv6 = true
+    if (!options.isProxyIPv6Enabled) {
+      profile.dnsConfig['nameserver-policy']['rule-set:geolocation-!cn'] += '&disable-ipv6=true'
     }
+
+    profile.generalConfig['allow-lan'] = options.isAllowLanEnabled
     if (options.lanPort) {
       profile.generalConfig['mixed-port'] = Number(options.lanPort)
     }
-    if (options.isTUNEnabled) {
-      profile.tunConfig.enable = true
-    }
+    profile.tunConfig.enable = options.isTUNEnabled
     if (options.isFakeIPEnabled) {
       profile.dnsConfig['enhanced-mode'] = 'fake-ip'
-      profile.dnsConfig['fake-ip-filter'].push('')
-      profile.dnsConfig['nameserver-policy']['rule-set:GEOSITE-CN'] = ''
-      profile.dnsConfig['nameserver-policy']['rule-set:geolocation-!cn'] = ''
+      profile.dnsConfig.nameserver = ['https://223.5.5.5/dns-query#' + profile.proxyGroupsConfig[2].name]
+      profile.dnsConfig['fake-ip-filter'].push('rule-set:GEOSITE-CN')
     }
-    if (options.isQuicElabled) {
-    }
+    profile.rulesConfig[1].enable = options.isBanQUICEnabled
   }
 }
