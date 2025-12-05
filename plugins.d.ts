@@ -289,6 +289,7 @@ interface Plugins {
       appName: string
       appVersion: string
       basePath: string
+      appPath: string
       os: string
       arch: string
     }

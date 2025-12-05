@@ -494,7 +494,7 @@ const onRun = async () => {
         }
         await Plugins.WriteFile(HOTKEY_FILE, JSON.stringify(hotkeyList.value, null, 4))
       },
-      beforeClose() {
+      afterClose() {
         modal.destroy()
       }
     },

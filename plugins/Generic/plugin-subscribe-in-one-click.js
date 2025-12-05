@@ -48,7 +48,7 @@ const openUI = () => {
         }
 
         const envStore = Plugins.useEnvStore()
-        const path = (envStore.env.basePath + '\\' + envStore.env.appName).replaceAll('\\', '\\\\')
+        const path = envStore.env.appPath.replaceAll('/', '\\\\')
         const file = 'data/.cache/register_protocol.reg'
         const reg = `Windows Registry Editor Version 5.00
 [${regKey}]
@@ -119,7 +119,7 @@ const openUI = () => {
       title: Plugin.name,
       footer: false,
       maskClosable: true,
-      beforeClose() {
+      afterClose() {
         modal.destroy()
       }
     },

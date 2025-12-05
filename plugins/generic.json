@@ -251,7 +251,7 @@
   {
     "id": "plugin-subscribe-in-one-click",
     "name": "一键导入订阅助手",
-    "version": "v1.0.0",
+    "version": "v1.0.1",
     "description": "运行此插件，帮助你使用机场的一键导入订阅功能。",
     "tags": ["提升体验", "功能扩展"],
     "type": "Http",
@@ -865,7 +865,7 @@
   {
     "id": "plugin-file-transfer-assistant",
     "name": "文件互传助手",
-    "version": "v1.3.1",
+    "version": "v1.3.2",
     "description": "文件互传助手，支持Siri快捷指令。",
     "tags": ["实用工具", "功能扩展"],
     "type": "Http",
@@ -1765,7 +1765,7 @@
   {
     "id": "plugin-hotkey-api-bridge",
     "name": "全局热键",
-    "version": "v1.0.2",
+    "version": "v1.0.3",
     "description": "请配合【RESTful-Api v1】插件使用。",
     "tags": ["功能扩展", "提升体验"],
     "type": "Http",

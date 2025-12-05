@@ -81,7 +81,7 @@ const openTransferUI = () => {
       height: '90',
       footer: false,
       maskClosable: true,
-      beforeClose() {
+      afterClose() {
         modal.destroy()
       }
     },
