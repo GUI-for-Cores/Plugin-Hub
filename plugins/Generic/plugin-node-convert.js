@@ -1429,6 +1429,7 @@ function Singbox_Producer() {
               list.push(hysteriaParser(proxy))
               break
             case 'hysteria2':
+              // @ts-ignore
               list.push(hysteria2Parser(proxy, opts['include-unsupported-proxy']))
               break
             case 'tuic':
@@ -1575,7 +1576,7 @@ function URI_Producer() {
         delete proxy[key]
       }
     }
-    if (['trojan', 'tuic', 'hysteria', 'hysteria2', 'juicity'].includes(proxy.type)) {
+    if (['trojan', 'tuic', 'hysteria', 'hysteria2', 'juicity', 'anytls'].includes(proxy.type)) {
       delete proxy.tls
     }
     if (!['vmess'].includes(proxy.type) && proxy.server && isIPv6(proxy.server)) {
@@ -1632,6 +1633,7 @@ function URI_Producer() {
         } else if (proxy.network === 'ws' && proxy['ws-opts']?.['v2ray-http-upgrade']) {
           net = 'httpupgrade'
         }
+        // @ts-ignore
         result = {
           v: '2',
           ps: proxy.name,
@@ -1647,6 +1649,7 @@ function URI_Producer() {
           fp: proxy['client-fingerprint']
         }
         if (proxy.tls && proxy.sni) {
+          // @ts-ignore
           result.sni = proxy.sni
         }
         // obfs
@@ -1655,20 +1658,28 @@ function URI_Producer() {
           let vmessTransportHost = proxy[`${proxy.network}-opts`]?.headers?.Host
 
           if (['grpc'].includes(proxy.network)) {
+            // @ts-ignore
             result.path = proxy[`${proxy.network}-opts`]?.['grpc-service-name']
             // https://github.com/XTLS/Xray-core/issues/91
+            // @ts-ignore
             result.type = proxy[`${proxy.network}-opts`]?.['_grpc-type'] || 'gun'
+            // @ts-ignore
             result.host = proxy[`${proxy.network}-opts`]?.['_grpc-authority']
           } else if (['kcp', 'quic'].includes(proxy.network)) {
             // https://github.com/XTLS/Xray-core/issues/91
+            // @ts-ignore
             result.type = proxy[`${proxy.network}-opts`]?.[`_${proxy.network}-type`] || 'none'
+            // @ts-ignore
             result.host = proxy[`${proxy.network}-opts`]?.[`_${proxy.network}-host`]
+            // @ts-ignore
             result.path = proxy[`${proxy.network}-opts`]?.[`_${proxy.network}-path`]
           } else {
             if (vmessTransportPath) {
+              // @ts-ignore
               result.path = Array.isArray(vmessTransportPath) ? vmessTransportPath[0] : vmessTransportPath
             }
             if (vmessTransportHost) {
+              // @ts-ignore
               result.host = Array.isArray(vmessTransportHost) ? vmessTransportHost[0] : vmessTransportHost
             }
           }
@@ -2478,6 +2489,7 @@ const PROXY_PARSERS = (() => {
         uuid = uuid.replace(/^.*?:/g, '')
       }
 
+      // @ts-ignore
       port = parseInt(`${port}`, 10)
       uuid = decodeURIComponent(uuid)
       if (name != null) {
@@ -2634,8 +2646,11 @@ const PROXY_PARSERS = (() => {
       // eslint-disable-next-line no-unused-vars
       let [__, password, server, port, addons = '', name] = /^(.*?)@(.*?)(?::(\d+))?\/?(?:\?(.*?))?(?:#(.*?))?$/.exec(line)
       password = decodeURIComponent(password)
+      // @ts-ignore
       port = parseInt(`${port}`, 10)
+      // @ts-ignore
       if (isNaN(port)) {
+        // @ts-ignore
         port = 443
       }
       password = decodeURIComponent(password)
@@ -2671,8 +2686,11 @@ const PROXY_PARSERS = (() => {
         }
       }
 
+      // @ts-ignore
       if (['tcp'].includes(proxy.network) && !proxy['reality-opts']) {
+        // @ts-ignore
         delete proxy.network
+        // @ts-ignore
         delete proxy.security
       }
 
@@ -2699,14 +2717,18 @@ const PROXY_PARSERS = (() => {
 
       /* eslint-enable no-unused-vars */
       if (/^\d+$/.test(port)) {
+        // @ts-ignore
         port = parseInt(`${port}`, 10)
+        // @ts-ignore
         if (isNaN(port)) {
+          // @ts-ignore
           port = 443
         }
       } else if (port) {
         ports = port
         port = getRandomPort(ports)
       } else {
+        // @ts-ignore
         port = 443
       }
 
@@ -2773,8 +2795,11 @@ const PROXY_PARSERS = (() => {
       line = line.split(/(hysteria|hy):\/\//)[2]
       // eslint-disable-next-line no-unused-vars
       let [__, server, ___, port, ____, addons = '', name] = /^(.*?)(:(\d+))?\/?(\?(.*?))?(?:#(.*?))?$/.exec(line)
+      // @ts-ignore
       port = parseInt(`${port}`, 10)
+      // @ts-ignore
       if (isNaN(port)) {
+        // @ts-ignore
         port = 443
       }
       if (name != null) {
@@ -2846,8 +2871,11 @@ const PROXY_PARSERS = (() => {
       auth = decodeURIComponent(auth)
       let [uuid, ...passwordParts] = auth.split(':')
       let password = passwordParts.join(':')
+      // @ts-ignore
       port = parseInt(`${port}`, 10)
+      // @ts-ignore
       if (isNaN(port)) {
+        // @ts-ignore
         port = 443
       }
       password = decodeURIComponent(password)
@@ -2902,8 +2930,11 @@ const PROXY_PARSERS = (() => {
       let [__, ___, privateKey, server, ____, port, _____, addons = '', name] = /^((.*?)@)?(.*?)(:(\d+))?\/?(\?(.*?))?(?:#(.*?))?$/.exec(line)
       /* eslint-enable no-unused-vars */
 
+      // @ts-ignore
       port = parseInt(`${port}`, 10)
+      // @ts-ignore
       if (isNaN(port)) {
+        // @ts-ignore
         port = 51820
       }
       privateKey = decodeURIComponent(privateKey)
