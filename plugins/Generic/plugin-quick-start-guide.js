@@ -10,7 +10,7 @@ const onReady = async () => {
     id: Plugin.id,
     component: 'Button',
     componentProps: {
-      type: 'text',
+      type: 'link',
       onClick: showUI
     },
     componentSlots: {
@@ -95,6 +95,14 @@ const showUI = () => {
         <div class="flex gap-8">
           <Card @click="isTUNEnabled = true" :selected="isTUNEnabled" title="需要" class="flex-1" selected subtitle="所有流量将通过虚拟网卡并由核心转发" />
           <Card @click="isTUNEnabled = false" :selected="!isTUNEnabled" title="不需要" class="flex-1" subtitle="无法代理不遵循系统代理规则的软件" />
+        </div>
+        <div v-if="isTUNEnabled">
+          <p>注意事项</p>
+          <ul class="text-14">
+            <li class="my-16">Windows下启用TUN模式需要管理员权限，Linux/MacOS下需要到设置-内核页进行手动授权（每次更新核心后均需要重新手动授权）。</li>
+            <li class="my-16">MacOS下需要前往系统网络设置，将系统DNS修改为公网IP，例如8.8.8.8，以便核心劫持DNS请求。</li>
+            <li class="my-16">如果遇到网络不通，请尝试更换不同的TUN堆栈模式。</li>
+          </ul>
         </div>
       </div>
 
@@ -240,10 +248,22 @@ const showUI = () => {
   modal.open()
 }
 
+const getRandomUA = () => {
+  const userAgents = [
+    'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
+    'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/534.16 (KHTML, like Gecko) Chrome/10.0.648.133 Safari/534.16',
+    'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/534.57.2 (KHTML, like Gecko) Version/5.1.7 Safari/534.57.2',
+    'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:34.0) Gecko/20100101 Firefox/34.0',
+    'Mozilla/5.0 (X11; U; Linux x86_64; zh-CN; rv:1.9.2.10) Gecko/20100922 Ubuntu/10.10 (maverick) Firefox/3.6.10'
+  ]
+  return userAgents[Math.floor(Math.random() * userAgents.length)]
+}
+
 const checkIPv6Support = async () => {
   try {
-    const { status, body } = await Plugins.HttpGet('https://ipv6.lookup.test-ipv6.com/ip/', {
-      'User-Agent': 'iphone'
+    const { status } = await Plugins.HttpGet('https://ipv6.lookup.test-ipv6.com/ip/', {
+      'User-Agent': getRandomUA()
     })
     return status === 200
   } catch (error) {
