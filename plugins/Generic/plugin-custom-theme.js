@@ -190,7 +190,8 @@ const onReady = async () => {
   const config = JSON.parse(await Plugins.ReadFile(THEME_FILE))
   await setVariable(config)
   await setBackground(config)
-  await setCustomCSS()
+  await setCustomCSS
+  await setPreferNoRounded()
 }
 
 const onRun = async () => {
@@ -250,6 +251,7 @@ const Clear = () => {
   document.body.style.backgroundColor = ''
   document.body.style.backgroundImage = ''
   clearCustomCSS()
+  setPreferNoRounded(false)
 }
 
 /**
