@@ -2273,7 +2273,7 @@
   {
     "id": "plugin-custom-theme",
     "name": "自定义主题",
-    "version": "v3.0.1",
+    "version": "v4.0.0",
     "description": "通过修改css变量，实现任意主题配色！",
     "tags": ["UI美化", "功能扩展"],
     "type": "Http",
@@ -2296,6 +2296,15 @@
     },
     "status": 0,
     "configuration": [
+      {
+        "id": "ID_jmujeud5",
+        "title": "圆角直角偏好",
+        "description": "天下UI，圆久必方，方久必圆",
+        "key": "DisableRounded",
+        "component": "Radio",
+        "value": "false",
+        "options": ["圆角风格,false", "直角风格,true"]
+      },
       {
         "id": "ID_oboyphgx",
         "title": "主要颜色",
