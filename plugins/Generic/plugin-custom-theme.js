@@ -2,10 +2,6 @@ const PATH = 'data/third/custom-theme'
 const THEME_FILE = PATH + '/themes.json'
 
 const VariableList = [
-  // 主色
-  '--primary-color',
-  // 次色
-  '--secondary-color',
   // 文字颜色
   '--color-light',
   '--color-dark',
