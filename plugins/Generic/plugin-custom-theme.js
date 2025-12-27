@@ -110,6 +110,9 @@ const VariableList = [
   '--input-bg-light',
   '--input-color-dark',
   '--input-bg-dark',
+  // 颜色选择器
+  '--color-picker-bg-light',
+  '--color-picker-bg-dark',
   // 分割线
   '--divider-color-light',
   '--divider-color-dark',
@@ -191,7 +194,6 @@ const onReady = async () => {
   await setVariable(config)
   await setBackground(config)
   await setCustomCSS
-  await setPreferNoRounded()
 }
 
 const onRun = async () => {
@@ -199,14 +201,12 @@ const onRun = async () => {
   await setVariable(config)
   await setBackground(config)
   await setCustomCSS()
-  await setPreferNoRounded()
   Plugins.message.success('主题已生效')
 }
 
 /* 触发器 配置插件时 */
 const onConfigure = async (config, old) => {
   setCustomCSS(config.CustomCSS)
-  setPreferNoRounded(config.DisableRounded)
 }
 
 /**
@@ -251,7 +251,6 @@ const Clear = () => {
   document.body.style.backgroundColor = ''
   document.body.style.backgroundImage = ''
   clearCustomCSS()
-  setPreferNoRounded(false)
 }
 
 /**
@@ -369,8 +368,6 @@ const setVariable = async (config) => {
   Object.entries(config.variable).forEach(([property, value]) => {
     document.body.style.setProperty(property, value)
   })
-  Plugin.PrimaryColor && document.body.style.setProperty('--primary-color', Plugin.PrimaryColor)
-  Plugin.SecondaryColor && document.body.style.setProperty('--secondary-color', Plugin.SecondaryColor)
 }
 
 /**
@@ -391,32 +388,6 @@ const setCustomCSS = async (css = Plugin.CustomCSS) => {
 const clearCustomCSS = () => {
   const dom = document.getElementById(Plugin.id + '_custom_css')
   dom && dom.remove()
-}
-
-/**
- * 去除圆角
- */
-const setPreferNoRounded = (enable = Plugin.DisableRounded) => {
-  if (enable === 'true') {
-    const style = document.createElement('style')
-    style.id = Plugin.id + '_no_rounded'
-    style.type = 'text/css'
-    style.rel = 'stylesheet'
-    style.appendChild(
-      document.createTextNode(`
-        .rounded-full,
-        .rounded-4,
-        .rounded-6,
-        .rounded-8 {
-          border-radius: 0;
-        }
-      `)
-    )
-    document.head.appendChild(style)
-  } else {
-    const dom = document.getElementById(`${Plugin.id}_no_rounded`)
-    dom?.remove()
-  }
 }
 
 /**
