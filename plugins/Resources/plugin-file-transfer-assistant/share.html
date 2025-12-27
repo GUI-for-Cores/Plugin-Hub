@@ -5,68 +5,108 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>文件互传助手</title>
     <style>
+      :root {
+        --bg-color: #f4f7f9;
+        --text-main: #2c3e50;
+        --text-muted: #666;
+        --list-bg: #ffffff;
+        --item-border: #f0f0f0;
+        --item-hover: #f9fbff;
+        --btn-ghost: #f0f2f5;
+        --primary: #4a90e2;
+        --secondary: #34495e;
+        --icon-file-fill: %2395a5a6;
+        --icon-folder-fill: %23f1c40f;
+        --shadow: rgba(0, 0, 0, 0.08);
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg-color: #1a1a1a;
+          --text-main: #e0e0e0;
+          --text-muted: #aaa;
+          --list-bg: #2d2d2d;
+          --item-border: #3d3d3d;
+          --item-hover: #383838;
+          --btn-ghost: #3d3d3d;
+          --primary: #5da5f5;
+          --secondary: #455a64;
+          --icon-file-fill: %237f8c8d;
+          --icon-folder-fill: %23d4ac0d;
+          --shadow: rgba(0, 0, 0, 0.3);
+        }
+      }
+
+      body.dark {
+        --bg-color: #1a1a1a;
+        --text-main: #e0e0e0;
+        --text-muted: #aaa;
+        --list-bg: #2d2d2d;
+        --item-border: #3d3d3d;
+        --item-hover: #383838;
+        --btn-ghost: #3d3d3d;
+        --primary: #5da5f5;
+        --secondary: #455a64;
+        --icon-file-fill: %237f8c8d;
+        --icon-folder-fill: %23d4ac0d;
+        --shadow: rgba(0, 0, 0, 0.3);
+      }
+
       * {
         box-sizing: border-box;
       }
 
       body {
         margin: 0;
-        background: #2c3e50; /* Changed to solid color */
-        background-size: cover;
-        color: #fff; /* Changed for better contrast on a potentially dark background */
-        padding: 1.5rem;
-        font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; /* Added for a modern look */
+        background: var(--bg-color);
+        color: var(--text-main);
+        padding: 0 16px;
       }
 
       h1 {
-        text-align: center;
-        margin-bottom: 2rem;
-        font-size: 2.2rem; /* Slightly increased */
-        color: #ffffff;
-        text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3); /* Softer, more modern shadow */
+        text-align: left;
+        margin: 0;
+        padding: 1.2rem 1rem 0.5rem 1rem;
+        font-size: 1.3rem;
+        max-width: 800px;
+        margin: 0 auto;
+      }
+
+      #current {
+        display: block;
+        max-width: 800px;
+        margin: 0 auto 0.8rem auto;
+        padding: 6px 15px;
+        background: var(--list-bg);
+        border-bottom: 1px solid var(--item-border);
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        font-family: monospace;
       }
 
       ul {
         list-style: none;
         padding: 0;
         margin: 0 auto;
-        max-width: 600px; /* Slightly increased */
+        max-width: 800px;
+        background: var(--list-bg);
+        box-shadow: 0 2px 8px var(--shadow);
+        border-radius: 8px;
+        overflow: hidden;
       }
 
       li {
-        background: rgba(255, 255, 255, 0.15); /* Transparent white */
-        backdrop-filter: blur(10px) saturate(180%); /* Frosted glass effect */
-        -webkit-backdrop-filter: blur(10px) saturate(180%); /* Safari support */
-        margin: 1rem 0; /* Increased margin */
-        padding: 1.2rem; /* Increased padding */
-        border-radius: 20px; /* More rounded */
-        border: 1px solid rgba(255, 255, 255, 0.2); /* Subtle border */
-        box-shadow:
-          0 8px 32px 0 rgba(31, 38, 135, 0.15),
-          /* Softer, more modern shadow */ inset 2px 2px 5px rgba(255, 255, 255, 0.3),
-          /* Inner highlight for texture */ inset -2px -2px 5px rgba(0, 0, 0, 0.1); /* Inner shadow for depth */
+        padding: 10px 15px;
+        border-bottom: 1px solid var(--item-border);
         display: flex;
         justify-content: space-between;
         align-items: center;
-        transition: all 0.3s ease-in-out; /* Smoother transition */
+        transition: background 0.2s;
+        cursor: pointer;
       }
 
       li:hover {
-        background: rgba(255, 255, 255, 0.25); /* Slightly more opaque on hover */
-        transform: translateY(-5px); /* Lift effect on hover */
-        box-shadow:
-          0 12px 40px 0 rgba(31, 38, 135, 0.2),
-          inset 2px 2px 5px rgba(255, 255, 255, 0.4),
-          inset -2px -2px 5px rgba(0, 0, 0, 0.15);
-      }
-
-      li:active {
-        transform: scale(0.98) translateY(-2px); /* Adjusted active state */
-      }
-
-      li.folder {
-        font-weight: bold;
-        color: #f0f0f0; /* Lighter color for better readability */
+        background: var(--item-hover);
       }
 
       li span {
@@ -74,128 +114,83 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        margin-left: 12px; /* Increased margin */
-        color: #e0e0e0; /* Lighter text color */
+        margin-left: 10px;
+        font-size: 0.9rem;
       }
 
       li a {
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: #cce7ff; /* Light blue for links */
-        font-size: 0.9rem;
+        background: var(--btn-ghost);
+        color: var(--primary);
+        font-size: 0.75rem;
         text-decoration: none;
-        margin: 0 6px; /* Increased margin */
-        padding: 0.4rem 0.8rem; /* Added padding for button-like feel */
-        border-radius: 10px; /* Rounded links */
-        transition: all 0.2s ease;
-        backdrop-filter: blur(5px);
-        -webkit-backdrop-filter: blur(5px);
+        margin-left: 6px;
+        padding: 4px 10px;
+        border-radius: 4px;
       }
 
       li a:hover {
-        background: rgba(255, 255, 255, 0.2);
-        color: #ffffff;
-        transform: translateY(-2px);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        background: var(--primary);
+        color: #fff;
       }
 
       .icon-file,
       .icon-folder {
-        width: 32px; /* Increased size */
-        height: 32px; /* Increased size */
-        background-size: contain; /* Changed to contain for clarity */
+        width: 22px;
+        height: 22px;
+        background-size: contain;
         flex-shrink: 0;
-        filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.2)); /* Added shadow to icons */
       }
       .icon-file {
-        margin-right: 10px; /* Adjusted margin */
-        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(255,255,255,0.8)"><path d="M6 2c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6H6zm7 7V3.5L18.5 9H13z"/></svg>');
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="var(--icon-file-fill)"><path d="M6 2c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6H6zm7 7V3.5L18.5 9H13z"/></svg>');
       }
       .icon-folder {
-        margin-right: 10px; /* Adjusted margin */
-        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(255,255,255,0.8)"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>');
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="var(--icon-folder-fill)"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>');
       }
 
       .empty {
-        color: #cccccc; /* Lighter gray */
+        color: var(--text-muted);
         text-align: center;
-        margin-top: 2rem;
-        font-size: 1rem; /* Slightly larger */
-        background: rgba(0, 0, 0, 0.1); /* Darker transparent background for contrast */
-        padding: 1.5rem;
-        border-radius: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 30px 20px;
+        font-size: 0.85rem;
       }
 
       .footer {
         text-align: center;
-        font-size: 0.8rem; /* Smaller footer text */
-        color: rgba(255, 255, 255, 0.7); /* Semi-transparent white */
-        margin-top: 3rem; /* Increased margin */
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        margin: 2rem 0;
       }
 
       .btn {
         position: fixed;
-        right: 25px; /* Adjusted position */
-        width: 60px; /* Increased size */
-        height: 60px; /* Increased size */
-        line-height: 60px; /* Adjusted line-height */
+        right: 20px;
+        width: 46px;
+        height: 46px;
+        line-height: 46px;
         text-align: center;
-        user-select: none;
-        font-size: 14px; /* Slightly larger font */
-        font-weight: bold; /* Bolder font */
         border-radius: 50%;
-        background: rgba(255, 255, 255, 0.2); /* Glassy background */
-        backdrop-filter: blur(10px) saturate(180%);
-        -webkit-backdrop-filter: blur(10px) saturate(180%);
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        color: #fff; /* White text */
-        box-shadow:
-          0 8px 20px rgba(0, 0, 0, 0.2),
-          /* Modern shadow */ inset 1px 1px 3px rgba(255, 255, 255, 0.4),
-          inset -1px -1px 3px rgba(0, 0, 0, 0.1);
-        transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1); /* Smoother transition */
+        color: #fff;
+        font-size: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         cursor: pointer;
+        z-index: 100;
+        transition: transform 0.2s;
       }
       #refresh {
-        bottom: 25px; /* Adjusted position */
+        bottom: 20px;
+        background: var(--primary);
       }
-
-      #refresh:hover,
-      #upload:hover {
-        background: rgba(255, 255, 255, 0.3);
-        transform: translateY(-3px) scale(1.05); /* Lift and scale on hover */
-        box-shadow:
-          0 12px 25px rgba(0, 0, 0, 0.25),
-          inset 1px 1px 3px rgba(255, 255, 255, 0.5),
-          inset -1px -1px 3px rgba(0, 0, 0, 0.15);
-      }
-
-      #refresh:active,
-      #upload:active {
-        transform: scale(0.95) translateY(0); /* More pronounced active state */
-        background: rgba(255, 255, 255, 0.15);
-        box-shadow:
-          0 4px 10px rgba(0, 0, 0, 0.2),
-          inset 1px 1px 3px rgba(255, 255, 255, 0.3),
-          inset -1px -1px 3px rgba(0, 0, 0, 0.1);
-      }
-
       #upload {
-        bottom: 100px; /* Adjusted position */
+        bottom: 75px;
+        background: var(--secondary);
+      }
+      .btn:hover {
+        transform: scale(1.1);
       }
 
-      #current {
-        text-align: center;
-        font-size: 1rem; /* Slightly larger */
-        color: rgba(255, 255, 255, 0.85); /* Lighter color */
-        margin-bottom: 1.5rem; /* Increased margin */
-        padding: 0.5rem;
-        background: rgba(0, 0, 0, 0.1);
-        border-radius: 10px;
-        display: inline-block; /* To make background fit content */
-        border: 1px solid rgba(255, 255, 255, 0.1);
+      ::-webkit-scrollbar {
+        width: 0;
+        height: 0;
       }
     </style>
   </head>
@@ -312,6 +307,28 @@
       }
 
       fetchAndRender(currentPath)
+
+      function applyTheme(theme) {
+        if (theme === 'dark') {
+          document.body.classList.add('dark')
+        } else {
+          document.body.classList.remove('dark')
+        }
+      }
+      window.addEventListener('message', (event) => {
+        const theme = event.data.theme || event.data
+        if (theme === 'dark' || theme === 'light') {
+          applyTheme(theme)
+        }
+      })
+
+      window.parent.postMessage(
+        {
+          source: 'plugin-file-transfer-assistant',
+          method: 'refreshTheme'
+        },
+        '*'
+      )
     </script>
   </body>
 </html>

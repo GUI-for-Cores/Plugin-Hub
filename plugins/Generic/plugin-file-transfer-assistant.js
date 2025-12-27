@@ -74,6 +74,41 @@ const Share = async () => {
 }
 
 const openTransferUI = () => {
+  const component = {
+    template: `
+      <iframe
+        ref="iframeRef"
+        :style="{ height: 'calc(100% - 6px)' }"
+        src="http://127.0.0.1:5233"
+        class="w-full h-full border-0"
+      ></iframe>
+    `,
+    setup() {
+      const { ref, watch, onMounted, onUnmounted } = Vue
+
+      const iframeRef = ref()
+      const appSettings = Plugins.useAppSettingsStore()
+
+      watch(
+        () => appSettings.themeMode,
+        (theme) => {
+          iframeRef.value?.contentWindow.postMessage(theme, 'http://127.0.0.1:5233')
+        },
+        {
+          immediate: true
+        }
+      )
+
+      const onMessage = (e) => {
+        if (e.data.source === Plugin.id && e.data.method === 'refreshTheme') {
+          iframeRef.value?.contentWindow.postMessage(appSettings.themeMode, 'http://127.0.0.1:5233')
+        }
+      }
+      onMounted(() => window.addEventListener('message', onMessage))
+      onUnmounted(() => window.removeEventListener('message', onMessage))
+      return { iframeRef }
+    }
+  }
   const modal = Plugins.modal(
     {
       title: Plugin.name,
@@ -103,14 +138,7 @@ const openTransferUI = () => {
           onClick: () => modal.destroy()
         })
       ],
-      default: () =>
-        Vue.h('iframe', {
-          src: `http://127.0.0.1:5233`,
-          class: 'w-full h-full border-0',
-          style: {
-            height: 'calc(100% - 6px)'
-          }
-        })
+      default: () => Vue.h(component)
     }
   )
   modal.open()
