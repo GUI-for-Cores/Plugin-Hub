@@ -269,6 +269,11 @@ const addRollingReleaseTagToTitleBar = async () => {
             'Button',
             {
               type: kernelApiStore.running ? 'link' : 'text',
+              style: kernelApiStore.running
+                ? {
+                    color: 'var(--primary-color)'
+                  }
+                : {},
               size: 'small',
               loading: loading.value,
               onClick: check
