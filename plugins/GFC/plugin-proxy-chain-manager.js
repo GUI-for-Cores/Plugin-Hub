@@ -36,7 +36,7 @@ const onGenerate = async (config, profile) => {
 
   config['proxies'] = [...proxiesMap.values()]
 
-  delete config['proxy-providers']
+  // delete config['proxy-providers']
 
   return config
 }
