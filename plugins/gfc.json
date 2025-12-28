@@ -1,5 +1,32 @@
 [
   {
+    "id": "plugin-proxy-chain-manager",
+    "name": "链式代理支持",
+    "version": "v1.0.0",
+    "description": "可视化配置链式代理与生成配置时作用链式代理。",
+    "tags": ["实用工具", "功能扩展", "提升体验"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFC/plugin-proxy-chain-manager.js",
+    "path": "data/plugins/plugin-proxy-chain-manager.js",
+    "triggers": ["on::manual", "on::generate"],
+    "hasUI": true,
+    "menus": {},
+    "context": {
+      "profiles": {
+        "链式代理配置": "showUI"
+      },
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-add-rulesets",
     "name": "一键添加规则集",
     "version": "v1.0.1",
