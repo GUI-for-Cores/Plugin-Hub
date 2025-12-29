@@ -13,26 +13,36 @@ const onRun = async () => {
 /* 触发器 启动APP时 */
 const onStartup = async () => {
   if (Plugin.AutoRollingMode === 'onStartup') {
-    // 延迟检测，确保内核已经启动
-    setTimeout(() => Rolling(false), (Plugin.AutoRollingDelay || 10) * 1000)
+    doCheck()
   }
 }
 
 /* 触发器 APP就绪后 */
 const onReady = async () => {
   if (Plugin.AutoRollingMode === 'onReady') {
-    // 延迟检测，确保内核已经启动
-    setTimeout(() => Rolling(false), (Plugin.AutoRollingDelay || 10) * 1000)
+    doCheck()
   }
 
   addRollingReleaseTagToTitleBar()
+}
+
+const doCheck = async () => {
+  await Plugins.sleep(3000) // 至少延迟3s，以便GUI完成对核心状态的恢复
+  const run = () => Rolling(false, Plugin.AutoRollingReload)
+  const { running } = Plugins.useKernelApiStore()
+  if (running) {
+    run()
+  } else {
+    // 延迟检测，确保内核已经启动
+    setTimeout(run, (Plugin.AutoRollingDelay || 10) * 1000)
+  }
 }
 
 /*
  * 右键菜单 - 滚动版本
  * params: confirm 是否进行交互式确认
  */
-const Rolling = async (confirm = true) => {
+const Rolling = async (confirm = true, autoReload = false) => {
   await checkRollingReleaseEnabled()
   const isLatest = await checkLatestVersion()
   if (!isLatest) {
@@ -103,7 +113,8 @@ const Rolling = async (confirm = true) => {
     await Plugins.RemoveFile(ZipFile)
     await Plugins.WriteFile(`${RollingReleasePath}/updated_at.txt`, Plugins.formatDate(rollingReleaseAsset.updated_at, 'YYYY.MM.DD'))
     destroy2()
-    const ok = await Plugins.confirm(Plugin.name, '更新成功，是否立即重载界面？').catch(() => 0)
+
+    const ok = autoReload || (await Plugins.confirm(Plugin.name, '更新成功，是否立即重载界面？').catch(() => 0))
     ok && Plugins.WindowReloadApp()
   } catch (err) {
     error(err.message || err)
