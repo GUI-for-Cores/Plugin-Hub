@@ -2,7 +2,7 @@
   {
     "id": "plugin-proxy-chain-manager",
     "name": "链式代理支持",
-    "version": "v1.0.1",
+    "version": "v1.0.2",
     "description": "可视化配置链式代理与生成配置时作用链式代理。",
     "tags": ["实用工具", "功能扩展", "提升体验"],
     "type": "Http",

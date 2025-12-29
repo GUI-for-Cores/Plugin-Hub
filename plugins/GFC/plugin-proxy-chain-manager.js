@@ -91,20 +91,32 @@ const showUI = async (profile) => {
             :key="proxy.id"
           >
             <template #title-suffix>
-              <div class="text-12 ml-16">
-                {{ proxy.next?.name ? \`dialer-proxy: \${proxy.next?.name}\` : '' }}
+              <div v-if="proxy.next?.name" class="flex items-center text-12 ml-16">
+                dialer-proxy: {{ proxy.next?.name }}
+                <Button 
+                  @click.stop="() => {
+                    const tmp = currentProxy
+                    currentProxy = proxy
+                    onAddOrRemove(proxy.next)
+                    currentProxy = tmp
+                  }"
+                  size="small"
+                  type="text"
+                  icon="close"
+                />
               </div>
             </template>
             <template #extra>
-              <Button v-if="sub.type === 'sub'" @click.stop="explainChain(proxy)" type="link" size="small">解释</Button>
+              <Button v-if="proxy.next && sub.type === 'sub'" @click.stop="explainChain(proxy)" type="link" size="small">解释</Button>
               <template v-if="!currentProxy">
                 <Button v-if="sub.type === 'sub'" @click.stop="startConf(proxy)" type="link" size="small">配置</Button>
               </template>
               <Button v-else-if="currentProxy === proxy" @click.stop="stopConf(proxy)" type="link" size="small">完成</Button>
               <Button v-else type="link" size="small">点击可添加或删除</Button>
             </template>
-            <div class="text-14">
-              {{ renderChain(proxy) }}
+            <div v-if="proxy.next" class="flex gap-8 items-center text-14">
+              <div class="h-32 rounded-2" style="background: var(--primary-color); width: 4px"></div>
+              <div>{{ renderChain(proxy) }}</div>
             </div>
           </Card>
         </div>
@@ -190,11 +202,6 @@ const showUI = async (profile) => {
           curr = curr.next
         }
 
-        if (proxies.length === 1) {
-          // 避免界面杂乱，不显示空链
-          return ''
-        }
-
         const parts = []
 
         // 最后一个代理：嵌套所有前置代理
@@ -219,11 +226,6 @@ const showUI = async (profile) => {
         while (curr) {
           proxies.push(curr.name)
           curr = curr.next
-        }
-
-        if (proxies.length === 1) {
-          Plugins.message.info('未配置代理链，无需解释')
-          return
         }
 
         const lines = []
