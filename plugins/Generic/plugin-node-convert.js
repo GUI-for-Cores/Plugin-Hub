@@ -1449,6 +1449,9 @@ function Singbox_Producer() {
               }
               break
             case 'vless':
+              if (proxy.encryption && proxy.encryption !== 'none') {
+                throw new Error(`VLESS encryption is not supported`)
+              }
               if (!proxy.flow || ['xtls-rprx-vision'].includes(proxy.flow)) {
                 list.push(vlessParser(proxy))
               } else {
@@ -3463,6 +3466,10 @@ ${list}`
       if (proxy.network === 'tcp') {
         delete proxy.network
       }
+    }
+    if (['vmess'].includes(proxy.type)) {
+      proxy.cipher = proxy.cipher || 'none'
+      proxy.alterId = proxy.alterId || 0
     }
     if (['vless'].includes(proxy.type)) {
       if (!proxy.network) {
