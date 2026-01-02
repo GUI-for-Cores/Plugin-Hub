@@ -1380,6 +1380,50 @@
     "installed": false
   },
   {
+    "id": "plugin-github-workflows",
+    "name": "GitHub工作流管理",
+    "version": "v1.0.0",
+    "description": "添加目标仓库，管理其工作流",
+    "tags": ["实用工具"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-github-workflows.js",
+    "path": "data/plugins/plugin-github-workflows.js",
+    "triggers": ["on::manual"],
+    "hasUI": true,
+    "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_igog5b39",
+        "title": "Token",
+        "description": "具有仓库Actions权限的GitHub API Token",
+        "key": "Token",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_mvwb0dmp",
+        "title": "仓库列表",
+        "description": "例如：GUI-for-Cores/GUI.for.Clash",
+        "key": "RepoList",
+        "component": "InputList",
+        "value": [],
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-sync-configuration",
     "name": "配置同步",
     "version": "v1.0.2",
