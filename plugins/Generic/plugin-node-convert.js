@@ -3463,18 +3463,15 @@ ${list}`
     }
 
     if (proxy.type === 'trojan') {
-      if (proxy.network === 'tcp') {
-        delete proxy.network
-      }
+      proxy.network = proxy.network || 'tcp';
     }
     if (['vmess'].includes(proxy.type)) {
+      proxy.network = proxy.network || 'tcp';
       proxy.cipher = proxy.cipher || 'none'
       proxy.alterId = proxy.alterId || 0
     }
     if (['vless'].includes(proxy.type)) {
-      if (!proxy.network) {
-        proxy.network = 'tcp'
-      }
+      proxy.network = proxy.network || 'tcp';
     }
     if (['trojan', 'tuic', 'hysteria', 'hysteria2', 'juicity', 'anytls', 'naive'].includes(proxy.type)) {
       proxy.tls = true
