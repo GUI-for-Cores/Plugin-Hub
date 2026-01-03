@@ -33,12 +33,12 @@ const openUI = () => {
             传参
             <Button @click="handleViewArgs(item)" class="ml-auto" size="small" type="link">查看</Button>
           </div>
-          <div class="text-12">{{ JSON.stringify(item.args, null, 2) ?? '无' }}</div>
+          <div class="text-12 break-all">{{ JSON.stringify(item.args, null, 2) ?? '无' }}</div>
           <div class="flex items-center font-bold text-12 py-4">
             结果
             <Button @click="handleViewResult(item)" class="ml-auto" size="small" type="link">查看</Button>
           </div>
-          <div class="text-12">{{ JSON.stringify(item.result, null, 2) ?? '无' }}</div>
+          <div class="text-12 break-all">{{ JSON.stringify(item.result, null, 2) ?? '无' }}</div>
         </div>
       </Card>
     </div>
