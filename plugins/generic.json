@@ -251,7 +251,7 @@
   {
     "id": "plugin-ipc-logs",
     "name": "日志系统",
-    "version": "v1.0.0",
+    "version": "v1.1.0",
     "description": "GUI日志系统，包含敏感信息，用于debug。",
     "tags": ["功能扩展"],
     "type": "Http",

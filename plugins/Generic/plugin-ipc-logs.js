@@ -17,16 +17,27 @@ const openUI = () => {
     template: `
     <Empty v-if="dataSource.length === 0" />
     <div v-else class="flex flex-col gap-4 pr-8 pb-8">
-      <Card v-for="(item, index) in dataSource" :key="item.id">
+      <Card v-for="item in dataSource" :key="item.id">
         <div class="flex items-center py-8" @click="toggleExpanded(item.id)">
-          <div class="text-14 font-bold">【{{ item.id }}】</div>
-          <div class="text-16 font-bold">{{ item.name }}</div>
+          <div class="text-14 font-bold">
+            【{{ item.id }}】
+          </div>
+          <div class="flex items-center gap-8">
+            <span class="text-16 font-bold">{{ item.name }}</span>
+            <span :style="{color: item.success ? 'green' : 'red'}" class="text-12">{{ item.duration }}ms</span>
+          </div>
           <div class="text-12 ml-auto">{{ formatTime(item.time) }}</div>
         </div>
-        <div v-if="expandAll || expandedMap[item.id]" class="p-4 select-text">
-          <div class="font-bold text-12 py-4">传参</div>
+        <div v-if="expandAll || expandedMap[item.id]" class="p-4 pt-0 select-text">
+          <div class="flex items-center font-bold text-12 py-4">
+            传参
+            <Button @click="handleViewArgs(item)" class="ml-auto" size="small" type="link">查看</Button>
+          </div>
           <div class="text-12">{{ JSON.stringify(item.args, null, 2) ?? '无' }}</div>
-          <div class="font-bold text-12 py-4">结果</div>
+          <div class="flex items-center font-bold text-12 py-4">
+            结果
+            <Button @click="handleViewResult(item)" class="ml-auto" size="small" type="link">查看</Button>
+          </div>
           <div class="text-12">{{ JSON.stringify(item.result, null, 2) ?? '无' }}</div>
         </div>
       </Card>
@@ -48,6 +59,13 @@ const openUI = () => {
                 type: 'link',
                 onClick: () => {
                   expandAll.value = !expandAll.value
+                  if (expandAll.value) {
+                    dataSource.value.forEach((item) => {
+                      expandedMap.value[item.id] = true
+                    })
+                  } else {
+                    expandedMap.value = {}
+                  }
                 }
               },
               () => (expandAll.value ? '收起' : '展开')
@@ -93,7 +111,7 @@ const openUI = () => {
           return Plugins.formatDate(time, 'YYYY-MM-DD HH:mm:ss')
         },
         handleViewArgs(record) {
-          Plugins.alert('结果', record.args)
+          Plugins.alert('参数', record.args)
         },
         handleViewResult(record) {
           Plugins.alert('结果', record.result)
@@ -132,16 +150,22 @@ const hookWailsIPC = async () => {
         name,
         args,
         time: Date.now(),
+        duration: 0,
+        success: true,
         result: 'Loading...'
       }
       window[Plugin.id].logs.value.unshift(log)
       const { resolve, reject } = wails.callbacks[callbackID]
       wails.callbacks[callbackID].resolve = (e) => {
         log.result = e
+        log.duration = Date.now() - log.time
+        log.success = e?.flag ?? true
         resolve(e)
       }
       wails.callbacks[callbackID].reject = (e) => {
         log.result = e
+        log.duration = Date.now() - log.time
+        log.success = false
         reject(e)
       }
     }
