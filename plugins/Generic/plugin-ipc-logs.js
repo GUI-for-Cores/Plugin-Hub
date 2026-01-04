@@ -12,6 +12,24 @@ const onReady = async () => {
   hookWailsIPC()
 }
 
+/* 右键 - 清空日志 */
+const ClearHistory = () => {
+  window[Plugin.id].logs.value.splice(0)
+  Plugins.message.success('common.success')
+}
+
+/* 右键 - 导出日志 */
+const ExportLogs = () => {
+  const content = JSON.stringify(window[Plugin.id].logs.value, null, 2)
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${Plugins.APP_TITLE}_${Plugins.APP_VERSION}_${Plugins.formatDate(Date.now(), 'YYYYMMDDHHmmss')}.txt`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 const openUI = () => {
   const component = {
     template: `
@@ -86,14 +104,7 @@ const openUI = () => {
               {
                 type: 'link',
                 onClick: () => {
-                  const content = JSON.stringify(dataSource.value, null, 2)
-                  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
-                  const url = URL.createObjectURL(blob)
-                  const a = document.createElement('a')
-                  a.href = url
-                  a.download = `${Plugins.APP_TITLE}_${Plugins.APP_VERSION}_${Plugins.formatDate(Date.now(), 'YYYYMMDDHHmmss')}.txt`
-                  a.click()
-                  URL.revokeObjectURL(url)
+                  ExportLogs()
                 }
               },
               () => '导出日志'

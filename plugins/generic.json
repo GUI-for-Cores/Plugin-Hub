@@ -251,7 +251,7 @@
   {
     "id": "plugin-ipc-logs",
     "name": "日志系统",
-    "version": "v1.1.1",
+    "version": "v2.0.0",
     "description": "GUI日志系统，包含敏感信息，用于debug。",
     "tags": ["功能扩展"],
     "type": "Http",
@@ -259,7 +259,10 @@
     "path": "data/plugins/plugin-ipc-logs.js",
     "triggers": ["on::ready", "on::manual"],
     "hasUI": true,
-    "menus": {},
+    "menus": {
+      "导出日志": "ExportLogs",
+      "清空日志": "ClearHistory"
+    },
     "context": {
       "profiles": {},
       "subscriptions": {},
