@@ -218,7 +218,8 @@ const DefaultRouteRule = () => ({
   outbound: '',
   sniffer: [],
   strategy: Strategy.Default,
-  server: ''
+  server: '',
+  enable: true
 })
 
 const RouteRuleActionProperties = () => ({
@@ -284,7 +285,8 @@ const DefaultDnsRule = () => ({
   server: '',
   strategy: Strategy.Default,
   disable_cache: false,
-  client_subnet: ''
+  client_subnet: '',
+  enable: true
 })
 
 const DnsRuleActionProperties = () => ({
