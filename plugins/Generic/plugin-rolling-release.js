@@ -189,7 +189,7 @@ const Statistics = async () => {
       return `| ${name} | ${download} | ${fileSize} | ${uploader} | ${createTime} |`
     })
   const table = ['|版本名称|下载次数|文件大小|发布者|更新时间|', '|-|-|-|-|-|', records.join('\n')]
-  await Plugins.alert('信息统计如下', table.join('\n'), { markdown: true })
+  await Plugins.alert('信息统计如下', table.join('\n'), { type: 'markdown'})
 }
 
 const checkRollingReleaseEnabled = async () => {

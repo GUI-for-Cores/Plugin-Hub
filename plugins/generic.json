@@ -415,7 +415,7 @@
   {
     "id": "plugin-rolling-release",
     "name": "滚动发行",
-    "version": "v3.0.0",
+    "version": "v3.0.1",
     "description": "提升GUI升级体验，获取更快、更新、更稳定的版本更新。",
     "tags": ["提升体验", "功能扩展"],
     "type": "Http",
@@ -2354,7 +2354,7 @@
   {
     "id": "plugin-custom-theme",
     "name": "自定义主题",
-    "version": "v5.0.1",
+    "version": "v5.0.2",
     "description": "通过修改css变量，实现任意主题配色！",
     "tags": ["UI美化", "功能扩展"],
     "type": "Http",
@@ -2739,7 +2739,7 @@
   {
     "id": "plugin-sni-spoofing",
     "name": "SNI 伪造",
-    "version": "v4.0.1",
+    "version": "v4.0.2",
     "description": "通过为浏览器注入伪造参数，实现直连访问部分被墙网站。Supported by: 泡泡茶壶",
     "tags": ["实用工具", "功能扩展"],
     "type": "Http",
@@ -2814,7 +2814,7 @@
   {
     "id": "plugin-generate-warp-config",
     "name": "WARP 配置生成",
-    "version": "v1.0.2",
+    "version": "v1.0.3",
     "description": "自动注册并生成 Cloudflare WARP 的配置信息。Supported by: 泡泡茶壶",
     "tags": ["实用工具"],
     "type": "Http",

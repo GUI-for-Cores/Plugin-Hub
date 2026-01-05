@@ -327,7 +327,7 @@ const CustomIcon = async () => {
   }, [])
 
   try {
-    await Plugins.confirm('要替换成什么图标呢？', `|预览|名称|操作|\n| - | - | - |\n${items.join('\n')}\n`, { markdown: true })
+    await Plugins.confirm('要替换成什么图标呢？', `|预览|名称|操作|\n| - | - | - |\n${items.join('\n')}\n`, { type: 'markdown' })
 
     if (iconMap[iconId]) {
       if (iconId === Plugins.APP_TITLE) {

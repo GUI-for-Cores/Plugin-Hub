@@ -46,13 +46,13 @@ const generateWarpConfig = async () => {
       await Plugins.confirm('帮助', `最终配置生成成功\n\n\n\`\`\`json\n${JSON.stringify(finalConfig, null, 2)}\n\`\`\`\n\n\n是否生成配置脚本？`, {
         okText: '是',
         cancelText: '否',
-        markdown: true
+        type: 'markdown'
       })
     ) {
       try {
         const configScript = await generateConfigScript(finalConfig)
         await Plugins.alert('帮助', `配置脚本生成成功\n\n\n\`\`\`javascript\n${configScript}\n\`\`\`\n\n\n点击确定复制`, {
-          markdown: true
+          type: 'markdown'
         })
         await Plugins.ClipboardSetText(configScript)
         Plugins.message.success('已复制配置脚本，请粘贴或者合并到配置设置-混入和脚本-脚本操作中使用')

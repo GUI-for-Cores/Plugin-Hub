@@ -66,16 +66,15 @@ interface Plugins {
     remove(key: string): void
   }
 
-  alert(title: string, content: string, options?: { type?: string; markdown?: boolean }): Promise<void>
+  alert(title: string, content: string, options?: { type?: 'text' | 'markdown' }): Promise<void>
   prompt(title: string, initialValue?: string, options?: { placeholder?: string; type?: string }): Promise<string>
   confirm(
     title: string,
     content: string,
     options?: {
-      type?: string
+      type?: 'text' | 'markdown'
       okText?: string
       cancelText?: string
-      markdown?: boolean
     }
   ): Promise<boolean>
   modal(
