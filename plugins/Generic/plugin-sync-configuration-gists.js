@@ -65,10 +65,6 @@ const Sync = async () => {
 
 /**
  * 插件钩子：右键 - 立即备份
- * 增强版功能：
- * 1. 备份本地订阅源文件 (data/local/*.txt)
- * 2. 备份本地规则集源文件
- * 3. 备份插件第三方依赖文件 (data/third/)
  */
 const Backup = async () => {
     if (!window.CryptoJS) throw '请先安装插件或重新安装插件'
