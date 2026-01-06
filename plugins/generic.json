@@ -303,7 +303,7 @@
   },
   {
     "id": "plugin-smart-proxy-switcher",
-    "version": "v4.0.0",
+    "version": "v4.0.1",
     "name": "节点智能切换",
     "description": "实现动态代理选择机制，包含故障转移、断路器、EWMA 延迟跟踪、基于分数调度与滞后控制。",
     "tags": ["提升体验", "功能扩展"],

@@ -244,14 +244,22 @@ const ViewStat = async () => {
   }
 }
 
+const request = {
+  async get(url, params) {
+    const { base, bearer } = setupRequestApi()
+    const res = await fetch(base + url + '?' + new URLSearchParams(params).toString(), {
+      headers: { Authorization: `Bearer ${bearer}` }
+    })
+    const data = await res.json()
+    return data
+  }
+}
+
 const setupRequestApi = () => {
   let base = Plugins.APP_TITLE.includes('SingBox') ? 'http://127.0.0.1:20123' : 'http://127.0.0.1:20113'
   let bearer = ''
 
-  const appSettingsStore = Plugins.useAppSettingsStore()
-  const profilesStore = Plugins.useProfilesStore()
-
-  const profile = profilesStore.getProfileById(appSettingsStore.app.kernel.profile)
+  const { currentProfile: profile } = Plugins.useProfilesStore()
 
   if (profile) {
     if (Plugins.APP_TITLE.includes('SingBox')) {
@@ -266,14 +274,8 @@ const setupRequestApi = () => {
       bearer = profile.advancedConfig.secret
     }
   }
-  request.base = base
-  request.bearer = bearer
+  return { base, bearer }
 }
-
-const request = new Plugins.Request({
-  beforeRequest: setupRequestApi,
-  timeout: 60 * 1000
-})
 
 class ProxyServer {
   constructor(id, url, priority, group, options) {
