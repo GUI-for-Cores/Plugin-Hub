@@ -508,6 +508,7 @@ function ClashMeta_Producer() {
         return true
       })
       .map((proxy) => {
+        proxy['client-fingerprint'] = proxy['client-fingerprint'] || 'chrome'
         if (proxy.type === 'vmess') {
           // handle vmess aead
           if (isPresent(proxy, 'aead')) {
