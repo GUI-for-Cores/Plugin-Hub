@@ -164,4 +164,29 @@
     "install": false,
     "installed": false
   }
+  {
+    "id": "plugin-danjiediantianjiazhushou",
+    "name": "单节点添加助手",
+    "version": "v1.0.0",
+    "description": "添加单节点时免书写，窗口填写配置更清晰",
+    "tags": ["提升体验"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/NAME-12/Plugin-Hub/refs/heads/main/plugins/GFS/plugin-danjiediantianjiazhushou.js",
+    "path": "data/plugins/plugin-danjiediantianjiazhushou.js",
+    "triggers": ["on::manual"],
+    "hasUI": true,
+    "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
 ]
