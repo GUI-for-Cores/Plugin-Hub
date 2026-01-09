@@ -55,6 +55,24 @@ const SecurelyExportLogs = () => {
       }
       case 'bridge.App.WriteFile': {
         const [file] = args
+        if (file === 'data/user.yaml') {
+          item.args[1] = '【用户设置】已脱敏'
+        }
+        if (file === 'data/profiles.yaml') {
+          item.args[1] = '【配置索引】已忽略'
+        }
+        if (file === 'data/scheduledtasks.yaml') {
+          item.args[1] = '【计划任务索引】已忽略'
+        }
+        if (file === 'data/plugins.yaml') {
+          item.args[1] = '【插件索引】已忽略'
+        }
+        if (file === 'data/subscribes.yaml') {
+          item.args[1] = '【订阅索引】已忽略'
+        }
+        if (file === 'data/rulesets.yaml') {
+          item.args[1] = '【规则集索引】已忽略'
+        }
         if (file.startsWith('data/.cache/tmp_subscription')) {
           item.args[1] = '【订阅缓存文件】已忽略'
         }
@@ -71,17 +89,17 @@ const SecurelyExportLogs = () => {
       }
       case 'bridge.App.Requests': {
         const [method, url, header] = item.args
-        if (url.startsWith('https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins')) {
-          if (item.result.status === 200) {
-            item.result.body = '【插件源码】已忽略'
-          }
-        }
         const { subscribes } = Plugins.useSubscribesStore()
         if (subscribes.some((s) => s.url === url)) {
           item.args[1] = '【订阅链接】已脱敏'
-          if (item.result.flag) {
+          if (item.result.flag && item.result.status === 200) {
             item.result.body = '【订阅内容】已脱敏'
           }
+        } else if (item.result.status >= 200 && item.result.status <= 299) {
+          if (header['Authorization'] !== undefined) {
+            header['Authorization'] = '【TOKEN】已忽略'
+          }
+          item.result.body = '【请求结果】已忽略'
         }
         break
       }
@@ -185,7 +203,7 @@ const openUI = () => {
                   ExportLogs()
                 }
               },
-              () => '导出日志'
+              () => '完整导出'
             ),
             h(
               resolveComponent('Button'),
@@ -195,7 +213,7 @@ const openUI = () => {
                   SecurelyExportLogs()
                 }
               },
-              () => '安全导出(开发中)'
+              () => '简洁导出(开发中)'
             )
           ],
           action: () => h('div', { class: 'mr-auto text-12' }, '注：日志包含敏感信息，请勿随意分享！')
@@ -363,8 +381,20 @@ const getIPCDescription = (name, args) => {
       if (file === 'data/user.yaml') {
         return '保存用户设置'
       }
+      if (file === 'data/profiles.yaml') {
+        return '保存配置信息'
+      }
       if (file === 'data/subscribes.yaml') {
         return '保存订阅信息'
+      }
+      if (file === 'data/rulesets.yaml') {
+        return '保存规则集信息'
+      }
+      if (file === 'data/plugins.yaml') {
+        return '保存插件信息'
+      }
+      if (file === 'data/scheduledtasks.yaml') {
+        return '保存计划任务信息'
       }
       if (file === 'data/.cache/ruleset-list.json') {
         return '保存规则集中心列表'
@@ -522,10 +552,14 @@ const getIPCDescription = (name, args) => {
 
 const hookWailsIPC = async () => {
   const originalInvoke = window.WailsInvoke
+  const blacklist = [':wails:WindowIsMaximised', ':wails:WindowIsMinimised']
   window.WailsInvoke = (e) => {
     originalInvoke(e)
     if (e.startsWith('C')) {
       const { name, args, callbackID } = JSON.parse(e.slice(1))
+      if (blacklist.includes(name)) {
+        return
+      }
       const log = {
         id: window[Plugin.id].logs.value.length,
         name,
