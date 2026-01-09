@@ -408,7 +408,11 @@ class ProxyManager {
           url: Plugin.TestUrl || 'https://www.gstatic.com/generate_204',
           timeout: Number(Plugin.RequestTimeout)
         })
-        proxy.recordSuccess(delay)
+        if (delay) {
+          proxy.recordSuccess(delay)
+        } else {
+          proxy.recordFailure()
+        }
       } catch (err) {
         proxy.recordFailure()
       }
