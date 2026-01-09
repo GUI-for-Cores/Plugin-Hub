@@ -276,6 +276,16 @@ const getIPCDescription = (name, args) => {
       }
       return
     }
+    case 'bridge.App.Download': {
+      const [method, url] = args
+      if (method === 'GET' && url.startsWith('https://github.com/SagerNet/sing-box/releases/download')) {
+        return '下载核心压缩包'
+      }
+      if (method === 'GET' && url.startsWith('https://github.com/MetaCubeX/mihomo/releases/download')) {
+        return '下载核心压缩包'
+      }
+      return
+    }
     case 'bridge.App.ProcessInfo': {
       const [pid] = args
       return '获取进程名: ' + pid
@@ -376,6 +386,40 @@ const getIPCDescription = (name, args) => {
       }
       if (file.startsWith('data/subscribes/')) {
         return '保存订阅节点内容'
+      }
+      return
+    }
+    case 'bridge.App.MoveFile': {
+      const [source, target] = args
+      if (/^data\/(sing-box|mihomo)\/(sing-box-latest|mihomo-alpha)(\.exe)?\.bak$/.test(target)) {
+        return '备份测试版核心'
+      }
+      if (/^data\/(sing-box|mihomo)\/(sing-box|mihomo)(\.exe)?\.bak$/.test(target)) {
+        return '备份稳定版核心'
+      }
+      return
+    }
+    case 'bridge.App.UnzipZIPFile': {
+      const [source] = args
+      if (/^data\/\.cache\/(sing-box|mihomo)$/.test(source)) {
+        return '解压核心压缩包到临时目录'
+      }
+      return
+    }
+    case 'bridge.App.RemoveFile': {
+      const [path] = args
+      if (/^\/\.cache\/(sing-box|mihomo)-(.*)\.(zip|tar\.gz|\.gz)/.test(path)) {
+        return '删除更新核心时下载的压缩包'
+      }
+      if (/^data\/\.cache\/(sing-box|alpha)/.test(path)) {
+        return '删除更新核心时的临时解压目录'
+      }
+      return
+    }
+    case 'bridge.App.MakrDir': {
+      const [path] = args
+      if (/^data\/(sing-box|mihomo)$/.test(path)) {
+        return '创建核心工作目录'
       }
       return
     }
