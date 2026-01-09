@@ -508,7 +508,9 @@ function ClashMeta_Producer() {
         return true
       })
       .map((proxy) => {
-        proxy['client-fingerprint'] = proxy['client-fingerprint'] || 'chrome'
+        if (['trojan', 'vmess', 'vless'].includes(proxy.type)) {
+          proxy['client-fingerprint'] = proxy['client-fingerprint'] || 'chrome'
+        }
         if (proxy.type === 'vmess') {
           // handle vmess aead
           if (isPresent(proxy, 'aead')) {
@@ -3359,8 +3361,7 @@ const PROXY_PREPROCESSORS = (() => {
         (includeProxies ? 'proxies:\n' : '') +
         proxies
           .map((p) => {
-            // https://github.com/MetaCubeX/mihomo/blob/Alpha/docs/config.yaml#L73C1-L73C26
-            if (globalClientFingerprint && !p['client-fingerprint']) {
+            if (globalClientFingerprint && ['trojan', 'vmess', 'vless'].includes(p.type) && !p['client-fingerprint']) {
               p['client-fingerprint'] = globalClientFingerprint
             }
             return `${includeProxies ? '  - ' : ''}${JSON.stringify(p)}\n`

@@ -171,14 +171,13 @@ interface Plugins {
     args: string[],
     onOut: (out: string) => void,
     onExit: () => void,
-    options?: { env?: Record<string, string>; convert?: boolean }
+    options?: { Env?: Record<string, string>; Convert?: boolean, StopOutputKeyword?: string, PidFile?: string }
   ): Promise<number>
 
-  Request: any
   HttpGet(
     url: string,
     headers?: Record<string, string>,
-    options?: { Insecure?: boolean; Redirect?: boolean }
+    options?: { Timeout?: number; Insecure?: boolean; Redirect?: boolean }
   ): Promise<{ status: number; headers: Record<string, string>; body: any }>
   HttpPost(
     url: string,
@@ -189,7 +188,7 @@ interface Plugins {
   HttpDelete(
     url: string,
     headers: Record<string, string>,
-    options?: { Insecure?: boolean; Redirect?: boolean }
+    options?: { Timeout?: number; Insecure?: boolean; Redirect?: boolean }
   ): Promise<{ status: number; headers: Record<string, string>; body: any }>
   HttpPatch(url: string, headers: Record<string, string>, data: any): Promise<{ status: number; headers: Record<string, string>; body: any }>
   Requests(options: {
@@ -199,6 +198,7 @@ interface Plugins {
     body?: string
     autoTransformBody?: boolean
     options?: {
+      Timeout?: number;
       Insecure?: boolean
       Redirect?: boolean
     }
@@ -225,11 +225,9 @@ interface Plugins {
   ClipboardSetText(text: string): Promise<void>
   ClipboardGetText(): Promise<string>
 
-  ValidateCron(expression): Promise<boolean>
-
   OpenMMDB(path: string, id: string): Promise<void>
   CloseMMDB(path: string, id: string): Promise<void>
-  QueryMMDB(path: string, ip: string, type?: 'ASN' | 'AnonymousIP' | 'City' | 'ConnectionType' | 'Country' | 'Domain' | 'Enterprise'): Promise<any> // Define return type if known
+  QueryMMDB(path: string, ip: string, type?: 'ASN' | 'AnonymousIP' | 'City' | 'ConnectionType' | 'Country' | 'Domain' | 'Enterprise'): Promise<any>
 
   useAppStore(): {
     showAbout: boolean
@@ -302,6 +300,7 @@ interface Plugins {
   }
   useProfilesStore(): {
     profiles: Recordable[]
+    currentProfile: Recordable
     getProfileById: (id: string) => Recordable
     addProfile(profile: Recordable): Promise<void>
     editProfile(id: string, profile: Recordable): Promise<void>
