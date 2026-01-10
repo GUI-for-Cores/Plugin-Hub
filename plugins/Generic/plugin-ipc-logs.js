@@ -355,6 +355,12 @@ const getIPCDescription = (name, args) => {
       if (file.startsWith('data/plugins/plugin-')) {
         return '删除插件源码文件'
       }
+      if (/^\/\.cache\/(sing-box|mihomo)-(.*)\.(zip|tar\.gz|\.gz)/.test(file)) {
+        return '删除更新核心时下载的压缩包'
+      }
+      if (/^data\/\.cache\/(sing-box|alpha)/.test(file)) {
+        return '删除更新核心时的临时解压目录'
+      }
       return
     }
     case 'bridge.App.ReadFile': {
@@ -427,26 +433,22 @@ const getIPCDescription = (name, args) => {
       if (/^data\/(sing-box|mihomo)\/(sing-box|mihomo)(\.exe)?\.bak$/.test(target)) {
         return '备份稳定版核心'
       }
+      if (/^data\/(sing-box|mihomo)\/(sing-box-latest|mihomo-alpha)(\.exe)?$/.test(target)) {
+        return '移动新测试版核心到工作目录'
+      }
+      if (/^data\/(sing-box|mihomo)\/(sing-box|mihomo)(\.exe)?$/.test(target)) {
+        return '移动新稳定版核心到工作目录'
+      }
       return
     }
     case 'bridge.App.UnzipZIPFile': {
       const [source] = args
-      if (/^data\/\.cache\/(sing-box|mihomo)$/.test(source)) {
+      if (/^data\/\.cache\/(sing-box|mihomo)/.test(source)) {
         return '解压核心压缩包到临时目录'
       }
       return
     }
-    case 'bridge.App.RemoveFile': {
-      const [path] = args
-      if (/^\/\.cache\/(sing-box|mihomo)-(.*)\.(zip|tar\.gz|\.gz)/.test(path)) {
-        return '删除更新核心时下载的压缩包'
-      }
-      if (/^data\/\.cache\/(sing-box|alpha)/.test(path)) {
-        return '删除更新核心时的临时解压目录'
-      }
-      return
-    }
-    case 'bridge.App.MakrDir': {
+    case 'bridge.App.MakeDir': {
       const [path] = args
       if (/^data\/(sing-box|mihomo)$/.test(path)) {
         return '创建核心工作目录'

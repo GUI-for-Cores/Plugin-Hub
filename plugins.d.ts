@@ -132,8 +132,8 @@ interface Plugins {
   FileExists(path: string): Promise<boolean>
   RemoveFile(path: string): Promise<void>
   MoveFile(src: string, dest: string): Promise<void>
-  ReadFile(path: string, options?: { Mode?: 'Binary' | 'Text' }): Promise<string>
-  WriteFile(path: string, content: string, options?: { Mode?: 'Binary' | 'Text' }): Promise<void>
+  ReadFile(path: string, options?: { Mode?: 'Binary' | 'Text', Range?: string }): Promise<string>
+  WriteFile(path: string, content: string, options?: { Mode?: 'Binary' | 'Text', Range?: string }): Promise<void>
   UnzipGZFile(gzPath: string, destPath: string): Promise<void>
   UnzipZIPFile(zipPath: string, destPath: string): Promise<void>
   UnzipTarGZFile(targzPath: string, destPath: string): Promise<void>
@@ -156,8 +156,11 @@ interface Plugins {
     ) => void,
     options?: {
       StaticPath?: string
+      StaticRoute?: string
+      StaticHeaders?: Recordable
       UploadPath?: string
       UploadRoute?: string
+      UploadHeaders?: Recordable
       MaxUploadSize?: number
     }
   ): Promise<{ close: () => Promise<void> }>
