@@ -471,6 +471,44 @@
     "installed": false
   },
   {
+    "id": "plugin-music-player",
+    "version": "v1.0.0",
+    "name": "简单音乐播放器",
+    "description": "一个简单的本地音乐播放器",
+    "tags": ["功能扩展", "实用工具"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-music-player.js",
+    "path": "data/plugins/plugin-music-player.js",
+    "triggers": ["on::manual"],
+    "hasUI": true,
+    "menus": {
+      "启动服务": "startMusicServer",
+      "停止服务": "stopMusicServer"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "configuration": [
+      {
+        "id": "ID_85b0dzns",
+        "title": "音乐文件夹",
+        "description": "",
+        "key": "MusicDir",
+        "component": "Input",
+        "value": "",
+        "options": []
+      }
+    ],
+    "status": 0,
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-tun-assistant",
     "name": "TUN模式助手",
     "version": "v1.0.1",

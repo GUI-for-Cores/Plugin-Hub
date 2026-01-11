@@ -300,6 +300,7 @@ interface Plugins {
   }
   useAppSettingsStore(): {
     app: Recordable
+    themeMode: 'light' | 'dark'
   }
   useProfilesStore(): {
     profiles: Recordable[]
