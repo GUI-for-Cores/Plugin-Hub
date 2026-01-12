@@ -35,11 +35,11 @@ function createUIModal() {
     <div class="relative flex flex-col h-full justify-end">
       <canvas ref="canvas" class="absolute inset-0 w-full h-full"></canvas>
       <div class="absolute left-8 right-8 flex justify-between" style="top: 50%; transform: translateY(-50%)">
-        <Button type="text" size="large" icon="arrowLeft" @click="prev" />
+        <Button type="text" size="large" icon="backward" @click="prev" />
         <Button type="text" class="flex items-center justify-center w-128 h-128 rounded-full" @click="toggle">
           <Icon :icon="isPlaying ? 'pause' : 'play'" :size="80" color="var(--color)" />
         </Button>
-        <Button type="text" size="large" icon="arrowRight" @click="next" />
+        <Button type="text" size="large" icon="forward" @click="next" />
       </div>
       <div class="absolute left-8 right-8 bottom-0 z-9">
         <Progress :percent="percent" />

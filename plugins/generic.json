@@ -415,7 +415,7 @@
   {
     "id": "plugin-rolling-release",
     "name": "滚动发行",
-    "version": "v3.0.1",
+    "version": "v3.1.0",
     "description": "提升GUI升级体验，获取更快、更新、更稳定的版本更新。",
     "tags": ["提升体验", "功能扩展"],
     "type": "Http",
@@ -472,7 +472,7 @@
   },
   {
     "id": "plugin-music-player",
-    "version": "v1.0.0",
+    "version": "v1.1.0",
     "name": "简单音乐播放器",
     "description": "一个简单的本地音乐播放器",
     "tags": ["功能扩展", "实用工具"],
