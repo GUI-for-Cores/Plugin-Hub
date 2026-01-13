@@ -217,6 +217,7 @@ function createUIModal() {
       window[Plugin.id].destroy()
       window[Plugin.id] = null
       modal.destroy()
+      stopMusicServer()
     }
   })
 

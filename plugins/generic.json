@@ -472,7 +472,7 @@
   },
   {
     "id": "plugin-music-player",
-    "version": "v1.1.0",
+    "version": "v1.2.0",
     "name": "简单音乐播放器",
     "description": "一个简单的本地音乐播放器",
     "tags": ["功能扩展", "实用工具"],
