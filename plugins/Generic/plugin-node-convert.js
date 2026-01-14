@@ -3731,7 +3731,7 @@ ${list}`
         delete proxy['grpc-opts']
       }
       // 非 reality, 空 flow 没有意义
-      if (!proxy['reality-opts'] && !proxy.flow) {
+      if ((!proxy['reality-opts'] && !proxy.flow) || ['null', null].includes(proxy.flow)) {
         delete proxy.flow
       }
       if (['http'].includes(proxy.network)) {
