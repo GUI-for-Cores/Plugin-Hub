@@ -1,16 +1,11 @@
-// @ts-ignore
-window[Plugin.id] = window[Plugin.id] || {}
-
-// 常量和枚举定义
 const RequestMethod = {
   Get: 'GET',
   Post: 'POST',
   Delete: 'DELETE',
   Put: 'PUT',
   Head: 'HEAD',
-  Patch: 'PATCH'
-}
-
+  Patch: 'PATCH',
+};
 const LogLevel = {
   Trace: 'trace',
   Debug: 'debug',
@@ -18,51 +13,43 @@ const LogLevel = {
   Warn: 'warn',
   Error: 'error',
   Fatal: 'fatal',
-  Panic: 'panic'
-}
-
+  Panic: 'panic',
+};
 const ClashMode = {
   Global: 'global',
   Rule: 'rule',
-  Direct: 'direct'
-}
-
+  Direct: 'direct',
+};
 const TunStack = {
   System: 'system',
   GVisor: 'gvisor',
-  Mixed: 'mixed'
-}
-
+  Mixed: 'mixed',
+};
 const RulesetType = {
   Inline: 'inline',
   Local: 'local',
-  Remote: 'remote'
-}
-
+  Remote: 'remote',
+};
 const RulesetFormat = {
   Source: 'source',
-  Binary: 'binary'
-}
-
+  Binary: 'binary',
+};
 const Inbound = {
   Mixed: 'mixed',
   Socks: 'socks',
   Http: 'http',
-  Tun: 'tun'
-}
-
+  Tun: 'tun',
+};
 const Outbound = {
   Direct: 'direct',
   Block: 'block',
   Selector: 'selector',
-  Urltest: 'urltest'
-}
-
+  Urltest: 'urltest',
+};
 const BuiltOutboundType = {
   BuiltIn: 'Built-in',
-  Subscription: 'Subscription'
-}
-
+  Subscription: 'Subscription',
+};
 const RuleType = {
   Inbound: 'inbound',
   Network: 'network',
@@ -85,9 +72,8 @@ const RuleType = {
   ClashMode: 'clash_mode',
   IpAcceptAny: 'ip_accept_any',
   // GUI
-  Inline: 'inline'
-}
-
+  Inline: 'inline',
+};
 const RuleAction = {
   Route: 'route',
   RouteOptions: 'route-options',
@@ -95,15 +81,13 @@ const RuleAction = {
   HijackDNS: 'hijack-dns',
   Sniff: 'sniff',
   Resolve: 'resolve',
-  Predefined: 'predefined'
-}
-
+  Predefined: 'predefined',
+};
 const RuleActionReject = {
   Default: 'default',
   Drop: 'drop',
-  Reply: 'reply'
-}
-
+  Reply: 'reply',
+};
 const DnsServer = {
   Local: 'local',
   Hosts: 'hosts',
@@ -114,57 +98,40 @@ const DnsServer = {
   Quic: 'quic',
   H3: 'h3',
   Dhcp: 'dhcp',
-  FakeIP: 'fakeip'
-}
-
+  FakeIP: 'fakeip',
+};
 const Strategy = {
   Default: 'default',
   PreferIPv4: 'prefer_ipv4',
   PreferIPv6: 'prefer_ipv6',
   IPv4Only: 'ipv4_only',
-  IPv6Only: 'ipv6_only'
-}
-
+  IPv6Only: 'ipv6_only',
+};
 const SubscribeType = {
   Http: 'Http',
   Local: 'File',
-  Manual: 'Manual'
-}
-
-const FilterMode = {
-  Include: 'include',
-  Exclude: 'exclude'
-}
-
-const ImportType = { Local: 'local', Remote: 'remote' }
-
-const DefaultTunAddress = ['172.18.0.1/30', 'fdfe:dcba:9876::1/126']
-
-const DefaultTestURL = 'https://www.gstatic.com/generate_204'
-
-const DefaultExcludeProtocols = 'direct|reject|selector|urltest|block|dns|shadowsocksr'
-
-const DefaultSubscribeScript = `const onSubscribe = async (proxies, subscription) => {\n  return { proxies, subscription }\n}`
-
-// 默认值生成函数
-const DefaultLog = () => ({
+  Manual: 'Manual',
+};
+const DefaultTunAddress = ['172.18.0.1/30', 'fdfe:dcba:9876::1/126'];
+const DefaultTestURL = 'https://www.gstatic.com/generate_204';
+const DefaultExcludeProtocols = 'direct|reject|selector|urltest|block|dns|shadowsocksr';
+const DefaultSubscribeScript = `const onSubscribe = async (proxies, subscription) => {\n  return { proxies, subscription }\n}`;
+const DefaultLog = {
   disabled: false,
   level: LogLevel.Info,
   output: '',
-  timestamp: false
-})
-
-const DefaultExperimental = () => ({
+  timestamp: false,
+};
+const DefaultExperimental = {
   clash_api: {
     external_controller: '127.0.0.1:20123',
     external_ui: '',
     external_ui_download_url: '',
     external_ui_download_detour: '',
-    // @ts-ignore
-    secret: Plugins.generateSecureKey(),
+    secret: '',
     default_mode: ClashMode.Rule,
     access_control_allow_origin: ['*'],
-    access_control_allow_private_network: false
+    access_control_allow_private_network: false,
   },
   cache_file: {
     enabled: true,
@@ -172,19 +139,17 @@ const DefaultExperimental = () => ({
     cache_id: '',
     store_fakeip: true,
     store_rdrc: true,
-    rdrc_timeout: '7d'
-  }
-})
-
-const DefaultInboundListen = () => ({
+    rdrc_timeout: '7d',
+  },
+};
+const DefaultInboundListen = {
   listen: '127.0.0.1',
   listen_port: 20120,
   tcp_fast_open: false,
   tcp_multi_path: false,
-  udp_fragment: false
-})
-
-const DefaultInboundTun = () => ({
+  udp_fragment: false,
+};
+const DefaultInboundTun = {
   interface_name: '',
   address: DefaultTunAddress,
   mtu: 0,
@@ -193,25 +158,24 @@ const DefaultInboundTun = () => ({
   route_address: [],
   route_exclude_address: [],
   endpoint_independent_nat: false,
-  stack: TunStack.Mixed
-})
-
-const DefaultOutbound = () => ({
-  id: Plugins.sampleID(),
+  stack: TunStack.Mixed,
+};
+const DefaultOutbound = {
+  id: '',
   tag: '',
-  type: '',
+  type: Outbound.Selector,
   outbounds: [],
   interrupt_exist_connections: true,
   url: DefaultTestURL,
   interval: '3m',
   tolerance: 150,
   include: '',
-  exclude: ''
-})
-
-const DefaultRouteRule = () => ({
-  id: Plugins.sampleID(),
+  exclude: '',
+};
+const DefaultRouteRule = {
+  id: '',
   type: RuleType.RuleSet,
+  enable: true,
   payload: '',
   invert: false,
   action: RuleAction.Route,
@@ -219,26 +183,9 @@ const DefaultRouteRule = () => ({
   sniffer: [],
   strategy: Strategy.Default,
   server: '',
-  enable: true
-})
-
-const RouteRuleActionProperties = () => ({
-  ...DefaultRouteRule(),
-  method: RuleActionReject.Default,
-  override_address: '',
-  override_port: 0,
-  network_strategy: '',
-  fallback_delay: '',
-  udp_disable_domain_unmapping: false,
-  udp_connect: false,
-  udp_timeout: '',
-  tls_fragment: false,
-  tls_fragment_fallback_delay: '',
-  tls_record_fragment: ''
-})
-
-const DefaultRouteRuleset = () => ({
-  id: Plugins.sampleID(),
+};
+const DefaultRuleSet = {
+  id: '',
   type: RulesetType.Local,
   tag: '',
   format: RulesetFormat.Binary,
@@ -246,22 +193,20 @@ const DefaultRouteRuleset = () => ({
   download_detour: '',
   update_interval: '',
   rules: '',
-  path: ''
-})
-
-const DefaultRouteGeneral = () => ({
+  path: '',
+};
+const DefaultRouteGeneral = {
   auto_detect_interface: true,
   default_interface: '',
   final: '',
   find_process: false,
   default_domain_resolver: {
     server: '',
-    client_subnet: ''
-  }
-})
-
-const DefaultDnsServer = () => ({
-  id: Plugins.sampleID(),
+    client_subnet: '',
+  },
+};
+const DefaultDnsServer = {
+  id: '',
   tag: '',
   type: DnsServer.Local,
   detour: '',
@@ -273,12 +218,12 @@ const DefaultDnsServer = () => ({
   inet4_range: '',
   inet6_range: '',
   hosts_path: [],
-  predefined: {}
-})
-
-const DefaultDnsRule = () => ({
-  id: Plugins.sampleID(),
+  predefined: {},
+};
+const DefaultDnsRule = {
+  id: '',
   type: RuleType.RuleSet,
+  enable: true,
   payload: '',
   action: RuleAction.Route,
   invert: false,
@@ -286,521 +231,807 @@ const DefaultDnsRule = () => ({
   strategy: Strategy.Default,
   disable_cache: false,
   client_subnet: '',
-  enable: true
-})
-
-const DnsRuleActionProperties = () => ({
-  ...DefaultDnsRule(),
-  method: RuleActionReject.Default,
-  rcode: '',
-  answer: [],
-  ns: [],
-  extra: []
-})
-
-const DefaultDnsGeneral = () => ({
+};
+const DefaultDnsGeneral = {
   disable_cache: false,
   disable_expire: false,
   independent_cache: false,
   client_subnet: '',
   final: '',
-  strategy: Strategy.Default
-})
-
+  strategy: Strategy.Default,
+};
+const RouteOptions = {
+  override_address: '',
+  override_port: 0,
+  network_strategy: 'default',
+  fallback_delay: '300ms',
+  udp_disable_domain_unmapping: false,
+  udp_connect: false,
+  udp_timeout: '10s',
+  tls_fragment: false,
+  tls_fragment_fallback_delay: '500ms',
+  tls_record_fragment: false,
+};
+const PredefinedOptions = {
+  rcode: 'NOERROR',
+  answer: [],
+  ns: [],
+  extra: [],
+};
+const FilterMode = { Include: 'include', Exclude: 'exclude' };
+const SOURCE_SUFFIX_REGEX = /\.json[c5]?$/;
+const ENDPOINT_PREFIX = 'endpoint_';
+const EXTRA_PROPS_PREFIX = 'extProps_';
+const getKeys = (obj) => {
+  return Object.keys(obj);
+};
+const getValues = (obj) => {
+  return Object.values(obj);
+};
+const hasOwn = (obj, key) => {
+  if (!Object.hasOwn(obj, key)) return false;
+  return obj[key] !== undefined;
+};
+const invertObject = (obj) => {
+  if (!obj) return {};
+  const inverted = Object.entries(obj).map(([key, value]) => [value, key]);
+  return Object.fromEntries(inverted);
+};
+const filterProps = (sourceObj, templateObj, mode) => {
+  if (typeof sourceObj !== 'object') {
+    return {};
+  }
+  const filtered = Object.entries(sourceObj).filter(([key]) => {
+    const hasKey = hasOwn(templateObj, key);
+    return mode === FilterMode.Include ? hasKey : !hasKey;
+  });
+  return Object.fromEntries(filtered);
+};
+const ensureArray = (value) => {
+  if (!value) return [];
+  return Array.isArray(value) ? [...value] : [value];
+};
+const stringifyJson = (value) => {
+  if (!value) return '';
+  return JSON.stringify(value, null, 2);
+};
+const mapToRecord = (map) => {
+  if (!map.size) return {};
+  return Object.fromEntries(map);
+};
+const generateId = () => Plugins.sampleID();
+const generateEndpointTag = (tag) => {
+  return `${ENDPOINT_PREFIX}${tag}`;
+};
+const generateExtraPropsTag = (tag) => {
+  return `${EXTRA_PROPS_PREFIX}${tag}`;
+};
+const BASE_RULES = invertObject(RuleType);
 const DefaultMixin = () => ({
-  priority: 'gui',
+  priority: 'mixin',
   format: 'json',
-  config: JSON.stringify({})
-})
-
+  config: '{}',
+});
 const DefaultScript = () => ({
-  code: `const onGenerate = async (config) => {\n  return config\n}`
-})
-
+  code: `const onGenerate = async (config) => {\n  return config\n}`,
+});
 const DefaultGuiProfile = () => ({
-  id: Plugins.sampleID(),
+  id: generateId(),
   name: '',
-  log: DefaultLog(),
-  experimental: DefaultExperimental(),
+  log: structuredClone(DefaultLog),
+  experimental: structuredClone(DefaultExperimental),
   inbounds: [],
   outbounds: [],
   route: {
     rule_set: [],
     rules: [],
-    ...DefaultRouteGeneral()
+    ...structuredClone(DefaultRouteGeneral),
   },
   dns: {
     servers: [],
     rules: [],
-    ...DefaultDnsGeneral()
+    ...structuredClone(DefaultDnsGeneral),
   },
   mixin: DefaultMixin(),
-  script: DefaultScript()
-})
-
-/* 根据指定的键列表和模式过滤对象 */
-const filterObjectKeys = (sourceObj, keyList, mode = FilterMode.Include) => {
-  if (!sourceObj || typeof sourceObj !== 'object') {
-    return {}
+  script: DefaultScript(),
+});
+const createPlaceholderInbound = (id, tag) => ({
+  id,
+  tag,
+  type: 'mixed',
+  mixed: {
+    listen: { ...DefaultInboundListen },
+    users: [],
+  },
+  enable: true,
+});
+const createPlaceholderOutbound = (id, tag) => ({
+  ...DefaultOutbound,
+  id,
+  tag,
+  type: 'direct',
+});
+const createPlaceholderDnsServer = (id, tag) => ({
+  ...DefaultDnsServer,
+  id,
+  tag,
+  type: 'local',
+});
+const inferRuleSetFormat = (rs) => {
+  if (rs.type === RulesetType.Remote) {
+    return SOURCE_SUFFIX_REGEX.exec(new URL(rs.url).pathname) ? RulesetFormat.Source : RulesetFormat.Binary;
+  } else if (rs.type === RulesetType.Local) {
+    return SOURCE_SUFFIX_REGEX.exec(rs.path) ? RulesetFormat.Source : RulesetFormat.Binary;
   }
-
-  const keySet = new Set(keyList)
-  const allKeys = Object.keys(sourceObj)
-
-  const filteredKeys = allKeys.filter((key) => {
-    const keyExistsInList = keySet.has(key)
-    if (mode === FilterMode.Include) {
-      return keyExistsInList
-    } else if (mode === FilterMode.Exclude) {
-      return !keyExistsInList
-    }
-    return false
-  })
-
-  return filteredKeys.reduce((acc, key) => {
-    acc[key] = sourceObj[key]
-    return acc
-  }, {})
-}
-
+  return RulesetFormat.Binary;
+};
+/* 格式化 Hosts 服务器的 Predefined 属性 */
+const formatHostsPredefined = (predefinedObject) => {
+  if (!predefinedObject) return {};
+  const formatted = Object.entries(predefinedObject).map(([domain, ips]) => {
+    const ipStr = typeof ips === 'string' ? ips : ips.join(',');
+    return [domain, ipStr];
+  });
+  return Object.fromEntries(formatted);
+};
+const normalizeClashMode = (rule) => {
+  const normalized = structuredClone(rule);
+  if (hasOwn(normalized, 'clash_mode')) {
+    normalized.clash_mode = normalized.clash_mode.toLowerCase();
+  }
+  if (hasOwn(normalized, 'rules')) {
+    normalized.rules = normalized.rules.map((rule) => {
+      if (hasOwn(rule, 'clash_mode')) {
+        return {
+          ...rule,
+          clash_mode: rule.clash_mode.toLowerCase(),
+        };
+      }
+      return rule;
+    });
+  }
+  return normalized;
+};
 /* 将原始配置解析为 GUI 格式 */
 class ConfigParser {
-  constructor(originConfig) {
-    this.origConfig = originConfig
-    // 初始化 GUI 配置对象
-    this.guiProfile = DefaultGuiProfile()
+  guiProfile = DefaultGuiProfile();
+  rawConfig;
+  states;
+  scriptProcessSegments = [];
+  constructor(rawConfig, states) {
+    this.rawConfig = rawConfig;
+    this.states = states;
   }
-
+  process(fileName) {
+    this.guiProfile.name = `${fileName.replace(SOURCE_SUFFIX_REGEX, '')}-profile`;
+    this.refreshTagToIdMaps();
+    this.processEndpoints();
+    this.parseInbounds();
+    this.parseOutbounds();
+    this.parseGeneral();
+    this.parseDnsServers();
+    this.parseRuleSets();
+    this.parseRoute();
+    this.parseDns();
+    this.composeProcessScript();
+    return this.guiProfile;
+  }
+  refreshTagToIdMaps() {
+    const { inbounds, outbounds, route, dns } = this.rawConfig;
+    const { inboundTagToId, outboundTagToId, rulesetTagToId, dnsServerTagToId } = this.states;
+    const tagToIdTasks = [
+      [inbounds, inboundTagToId],
+      [outbounds, outboundTagToId],
+      [route?.rule_set, rulesetTagToId],
+      [dns?.servers, dnsServerTagToId],
+    ];
+    for (const [items, idMap] of tagToIdTasks) {
+      if (!items?.length) continue;
+      for (const item of items) {
+        idMap.set(item.tag, generateId());
+      }
+    }
+  }
+  processEndpoints() {
+    const { endpoints: rawEndpoints } = this.rawConfig;
+    if (!rawEndpoints?.length) return;
+    for (const { tag } of rawEndpoints) {
+      const id = generateId();
+      const endpointTag = generateEndpointTag(tag);
+      this.states.inboundTagToId.set(endpointTag, id);
+      this.states.outboundTagToId.set(endpointTag, id);
+      this.guiProfile.inbounds.push(createPlaceholderInbound(id, endpointTag));
+      this.guiProfile.outbounds.push(createPlaceholderOutbound(id, endpointTag));
+    }
+    const endpointsProcessing = `
+config.endpoints = ${stringifyJson(rawEndpoints)};
+const isNotEndpoint = (item) => !item.tag.startsWith('${ENDPOINT_PREFIX}');
+config.inbounds = config.inbounds.filter(isNotEndpoint);
+config.outbounds = config.outbounds.filter(isNotEndpoint);
+`;
+    this.appendScriptSegment(endpointsProcessing);
+  }
   /* 解析入站设置 */
-  _parseInbounds() {
-    const { inbounds: origInbounds } = this.origConfig
-    if (!origInbounds || origInbounds.length === 0) return
-    const supportedTypes = new Set(Object.values(Inbound))
-    // @ts-ignore
-    const { inboundTagToId } = window[Plugin.id]
-    this.guiProfile.inbounds = origInbounds
-      .filter((ib) => supportedTypes.has(ib.type))
-      .map((ib, idx) => {
-        const newId = Plugins.sampleID()
-        inboundTagToId[ib.tag] = newId
-
-        const DefaultInboundHeader = () => ({
-          id: newId,
-          type: ib.type,
-          tag: ib.tag,
-          enable: true
-        })
-
-        if (ib.type === Inbound.Tun) {
-          return {
-            ...DefaultInboundHeader(),
-            tun: {
-              ...DefaultInboundTun(),
-              ...filterObjectKeys(ib, Object.keys(DefaultInboundTun()), FilterMode.Include),
-              address: typeof ib.address === 'string' ? [ib.address] : ib.address
-            }
-          }
-        }
-
+  parseInbounds() {
+    const { inbounds: rawInbounds } = this.rawConfig;
+    if (!rawInbounds?.length) return;
+    const extraInbounds = new Map();
+    const inboundExtProps = new Map();
+    const supportedInbounds = getValues(Inbound);
+    const isSupportedInbound = (ib) => {
+      return supportedInbounds.includes(ib.type);
+    };
+    const parsedInbounds = rawInbounds.map((ib) => {
+      const { tag, type } = ib;
+      const inboundBase = {
+        id: this.getInboundId(tag),
+        tag,
+        type,
+        enable: true,
+      };
+      if (!isSupportedInbound(ib)) {
+        extraInbounds.set(tag, ib);
+        return createPlaceholderInbound(inboundBase.id, tag);
+      }
+      const extPropsTag = generateExtraPropsTag(tag);
+      if (type === Inbound.Tun) {
+        const { route_address, route_exclude_address, address } = ib;
+        const { type, tag, ...tunExtProps } = filterProps(ib, DefaultInboundTun, FilterMode.Exclude);
+        if (getKeys(tunExtProps).length > 0) inboundExtProps.set(extPropsTag, tunExtProps);
         return {
-          ...DefaultInboundHeader(),
-          [ib.type]: {
+          ...inboundBase,
+          tun: {
+            ...DefaultInboundTun,
+            ...filterProps(ib, DefaultInboundTun, FilterMode.Include),
+            route_address: ensureArray(route_address),
+            route_exclude_address: ensureArray(route_exclude_address),
+            address: ensureArray(address),
+          },
+        };
+      } else {
+        const { users } = ib;
+        const { type, tag, ...otherExtProps } = filterProps(ib, { ...DefaultInboundListen, users }, FilterMode.Exclude);
+        if (getKeys(otherExtProps).length > 0) inboundExtProps.set(extPropsTag, otherExtProps);
+        return {
+          ...inboundBase,
+          [type]: {
             listen: {
-              ...DefaultInboundListen(),
-              ...filterObjectKeys(ib, Object.keys(DefaultInboundListen()), FilterMode.Include)
+              ...DefaultInboundListen,
+              ...filterProps(ib, DefaultInboundListen, FilterMode.Include),
             },
-            users: ib.users?.map((u) => `${u.username}:${u.password}`) || []
-          }
-        }
-      })
+            users: users?.map((u) => `${u.username}:${u.password}`) ?? [],
+          },
+        };
+      }
+    });
+    this.guiProfile.inbounds.push(...parsedInbounds);
+    if (!extraInbounds.size && !inboundExtProps.size) return;
+    const inboundsProcessing = `
+const extraInboundsMap = ${stringifyJson(mapToRecord(extraInbounds))};
+const inboundExtPropsMap = ${stringifyJson(mapToRecord(inboundExtProps))};
+config.inbounds = config.inbounds.map((ib) => {
+  const tag = ib.tag;
+  const extPropsTag = \`${EXTRA_PROPS_PREFIX}\${tag}\`;
+  const extInbound = extraInboundsMap[tag];
+  const extProps = inboundExtPropsMap[extPropsTag];
+  if (extInbound) {
+    return extInbound;
   }
-
+  if (extProps) {
+    return {
+      ...ib,
+      ...extProps,
+    };
+  }
+  return ib;
+});
+`;
+    this.appendScriptSegment(inboundsProcessing);
+  }
   /* 解析出站设置 */
-  _parseOutbounds() {
-    const { outbounds: origOutbounds } = this.origConfig
-    if (!origOutbounds || origOutbounds.length === 0) return
-    const supportedTypes = new Set(Object.values(Outbound))
-    // @ts-ignore
-    const { outboundTagToId, proxyTagToId, subscribeId, subscribeName } = window[Plugin.id]
-    const supportedOutbounds = origOutbounds.filter((ob) => supportedTypes.has(ob.type))
-
-    supportedOutbounds.forEach((ob) => {
-      outboundTagToId[ob.tag] = Plugins.sampleID()
-    })
-
-    this.guiProfile.outbounds = supportedOutbounds.map((ob) => {
-      const guiOutbound = {
-        ...DefaultOutbound(),
-        ...ob,
-        id: outboundTagToId[ob.tag],
-        outbounds: [],
-        include: '',
-        exclude: ''
-      }
-
-      if (ob.type === Outbound.Selector || ob.type === Outbound.Urltest) {
-        guiOutbound.outbounds =
-          ob.outbounds
-            ?.map((tag) => {
-              // 引用的是一个内置出站
-              if (outboundTagToId[tag]) return { id: outboundTagToId[tag], tag, type: BuiltOutboundType.BuiltIn }
-              // 引用的是订阅中的节点
-              if (proxyTagToId[tag]) return { id: proxyTagToId[tag], tag, type: subscribeId }
-              return null
-            })
-            .filter(Boolean) || []
-
+  parseOutbounds() {
+    const { outbounds: rawOutbounds } = this.rawConfig;
+    if (!rawOutbounds?.length) return;
+    const { subscribeId, subscribeName, proxyTagToId } = this.states;
+    const outboundExtProps = new Map();
+    const parsedOutbounds = rawOutbounds.map((ob) => {
+      const { type, tag } = ob;
+      const extPropsTag = generateExtraPropsTag(tag);
+      if (type === Outbound.Selector || type === Outbound.Urltest) {
+        const outboundGroup = {
+          ...DefaultOutbound,
+          ...filterProps(ob, DefaultOutbound, FilterMode.Include),
+          id: this.getOutboundId(tag),
+          outbounds: [],
+        };
+        const groupExtProps = filterProps(ob, DefaultOutbound, FilterMode.Exclude);
+        if (getKeys(groupExtProps).length > 0) outboundExtProps.set(extPropsTag, groupExtProps);
+        outboundGroup.outbounds = ob.outbounds.flatMap((tag) => {
+          const outId = this.getOutboundId(tag);
+          const proxyId = this.getProxyId(tag);
+          // 引用的是一个内置出站
+          if (outId) return [{ id: outId, tag: this.getOutboundTag(tag), type: BuiltOutboundType.BuiltIn }];
+          // 引用的是订阅中的节点
+          if (proxyId) return [{ id: proxyId, tag, type: subscribeId }];
+          return [];
+        });
         // 如果出站引用了订阅中的所有节点，则简化为引用整个订阅
-        const allProxyTagsInSub = Object.keys(proxyTagToId)
-        const outboundProxyTags = new Set(guiOutbound.outbounds.filter((o) => o.type === subscribeId).map((o) => o.tag))
-
-        if (
-          subscribeId &&
-          allProxyTagsInSub.length > 0 &&
-          outboundProxyTags.size === allProxyTagsInSub.length &&
-          allProxyTagsInSub.every((tag) => outboundProxyTags.has(tag))
-        ) {
-          const nonSubOutbounds = guiOutbound.outbounds.filter((o) => o.type !== subscribeId)
-          guiOutbound.outbounds = [{ id: subscribeId, tag: subscribeName, type: BuiltOutboundType.Subscription }, ...nonSubOutbounds]
+        const referencedProxyTags = new Set(
+          outboundGroup.outbounds.flatMap((o) => {
+            if (o.type !== subscribeId) return [];
+            return [o.tag];
+          }),
+        );
+        if (referencedProxyTags.size === proxyTagToId.size) {
+          for (const pTag of proxyTagToId.keys()) {
+            if (!referencedProxyTags.has(pTag)) return outboundGroup;
+          }
+          const nonProxyOutbounds = outboundGroup.outbounds.filter((o) => o.type !== subscribeId);
+          outboundGroup.outbounds = [
+            { id: subscribeId, tag: subscribeName, type: BuiltOutboundType.Subscription },
+            ...nonProxyOutbounds,
+          ];
         }
+        return outboundGroup;
+      } else {
+        if (type === Outbound.Direct) {
+          const directExtProps = filterProps(ob, { type, tag }, FilterMode.Exclude);
+          if (getKeys(directExtProps).length > 0) outboundExtProps.set(extPropsTag, directExtProps);
+        }
+        return {
+          ...DefaultOutbound,
+          id: this.getOutboundId(tag),
+          tag,
+          type,
+        };
       }
-      return guiOutbound
-    })
+    });
+    this.guiProfile.outbounds.push(...parsedOutbounds);
+    if (!outboundExtProps.size) return;
+    const outboundsProcessing = `
+const outboundExtPropsMap = ${stringifyJson(mapToRecord(outboundExtProps))};
+config.outbounds = config.outbounds.map((ob) => {
+  const extPropsTag = \`${EXTRA_PROPS_PREFIX}\${ob.tag}\`;
+  const extProps = outboundExtPropsMap[extPropsTag];
+  if (extProps) {
+    return {
+      ...ob,
+      ...extProps,
+    };
   }
-
+  return ob;
+});
+`;
+    this.appendScriptSegment(outboundsProcessing);
+  }
   /* 解析通用设置 */
-  _parseGeneral() {
-    // @ts-ignore
-    const { outboundTagToId } = window[Plugin.id]
-    const { log: origLog, experimental: origExperimental } = this.origConfig
-
-    if (origLog) {
-      this.guiProfile.log = { ...this.guiProfile.log, ...origLog }
+  parseGeneral() {
+    const { log: rawLog, ntp: rawNtp, experimental: rawExperimental } = this.rawConfig;
+    if (rawLog) {
+      this.guiProfile.log = { ...DefaultLog, ...rawLog };
     }
-
-    if (!origExperimental) return
-
-    const { clash_api: origClashApi, cache_file: origCacheFile } = origExperimental
-
-    if (origClashApi) {
+    if (rawNtp) {
+      const ntpAppend = `
+config.ntp = ${stringifyJson(rawNtp)};
+`;
+      this.appendScriptSegment(ntpAppend);
+    }
+    if (!rawExperimental) return;
+    const { clash_api: rawClashApi, cache_file: rawCacheFile } = rawExperimental;
+    if (rawClashApi) {
       this.guiProfile.experimental.clash_api = {
-        ...this.guiProfile.experimental.clash_api,
-        ...origClashApi,
-        // 单独处理特殊属性
-        default_mode: origClashApi.default_mode ? String(origClashApi.default_mode).toLowerCase() : ClashMode.Rule,
-        external_ui_download_detour: outboundTagToId[origClashApi.external_ui_download_detour] ?? ''
-      }
+        ...DefaultExperimental.clash_api,
+        ...rawClashApi,
+        secret: Plugins.generateSecureKey(),
+        default_mode: rawClashApi.default_mode?.toLowerCase() ?? ClashMode.Rule,
+        access_control_allow_origin: ensureArray(rawClashApi.access_control_allow_origin),
+        external_ui_download_detour: this.getOutboundId(rawClashApi.external_ui_download_detour),
+      };
     }
-
-    if (origCacheFile) {
+    if (rawCacheFile) {
       this.guiProfile.experimental.cache_file = {
-        ...this.guiProfile.experimental.cache_file,
-        ...origCacheFile
+        ...DefaultExperimental.cache_file,
+        ...rawCacheFile,
+      };
+      if (rawCacheFile.rdrc_timeout) {
+        const rdrcTimeoutOverride = `
+config.experimental.cache_file.rdrc_timeout = '${rawCacheFile.rdrc_timeout}';
+`;
+        this.appendScriptSegment(rdrcTimeoutOverride);
       }
     }
   }
-
-  /* 解析路由规则集 */
-  _parseRouteRuleset(origRuleset) {
-    // @ts-ignore
-    const { rulesetTagToId, outboundTagToId } = window[Plugin.id]
-
-    origRuleset.forEach((rs) => {
-      rulesetTagToId[rs.tag] = Plugins.sampleID()
-    })
-
-    this.guiProfile.route.rule_set = origRuleset.map((rs) => ({
-      ...DefaultRouteRuleset(),
-      ...rs,
-      id: rulesetTagToId[rs.tag],
-      download_detour: outboundTagToId[rs.download_detour] ?? '',
-      rules: rs.rules ? JSON.stringify(rs.rules, null, 2) : JSON.stringify([])
-    }))
-  }
-
-  /* 格式化 Hosts 服务器的 Predefined 属性 */
-  _formatHostsPredefined(predefinedObject) {
-    if (!predefinedObject || typeof predefinedObject !== 'object') {
-      return {}
-    }
-    const formattedEntries = Object.entries(predefinedObject).map(([domain, ips]) => {
-      const ipString = [].concat(ips).join(',')
-      return [domain, ipString]
-    })
-
-    return Object.fromEntries(formattedEntries)
-  }
-
   /* 解析 DNS 服务器 */
-  _parseDnsServers(origDnsServers) {
-    // @ts-ignore
-    const { dnsServerTagToId, outboundTagToId } = window[Plugin.id]
-
-    origDnsServers.forEach((s) => {
-      dnsServerTagToId[s.tag] = Plugins.sampleID()
-    })
-
-    const supportedDNSServerTypes = new Set(Object.values(DnsServer))
-    this.guiProfile.dns.servers = origDnsServers
-      .filter((s) => supportedDNSServerTypes.has(s.type))
-      .map((s) => ({
-        ...DefaultDnsServer(),
-        ...filterObjectKeys(s, Object.keys(DefaultDnsServer()), FilterMode.Include),
-        id: dnsServerTagToId[s.tag],
-        detour: outboundTagToId[s.detour] ?? '',
-        domain_resolver: dnsServerTagToId[s.domain_resolver] ?? '',
-        server_port: String(s.server_port ?? ''),
-        path: [DnsServer.Https, DnsServer.H3].includes(s.type) ? (s.path ?? '') : '',
-        hosts_path: s.type === DnsServer.Hosts ? (s.path ?? []) : [],
-        predefined: s.type === DnsServer.Hosts ? this._formatHostsPredefined(s.predefined) : {}
-      }))
-  }
-
-  /* 解析规则的匹配条件部分 */
-  _parseMatchingCondition(condition, maps) {
-    const ruleTypeList = Object.values(RuleType)
-    const supportedTypes = Object.keys(filterObjectKeys(condition, ruleTypeList, FilterMode.Include))
-    const unsupportedTypes = Object.keys(filterObjectKeys(condition, ruleTypeList, FilterMode.Exclude))
-
-    // 当只有一个支持的类型时，视为简单规则
-    if (supportedTypes.length === 1 && unsupportedTypes.length === 0) {
-      const type = supportedTypes[0]
-      let payload = condition[type]
-
-      if (type === RuleType.RuleSet) {
-        payload = (Array.isArray(payload) ? payload : [payload])
-          .map((tag) => maps.ruleset[tag])
-          .filter(Boolean)
-          .join(',')
-      } else if (type === RuleType.Inbound) {
-        if (Array.isArray(payload) && payload.length > 1) {
-          return { type: RuleType.Inline, payload: JSON.stringify(condition, null, 2) }
-        }
-        payload = Array.isArray(payload) && payload.length === 1 ? (maps.inbound[payload[0]] ?? '') : (maps.inbound[payload] ?? '')
-      } else if (type === RuleType.ClashMode) {
-        payload = String(payload).toLowerCase()
-      } else if (Array.isArray(payload)) {
-        payload = payload.join(',')
+  parseDnsServers() {
+    const rawDnsServers = this.rawConfig.dns?.servers;
+    if (!rawDnsServers?.length) return;
+    const extraDnsServers = new Map();
+    const dnsServerExtProps = new Map();
+    const supportedServers = getValues(DnsServer);
+    const isSupportedDnsServer = (ds) => {
+      return supportedServers.includes(ds.type);
+    };
+    const parsedDnsServers = rawDnsServers.flatMap((ds) => {
+      if (!hasOwn(ds, 'type')) return [];
+      const tag = ds.tag;
+      if (!isSupportedDnsServer(ds)) {
+        extraDnsServers.set(tag, ds);
+        return [createPlaceholderDnsServer(this.getDnsServerId(tag), tag)];
       }
-      return { type, payload: String(payload) }
-    }
-
-    if (condition.clash_mode) {
-      condition.clash_mode = String(condition.clash_mode).toLowerCase()
-    }
-
-    // 其他所有情况（0个或多个类型，或不支持的类型）都视为内联规则
-    return { type: RuleType.Inline, payload: typeof condition === 'object' ? JSON.stringify(condition, null, 2) : String(condition) }
-  }
-
-  /* 解析路由规则 */
-  _parseRouteRules(origRouteRules) {
-    // @ts-ignore
-    const { dnsServerTagToId, rulesetTagToId, inboundTagToId, outboundTagToId } = window[Plugin.id]
-    const maps = { ruleset: rulesetTagToId, inbound: inboundTagToId }
-
-    this.guiProfile.route.rules = origRouteRules.map((rule) => {
-      const actionProperties = filterObjectKeys(rule, Object.keys(RouteRuleActionProperties()), FilterMode.Include)
-      const matchingCondition = filterObjectKeys(rule, Object.keys(RouteRuleActionProperties()), FilterMode.Exclude)
-
-      if (rule.type) {
-        matchingCondition.type = rule.type
+      let dnsExtProps = filterProps(ds, DefaultDnsServer, FilterMode.Exclude);
+      if (
+        hasOwn(ds, 'domain_resolver') &&
+        typeof ds.domain_resolver === 'object' &&
+        getKeys(ds.domain_resolver).length > 1
+      ) {
+        dnsExtProps = { ...dnsExtProps, domain_resolver: ds.domain_resolver };
       }
-      const { type, payload } = this._parseMatchingCondition(matchingCondition, maps)
-
-      const guiRule = {
-        ...DefaultRouteRule(),
-        ...filterObjectKeys(actionProperties, Object.keys(DefaultRouteRule()), FilterMode.Include),
-        id: Plugins.sampleID(),
-        type,
-        payload,
-        outbound:
-          actionProperties.action === RuleAction.Reject
-            ? (actionProperties.method ?? RuleActionReject.Default)
-            : actionProperties.action === RuleAction.RouteOptions
-              ? JSON.stringify(filterObjectKeys(actionProperties, Object.keys(DefaultRouteRule()), FilterMode.Exclude), null, 2)
-              : (outboundTagToId[actionProperties.outbound] ?? ''),
-        server: dnsServerTagToId[actionProperties.server] ?? ''
-      }
-      return guiRule
-    })
+      if (getKeys(dnsExtProps).length > 0) dnsServerExtProps.set(generateExtraPropsTag(tag), dnsExtProps);
+      return [
+        {
+          ...DefaultDnsServer,
+          ...filterProps(ds, DefaultDnsServer, FilterMode.Include),
+          id: this.getDnsServerId(ds.tag),
+          detour: hasOwn(ds, 'detour') ? this.getOutboundId(ds.detour) : '',
+          domain_resolver: hasOwn(ds, 'domain_resolver') ? this.getDomainResolverId(ds.domain_resolver) : '',
+          server_port: hasOwn(ds, 'server_port') ? String(ds.server_port) : '',
+          hosts_path: ds.type === DnsServer.Hosts ? ensureArray(ds.path) : [],
+          predefined: ds.type === DnsServer.Hosts ? formatHostsPredefined(ds.predefined) : {},
+          path: DnsServer.Https === ds.type || DnsServer.H3 === ds.type ? (ds.path ?? '') : '',
+        },
+      ];
+    });
+    this.guiProfile.dns.servers.push(...parsedDnsServers);
+    if (!extraDnsServers.size && !dnsServerExtProps.size) return;
+    const dnsServersProcessing = `
+const extraDnsServersMap = ${stringifyJson(mapToRecord(extraDnsServers))};
+const dnsServerExtPropsMap = ${stringifyJson(mapToRecord(dnsServerExtProps))};
+config.dns.servers = config.dns.servers.map((ds) => {
+  const tag = ds.tag;
+  const extPropsTag = \`${EXTRA_PROPS_PREFIX}\${tag}\`;
+  const extDnsServer = extraDnsServersMap[tag];
+  const extProps = dnsServerExtPropsMap[extPropsTag];
+  if (extDnsServer) {
+    return extDnsServer;
   }
-
+  if (extProps) {
+    return {
+      ...ds,
+      ...extProps,
+    };
+  }
+  return ds;
+});
+    `;
+    this.appendScriptSegment(dnsServersProcessing);
+  }
+  /* 解析规则集 */
+  parseRuleSets() {
+    const rawRuleSets = this.rawConfig.route?.rule_set;
+    if (!rawRuleSets?.length) return;
+    const parsedRuleSet = rawRuleSets.map((rs) => {
+      return {
+        ...DefaultRuleSet,
+        ...rs,
+        id: this.getRuleSetId(rs.tag),
+        rules: rs.type === RulesetType.Inline ? stringifyJson(rs.rules) : '',
+        download_detour: rs.type === RulesetType.Remote ? this.getOutboundId(rs.download_detour) : '',
+        format: inferRuleSetFormat(rs),
+      };
+    });
+    this.guiProfile.route.rule_set.push(...parsedRuleSet);
+  }
   /* 解析路由设置 */
-  _parseRoute() {
-    const { route: origRoute, dns: origDns } = this.origConfig
-    if (!origRoute && !origDns) return
-    // @ts-ignore
-    const { dnsServerTagToId, outboundTagToId } = window[Plugin.id]
-    if (origRoute.rule_set && origRoute.rule_set.length > 0) {
-      this._parseRouteRuleset(origRoute.rule_set)
+  parseRoute() {
+    const { route: rawRoute } = this.rawConfig;
+    if (!rawRoute) return;
+    this.parseRouteRules(rawRoute.rules);
+    this.guiProfile.route = {
+      ...this.guiProfile.route,
+      ...filterProps(rawRoute, DefaultRouteGeneral, FilterMode.Include),
+      final: this.getOutboundId(rawRoute.final),
+      default_domain_resolver: {
+        ...DefaultRouteGeneral.default_domain_resolver,
+        server: this.getDomainResolverId(rawRoute.default_domain_resolver),
+      },
+    };
+    let routeExtProps = filterProps(rawRoute, { ...DefaultRouteGeneral, rules: [], rule_set: [] }, FilterMode.Exclude);
+    if (typeof rawRoute.default_domain_resolver === 'object' && getKeys(rawRoute.default_domain_resolver).length > 1) {
+      routeExtProps = { ...routeExtProps, default_domain_resolver: rawRoute.default_domain_resolver };
     }
-    if (origDns.servers && origDns.servers.length > 0) {
-      this._parseDnsServers(origDns.servers)
-    }
-    if (origRoute.rules && origRoute.rules.length > 0) {
-      this._parseRouteRules(origRoute.rules)
-    }
-    if (origRoute) {
-      this.guiProfile.route = {
-        ...this.guiProfile.route,
-        ...filterObjectKeys(origRoute, Object.keys(DefaultRouteGeneral()), FilterMode.Include),
-        final: outboundTagToId[origRoute.final] ?? '',
-        default_domain_resolver: {
-          ...this.guiProfile.route.default_domain_resolver,
-          ...(origRoute.default_domain_resolver && typeof origRoute.default_domain_resolver === 'object'
-            ? filterObjectKeys(origRoute.default_domain_resolver, Object.keys(DefaultRouteGeneral().default_domain_resolver), FilterMode.Include)
-            : {}),
-          server: dnsServerTagToId[origRoute.default_domain_resolver?.server ?? origRoute.default_domain_resolver] ?? ''
+    if (!getKeys(routeExtProps).length) return;
+    const routeProcessing = `
+const routeExtProps = ${stringifyJson(routeExtProps)};
+config.route = {
+  ...config.route,
+  ...routeExtProps,
+};
+`;
+    this.appendScriptSegment(routeProcessing);
+  }
+  /* 解析路由规则 */
+  parseRouteRules(rawRouteRules) {
+    if (!rawRouteRules?.length) return;
+    const parsedRouteRules = rawRouteRules.map((rule) => {
+      const id = generateId();
+      const { action, invert } = rule;
+      const ruleBase = {
+        ...DefaultRouteRule,
+        id,
+        action: action ?? 'route',
+        invert: invert ?? false,
+      };
+      switch (action) {
+        case RuleAction.Route: {
+          const { outbound, ...rest } = rule;
+          return {
+            ...ruleBase,
+            ...this.parseMatchRule(rest),
+            outbound: this.getOutboundId(outbound),
+          };
+        }
+        case RuleAction.RouteOptions: {
+          const routeOptions = filterProps(rule, RouteOptions, FilterMode.Include);
+          const rest = filterProps(rule, RouteOptions, FilterMode.Exclude);
+          return {
+            ...ruleBase,
+            ...this.parseMatchRule(rest),
+            outbound: stringifyJson(routeOptions),
+          };
+        }
+        case RuleAction.Reject: {
+          const { method, ...rest } = rule;
+          return {
+            ...ruleBase,
+            ...this.parseMatchRule(rest),
+            outbound: method ?? RuleActionReject.Default,
+          };
+        }
+        case RuleAction.Sniff: {
+          const { sniffer, ...rest } = rule;
+          return {
+            ...ruleBase,
+            ...this.parseMatchRule(rest),
+            sniffer: ensureArray(sniffer),
+          };
+        }
+        case RuleAction.Resolve: {
+          const { strategy, server, ...rest } = rule;
+          return {
+            ...ruleBase,
+            ...this.parseMatchRule(rest),
+            strategy: strategy ?? Strategy.Default,
+            server: this.getDnsServerId(server),
+          };
+        }
+        default: {
+          return {
+            ...ruleBase,
+            ...this.parseMatchRule(rule),
+          };
         }
       }
-    }
+    });
+    this.guiProfile.route.rules.push(...parsedRouteRules);
   }
-
-  /* 解析 DNS 规则 */
-  _parseDnsRules(origDnsRules) {
-    // @ts-ignore
-    const { dnsServerTagToId, rulesetTagToId, inboundTagToId } = window[Plugin.id]
-    const maps = { ruleset: rulesetTagToId, inbound: inboundTagToId }
-
-    this.guiProfile.dns.rules = origDnsRules.map((rule) => {
-      const actionProperties = filterObjectKeys(rule, Object.keys(DnsRuleActionProperties()), FilterMode.Include)
-      const matchingCondition = filterObjectKeys(rule, Object.keys(DnsRuleActionProperties()), FilterMode.Exclude)
-
-      if (rule.type) {
-        matchingCondition.type = rule.type
-      }
-      const { type, payload } = this._parseMatchingCondition(matchingCondition, maps)
-
-      const guiRule = {
-        ...DefaultDnsRule(),
-        ...filterObjectKeys(actionProperties, Object.keys(DefaultDnsRule()), FilterMode.Include),
-        id: Plugins.sampleID(),
-        type,
-        payload,
-        server:
-          actionProperties.action === RuleAction.Reject
-            ? (actionProperties.method ?? RuleActionReject.Default)
-            : actionProperties.action === RuleAction.Predefined || actionProperties.action === RuleAction.RouteOptions
-              ? JSON.stringify(filterObjectKeys(actionProperties, Object.keys(DefaultDnsRule()), FilterMode.Exclude), null, 2)
-              : (dnsServerTagToId[actionProperties.server] ?? '')
-      }
-
-      return guiRule
-    })
-  }
-
   /* 解析 DNS 设置 */
-  _parseDns() {
-    const { dns: origDns } = this.origConfig
-    if (!origDns) return
-    // @ts-ignore
-    const { dnsServerTagToId } = window[Plugin.id]
-
-    if (origDns.rules && origDns.rules.length > 0) {
-      this._parseDnsRules(origDns.rules)
-    }
-
+  parseDns() {
+    const { dns: rawDns } = this.rawConfig;
+    if (!rawDns) return;
+    this.parseDnsRules(rawDns.rules);
     this.guiProfile.dns = {
       ...this.guiProfile.dns,
-      ...filterObjectKeys(origDns, Object.keys(DefaultDnsGeneral()), FilterMode.Include),
-      final: dnsServerTagToId[origDns.final] ?? ''
-    }
+      ...filterProps(rawDns, DefaultDnsGeneral, FilterMode.Include),
+      final: this.getDnsServerId(rawDns.final),
+    };
+    const dnsExtProps = filterProps(rawDns, { ...DefaultDnsGeneral, servers: [], rules: [] }, FilterMode.Exclude);
+    if (!getKeys(dnsExtProps).length) return;
+    const dnsProcessing = `
+const dnsExtProps = ${stringifyJson(dnsExtProps)};
+config.dns = {
+  ...config.dns,
+  ...dnsExtProps,
+};
+`;
+    this.appendScriptSegment(dnsProcessing);
   }
-
-  /* 解析额外字段 */
-  _parseExtraFields() {
-    const topFields = filterObjectKeys(this.origConfig, Object.keys(DefaultGuiProfile()), FilterMode.Exclude)
-    const routeFields = filterObjectKeys(this.origConfig.route, Object.keys(DefaultGuiProfile().route), FilterMode.Exclude)
-    const defaultDomainResolver = filterObjectKeys(
-      this.origConfig.route?.default_domain_resolver,
-      Object.keys(DefaultRouteGeneral().default_domain_resolver),
-      FilterMode.Exclude
-    )
-    const dnsFields = filterObjectKeys(this.origConfig.dns, Object.keys(DefaultGuiProfile().dns), FilterMode.Exclude)
-
-    delete routeFields.geoip
-    delete routeFields.geosite
-    delete dnsFields.fakeip
-
-    if (Object.keys(defaultDomainResolver).length > 0) {
-      routeFields.default_domain_resolver = defaultDomainResolver
-    }
-    if (Object.keys(routeFields).length > 0) {
-      topFields.route = routeFields
-    }
-    if (Object.keys(dnsFields).length > 0) {
-      topFields.dns = dnsFields
-    }
-
-    if (Object.keys(topFields).length > 0) {
-      this.guiProfile.mixin.config = JSON.stringify(topFields, null, 2)
-    }
+  /* 解析 DNS 规则 */
+  parseDnsRules(rawDnsRules) {
+    if (!rawDnsRules?.length) return;
+    const parsedDnsRules = rawDnsRules.map((rule) => {
+      const id = generateId();
+      const { action, invert } = rule;
+      const ruleBase = {
+        ...DefaultDnsRule,
+        id,
+        action: action ?? 'route',
+        invert: invert ?? false,
+      };
+      switch (action) {
+        case RuleAction.Route: {
+          const { server, strategy, disable_cache, client_subnet, ...rest } = rule;
+          return {
+            ...ruleBase,
+            ...this.parseMatchRule(rest),
+            server: this.getDnsServerId(server),
+            strategy: strategy ?? Strategy.Default,
+            disable_cache: disable_cache ?? false,
+            client_subnet: client_subnet ?? '',
+          };
+        }
+        case RuleAction.RouteOptions: {
+          const { disable_cache, rewrite_ttl, client_subnet, ...rest } = rule;
+          return {
+            ...ruleBase,
+            ...this.parseMatchRule(rest),
+            disable_cache: disable_cache ?? false,
+            client_subnet: client_subnet ?? '',
+            server: stringifyJson({ rewrite_ttl: rewrite_ttl ?? 0 }),
+          };
+        }
+        case RuleAction.Reject: {
+          const { method, ...rest } = rule;
+          return {
+            ...ruleBase,
+            ...this.parseMatchRule(rest),
+            server: method ?? RuleActionReject.Default,
+          };
+        }
+        case RuleAction.Predefined: {
+          const predefined = filterProps(rule, PredefinedOptions, FilterMode.Include);
+          const rest = filterProps(rule, PredefinedOptions, FilterMode.Exclude);
+          return {
+            ...ruleBase,
+            ...this.parseMatchRule(rest),
+            server: stringifyJson(predefined),
+          };
+        }
+        default: {
+          return {
+            ...ruleBase,
+            ...this.parseMatchRule(rule),
+          };
+        }
+      }
+    });
+    this.guiProfile.dns.rules.push(...parsedDnsRules);
   }
-
-  async process(fileName) {
-    this.guiProfile.name = `${fileName.replace(/\.json$/, '')}-profile`
-    this._parseInbounds()
-    this._parseOutbounds()
-    this._parseGeneral()
-    this._parseRoute()
-    this._parseDns()
-    this._parseExtraFields()
-    return this.guiProfile
+  composeProcessScript() {
+    const compositeScript = this.scriptProcessSegments.join('\n\n  ');
+    this.guiProfile.script.code = `const onGenerate = async (config) => {\n  ${compositeScript}\n  return config\n}`;
+  }
+  /* 解析规则的匹配条件部分 */
+  parseMatchRule(rule) {
+    const { action, invert, ...rest } = rule;
+    const normalizedRule = normalizeClashMode(rest);
+    const baseRules = filterProps(normalizedRule, BASE_RULES, FilterMode.Include);
+    const baseRuleKeys = getKeys(baseRules);
+    const extraRuleKeys = getKeys(filterProps(normalizedRule, BASE_RULES, FilterMode.Exclude));
+    // 当只有一个支持的类型时，视为简单规则
+    if (baseRuleKeys.length === 1 && extraRuleKeys.length === 0) {
+      const type = baseRuleKeys[0];
+      let payload = baseRules[type];
+      switch (type) {
+        case RuleType.RuleSet:
+          {
+            payload = ensureArray(baseRules.rule_set)
+              .map((tag) => [this.getRuleSetId(tag)])
+              .join(',');
+          }
+          break;
+        case RuleType.Inbound: {
+          const inboundList = ensureArray(baseRules.inbound);
+          if (inboundList.length > 1) {
+            return {
+              type: RuleType.Inline,
+              payload: stringifyJson({ inbound: inboundList.map((t) => this.getInboundTag(t)) }),
+            };
+          }
+          payload = this.getInboundId(inboundList[0]);
+          break;
+        }
+        case RuleType.ClashMode: {
+          if (!getValues(ClashMode).includes(baseRules.clash_mode)) {
+            return {
+              type: RuleType.Inline,
+              payload: stringifyJson({ clash_mode: baseRules.clash_mode }),
+            };
+          }
+          break;
+        }
+        default:
+          if (Array.isArray(payload)) {
+            payload = payload.join(',');
+          }
+      }
+      return { type, payload: typeof payload !== 'string' ? String(payload) : payload };
+    }
+    // 其他所有情况（0个或多个类型，或不支持的类型）都视为内联规则
+    return {
+      type: RuleType.Inline,
+      payload: stringifyJson(normalizedRule),
+    };
+  }
+  appendScriptSegment(segment) {
+    this.scriptProcessSegments.push(segment.trim());
+  }
+  getDomainResolverId(resolver) {
+    return typeof resolver === 'string' ? this.getDnsServerId(resolver) : this.getDnsServerId(resolver?.server);
+  }
+  getInboundId(tag) {
+    if (!tag) return '';
+    const { inboundTagToId } = this.states;
+    return inboundTagToId.get(generateEndpointTag(tag)) ?? inboundTagToId.get(tag) ?? '';
+  }
+  getOutboundId(tag) {
+    if (!tag) return '';
+    const { outboundTagToId } = this.states;
+    return outboundTagToId.get(generateEndpointTag(tag)) ?? outboundTagToId.get(tag) ?? '';
+  }
+  getRuleSetId(tag) {
+    return this.states.rulesetTagToId.get(tag) ?? '';
+  }
+  getDnsServerId(tag) {
+    if (!tag) return '';
+    return this.states.dnsServerTagToId.get(tag) ?? '';
+  }
+  getProxyId(tag) {
+    return this.states.proxyTagToId.get(tag) ?? '';
+  }
+  getInboundTag(tag) {
+    const endpointTag = generateEndpointTag(tag);
+    return this.states.inboundTagToId.get(endpointTag) ? endpointTag : tag;
+  }
+  getOutboundTag(tag) {
+    const endpointTag = generateEndpointTag(tag);
+    return this.states.outboundTagToId.get(endpointTag) ? endpointTag : tag;
   }
 }
-
 /* 导入 sing-box 的原始配置 */
 class ConfigImporter {
+  config;
+  fileName;
+  states = {
+    subscribeId: '',
+    subscribeName: '',
+    proxyTagToId: new Map(),
+    inboundTagToId: new Map(),
+    outboundTagToId: new Map(),
+    rulesetTagToId: new Map(),
+    dnsServerTagToId: new Map(),
+  };
   constructor(config, fileName) {
-    this.config = config
-    this.fileName = fileName
+    this.config = config;
+    this.fileName = fileName;
   }
-
+  async process() {
+    await this.createSubscribe();
+    await this.createProfile();
+  }
   /* 提取配置中的节点部分 */
-  _extractProxies() {
-    if (!this.config.outbounds?.length) {
-      throw '缺少有效出站配置'
-    }
-    const excludeTypes = new Set(DefaultExcludeProtocols.split('|'))
-    const proxies = this.config.outbounds.filter((o) => !excludeTypes.has(o.type))
-
-    this.config.outbounds = this.config.outbounds.filter((o) => excludeTypes.has(o.type))
-
-    const proxyTagToId = Object.fromEntries(proxies.map((p) => [p.tag, Plugins.sampleID()]))
-
-    // @ts-ignore
-    window[Plugin.id] = {
-      // @ts-ignore
-      proxyTagToId,
-      subscribeId: '',
-      subscribeName: '',
-      inboundTagToId: {},
-      outboundTagToId: {},
-      rulesetTagToId: {},
-      dnsServerTagToId: {}
-    }
-
-    return proxies
+  extractProxies() {
+    if (!this.config.outbounds?.length) return;
+    const excludeTypes = DefaultExcludeProtocols.split('|');
+    const proxies = this.config.outbounds.filter((o) => {
+      if (excludeTypes.includes(o.type)) return false;
+      this.states.proxyTagToId.set(o.tag, generateId());
+      return true;
+    });
+    const builtOutbounds = getValues(Outbound);
+    this.config.outbounds = this.config.outbounds.filter((o) => builtOutbounds.includes(o.type));
+    return proxies;
   }
-
   /* 创建 GUI 订阅 */
-  async _createSubscribe() {
-    const proxies = this._extractProxies()
-    if (proxies.length === 0) return
-
-    const subscribesStore = Plugins.useSubscribesStore()
-    const id = Plugins.sampleID()
-    const name = `${this.fileName.replace(/\.json$/, '')}-nodes`
-    const path = `data/subscribes/${name}.json`
-
-    // @ts-ignore
-    window[Plugin.id].subscribeId = id
-    // @ts-ignore
-    window[Plugin.id].subscribeName = name
-
-    await Plugins.WriteFile(path, JSON.stringify(proxies, null, 2))
-
+  async createSubscribe() {
+    const proxies = this.extractProxies();
+    if (!proxies?.length) return;
+    const subscribesStore = Plugins.useSubscribesStore();
+    const id = generateId();
+    const name = `${this.fileName.replace(SOURCE_SUFFIX_REGEX, '')}-proxies`;
+    const path = `data/subscribes/${name}.json`;
+    this.states.subscribeId = id;
+    this.states.subscribeName = name;
+    await Plugins.WriteFile(path, stringifyJson(proxies));
     await subscribesStore.addSubscribe({
       id,
       name,
@@ -822,195 +1053,294 @@ class ConfigImporter {
       inSecure: false,
       requestMethod: RequestMethod.Get,
       header: { request: {}, response: {} },
-      // @ts-ignore
-      proxies: proxies.map((p) => ({ id: window[Plugin.id].proxyTagToId[p.tag], tag: p.tag, type: p.type })),
-      script: DefaultSubscribeScript
-    })
+      proxies: proxies.map((p) => ({ id: this.states.proxyTagToId.get(p.tag), tag: p.tag, type: p.type })),
+      script: DefaultSubscribeScript,
+    });
   }
-
   /* 创建 GUI 配置 */
-  async _createProfile() {
-    const profilesStore = Plugins.useProfilesStore()
-    const parser = new ConfigParser(this.config)
-    const guiProfile = await parser.process(this.fileName)
-    await profilesStore.addProfile(guiProfile)
-  }
-
-  async process() {
-    Plugins.message.info(`正在处理来自 "${this.fileName}" 的配置...`)
-    await this._createSubscribe()
-    await this._createProfile()
+  async createProfile() {
+    const profilesStore = Plugins.useProfilesStore();
+    const parser = new ConfigParser(this.config, this.states);
+    const guiProfile = parser.process(this.fileName);
+    await profilesStore.addProfile(guiProfile);
   }
 }
-
 /* 打开文件选择器 */
 const selectFile = (options = {}) => {
   return new Promise((resolve) => {
-    const fileInput = document.createElement('input')
-    fileInput.type = 'file'
-    fileInput.style.display = 'none'
-    fileInput.multiple = options.multiple ?? false
-    fileInput.accept = options.accept ?? ''
-
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.style.display = 'none';
+    fileInput.multiple = options.multiple ?? false;
+    fileInput.accept = options.accept ?? '';
     const cleanup = () => {
-      window.removeEventListener('focus', onFocus)
-      document.body.removeChild(fileInput)
-    }
-
+      window.removeEventListener('focus', onFocus);
+      document.body.removeChild(fileInput);
+    };
     const onFocus = () => {
       setTimeout(() => {
-        if (fileInput.files.length === 0) {
-          resolve(null)
-          cleanup()
+        if (fileInput.files?.length === 0) {
+          resolve(null);
+          cleanup();
         }
-      }, 200)
-    }
-
+      }, 200);
+    };
     fileInput.addEventListener('change', () => {
-      resolve(fileInput.files.length > 0 ? fileInput.files : null)
-      cleanup()
-    })
-
-    window.addEventListener('focus', onFocus, { once: true })
-    document.body.appendChild(fileInput)
-    fileInput.click()
-  })
-}
-
+      resolve(fileInput.files && fileInput.files.length > 0 ? fileInput.files : null);
+      cleanup();
+    });
+    window.addEventListener('focus', onFocus, { once: true });
+    document.body.appendChild(fileInput);
+    fileInput.click();
+  });
+};
 /* 读取单个文件并解析 */
-const readAndParseSelectedFile = (file) => {
+const readJson = (file) => {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader()
+    const reader = new FileReader();
     reader.onload = (event) => {
       try {
-        const text = event.target?.result
-        resolve(JSON.parse(String(text)))
+        const data = event.target?.result;
+        resolve(JSON.parse(data));
       } catch (err) {
-        reject(`文件 "${file.name}" 解析失败: ${err.message || err}`)
+        reject(`文件 "${file.name}" 解析失败: ${err.message ?? String(err)}`);
       }
-    }
-    reader.onerror = () => reject(`无法读取文件 "${file.name}"`)
-    reader.readAsText(file)
-  })
-}
-
-/* 导入本地配置 */
-const importLocalConfig = async () => {
-  Plugins.message.info('请选择一个或多个 JSON 文件...')
-  const files = await selectFile({ multiple: true, accept: '.json, application/json' })
-  if (!files) {
-    Plugins.message.warn('已取消文件选择或未选择任何文件')
-    return
-  }
-
-  Plugins.message.info(`已选择 ${files.length} 个文件，开始解析和导入...`)
-  const fileArray = Array.from(files)
-  const results = await Promise.allSettled(fileArray.map(readAndParseSelectedFile))
-
-  for (const [i, result] of results.entries()) {
-    const fileName = fileArray[i].name
-    if (result.status === 'fulfilled') {
-      try {
-        const importer = new ConfigImporter(result.value, fileName)
-        await importer.process()
-        Plugins.message.success(`文件 "${fileName}" 导入成功`)
-      } catch (err) {
-        Plugins.message.error(`处理文件 "${fileName}" 时发生错误: ${err.message || err}`)
-      }
-    } else {
-      Plugins.message.error(result.reason.message || result.reason)
-    }
-  }
-}
-
+    };
+    reader.onerror = () => {
+      reject(`无法读取文件 "${file.name}"`);
+    };
+    reader.readAsText(file);
+  });
+};
 /* 获取并解析远程文件 */
-const getAndParseRemoteFile = async (url) => {
+const fetchJson = async (url) => {
   try {
     const { body } = await Plugins.Requests({
       method: 'GET',
       url,
       headers: { 'User-Agent': 'sing-box' },
-      autoTransformBody: false
-    })
-    return JSON.parse(body)
+      autoTransformBody: false,
+    });
+    return JSON.parse(body);
   } catch (err) {
-    throw `链接 "${url}" 解析失败: ${err.message || err}`
+    throw `链接 "${url}" 解析失败: ${err.message ?? String(err)}`;
   }
-}
-
-/* 导入远程配置 */
-const importRemoteConfig = async () => {
-  const input = await Plugins.prompt('请输入配置链接：', '', { placeholder: 'http(s):// -- 多个链接请换行输入', type: 'code' })
-  const urls =
-    input
-      ?.split('\n')
-      .map((url) => url.trim())
-      .filter(Boolean) ?? []
-
-  if (urls.length === 0) {
-    Plugins.message.warn('未输入任何链接')
-    return
-  }
-
-  Plugins.message.info(`已输入 ${urls.length} 个链接，开始解析和导入...`)
-  const results = await Promise.allSettled(urls.map(getAndParseRemoteFile))
-
+};
+const processRemoteImport = async (urls) => {
+  Plugins.message.info(`开始解析 ${urls.length} 个链接...`);
+  const results = await Promise.allSettled(urls.map(fetchJson));
+  let failCount = 0;
   for (const [i, result] of results.entries()) {
-    const url = urls[i]
+    const url = urls[i];
     if (result.status === 'fulfilled') {
       try {
-        const host = new URL(url).hostname
-        const importer = new ConfigImporter(result.value, host)
-        await importer.process()
-        Plugins.message.success(`链接 "${url}" 导入成功`)
+        const host = new URL(url).hostname;
+        const importer = new ConfigImporter(result.value, host);
+        await importer.process();
+        Plugins.message.info(`链接 "${url}" 导入成功`);
       } catch (err) {
-        Plugins.message.error(`处理链接 "${url}" 时发生错误: ${err.message || err}`)
+        failCount++;
+        Plugins.message.error(`链接 "${url}" 导入失败: ${err.message ?? String(err)}`);
       }
     } else {
-      Plugins.message.error(result.reason.message || result.reason)
+      failCount++;
+      Plugins.message.error(result.reason.message ?? result.reason);
     }
   }
-}
-
-/* 选择导入类型 */
-const selectImportType = async () => {
-  const typeList = [
-    { label: '本地配置', value: ImportType.Local, description: '导入本地配置文件，必须是标准的 JSON 格式，可以同时导入多个文件。' },
-    {
-      label: '远程配置',
-      value: ImportType.Remote,
-      description: '导入远程配置文件，可以是订阅或远程文件链接，必须是标准的 JSON 格式，可以同时导入多个链接。'
+  return failCount;
+};
+/* 导入本地配置 */
+const importLocalConfig = async () => {
+  const files = await selectFile({ multiple: true, accept: '.json, application/json' });
+  if (!files) {
+    Plugins.message.warn('未选择任何文件');
+    return;
+  }
+  Plugins.message.info(`开始解析 ${files.length} 个文件...`);
+  const fileList = Array.from(files);
+  const results = await Promise.allSettled(fileList.map(readJson));
+  for (const [i, result] of results.entries()) {
+    const fileName = fileList[i].name;
+    if (result.status === 'fulfilled') {
+      try {
+        const importer = new ConfigImporter(result.value, fileName);
+        await importer.process();
+        Plugins.message.info(`文件 "${fileName}" 导入成功`);
+      } catch (err) {
+        Plugins.message.error(`文件 "${fileName}" 导入失败: ${err.message ?? String(err)}`);
+      }
+    } else {
+      Plugins.message.error(result.reason.message ?? result.reason);
     }
-  ]
-  return await Plugins.picker.single('请选择要导入的配置类型', typeList, [typeList[0].value])
-}
+  }
+};
+/* 导入远程配置 */
+const importRemoteConfig = () => {
+  const { h, ref, computed, defineComponent } = Vue;
+  const component = defineComponent({
+    template: `
+    <div class="flex flex-col gap-4">
+      <div>
+        <div class="text-14 opacity-80 mb-4">请输入链接（每行一个）：</div>
+        <textarea
+          v-model="remoteUrls"
+          class="w-full p-8 rounded border outline-none resize-none font-mono text-14 box-border"
+          style="height: 120px; background: transparent; color: inherit; border-color: var(--el-border-color); box-sizing: border-box;"
+          placeholder="https://example.com/config.json"
+        ></textarea>
+      </div>
 
+      <div class="flex justify-end mt-2">
+          <Button type="primary" @click="handleImportClick" :loading="importing" icon="download">
+          {{ importBtnText }}
+        </Button>
+      </div>
+    </div>
+    `,
+    setup() {
+      const remoteUrls = ref('');
+      const importing = ref(false);
+      const urlCount = computed(() => {
+        return remoteUrls.value.split('\n').filter((u) => u.trim().length > 0).length;
+      });
+      const importBtnText = computed(() => {
+        return urlCount.value > 0 ? `导入 (${urlCount.value})` : '开始导入';
+      });
+      const handleImportClick = async () => {
+        const urls = remoteUrls.value.split('\n').flatMap((u) => {
+          const clean = u.trim();
+          return clean.length > 0 ? [clean] : [];
+        });
+        if (urls.length === 0) {
+          Plugins.message.warn('未输入任何链接');
+          return;
+        }
+        importing.value = true;
+        try {
+          const failCount = await processRemoteImport(urls);
+          if (failCount === 0) {
+            modal.close();
+          }
+        } finally {
+          importing.value = false;
+        }
+      };
+      return {
+        remoteUrls,
+        importing,
+        importBtnText,
+        handleImportClick,
+      };
+    },
+  });
+  const modal = Plugins.modal(
+    {
+      title: '批量导入 URL',
+      width: '420px',
+      submit: false,
+      cancelText: '关闭',
+      maskClosable: false,
+      afterClose: () => {
+        modal.destroy();
+      },
+    },
+    {
+      default: () => h(component),
+      action: () => h('div', { class: 'mr-auto text-12 opacity-60' }, '注：请确保导入来源可信'),
+    },
+  );
+  modal.open();
+};
+const openUI = () => {
+  const { h, defineComponent } = Vue;
+  const component = defineComponent({
+    template: `
+    <div class="flex flex-col gap-4">
+      <Card>
+        <div class="text-12" style="line-height: 1.6;">
+          <div class="mb-8">
+            <span class="font-bold text-primary">格式要求：</span>
+            <span>此插件仅支持导入 <b>sing-box v1.12.0</b> 及以上版本的配置。</span>
+          </div>
+
+          <div class="mb-8">
+            <div class="font-bold text-primary mb-4">工作原理：</div>
+            <p class="mb-4 opacity-80">
+              如果你的配置中包含 GUI 尚未支持的设置项，插件将采取 <b>动态生成脚本</b> 的方式处理：
+            </p>
+            <ul class="list-disc pl-20 opacity-80 mb-4">
+              <li>
+                对于端点、入站和 DNS 服务器中不支持的类型，插件会创建同名的 <b>占位项</b>。<br />
+                为了配置能正确生成，<span style="color: #ff4d4f;">请勿删除这些占位项</span>，它们将在运行时被脚本替换为原始配置。
+              </li>
+              <li>
+                其他未支持的字段同样会在运行时通过脚本自动补全。
+              </li>
+            </ul>
+            <p class="opacity-80">
+              原则上，GUI 最终生成的运行时配置将与你导入的原始配置 <b>保持一致</b>。
+            </p>
+          </div>
+        </div>
+      </Card>
+
+      <div class="flex gap-12 mt-2">
+        <Button class="flex-1 h-48" type="primary" @click="handleLocal" block>
+          <div class="flex items-center justify-center gap-8">
+            <Icon icon="file" :size="20" />
+            <span>从文件导入</span>
+          </div>
+        </Button>
+        <Button class="flex-1 h-48" type="primary" @click="handleRemote" block>
+            <div class="flex items-center justify-center gap-8">
+            <Icon icon="link" :size="20" />
+            <span>从链接导入</span>
+          </div>
+        </Button>
+      </div>
+    </div>
+    `,
+    setup() {
+      const handleLocal = () => {
+        modal.close();
+        void importLocalConfig();
+      };
+      const handleRemote = () => {
+        modal.close();
+        importRemoteConfig();
+      };
+      return {
+        handleLocal,
+        handleRemote,
+      };
+    },
+  });
+  const modal = Plugins.modal(
+    {
+      title: '配置导入帮助',
+      width: '420px',
+      submit: false,
+      cancelText: '关闭',
+      maskClosable: true,
+      afterClose: () => {
+        modal.destroy();
+      },
+    },
+    {
+      default: () => h(component),
+      action: () =>
+        h('div', { class: 'mr-auto text-12 opacity-60' }, '注：如果不清楚用途，推荐使用快速开始，或添加默认配置。'),
+    },
+  );
+  modal.open();
+};
 /* 触发器 手动触发 */
 const onRun = async () => {
-  await Plugins.alert(
-    '插件使用须知：',
-    `此插件将解析并导入所有 GUI 支持的配置字段，如果你的配置文件中包含 GUI 不支持的配置字段，
-对于非数组内字段将会写入 **混入配置** 中，其他字段可能还需要你通过 **混入和脚本** 功能手动添加。
-如果你不知道自己在做什么，请不要使用此插件，而是应该考虑 **快速开始** 或添加 **默认配置**。`,
-    { type: 'markdown' }
-  )
-
-  try {
-    const type = await selectImportType()
-    if (!type) {
-      Plugins.message.warn('未选择任何类型')
-      return
-    }
-    if (type === ImportType.Local) await importLocalConfig()
-    if (type === ImportType.Remote) await importRemoteConfig()
-  } catch (e) {
-    Plugins.message.error(e.message || e)
-  }
-}
-
+  openUI();
+};
 /* 触发器 APP就绪后 */
 const onReady = async () => {
-  const appStore = Plugins.useAppStore()
+  const appStore = Plugins.useAppStore();
   // appStore.removeCustomActions('profiles_header', Plugin.id)
   appStore.addCustomActions('profiles_header', {
     id: Plugin.id,
@@ -1020,8 +1350,8 @@ const onReady = async () => {
       overlay: ({ h }) =>
         h('div', { class: 'flex flex-col gap-4 min-w-64 p-4' }, [
           h('Button', { type: 'text', onClick: importLocalConfig }, () => '从文件导入'),
-          h('Button', { type: 'text', onClick: importRemoteConfig }, () => '从URL导入')
-        ])
-    }
-  })
-}
+          h('Button', { type: 'text', onClick: importRemoteConfig }, () => '从URL导入'),
+        ]),
+    },
+  });
+};
