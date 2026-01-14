@@ -58,7 +58,7 @@ const showUI = () => {
       </div>
       <div v-if="currentStep === 1" class="flex flex-col gap-8">
         <div class="text-32 py-8 font-bold">直连网站是否需要IPv6？</div>
-        <Tag v-if="isSupportIPv6 === undefined" color="green">正在检测你的网络环境...</Tag>
+        <Tag v-if="isSupportIPv6 === undefined">正在检测你的网络环境...</Tag>
         <Tag v-else-if="isSupportIPv6" color="green">提示：你的网络环境已支持IPv6，推荐开启！访问国内网站能获得更好的效果！</Tag>
         <Tag v-else color="red">提示：你的网络环境不支持IPv6，建议关闭！强行开启会导致部分网站无法访问！</Tag>
         <div class="flex gap-8">

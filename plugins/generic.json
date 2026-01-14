@@ -162,7 +162,7 @@
   {
     "id": "plugin-quick-start-guide",
     "name": "快速配置向导",
-    "version": "v1.1.0",
+    "version": "v1.1.1",
     "description": "快速配置，但是多一点自定义。",
     "tags": ["提升体验", "功能扩展"],
     "type": "Http",
