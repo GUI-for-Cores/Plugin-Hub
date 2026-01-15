@@ -1284,17 +1284,11 @@ const openUI = () => {
       </Card>
 
       <div class="flex gap-12 mt-2">
-        <Button class="flex-1 h-48" type="primary" @click="handleLocal" block>
-          <div class="flex items-center justify-center gap-8">
-            <Icon icon="file" :size="20" />
-            <span>从文件导入</span>
-          </div>
+        <Button type="primary" @click="handleLocal" icon="file" class="flex-1">
+          从文件导入
         </Button>
-        <Button class="flex-1 h-48" type="primary" @click="handleRemote" block>
-            <div class="flex items-center justify-center gap-8">
-            <Icon icon="link" :size="20" />
-            <span>从链接导入</span>
-          </div>
+        <Button type="primary" @click="handleRemote" icon="link" class="flex-1">
+          从链接导入
         </Button>
       </div>
     </div>

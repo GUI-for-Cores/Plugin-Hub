@@ -320,6 +320,7 @@ interface Plugins {
     runScheduledTask(id: string): Promise<any>
   }
 
+  generateSecureKey(): string
   setIntervalImmediately(fn: () => void, delay: number): number
   formatRelativeTime(dateString: string): string
   base64Decode(encoded: string): string
