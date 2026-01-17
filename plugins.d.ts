@@ -168,7 +168,7 @@ interface Plugins {
   ProcessInfo(pid: number): Promise<string>
   ProcessMemory(pid: number): Promise<number>
   KillProcess(pid: number, timeout?: number): Promise<void>
-  Exec(cmd: string, args?: string[], options?: { convert?: boolean }): Promise<string>
+  Exec(cmd: string, args?: string[], options?: { Convert?: boolean }): Promise<string>
   ExecBackground(
     cmd: string,
     args: string[],

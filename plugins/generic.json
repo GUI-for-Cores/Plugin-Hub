@@ -279,7 +279,7 @@
   {
     "id": "plugin-subscribe-in-one-click",
     "name": "一键导入订阅助手",
-    "version": "v1.0.1",
+    "version": "v1.0.2",
     "description": "运行此插件，帮助你使用机场的一键导入订阅功能。",
     "tags": ["提升体验", "功能扩展"],
     "type": "Http",
