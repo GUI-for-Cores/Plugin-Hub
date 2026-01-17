@@ -1492,7 +1492,7 @@
   {
     "id": "plugin-sync-configuration",
     "name": "配置同步",
-    "version": "v1.0.2",
+    "version": "v1.0.3",
     "description": "使用自建服务同步GUI配置。",
     "tags": ["提升体验", "功能扩展", "提升体验"],
     "type": "Http",
