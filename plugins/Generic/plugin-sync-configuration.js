@@ -50,7 +50,7 @@ const Sync = async () => {
     const encrypted = files[file]
     update(`正在恢复文件...[ ${i + 1}/${_files.length} ]`, 'info')
     try {
-      await Plugins.Writefile(file, decrypt(encrypted))
+      await Plugins.WriteFile(file, decrypt(encrypted))
     } catch (error) {
       if (error === '解密失败') {
         failed = true
