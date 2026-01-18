@@ -131,15 +131,15 @@ const DefaultExperimental = {
     external_ui_download_detour: '',
     secret: '',
     default_mode: ClashMode.Rule,
-    access_control_allow_origin: ['*'],
+    access_control_allow_origin: [],
     access_control_allow_private_network: false
   },
   cache_file: {
     enabled: true,
     path: 'cache.db',
     cache_id: '',
-    store_fakeip: true,
-    store_rdrc: true,
+    store_fakeip: false,
+    store_rdrc: false,
     rdrc_timeout: '7d'
   }
 }
@@ -155,7 +155,7 @@ const DefaultInboundTun = {
   address: DefaultTunAddress,
   mtu: 0,
   auto_route: true,
-  strict_route: true,
+  strict_route: false,
   route_address: [],
   route_exclude_address: [],
   endpoint_independent_nat: false,
@@ -166,10 +166,10 @@ const DefaultOutbound = {
   tag: '',
   type: Outbound.Selector,
   outbounds: [],
-  interrupt_exist_connections: true,
+  interrupt_exist_connections: false,
   url: DefaultTestURL,
   interval: '3m',
-  tolerance: 150,
+  tolerance: 50,
   include: '',
   exclude: ''
 }
@@ -601,7 +601,6 @@ config.outbounds = config.outbounds.map((ob) => {
       this.guiProfile.experimental.clash_api = {
         ...DefaultExperimental.clash_api,
         ...rawClashApi,
-        secret: Plugins.generateSecureKey(),
         default_mode: rawClashApi.default_mode?.toLowerCase() ?? ClashMode.Rule,
         access_control_allow_origin: ensureArray(rawClashApi.access_control_allow_origin),
         external_ui_download_detour: this.getOutboundId(rawClashApi.external_ui_download_detour)
@@ -788,14 +787,6 @@ config.experimental.v2ray_api = ${stringifyJson(experimental.v2ray_api)};
         invert: invert ?? false
       }
       switch (action) {
-        case RuleAction.Route: {
-          const { outbound, ...rest } = rule
-          return {
-            ...ruleBase,
-            ...this.parseMatchRule(rest),
-            outbound: this.getOutboundId(outbound)
-          }
-        }
         case RuleAction.RouteOptions: {
           const routeOptions = filterProps(rule, RouteOptions, FilterMode.Include)
           const rest = filterProps(rule, RouteOptions, FilterMode.Exclude)
@@ -811,6 +802,12 @@ config.experimental.v2ray_api = ${stringifyJson(experimental.v2ray_api)};
             ...ruleBase,
             ...this.parseMatchRule(rest),
             outbound: method ?? RuleActionReject.Default
+          }
+        }
+        case RuleAction.HijackDNS: {
+          return {
+            ...ruleBase,
+            ...this.parseMatchRule(rule)
           }
         }
         case RuleAction.Sniff: {
@@ -831,9 +828,11 @@ config.experimental.v2ray_api = ${stringifyJson(experimental.v2ray_api)};
           }
         }
         default: {
+          const { outbound, ...rest } = rule
           return {
             ...ruleBase,
-            ...this.parseMatchRule(rule)
+            ...this.parseMatchRule(rest),
+            outbound: this.getOutboundId(outbound)
           }
         }
       }
@@ -853,17 +852,6 @@ config.experimental.v2ray_api = ${stringifyJson(experimental.v2ray_api)};
         invert: invert ?? false
       }
       switch (action) {
-        case RuleAction.Route: {
-          const { server, strategy, disable_cache, client_subnet, ...rest } = rule
-          return {
-            ...ruleBase,
-            ...this.parseMatchRule(rest),
-            server: this.getDnsServerId(server),
-            strategy: strategy ?? Strategy.Default,
-            disable_cache: disable_cache ?? false,
-            client_subnet: client_subnet ?? ''
-          }
-        }
         case RuleAction.RouteOptions: {
           const { disable_cache, rewrite_ttl, client_subnet, ...rest } = rule
           return {
@@ -871,7 +859,7 @@ config.experimental.v2ray_api = ${stringifyJson(experimental.v2ray_api)};
             ...this.parseMatchRule(rest),
             disable_cache: disable_cache ?? false,
             client_subnet: client_subnet ?? '',
-            server: stringifyJson({ rewrite_ttl: rewrite_ttl ?? 0 })
+            server: rewrite_ttl ? stringifyJson({ rewrite_ttl }) : '{}'
           }
         }
         case RuleAction.Reject: {
@@ -892,9 +880,14 @@ config.experimental.v2ray_api = ${stringifyJson(experimental.v2ray_api)};
           }
         }
         default: {
+          const { server, strategy, disable_cache, client_subnet, ...rest } = rule
           return {
             ...ruleBase,
-            ...this.parseMatchRule(rule)
+            ...this.parseMatchRule(rest),
+            server: this.getDnsServerId(server),
+            strategy: strategy ?? Strategy.Default,
+            disable_cache: disable_cache ?? false,
+            client_subnet: client_subnet ?? ''
           }
         }
       }
@@ -1296,11 +1289,13 @@ const openUI = () => {
     setup() {
       const handleLocal = () => {
         modal.close()
-        void importLocalConfig()
+        setTimeout(() => importLocalConfig(), 200)
       }
       const handleRemote = () => {
         modal.close()
-        importRemoteConfig()
+        setTimeout(() => {
+          importRemoteConfig()
+        }, 200)
       }
       return {
         handleLocal,
