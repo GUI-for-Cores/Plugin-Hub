@@ -142,7 +142,7 @@
   {
     "id": "plugin-import-configuration-to-gui",
     "name": "导入 sing-box 配置",
-    "version": "v3.0.2",
+    "version": "v3.0.3",
     "description": "将完整的 sing-box 配置导入到 GUI 中。Supported by: 泡泡茶壶",
     "tags": ["实用工具", "功能扩展", "提升体验"],
     "type": "Http",
