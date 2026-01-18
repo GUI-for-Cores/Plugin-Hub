@@ -353,7 +353,7 @@ const getIPCDescription = (name, args) => {
         return '删除核心PID文件'
       }
       if (file === 'data/.cache/tasksch.xml') {
-        return '创建自启动计划任务xml文件'
+        return '删除自启动计划任务xml文件'
       }
       if (file.startsWith('data/plugins/plugin-')) {
         return '删除插件源码文件'
@@ -382,6 +382,9 @@ const getIPCDescription = (name, args) => {
       }
       if (file.startsWith('data/subscribes/')) {
         return '读取订阅节点内容'
+      }
+      if (file.startsWith('data/plugins/')) {
+        return '读取插件源码'
       }
       return '读取文件'
     }
@@ -497,6 +500,11 @@ const getIPCDescription = (name, args) => {
               return '查询是否配置了以管理员身份运行'
             }
           }
+        }
+      }
+      if (cmd === 'powershell') {
+        if (arg3?.includes('RunAs')) {
+          return '使用PowerShell提权执行命令'
         }
       }
       if (cmd === 'SchTasks' || cmd === 'Schtasks') {
