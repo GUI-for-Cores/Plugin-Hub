@@ -1,5 +1,6 @@
 <!doctype html>
-<html>
+<head>
+  <script src="./hotreload.js" defer></script>
   <script>
     // 说明：这样的开发模式主要是为了热更新，其次是为了一丢丢的代码提示
     // 所需扩展：vscode扩展：Live Server
@@ -9,6 +10,8 @@
      */
     const Token = ''
   </script>
+</head>
+<html>
   <body>
     <!-- 在这里编写Vue3组件的template代码 -->
     <script id="template" type="text/x-template">
@@ -21,7 +24,7 @@
           </Button>
           <Button @click="handleStart" type="primary">
             开始吧
-            <Icon icon="arrowRight" class="ml-4" fill="#fff" />
+            <Icon icon="arrowRight" class="ml-4" color="var(--btn-primary-color)" />
           </Button>
         </div>
       </div>
@@ -45,12 +48,12 @@
             Plugins.alert(
               '如何导出UI组件？',
               [
-                '1、定义一个JavaScript对象[component]',
-                '2、把template内的字符串赋值给变量[component.template]',
-                '3、把script内的setup变量赋值给[component.setup]',
+                '1、定义一个JavaScript对象 const component = {}',
+                '2、把template内的字符串赋值给变量 component.template',
+                '3、把script内的setup变量赋值给 component.setup',
                 '4、最终结构：',
                 'const component = {',
-                '  template: `&lt;div&gt;{{ msg }}&lt;/div&gt;`,',
+                '  template: `<div>{{ msg }}</div>`',
                 '  setup: () => {',
                 '    const { ref } = Vue',
                 "    const msg = ref('message')",
@@ -65,39 +68,6 @@
           }
         }
       }
-    </script>
-
-    <!-- 热更新相关 -->
-    <script>
-      const domTemplate = document.getElementById('template')
-      const domScript = document.getElementById('script')
-      function sendPost() {
-        const template = domTemplate.textContent
-        const script = domScript.textContent
-
-        fetch('http://127.0.0.1:28888/api/render', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: Token
-          },
-          body: JSON.stringify({ template, script })
-        })
-          .then((res) => {
-            if (!res.ok) throw new Error('Failed to POST')
-            return res.text()
-          })
-          .then(console.log)
-          .catch((err) => console.error('POST error:', err))
-      }
-
-      const observer = new MutationObserver(sendPost)
-      const config = { childList: true, characterData: true, subtree: true }
-
-      observer.observe(domTemplate, config)
-      observer.observe(domScript, config)
-
-      sendPost()
     </script>
   </body>
 </html>

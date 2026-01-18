@@ -187,7 +187,7 @@
   {
     "id": "plugin-ui-dev-helper",
     "name": "插件UI开发助手",
-    "version": "v1.1.0",
+    "version": "v1.2.0",
     "description": "可热更新代码，实时预览插件UI改动。",
     "tags": ["插件开发"],
     "type": "Http",
