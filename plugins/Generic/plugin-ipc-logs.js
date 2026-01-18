@@ -292,7 +292,7 @@ const getIPCDescription = (name, args) => {
       if (sub) {
         return '请求更新订阅: ' + sub.name
       }
-      return
+      return '网络请求'
     }
     case 'bridge.App.Download': {
       const [method, url] = args
@@ -302,7 +302,7 @@ const getIPCDescription = (name, args) => {
       if (method === 'GET' && url.startsWith('https://github.com/MetaCubeX/mihomo/releases/download')) {
         return '下载核心压缩包'
       }
-      return
+      return '下载网络文件'
     }
     case 'bridge.App.ProcessInfo': {
       const [pid] = args
@@ -311,6 +311,9 @@ const getIPCDescription = (name, args) => {
     case 'bridge.App.KillProcess': {
       const [pid] = args
       return '杀死进程: ' + pid
+    }
+    case 'bridge.App.OpenDir': {
+      return '打开本地目录'
     }
     case 'bridge.App.FileExists': {
       const [file] = args
@@ -326,7 +329,7 @@ const getIPCDescription = (name, args) => {
       if (file === 'data/sing-box/sing-box.exe.bak') {
         return '检测稳定版核心是否有上一版本备份'
       }
-      return
+      return '检查文件是否存在'
     }
     case 'bridge.App.AbsolutePath': {
       const [file] = args
@@ -380,7 +383,7 @@ const getIPCDescription = (name, args) => {
       if (file.startsWith('data/subscribes/')) {
         return '读取订阅节点内容'
       }
-      return
+      return '读取文件'
     }
     case 'bridge.App.WriteFile': {
       const [file, content] = args
@@ -423,7 +426,7 @@ const getIPCDescription = (name, args) => {
       if (file.startsWith('data/subscribes/')) {
         return '保存订阅节点内容'
       }
-      return
+      return '写入文件'
     }
     case 'bridge.App.MoveFile': {
       const [source, target] = args
@@ -548,6 +551,15 @@ const getIPCDescription = (name, args) => {
         return '运行测试版核心'
       }
       return
+    }
+    case 'bridge.App.ListServer': {
+      return '查询已创建的HTTP服务'
+    }
+    case 'bridge.App.StartServer': {
+      return '启动HTTP服务'
+    }
+    case 'bridge.App.StopServer': {
+      return '停止HTTP服务'
     }
   }
 }
