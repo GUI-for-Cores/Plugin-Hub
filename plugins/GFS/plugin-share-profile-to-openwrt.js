@@ -104,7 +104,6 @@ const onUninstall = async () => {
 
 function validateRequiredTags(config) {
   const requiredInboundTags = ['dns-in', 'redirect-in', 'tproxy-in', 'tun-in']
-  const requiredDnsServerTags = ['fake-ip-dns-server']
   const missing = []
 
   const inboundTags = (config.inbounds || []).map(i => i.tag)
@@ -114,11 +113,9 @@ function validateRequiredTags(config) {
     }
   }
 
-  const dnsServerTags = (config.dns?.servers || []).map(s => s.tag)
-  for (const tag of requiredDnsServerTags) {
-    if (!dnsServerTags.includes(tag)) {
-      missing.push(`dns.server: ${tag}`)
-    }
+  const hasFakeipServer = (config.dns?.servers || []).some(s => s.type === 'fakeip')
+  if (!hasFakeipServer) {
+    missing.push('dns.server: fakeip')
   }
 
   return { success: missing.length === 0, missing }
@@ -201,11 +198,22 @@ function ensureOpenWrtInbounds(config) {
     config.dns.servers = []
   }
 
-  const existingDnsServerTags = config.dns.servers.map(server => server.tag)
-  if (!existingDnsServerTags.includes('fake-ip-dns-server')) {
+  const hasFakeipServer = config.dns.servers.some(server => server.type === 'fakeip')
+  if (!hasFakeipServer) {
     config.dns.servers.push({
       tag: 'fake-ip-dns-server',
       type: 'fakeip'
+    })
+  }
+
+  if (!config.dns.rules) {
+    config.dns.rules = []
+  }
+  const hasAnyOutboundRule = config.dns.rules.some(rule => rule.outbound === 'any')
+  if (!hasAnyOutboundRule) {
+    config.dns.rules.unshift({
+      outbound: 'any',
+      server: 'localDns'
     })
   }
 
@@ -225,15 +233,19 @@ function ensureOpenWrtInbounds(config) {
   if (!hasSniffRule) {
     const sniffRuleIndex = config.route.rules.findIndex(rule => rule.action === 'sniff')
     if (sniffRuleIndex !== -1) {
-      if (!config.route.rules[sniffRuleIndex].inbound) {
-        config.route.rules[sniffRuleIndex].inbound = []
+      let currentInbound = config.route.rules[sniffRuleIndex].inbound
+      if (!currentInbound) {
+        currentInbound = []
+      } else if (!Array.isArray(currentInbound)) {
+        currentInbound = [currentInbound]
       }
       const inboundsToAdd = ['dns-in', 'tun-in', 'redirect-in', 'tproxy-in']
       for (const ib of inboundsToAdd) {
-        if (!config.route.rules[sniffRuleIndex].inbound.includes(ib)) {
-          config.route.rules[sniffRuleIndex].inbound.push(ib)
+        if (!currentInbound.includes(ib)) {
+          currentInbound.push(ib)
         }
       }
+      config.route.rules[sniffRuleIndex].inbound = currentInbound
     } else {
       config.route.rules.unshift({
         action: 'sniff',
