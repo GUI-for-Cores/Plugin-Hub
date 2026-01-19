@@ -253,6 +253,21 @@ function ensureOpenWrtInbounds(config) {
       })
     }
   }
+
+  const hasHijackDnsRule = config.route.rules.some(rule => rule.action === 'hijack-dns')
+  if (!hasHijackDnsRule) {
+    const sniffRuleIndex = config.route.rules.findIndex(rule => rule.action === 'sniff')
+    const insertIndex = sniffRuleIndex !== -1 ? sniffRuleIndex + 1 : 0
+    config.route.rules.splice(insertIndex, 0, {
+      type: 'logical',
+      mode: 'or',
+      rules: [
+        { port: 53 },
+        { protocol: 'dns' }
+      ],
+      action: 'hijack-dns'
+    })
+  }
 }
 
 async function transformLocalRuleset(profile) {
