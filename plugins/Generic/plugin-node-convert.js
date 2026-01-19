@@ -1578,6 +1578,18 @@ function URI_Producer() {
     if (proxy['skip-cert-verify']) {
       allowInsecure = `&allowInsecure=1`
     }
+    let h2 = ''
+    if (proxy._h2) {
+      h2 = `&h2=1`
+    }
+    let pcs = ''
+    if (proxy._pcs) {
+      pcs = `&pcs=${encodeURIComponent(proxy._pcs)}`
+    }
+    let ech = ''
+    if (proxy._ech) {
+      ech = `&ech=${encodeURIComponent(proxy._ech)}`
+    }
     let sni = ''
     if (proxy.sni) {
       sni = `&sni=${encodeURIComponent(proxy.sni)}`
@@ -1644,7 +1656,7 @@ function URI_Producer() {
 
     return `vless://${proxy.uuid}@${proxy.server}:${proxy.port}?security=${encodeURIComponent(
       security
-    )}${vlessTransport}${alpn}${allowInsecure}${sni}${fp}${flow}${sid}${spx}${pbk}${mode}${extra}${pqv}${encryption}#${encodeURIComponent(proxy.name)}`
+    )}${vlessTransport}${alpn}${allowInsecure}${pcs}${ech}${h2}${sni}${fp}${flow}${sid}${spx}${pbk}${mode}${extra}${pqv}${encryption}#${encodeURIComponent(proxy.name)}`
   }
 
   const type = 'SINGLE'
@@ -2753,6 +2765,9 @@ const PROXY_PARSERS = (() => {
       proxy['client-fingerprint'] = params.fp
       proxy.alpn = params.alpn ? params.alpn.split(',') : undefined
       proxy['skip-cert-verify'] = /(TRUE)|1/i.test(params.allowInsecure)
+      proxy._ech = getIfPresent(params.ech)
+      proxy._pcs = getIfPresent(params.pcs)
+      proxy._h2 = /(TRUE)|1/i.test(params.h2)
 
       if (['reality'].includes(params.security)) {
         const opts = {}
@@ -3802,6 +3817,11 @@ ${list}`
       delete proxy['shadow-tls-sni']
       delete proxy['shadow-tls-password']
       delete proxy['shadow-tls-version']
+    }
+    if (['tuic'].includes(proxy.type)) {
+      proxy.alpn = Array.isArray(proxy.alpn) ? proxy.alpn : [proxy.alpn || 'h3']
+      proxy['congestion-controller'] = proxy['congestion-controller'] || 'cubic'
+      proxy['udp-relay-mode'] = proxy['udp-relay-mode'] || 'native'
     }
     return proxy
   }
