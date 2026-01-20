@@ -168,7 +168,7 @@
     "id": "plugin-share-profile-to-openwrt",
     "name": "共享配置到 OpenWrt",
     "version": "v1.0.0",
-    "description": "为 OpenWrt sing-box 生成配置，自动添加必需的入站组件(dns-in/redirect-in/tproxy-in/tun-in)，使用 Zashboard 面板。",
+    "description": "为 OpenWrt sing-box 生成配置，自动添加必需的入站组件(dns-in/redirect-in/tproxy-in/tun-in)，使用 Zashboard 面板。Supported by: cpkt9762",
     "tags": ["提升体验", "功能扩展"],
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-share-profile-to-openwrt.js",
