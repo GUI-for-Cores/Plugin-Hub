@@ -163,5 +163,51 @@
     "disabled": false,
     "install": false,
     "installed": false
+  },
+  {
+    "id": "plugin-share-profile-to-openwrt",
+    "name": "共享配置到 OpenWrt",
+    "version": "v1.0.0",
+    "description": "为 OpenWrt sing-box 生成配置，自动添加必需的入站组件(dns-in/redirect-in/tproxy-in/tun-in)，使用 Zashboard 面板。Supported by: cpkt9762",
+    "tags": ["提升体验", "功能扩展"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-share-profile-to-openwrt.js",
+    "path": "data/plugins/plugin-share-profile-to-openwrt.js",
+    "triggers": ["on::manual"],
+    "menus": {},
+    "hasUI": false,
+    "context": {
+      "profiles": {
+        "共享至OpenWrt": "Share"
+      },
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_ipv6mode",
+        "title": "IPv6设置",
+        "description": "建议禁用IPv6，否则可能会出现规则集下载失败的问题",
+        "key": "Ipv6Mode",
+        "component": "Radio",
+        "value": "disabled",
+        "options": ["禁用IPv6,disabled", "由配置决定,none"]
+      },
+      {
+        "id": "ID_port",
+        "title": "监听端口",
+        "description": "",
+        "key": "Port",
+        "component": "Input",
+        "value": "56789",
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": true,
+    "installed": false
   }
 ]
