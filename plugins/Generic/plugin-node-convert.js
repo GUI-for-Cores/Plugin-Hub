@@ -405,6 +405,10 @@ function getIfPresent(obj, defaultValue) {
   return isPresent(obj) ? obj : defaultValue
 }
 
+function isPlainObject(obj) {
+  return obj !== null && typeof obj === 'object' && [null, Object.prototype].includes(Object.getPrototypeOf(obj))
+}
+
 function isValidUUID(uuid) {
   return typeof uuid === 'string' && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(uuid)
 }
@@ -893,6 +897,9 @@ function Singbox_Producer() {
         enabled: true,
         fingerprint: proxy['client-fingerprint']
       }
+    if (proxy._ech && isPlainObject(proxy._ech)) {
+      parsedProxy.tls.ech = proxy._ech
+    }
     if (proxy['_fragment']) parsedProxy.tls.fragment = !!proxy['_fragment']
     if (proxy['_fragment_fallback_delay']) parsedProxy.tls.fragment_fallback_delay = proxy['_fragment_fallback_delay']
     if (proxy['_record_fragment']) parsedProxy.tls.record_fragment = !!proxy['_record_fragment']
@@ -1587,8 +1594,8 @@ function URI_Producer() {
       pcs = `&pcs=${encodeURIComponent(proxy._pcs)}`
     }
     let ech = ''
-    if (proxy._ech) {
-      ech = `&ech=${encodeURIComponent(proxy._ech)}`
+    if (proxy._echConfigList) {
+      ech = `&ech=${encodeURIComponent(proxy._echConfigList)}`
     }
     let sni = ''
     if (proxy.sni) {
@@ -2765,7 +2772,7 @@ const PROXY_PARSERS = (() => {
       proxy['client-fingerprint'] = params.fp
       proxy.alpn = params.alpn ? params.alpn.split(',') : undefined
       proxy['skip-cert-verify'] = /(TRUE)|1/i.test(params.allowInsecure)
-      proxy._ech = getIfPresent(params.ech)
+      proxy._echConfigList = getIfPresent(params.ech)
       proxy._pcs = getIfPresent(params.pcs)
       proxy._h2 = /(TRUE)|1/i.test(params.h2)
 
