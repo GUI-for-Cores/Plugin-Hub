@@ -100,7 +100,7 @@ const openUI = () => {
 
 const fetchRepoWorkflows = async (repo) => {
   const res = await Plugins.HttpGet(`https://api.github.com/repos/${repo}/actions/workflows`, {
-    Authorization: `Bearer ${Plugin.Token}`,
+    Authorization: Plugin.Token ? `Bearer ${Plugin.Token}` : undefined,
     'Content-Type': 'application/json'
   })
   if (res.status !== 200) {

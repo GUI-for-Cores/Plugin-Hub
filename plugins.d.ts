@@ -188,6 +188,12 @@ interface Plugins {
     data: any,
     options?: { Timeout?: number; Insecure?: boolean; Redirect?: boolean }
   ): Promise<{ status: number; headers: Record<string, string>; body: any }>
+  HttpPut(
+    url: string,
+    headers: Record<string, string>,
+    data: any,
+    options?: { Timeout?: number; Insecure?: boolean; Redirect?: boolean }
+  ): Promise<{ status: number; headers: Record<string, string>; body: any }>
   HttpDelete(
     url: string,
     headers: Record<string, string>,

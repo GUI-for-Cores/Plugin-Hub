@@ -1448,7 +1448,7 @@
   {
     "id": "plugin-github-workflows",
     "name": "GitHub工作流管理",
-    "version": "v1.0.0",
+    "version": "v1.0.1",
     "description": "添加目标仓库，管理其工作流",
     "tags": ["实用工具"],
     "type": "Http",
