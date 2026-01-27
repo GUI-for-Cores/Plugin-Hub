@@ -457,7 +457,7 @@ function ClashMeta_Producer() {
         if (opts['include-unsupported-proxy']) return true
         if (proxy.type === 'snell' && proxy.version >= 4) {
           return false
-        } else if (['juicity', 'naive'].includes(proxy.type)) {
+        } else if (['trust-tunnel', 'juicity', 'naive'].includes(proxy.type)) {
           return false
         } else if (
           ['ss'].includes(proxy.type) &&
@@ -625,7 +625,7 @@ function ClashMeta_Producer() {
             proxy['plugin-opts']['skip-cert-verify'] = proxy['skip-cert-verify']
           }
         }
-        if (['trojan', 'tuic', 'hysteria', 'hysteria2', 'juicity', 'anytls', 'naive'].includes(proxy.type)) {
+        if (['trojan', 'tuic', 'hysteria', 'hysteria2', 'juicity', 'anytls', 'trust-tunnel', 'naive'].includes(proxy.type)) {
           delete proxy.tls
         }
 
@@ -1679,7 +1679,7 @@ function URI_Producer() {
         delete proxy[key]
       }
     }
-    if (['trojan', 'tuic', 'hysteria', 'hysteria2', 'juicity', 'anytls'].includes(proxy.type)) {
+    if (['trojan', 'tuic', 'hysteria', 'hysteria2', 'juicity', 'anytls', 'trust-tunnel'].includes(proxy.type)) {
       delete proxy.tls
     }
     if (!['vmess'].includes(proxy.type) && proxy.server && isIPv6(proxy.server)) {
