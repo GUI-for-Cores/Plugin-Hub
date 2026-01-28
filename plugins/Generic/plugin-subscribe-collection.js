@@ -66,7 +66,7 @@ const showUI = () => {
         <div class="font-bold text-16">3. 可选操作</div>
 
         <div class="flex items-center justify-between py-2">
-          <span class="font-bold text-14">节点添加序号</span>
+          <span class="font-bold text-14">名称添加序号</span>
           <Switch v-model="state.operates.addSequence" />
         </div>
 
@@ -136,7 +136,7 @@ const addCollectionSubs = async (state) => {
   collectionSubscription.script = script
   await subscribesStore.addSubscribe(collectionSubscription)
   await Plugins.WriteFile(collectionSubscription.path, '[]')
-  await Plugins.alert('提示', `已添加组合订阅「${state.name}」\n\n之后如需修改操作，请手动编辑订阅脚本`)
+  await Plugins.alert('提示', `已添加组合订阅「${state.name}」\n\n之后如需修改订阅配置，请手动编辑订阅脚本`)
 }
 
 const generateScript = (params) => {
