@@ -2887,7 +2887,7 @@
   {
     "id": "plugin-log-record",
     "name": "日志记录器",
-    "version": "2.1.0",
+    "version": "v2.1.0",
     "description": "记录内核输出的日志到文件中，方便后续调试。Supported by: 泡泡茶壶",
     "tags": ["提升体验", "功能扩展"],
     "type": "Http",
@@ -2930,6 +2930,31 @@
     "path": "data/plugins/plugin-duplicate-proxies-removal.js",
     "triggers": ["on::subscribe"],
     "hasUI": false,
+    "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
+    "id": "plugin-subscribe-collection",
+    "name": "聚合订阅",
+    "version": "v1.0.0",
+    "description": "将现有的多个订阅组合为一个新订阅。Supported by: 泡泡茶壶",
+    "tags": ["提升体验", "功能扩展"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-subscribe-collection.js",
+    "path": "data/plugins/plugin-subscribe-collection.js",
+    "triggers": ["on::manual", "on::ready"],
+    "hasUI": true,
     "menus": {},
     "context": {
       "profiles": {},
