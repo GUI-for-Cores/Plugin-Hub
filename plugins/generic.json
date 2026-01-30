@@ -2947,7 +2947,7 @@
   {
     "id": "plugin-subscribe-collection",
     "name": "聚合订阅",
-    "version": "v1.0.0",
+    "version": "v1.0.1",
     "description": "将现有的多个订阅组合为一个新订阅。Supported by: 泡泡茶壶",
     "tags": ["提升体验", "功能扩展"],
     "type": "Http",
