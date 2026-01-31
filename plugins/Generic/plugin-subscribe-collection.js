@@ -152,7 +152,7 @@ const onSubscribe = async (proxies, subscription) => {
       try {
         await subscribesStore.updateSubscribe(sub.id);
         const proxies = (await Plugins.ReadFile(sub.path, { Mode: 'Text' })) || '[]';
-        return JSON.parse(proxies);
+        return Plugins.YAML.parse(proxies);
       } catch (err) {
         Plugins.message.warn(\`\${subscription.name} 的成员 \${sub.name} 更新失败，已忽略，\${err}\`);
         return [];
