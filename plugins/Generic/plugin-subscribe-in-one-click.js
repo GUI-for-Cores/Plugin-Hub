@@ -6,16 +6,13 @@ const onRun = async () => {
 const openUI = () => {
   const content = {
     template: /* html */ `
-    <div class="flex flex-col pb-12">
-        <template v-if="isRegistered">
-            <h3>
-              已注册，现在你可以使用机场的一键导入订阅功能！
-            </h3>
-            <Button @click="handleDelete" class="min-h-42" type="text">从注册表移除</Button>
-        </template>
-        <template v-else>
-            <Button @click="handleImport" class="min-h-64" type="primary">添加到注册表</Button>
-        </template>
+    <div class="flex items- justify-center pb-32">
+      <Button v-if="isRegistered" @click="handleDelete" class="w-128 h-128 rounded-full shadow" type="text">
+        <span class="font-bold text-24">移除</span>
+      </Button>
+      <Button v-else @click="handleImport" class="w-128 h-128 rounded-full shadow" type="primary">
+        <span class="font-bold text-24">注册</span>
+      </Button>
     </div>`,
     setup() {
       const { ref } = Vue
@@ -67,7 +64,7 @@ const openUI = () => {
       return {
         isRegistered,
         handleImport,
-        handleDelete,
+        handleDelete
       }
     }
   }
@@ -75,14 +72,16 @@ const openUI = () => {
   const modal = Plugins.modal(
     {
       title: Plugin.name,
-      footer: false,
+      submit: false,
+      cancel: false,
       maskClosable: true,
       afterClose() {
         modal.destroy()
       }
     },
     {
-      default: () => Vue.h(content)
+      default: () => Vue.h(content),
+      action: () => Vue.h('div', { class: 'mr-auto text-12' }, '注：此功能使用系统注册表，注册后同类型软件的导入功能将失效。')
     }
   )
 
