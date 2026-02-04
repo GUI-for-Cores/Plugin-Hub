@@ -1,6 +1,5 @@
 /*
  * 实现动态代理选择机制，包含故障转移、断路器、EWMA 延迟跟踪、基于分数调度与滞后控制。
- * TODO: 解决切换配置未自动接管新的代理组
  */
 
 /*
@@ -34,44 +33,245 @@ hysteresisMargin: 0.1
 返回 JSON 格式，只输出修改过的参数及注释。
 */
 
-const presetMap = {
-  Stable: Plugin.StableMode,
-  LatencyFirst: Plugin.LatencyFirstMode,
-  Custom: Plugin.CustomMode
+window[Plugin.id] = window[Plugin.id] || initSmartProxy()
+
+/* 触发器 手动触发 */
+const onRun = async () => {
+  const modal = createUI()
+  modal.open()
 }
 
-// 保存插件状态
-window[Plugin.id] = window[Plugin.id] || {
-  isRunning: false,
-  managers: [],
-  init() {
-    console.log(`[${Plugin.name}]`, 'init')
-    const kernelApi = Plugins.useKernelApiStore()
+const onReady = async () => {
+  // 暂时的解决方案
+  function setPluginStatus(status) {
+    const pluginStore = Plugins.usePluginsStore()
+    const plugin = pluginStore.getPluginById(Plugin.id)
+    plugin.status = status
+    pluginStore.editPlugin(plugin.id, plugin)
+  }
+  setTimeout(() => {
+    window[Plugin.id]
+      .start()
+      .then(() => {
+        setPluginStatus(1)
+      })
+      .catch(() => {
+        setPluginStatus(2)
+      })
+  }, 3000)
+  return 0
+}
+
+const onConfigure = async (config, old) => {
+  await Stop().catch((err) => {
+    console.log(`[${Plugin.name}]`, err)
+  })
+  try {
+    window[Plugin.id].start(config)
+    return 1
+  } catch (error) {
+    return 2
+  }
+}
+
+const Start = async () => {
+  await window[Plugin.id].start()
+  return 1
+}
+
+const Stop = async () => {
+  await window[Plugin.id].stop()
+  return 2
+}
+
+const onCoreStopped = () => {
+  return Stop()
+}
+
+const onCoreStarted = () => {
+  return Start()
+}
+
+const createUI = () => {
+  const component = {
+    template: `
+    <Card>
+      <template #title-suffix>
+        <div class="font-bold">
+          运行状态：{{ isRunning ? '运行中' : '已停止' }}
+        </div>
+      </template>
+      <template #extra>
+        <Button v-if="isRunning" type="primary" icon="pause" @click="stop()">停止</Button>
+        <Button v-else type="primary" icon="play" @click="start()">启动</Button>
+      </template>
+      <Empty v-if="!isRunning" />
+      <Tabs v-else :items="tabs" v-model:active-key="tab" tabPosition="top" />
+    </Card>`,
+    setup() {
+      const { h, ref, computed, resolveComponent } = Vue
+      const { start, stop, isRunning, managers } = window[Plugin.id]
+
+      const groups = computed(() =>
+        managers.value.map((manager) => {
+          const group = manager.proxies[0].group
+          const rows = manager.proxies.map((proxy) => {
+            const { id, lastDelay, ewmaLatency, failureCount, penalty, state, lastPenaltyUpdate, nextAttempt } = proxy
+            return {
+              _selected: manager.current?.id === id,
+              id,
+              state,
+              lastDelay: lastDelay ? lastDelay.toFixed(2) + 'ms' : '-',
+              ewmaLatency: ewmaLatency ? ewmaLatency.toFixed(2) + 'ms' : '-',
+              score: proxy.getScore().toFixed(2),
+              failureCount,
+              penalty: penalty ? penalty.toFixed(2) : penalty,
+              isAvailable: lastDelay !== '' ? '✅' : '❌',
+              lastPenaltyUpdate,
+              nextAttempt
+            }
+          })
+          return { group, rows, options: manager.options }
+        })
+      )
+
+      const columns = [
+        {
+          title: '节点名',
+          key: 'id',
+          align: 'center',
+          customRender: ({ value, record }) => {
+            if (!record._selected) return value
+            return h(resolveComponent('Tag'), { color: 'green' }, () => value)
+          }
+        },
+        {
+          title: '分数',
+          key: 'score',
+          align: 'center',
+          sort(a, b) {
+            return a.score - b.score
+          }
+        },
+        { title: '当前延迟', key: 'lastDelay', align: 'center' },
+        { title: 'EWMA平滑延迟', key: 'ewmaLatency', align: 'center' },
+        { title: '失败次数', key: 'failureCount', align: 'center' },
+        { title: '惩罚值', key: 'penalty', align: 'center' },
+        {
+          title: '更新时间',
+          key: 'lastPenaltyUpdate',
+          align: 'center',
+          customRender({ value }) {
+            return Plugins.formatRelativeTime(value)
+          }
+        },
+        {
+          title: '下次检测时间',
+          key: 'nextAttempt',
+          align: 'center',
+          customRender({ value }) {
+            return value ? Plugins.formatRelativeTime(value) : '-'
+          }
+        },
+        {
+          title: '断路器',
+          key: 'state',
+          align: 'center',
+          customRender({ value }) {
+            switch (value) {
+              case 'CLOSED':
+                return '🟢 正常'
+              case 'OPEN':
+                return '🔴 故障'
+              case 'HALF_OPEN':
+                return '🟡 检测中'
+              default:
+                return '❓未知'
+            }
+          }
+        },
+        { title: '可用性', key: 'isAvailable', align: 'center' }
+      ]
+
+      const tab = ref(groups.value[0]?.group)
+      const tabs = computed(() => {
+        return groups.value.map((item) => {
+          return {
+            key: item.group,
+            tab: item.group,
+            component: () => {
+              return h(resolveComponent('Table'), {
+                dataSource: item.rows,
+                columns,
+                sort: 'score'
+              })
+            }
+          }
+        })
+      })
+
+      return {
+        isRunning,
+        groups,
+        start,
+        stop,
+        tabs,
+        tab
+      }
+    }
+  }
+  const modal = Plugins.modal(
+    {
+      title: Plugin.name,
+      maskClosable: true,
+      submit: false,
+      width: '90',
+      height: '90',
+      cancelText: 'common.close',
+      afterClose() {
+        modal.destroy()
+      }
+    },
+    {
+      default: () => Vue.h(component)
+    }
+  )
+  return modal
+}
+
+function initSmartProxy() {
+  const { ref } = Vue
+
+  const kernelApi = Plugins.useKernelApiStore()
+  const managers = ref([])
+  const isRunning = ref(false)
+
+  const start = async (config) => {
+    console.log(`[${Plugin.name}]`, '启动监测')
+    // TODO: 这里有个bug，可能是GUI的问题
+    config = config || Plugin
+    const presetMap = {
+      Stable: config.StableMode,
+      LatencyFirst: config.LatencyFirstMode,
+      Custom: config.CustomMode
+    }
+
     if (!kernelApi.running) {
-      console.log(`[${Plugin.name}]`, '核心未运行')
-      return false
+      throw new Error('核心未运行')
     }
-    if (!presetMap[Plugin.Preset]) {
-      console.log(`[${Plugin.name}]`, '预设使用场景不存在，请检查插件配置')
-      return false
+    if (!presetMap[config.Preset]) {
+      throw new Error('预设使用场景不存在，请检查插件配置')
     }
-    if (Plugin.IncludeGroup.every((v) => !kernelApi.proxies[v])) {
-      console.log(`[${Plugin.name}]`, '未匹配到任何需要接管的策略组')
-      return false
+    if (config.IncludeGroup.every((v) => !kernelApi.proxies[v])) {
+      throw new Error('未匹配到任何需要接管的策略组')
     }
-
     const options = {
-      ...JSON.parse(presetMap[Plugin.Preset]),
-      monitoringInterval: Number(Plugin.MonitoringInterval),
-      requestTimeout: Number(Plugin.RequestTimeout)
+      ...JSON.parse(presetMap[config.Preset]),
+      monitoringInterval: Number(config.MonitoringInterval),
+      requestTimeout: Number(config.RequestTimeout)
     }
-
-    console.log(`[${Plugin.name}]`, `当前智能切换场景为【${Plugin.Preset}】`)
-    console.log(`[${Plugin.name}]`, `当前智能切换参数为`, options)
-
-    this.managers = []
-
-    Plugin.IncludeGroup.forEach((group) => {
+    managers.value = []
+    config.IncludeGroup.forEach((group) => {
       if (!kernelApi.proxies[group]) {
         return
       }
@@ -84,163 +284,22 @@ window[Plugin.id] = window[Plugin.id] || {
         }
       })
       const manager = new ProxyManager(proxies, options)
-      this.managers.push(manager)
-      console.log(`[${Plugin.name}]`, `智能切换已接管策略组【${group}】`)
+      managers.value.push(manager)
     })
-
-    return true
-  },
-  start() {
-    console.log(`[${Plugin.name}]`, 'start')
-    if (this.isRunning) {
-      console.log(`[${Plugin.name}]`, '已经在运行了')
-      return true
-    }
-    if (!this.init()) {
-      return false
-    }
-    this.managers.forEach((manager) => manager.startMonitoring())
-    this.isRunning = true
-    return true
-  },
-  stop() {
-    console.log(`[${Plugin.name}]`, 'stop')
-    if (!this.isRunning) {
-      console.log(`[${Plugin.name}]`, '没有在运行')
-      return true
-    }
-    this.managers.forEach((manager) => manager.stopMonitoring())
-    this.isRunning = false
-    return true
+    managers.value.forEach((manager) => manager.startMonitoring())
+    isRunning.value = true
   }
-}
-
-/* 触发器 手动触发 */
-const onRun = async () => {
-  console.log(`[${Plugin.name}]`, 'onRun')
-  const kernelApi = Plugins.useKernelApiStore()
-  if (!kernelApi.running) {
-    throw '请先启动核心'
-  }
-  const res = window[Plugin.id].start()
-  return res ? 1 : 2
-}
-
-/* 触发器 APP就绪后 */
-const onReady = async () => {
-  console.log(`[${Plugin.name}]`, 'onReady')
-  // window[Plugin.id].stop()
-  // const res = window[Plugin.id].start()
-  // return res ? 1 : 2
-
-  // 暂时的解决方案
-  function setPluginStatus(status) {
-    const pluginStore = Plugins.usePluginsStore()
-    const plugin = pluginStore.getPluginById(Plugin.id)
-    plugin.status = status
-    pluginStore.editPlugin(plugin.id, plugin)
+  const stop = async () => {
+    console.log(`[${Plugin.name}]`, '停止监测')
+    managers.value.forEach((manager) => manager.stopMonitoring())
+    isRunning.value = false
   }
 
-  setTimeout(() => {
-    const res = window[Plugin.id].start()
-    setPluginStatus(res ? 1 : 2)
-  }, 3_000)
-}
-
-/* 触发器 核心启动后 */
-const onCoreStarted = async () => {
-  console.log(`[${Plugin.name}]`, 'onCoreStarted')
-  window[Plugin.id].stop()
-  const res = window[Plugin.id].start()
-  return res ? 1 : 2
-}
-
-/* 触发器 核心停止后 */
-const onCoreStopped = async () => {
-  console.log(`[${Plugin.name}]`, 'onCoreStopped')
-  const res = window[Plugin.id].stop()
-  return res ? 2 : 1
-}
-
-/*
- * 插件右键 - 启动
- */
-
-const Start = () => {
-  const kernelApi = Plugins.useKernelApiStore()
-  if (!kernelApi.running) {
-    throw '请先启动核心'
-  }
-  const res = window[Plugin.id].start()
-  return res ? 1 : 2
-}
-
-/*
- * 右键菜单 - 停止
- */
-const Stop = () => {
-  const res = window[Plugin.id].stop()
-  return res ? 2 : 1
-}
-
-/*
- * 右键菜单 - 查看节点状态
- */
-const ViewStat = async () => {
-  function renderState(state) {
-    switch (state) {
-      case 'CLOSED':
-        return '🟢 正常'
-      case 'OPEN':
-        return '🔴 故障'
-      case 'HALF_OPEN':
-        return '🟡 检测中'
-      default:
-        return '❓未知'
-    }
-  }
-
-  const groups = window[Plugin.id].managers.map((manager) => {
-    const group = manager.proxies[0].group
-    const rows = manager.proxies
-      .map((proxy) => {
-        const { id, lastDelay, ewmaLatency, failureCount, penalty, state, lastPenaltyUpdate, nextAttempt } = proxy
-        const name = id.replaceAll('|', '\\|')
-        return {
-          name: manager.current?.id === id ? `\`${name}\`` : name,
-          state: renderState(state),
-          lastDelay: lastDelay ? lastDelay + 'ms' : '-',
-          ewmaLatency: ewmaLatency ? ewmaLatency.toFixed(2) + 'ms' : '-',
-          score: proxy.getScore().toFixed(2),
-          failureCount,
-          penalty: penalty ? penalty.toFixed(2) : penalty,
-          isAvailable: lastDelay !== '' ? '✅' : '❌',
-          lastPenaltyUpdate,
-          nextAttempt
-        }
-      })
-      .sort((a, b) => b.score - a.score)
-    return { group, rows, options: manager.options }
-  })
-
-  const groups_markdown = groups.map((group) =>
-    [
-      `## 策略组【${group.group}】`,
-      `> 代理数量：${group.rows.length} 监控间隔：${group.options.monitoringInterval}ms\n`,
-      '|节点名|分数|当前延迟|EWMA平滑延迟|失败次数|惩罚值|更新时间|下次检测时间|断路器|可用性|',
-      '|--|--|--|--|--|--|--|--|--|--|',
-      group.rows
-        .map(
-          (v) =>
-            `|${v.name}|${v.score}|${v.lastDelay}|${v.ewmaLatency}|${v.failureCount}|${v.penalty}|${Plugins.formatRelativeTime(v.lastPenaltyUpdate)}|${v.nextAttempt === 0 ? '-' : Plugins.formatRelativeTime(v.nextAttempt)}|${v.state}|${v.isAvailable}|`
-        )
-        .join('\n')
-    ].join('\n')
-  )
-
-  const ok = await Plugins.confirm(Plugin.name, groups_markdown.join('\n'), { type: 'markdown', okText: '刷新' }).catch(() => false)
-  if (ok) {
-    return await ViewStat()
+  return {
+    isRunning,
+    start,
+    stop,
+    managers
   }
 }
 
@@ -252,6 +311,8 @@ const request = {
     })
     const data = await res.json()
     return data
+    // if (Math.random() > 0.5) throw new Error('hhh')
+    // return { delay: Math.random() * 10 }
   }
 }
 
@@ -455,7 +516,6 @@ class ProxyManager {
 
   // 执行代理切换逻辑
   switchTo(proxy) {
-    console.log(`[${Plugin.name}]`, proxy)
     console.log(`[${Plugin.name}]`, `策略组【${proxy.group}】切换代理: ${this.current?.id || '无'} -> ${proxy.id}`)
     this.current = proxy
 
