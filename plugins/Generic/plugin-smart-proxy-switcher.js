@@ -42,24 +42,16 @@ const onRun = async () => {
 }
 
 const onReady = async () => {
-  // 暂时的解决方案
-  function setPluginStatus(status) {
-    const pluginStore = Plugins.usePluginsStore()
-    const plugin = pluginStore.getPluginById(Plugin.id)
-    plugin.status = status
-    pluginStore.editPlugin(plugin.id, plugin)
-  }
   setTimeout(() => {
     window[Plugin.id]
       .start()
       .then(() => {
-        setPluginStatus(1)
+        Plugin.status = 1
       })
       .catch(() => {
-        setPluginStatus(2)
+        Plugin.status = 2
       })
   }, 3000)
-  return 0
 }
 
 const onConfigure = async (config, old) => {
@@ -103,7 +95,7 @@ const createUI = () => {
       </template>
       <template #extra>
         <Button v-if="isRunning" type="primary" icon="pause" @click="stop()">停止</Button>
-        <Button v-else type="primary" icon="play" @click="start()">启动</Button>
+        <Button v-else type="primary" icon="play" @click="handleStart()">启动</Button>
       </template>
       <Empty v-if="!isRunning" />
       <Tabs v-else :items="tabs" v-model:active-key="tab" tabPosition="top" />
@@ -216,7 +208,14 @@ const createUI = () => {
         start,
         stop,
         tabs,
-        tab
+        tab,
+        async handleStart() {
+          try {
+            await start()
+          } catch (error) {
+            Plugins.message.error(error.message || error)
+          }
+        }
       }
     }
   }

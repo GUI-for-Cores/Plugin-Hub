@@ -303,7 +303,7 @@
   },
   {
     "id": "plugin-smart-proxy-switcher",
-    "version": "v5.0.0",
+    "version": "v5.1.0",
     "name": "节点智能切换",
     "description": "实现动态代理选择机制，包含故障转移、断路器、EWMA 延迟跟踪、基于分数调度与滞后控制。",
     "tags": ["提升体验", "功能扩展"],
@@ -1740,7 +1740,7 @@
   {
     "id": "plugin-unblockneteasemusic",
     "name": "解锁网易云音乐",
-    "version": "v8.0.1",
+    "version": "v8.1.0",
     "description": "解锁网易云音乐插件，需要安装CA证书。请在音乐客户端内开启：使用IE代理设置。（Revive unavailable songs for Netease Cloud Music (Refactored & Enhanced version)）",
     "tags": ["实用工具", "功能扩展"],
     "type": "Http",

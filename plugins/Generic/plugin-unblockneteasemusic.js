@@ -149,18 +149,15 @@ const onRun = async () => {
         isRunning,
         handleToggle: async () => {
           loading.value = true
-          const pluginStore = Plugins.usePluginsStore()
-          const plugin = pluginStore.getPluginById(Plugin.id)
           if (isRunning.value) {
             await stopUnblockMusicService().catch((e) => Plugins.message.error(e))
             await switchTo(0)
-            plugin.status = 2
+            Plugin.status = 2
           } else {
             await startUnblockMusicService().catch((e) => Plugins.message.error(e))
             await switchTo(1)
-            plugin.status = 1
+            Plugin.status = 1
           }
-          pluginStore.editPlugin(plugin.id, plugin)
           loading.value = false
           isRunning.value = await isUnblockMusicRunning()
         },
