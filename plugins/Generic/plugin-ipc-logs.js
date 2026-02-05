@@ -73,6 +73,12 @@ const SecurelyExportLogs = () => {
         if (file === 'data/rulesets.yaml') {
           item.args[1] = '【规则集索引】已忽略'
         }
+        if (file === 'data/.cache/plugin-list.json') {
+          item.args[1] = '【插件中心列表】已忽略'
+        }
+        if (file === 'data/.cache/ruleset-list.json') {
+          item.args[1] = '【规则集中心列表】已忽略'
+        }
         if (file.startsWith('data/.cache/tmp_subscription')) {
           item.args[1] = '【订阅缓存文件】已忽略'
         }
