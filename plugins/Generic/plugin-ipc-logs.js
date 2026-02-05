@@ -51,6 +51,11 @@ const SecurelyExportLogs = () => {
             item.result.data = '【订阅文件】已脱敏'
           }
         }
+        if (file.startsWith('data/locales')) {
+          if (item.result.flag) {
+            item.result.data = '【语言文件】已忽略'
+          }
+        }
         break
       }
       case 'bridge.App.WriteFile': {
@@ -319,6 +324,13 @@ const getIPCDescription = (name, args) => {
       return '杀死进程: ' + pid
     }
     case 'bridge.App.OpenDir': {
+      const [path] = args
+      if (path == 'data/rolling-release') {
+        return '打开滚动发行目录'
+      }
+      if (path == 'data/locales') {
+        return '打开多语言文件目录'
+      }
       return '打开本地目录'
     }
     case 'bridge.App.FileExists': {
@@ -464,6 +476,12 @@ const getIPCDescription = (name, args) => {
       const [path] = args
       if (/^data\/(sing-box|mihomo)$/.test(path)) {
         return '创建核心工作目录'
+      }
+      if (path === 'data/rolling-release') {
+        return '创建滚动发行目录'
+      }
+      if (path === 'data/locales') {
+        return '创建多语言文件目录'
       }
       return
     }
