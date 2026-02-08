@@ -1,8 +1,7 @@
 /**
- * TODO: 更新失败的回滚操作
+ * 此插件只做一件事：从GitHub上下载rolling-release.zip并解压至data/rolling-release目录，这就是此插件的工作原理
  */
-
-const isAlphaVersion = Plugins.APP_VERSION.includes('Alpha')
+const isDevVersion = Plugins.APP_VERSION.includes('dev')
 const RollingReleasePath = `data/rolling-release`
 
 /* 触发器 手动触发 */
@@ -12,18 +11,18 @@ const onRun = async () => {
 
 /* 触发器 启动APP时 */
 const onStartup = async () => {
-  if (Plugin.AutoRollingMode === 'onStartup') {
+  if (!isDevVersion && Plugin.AutoRollingMode === 'onStartup') {
     doCheck()
   }
 }
 
 /* 触发器 APP就绪后 */
 const onReady = async () => {
-  if (Plugin.AutoRollingMode === 'onReady') {
+  if (!isDevVersion && Plugin.AutoRollingMode === 'onReady') {
     doCheck()
   }
 
-  addRollingReleaseTagToTitleBar()
+  !isDevVersion && addRollingReleaseTagToTitleBar()
 }
 
 const doCheck = async () => {
@@ -189,10 +188,13 @@ const Statistics = async () => {
       return `| ${name} | ${download} | ${fileSize} | ${uploader} | ${createTime} |`
     })
   const table = ['|版本名称|下载次数|文件大小|发布者|更新时间|', '|-|-|-|-|-|', records.join('\n')]
-  await Plugins.alert('信息统计如下', table.join('\n'), { type: 'markdown'})
+  await Plugins.alert('信息统计如下', table.join('\n'), { type: 'markdown' })
 }
 
 const checkRollingReleaseEnabled = async () => {
+  if (isDevVersion) {
+    throw 'Dev版本不支持滚动发行'
+  }
   const appSettings = Plugins.useAppSettingsStore()
   if (!appSettings.app.rollingRelease) {
     throw '请在【设置】中，开启【启用滚动发行】功能。'
@@ -200,9 +202,6 @@ const checkRollingReleaseEnabled = async () => {
 }
 
 const checkLatestVersion = async () => {
-  if (isAlphaVersion) {
-    throw 'v1.9.8-Alpha已转正，请至 设置 - 关于 更新到最新版本！'
-  }
   const GFC_URL = `https://api.github.com/repos/GUI-for-Cores/GUI.for.Clash/releases/latest`
   const GFS_URL = `https://api.github.com/repos/GUI-for-Cores/GUI.for.SingBox/releases/latest`
   const url = Plugins.APP_TITLE.includes('Clash') ? GFC_URL : GFS_URL
