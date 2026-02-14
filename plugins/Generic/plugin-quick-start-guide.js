@@ -30,6 +30,7 @@ const showUI = () => {
   const isTUNEnabled = ref(false)
   const isFakeIPEnabled = ref(false)
   const isBanQUICEnabled = ref(true)
+  const isDohEnabled = ref(true)
 
   const name = ref(Plugins.sampleID())
   const subsMap = ref({})
@@ -107,6 +108,15 @@ const showUI = () => {
       </div>
 
       <div v-if="currentStep === 5" class="flex flex-col gap-8">
+        <div class="text-32 py-8 font-bold">是否需要对本地DNS查询请求进行加密？</div>
+        <Tag>防止DNS查询请求被监听、篡改。部分地区无法正常使用Doh服务，请更换服务器或关闭。</Tag>
+        <div class="flex gap-8">
+          <Card @click="isDohEnabled = true" :selected="isDohEnabled" title="需要" class="flex-1" selected subtitle="使用加密DNS查询" />
+          <Card @click="isDohEnabled = false" :selected="!isDohEnabled" title="不需要" class="flex-1" subtitle="使用明文DNS查询" />
+        </div>
+      </div>
+
+      <div v-if="currentStep === 6" class="flex flex-col gap-8">
         <div class="text-32 py-8 font-bold">是否需要开启Fake-IP模式？</div>
         <Tag>开启后，部分网站的DNS查询将返回虚假的IP。（通常对需要代理的网站返回fake-ip）</Tag>
         <div class="flex gap-8">
@@ -115,7 +125,7 @@ const showUI = () => {
         </div>
       </div>
 
-      <div v-if="currentStep === 6" class="flex flex-col gap-8">
+      <div v-if="currentStep === 7" class="flex flex-col gap-8">
         <div class="text-32 py-8 font-bold">是否需要禁用QUIC？</div>
         <Tag>部分网站会使用QUIC协议，这通常会影响访问代理网站的速度</Tag>
         <div class="flex gap-8">
@@ -124,7 +134,7 @@ const showUI = () => {
         </div>
       </div>
 
-      <div v-if="currentStep === 7" class="flex flex-col gap-8">
+      <div v-if="currentStep === 8" class="flex flex-col gap-8">
         <div class="text-32 py-8 font-bold">现在，为此配置引用一个或多个订阅？</div>
         <p>点击下方+号，左侧填写订阅名称，右侧填写订阅链接。或者，稍后再说~</p>
         <KeyValueEditor v-model="subsMap" :placeholder="['订阅名', '远程订阅链接']" />
@@ -151,6 +161,7 @@ const showUI = () => {
         isAllowLanEnabled,
         lanPort,
         isTUNEnabled,
+        isDohEnabled,
         isFakeIPEnabled,
         isBanQUICEnabled,
         subsMap,
@@ -211,6 +222,7 @@ const showUI = () => {
           isAllowLanEnabled: isAllowLanEnabled.value,
           lanPort: lanPort.value,
           isTUNEnabled: isTUNEnabled.value,
+          isDohEnabled: isDohEnabled.value,
           isFakeIPEnabled: isFakeIPEnabled.value,
           isBanQUICEnabled: isBanQUICEnabled.value
         })
@@ -236,7 +248,7 @@ const showUI = () => {
             resolveComponent('Button'),
             {
               type: 'text',
-              disabled: currentStep.value >= 7,
+              disabled: currentStep.value >= 8,
               onClick: () => (currentStep.value += 1)
             },
             () => '下一步'
@@ -299,6 +311,11 @@ const personalizeProfile = async (profile, options) => {
     if (options.lanPort) {
       profile.inbounds[0].mixed.listen.listen_port = Number(options.lanPort)
     }
+    if (!options.isDohEnabled) {
+      profile.dns.servers[1].type = 'udp'
+      profile.dns.servers[1].server_port = '53'
+      profile.dns.servers[1].path = ''
+    }
     profile.inbounds[1].enable = options.isTUNEnabled
     profile.dns.rules[4].enable = options.isFakeIPEnabled
     profile.route.rules[6].enable = options.isBanQUICEnabled
@@ -313,6 +330,12 @@ const personalizeProfile = async (profile, options) => {
       profile.dnsConfig['nameserver-policy']['rule-set:geolocation-!cn'] += '&disable-ipv6=true'
     }
 
+    if (!options.isDohEnabled) {
+      profile.dnsConfig['nameserver-policy']['rule-set:GEOSITE-CN'] = profile.dnsConfig['nameserver-policy']['rule-set:GEOSITE-CN'].replace(
+        'https://223.5.5.5/dns-query',
+        'udp://223.5.5.5'
+      )
+    }
     profile.generalConfig['allow-lan'] = options.isAllowLanEnabled
     if (options.lanPort) {
       profile.generalConfig['mixed-port'] = Number(options.lanPort)
