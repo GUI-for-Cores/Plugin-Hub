@@ -132,8 +132,8 @@ interface Plugins {
   FileExists(path: string): Promise<boolean>
   RemoveFile(path: string): Promise<void>
   MoveFile(src: string, dest: string): Promise<void>
-  ReadFile(path: string, options?: { Mode?: 'Binary' | 'Text', Range?: string }): Promise<string>
-  WriteFile(path: string, content: string, options?: { Mode?: 'Binary' | 'Text', Range?: string }): Promise<void>
+  ReadFile(path: string, options?: { Mode?: 'Binary' | 'Text'; Range?: string }): Promise<string>
+  WriteFile(path: string, content: string, options?: { Mode?: 'Binary' | 'Text'; Range?: string }): Promise<void>
   UnzipGZFile(gzPath: string, destPath: string): Promise<void>
   UnzipZIPFile(zipPath: string, destPath: string): Promise<void>
   UnzipTarGZFile(targzPath: string, destPath: string): Promise<void>
@@ -174,7 +174,7 @@ interface Plugins {
     args: string[],
     onOut: (out: string) => void,
     onExit: () => void,
-    options?: { Env?: Record<string, string>; Convert?: boolean, StopOutputKeyword?: string, PidFile?: string }
+    options?: { Env?: Record<string, string>; Convert?: boolean; StopOutputKeyword?: string; PidFile?: string }
   ): Promise<number>
 
   HttpGet(
@@ -207,7 +207,7 @@ interface Plugins {
     body?: string
     autoTransformBody?: boolean
     options?: {
-      Timeout?: number;
+      Timeout?: number
       Insecure?: boolean
       Redirect?: boolean
     }
@@ -255,10 +255,10 @@ interface Plugins {
     needRestart: boolean
     config: Recordable
     proxies: Recordable[]
-    onLogs: (data: { type: string; payload: string }) => () => void
-    onMemory: (data: { inuse: number; oslimit: number }) => () => void
-    onTraffic: (data: { down: number; up: number }) => () => void
-    onConnections: (data: Recordable) => () => void
+    onLogs: (handler: (data: { type: string; payload: string }) => void) => () => void
+    onMemory: (handler: (data: { inuse: number; oslimit: number }) => void) => () => void
+    onTraffic: (handler: (data: { down: number; up: number }) => void) => () => void
+    onConnections: (handler: (data: Recordable) => void) => () => void
     updateConfig(field: string, value: any): Promise<void>
   }
   usePluginsStore(): {

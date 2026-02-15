@@ -2967,5 +2967,124 @@
     "disabled": false,
     "install": false,
     "installed": false
+  },
+  {
+    "id": "plugin-gui-bot-controller",
+    "name": "Bot 控制器",
+    "version": "v1.0.0",
+    "description": "通过 Telegram 机器人控制你的 GUI 客户端。(测试版) Supported by: 泡泡茶壶",
+    "tags": ["提升体验", "功能扩展", "实用工具"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-gui-bot-controller.js",
+    "path": "data/plugins/plugin-gui-bot-controller.js",
+    "triggers": ["on::manual", "on::ready", "on::core::started", "on::core::stopped"],
+    "hasUI": true,
+    "menus": {
+      "启动服务": "start",
+      "停止服务": "stop"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_e64d8t57",
+        "title": "机器人工作模式",
+        "description": "",
+        "key": "work_mode",
+        "component": "Radio",
+        "value": "polling",
+        "options": ["polling", "webhook"]
+      },
+      {
+        "id": "ID_c1x6zi8o",
+        "title": "Telegram 机器人 Token",
+        "description": "",
+        "key": "bot_token",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_pzhjlhrq",
+        "title": "长轮询超时（秒）",
+        "description": "",
+        "key": "polling_timeout",
+        "component": "Input",
+        "value": "30",
+        "options": []
+      },
+      {
+        "id": "ID_usv94lff",
+        "title": "Webhook 更新接收 URL",
+        "description": "",
+        "key": "webhook_url",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_ttvn4ife",
+        "title": "Webhook 服务监听地址",
+        "description": "",
+        "key": "webhook_listen",
+        "component": "Input",
+        "value": "0.0.0.0",
+        "options": []
+      },
+      {
+        "id": "ID_mrjtvj65",
+        "title": "Webhook 服务监听端口",
+        "description": "",
+        "key": "webhook_port",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_yy4olc44",
+        "title": "Webhook 服务验证 Token",
+        "description": "",
+        "key": "webhook_token",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_406vvwtf",
+        "title": "启动时丢弃未处理更新",
+        "description": "",
+        "key": "drop_updates",
+        "component": "Switch",
+        "value": true,
+        "options": []
+      },
+      {
+        "id": "ID_tj4p7j2c",
+        "title": "你的 Telegram 用户 ID",
+        "description": "",
+        "key": "user_id",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_jaz6jaz9",
+        "title": "GUI 启动时自动运行",
+        "description": "",
+        "key": "auto_start",
+        "component": "Switch",
+        "value": false,
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
   }
 ]
