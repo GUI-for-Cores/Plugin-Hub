@@ -20,7 +20,6 @@ const getMeilisearchAssetName = () => {
 
 const BIN_FILE = PATH + '/' + getMeilisearchAssetName()
 
-
 /**
  * 插件钩子 - 点击安装按钮时
  */

@@ -24,7 +24,7 @@ const onRun = async () => {
 
 const Share = async (profile) => {
   await loadDependence()
-  
+
   await transformLocalRuleset(profile)
 
   const type = await Plugins.picker.single(
@@ -36,9 +36,9 @@ const Share = async (profile) => {
     ],
     ['stable']
   )
-  
+
   let config = await Plugins.generateConfig(profile, type === 'stable' || type === 'legacy')
-  
+
   if (type === 'legacy') {
     _adaptToMain(config)
     _adaptToLegacy(config)
@@ -76,16 +76,16 @@ const Share = async (profile) => {
   const { close } = await Plugins.StartServer('0.0.0.0:' + Plugin.Port, Plugin.id, async (req, res) => {
     res.end(200, { 'Content-Type': 'application/json; charset=utf-8' }, JSON.stringify(config, null, 2))
   })
-  
+
   await Plugins.alert(
     Plugin.name,
     '### OpenWrt 配置分享\n\n' +
-    '在 OpenWrt 上使用以下命令下载配置：\n\n' +
-    '```bash\n' +
-    `curl -o /etc/sing-box/config.json ${ips[0] ? `http://${ips[0]}:${Plugin.Port}` : 'URL'}\n` +
-    '```\n\n' +
-    '|分享链接|二维码|\n|-|-|\n' +
-    urls.map((url) => `|${url.url}|![](${url.qrcode})|`).join('\n'),
+      '在 OpenWrt 上使用以下命令下载配置：\n\n' +
+      '```bash\n' +
+      `curl -o /etc/sing-box/config.json ${ips[0] ? `http://${ips[0]}:${Plugin.Port}` : 'URL'}\n` +
+      '```\n\n' +
+      '|分享链接|二维码|\n|-|-|\n' +
+      urls.map((url) => `|${url.url}|![](${url.qrcode})|`).join('\n'),
     { type: 'markdown' }
   )
   close()
@@ -106,14 +106,14 @@ function validateRequiredTags(config) {
   const requiredInboundTags = ['dns-in', 'redirect-in', 'tproxy-in', 'tun-in']
   const missing = []
 
-  const inboundTags = (config.inbounds || []).map(i => i.tag)
+  const inboundTags = (config.inbounds || []).map((i) => i.tag)
   for (const tag of requiredInboundTags) {
     if (!inboundTags.includes(tag)) {
       missing.push(`inbound: ${tag}`)
     }
   }
 
-  const hasFakeipServer = (config.dns?.servers || []).some(s => s.type === 'fakeip')
+  const hasFakeipServer = (config.dns?.servers || []).some((s) => s.type === 'fakeip')
   if (!hasFakeipServer) {
     missing.push('dns.server: fakeip')
   }
@@ -123,8 +123,7 @@ function validateRequiredTags(config) {
 
 function replaceClashUIToZashboard(config) {
   if (config.experimental?.clash_api) {
-    config.experimental.clash_api.external_ui_download_url = 
-      'https://gh-proxy.com/https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip'
+    config.experimental.clash_api.external_ui_download_url = 'https://gh-proxy.com/https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip'
   }
 }
 
@@ -133,8 +132,8 @@ function ensureOpenWrtInbounds(config) {
     config.inbounds = []
   }
 
-  const findInbound = (tag) => config.inbounds.find(i => i.tag === tag)
-  const existingTags = config.inbounds.map(inbound => inbound.tag)
+  const findInbound = (tag) => config.inbounds.find((i) => i.tag === tag)
+  const existingTags = config.inbounds.map((inbound) => inbound.tag)
 
   if (!existingTags.includes('dns-in')) {
     config.inbounds.push({
@@ -198,7 +197,7 @@ function ensureOpenWrtInbounds(config) {
     config.dns.servers = []
   }
 
-  const hasFakeipServer = config.dns.servers.some(server => server.type === 'fakeip')
+  const hasFakeipServer = config.dns.servers.some((server) => server.type === 'fakeip')
   if (!hasFakeipServer) {
     config.dns.servers.push({
       tag: 'fake-ip-dns-server',
@@ -209,7 +208,7 @@ function ensureOpenWrtInbounds(config) {
   if (!config.dns.rules) {
     config.dns.rules = []
   }
-  const hasAnyOutboundRule = config.dns.rules.some(rule => rule.outbound === 'any')
+  const hasAnyOutboundRule = config.dns.rules.some((rule) => rule.outbound === 'any')
   if (!hasAnyOutboundRule) {
     config.dns.rules.unshift({
       outbound: 'any',
@@ -224,14 +223,10 @@ function ensureOpenWrtInbounds(config) {
     config.route.rules = []
   }
 
-  const hasSniffRule = config.route.rules.some(rule => 
-    rule.action === 'sniff' && 
-    rule.inbound && 
-    rule.inbound.includes('dns-in')
-  )
+  const hasSniffRule = config.route.rules.some((rule) => rule.action === 'sniff' && rule.inbound && rule.inbound.includes('dns-in'))
 
   if (!hasSniffRule) {
-    const sniffRuleIndex = config.route.rules.findIndex(rule => rule.action === 'sniff')
+    const sniffRuleIndex = config.route.rules.findIndex((rule) => rule.action === 'sniff')
     if (sniffRuleIndex !== -1) {
       let currentInbound = config.route.rules[sniffRuleIndex].inbound
       if (!currentInbound) {
@@ -254,21 +249,18 @@ function ensureOpenWrtInbounds(config) {
     }
   }
 
-  const hijackDnsRuleIndex = config.route.rules.findIndex(rule => rule.action === 'hijack-dns')
+  const hijackDnsRuleIndex = config.route.rules.findIndex((rule) => rule.action === 'hijack-dns')
   const newHijackDnsRule = {
     type: 'logical',
     mode: 'or',
-    rules: [
-      { port: 53 },
-      { protocol: 'dns' }
-    ],
+    rules: [{ port: 53 }, { protocol: 'dns' }],
     action: 'hijack-dns'
   }
-  
+
   if (hijackDnsRuleIndex !== -1) {
     config.route.rules[hijackDnsRuleIndex] = newHijackDnsRule
   } else {
-    const sniffRuleIndex = config.route.rules.findIndex(rule => rule.action === 'sniff')
+    const sniffRuleIndex = config.route.rules.findIndex((rule) => rule.action === 'sniff')
     const insertIndex = sniffRuleIndex !== -1 ? sniffRuleIndex + 1 : 0
     config.route.rules.splice(insertIndex, 0, newHijackDnsRule)
   }

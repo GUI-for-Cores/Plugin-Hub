@@ -10,10 +10,7 @@ const Headers = {
 /* 触发器 手动触发 */
 const onRun = async () => {
   if (!(await Plugins.FileExists(TemplateFile))) {
-    await Plugins.Download(
-      'https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Resources/plugin-ui-dev-helper/hotreload.js',
-      HotReloadFile
-    )
+    await Plugins.Download('https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Resources/plugin-ui-dev-helper/hotreload.js', HotReloadFile)
     await Plugins.Download(
       'https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Resources/plugin-ui-dev-helper/plugin-ui-template.html',
       TemplateFile
