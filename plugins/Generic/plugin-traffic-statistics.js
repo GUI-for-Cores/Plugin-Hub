@@ -43,7 +43,7 @@ const initMonthlyData = async () => {
 
 const saveMonthlyData = async () => {
   const path = `${PATH}/${store.currentMonth}.json`
-  await Plugins.WriteFile(path, JSON.stringify(store.data, null, 2))
+  await Plugins.WriteFile(path, JSON.stringify(store.data))
 }
 
 const updateStats = (target, diffUp, diffDown, isNew, info) => {
@@ -138,7 +138,7 @@ const Start = async (params = Plugin) => {
   router.get('/v1/docs/json', {}, (req, res) =>
     res.json(
       200,
-      router.routes.map((r) => ({ method: r.method, path: r.path }))
+      router.routes.map((r) => ({ method: r.method, path: r.path, metadata: r.metadata }))
     )
   )
   await Plugins.StartServer(params.ApiAddress, Plugin.id, async (req, res) => router.match(req, res))
@@ -185,8 +185,76 @@ const onShutdown = async () => {
   return 2
 }
 
+const onReload = async () => {
+  await saveMonthlyData()
+}
+
 const onRun = async () => {
   Plugins.message.info('UI开发中...')
+}
+
+const Utils = {
+  paginate(data, pageNum, pageSize) {
+    if (!Array.isArray(data)) {
+      throw new Error('data must be an array')
+    }
+
+    pageNum = Math.max(1, Number(pageNum))
+    pageSize = Math.max(1, Number(pageSize))
+
+    const total = data.length
+    const startIndex = (pageNum - 1) * pageSize
+    const endIndex = startIndex + pageSize
+
+    return {
+      pageNum,
+      pageSize,
+      total,
+      list: data.slice(startIndex, endIndex)
+    }
+  },
+  sortByField(arr, field, order = 'desc') {
+    return arr.sort((a, b) => {
+      const valA = a[field]
+      const valB = b[field]
+
+      if (valA == null && valB == null) return 0
+      if (valA == null) return 1
+      if (valB == null) return -1
+
+      if (typeof valA === 'number' && typeof valB === 'number') {
+        return order === 'desc' ? valB - valA : valA - valB
+      }
+
+      return order === 'desc' ? String(valB).localeCompare(String(valA)) : String(valA).localeCompare(String(valB))
+    })
+  },
+  paginateAndSort(list, query) {
+    const { sort, pageNum = 1, pageSize = 10, order } = query
+    sort && Utils.sortByField(list, sort, order)
+    return Utils.paginate(list, pageNum, pageSize)
+  },
+  empty(query) {
+    return {
+      pageNum: Number(query.pageNum || 1),
+      pageSize: Number(query.pageSize || 10),
+      total: 0,
+      list: []
+    }
+  },
+  async getTargetData(query) {
+    const { month, day } = query
+    let targetMonthData = store.data
+    if (month && month !== store.currentMonth) {
+      try {
+        targetMonthData = JSON.parse(await Plugins.ReadFile(`${PATH}/${month}.json`))
+      } catch (e) {
+        return null
+      }
+    }
+    const target = day ? targetMonthData.daily[day] : targetMonthData
+    return target
+  }
 }
 
 function registerStatsApi(router) {
@@ -197,34 +265,38 @@ function registerStatsApi(router) {
     })
   })
 
-  router.get('/v1/stats/rank/:dimension', {}, async (req, res, { dimension }) => {
-    const { month, day, sort, limit = 100 } = req.query
-    let targetMonthData = store.data
-    if (month && month !== store.currentMonth) {
-      try {
-        targetMonthData = JSON.parse(await Plugins.ReadFile(`${PATH}/${month}.json`))
-      } catch (e) {
-        return res.json(200, [])
+  router.get(
+    '/v1/stats/rank/:dimension',
+    {
+      zh: '按维度统计: domains,roots,nodes,processes,rules,tags,pivot_node_domain,pivot_tag_node'
+    },
+    async (req, res, { dimension }) => {
+      const target = await Utils.getTargetData(req.query)
+      if (!target || !target.details[dimension]) {
+        return res.json(200, Utils.empty(req.query))
       }
+      const list = Object.entries(target.details[dimension]).map(([name, val]) => ({ name, ...val }))
+      res.json(200, Utils.paginateAndSort(list, req.query))
     }
-    const target = day ? targetMonthData.daily[day] : targetMonthData
-    if (!target || !target.details[dimension]) return res.json(200, [])
-    const list = Object.entries(target.details[dimension]).map(([name, val]) => ({ name, ...val }))
-    sort && list.sort((a, b) => (b[sort] || 0) - (a[sort] || 0))
-    res.json(200, list.slice(0, parseInt(limit)))
-  })
+  )
 
-  router.get('/v1/stats/pivot/:type/:key', {}, (req, res, { type, key }) => {
-    const { day } = req.query
-    let target = day ? store.data.daily[day] : store.data
-    if (!target) return res.json(404, 'No Data')
-    const pivotField = type === 'node' ? 'pivot_node_domain' : 'pivot_tag_node'
-    const detailData = target.details[pivotField][key]
-    if (!detailData) return res.json(404, 'No Data')
-    const list = Object.entries(detailData).map(([name, val]) => ({ name, ...val }))
-    list.sort((a, b) => b.down - a.down)
-    res.json(200, list)
-  })
+  router.get(
+    '/v1/stats/pivot/:type/:key',
+    {
+      zh: '按节点统计: node'
+    },
+    async (req, res, { type, key }) => {
+      const target = await Utils.getTargetData(req.query)
+      if (!target) {
+        return res.json(200, Utils.empty(req.query))
+      }
+      const pivotField = type === 'node' ? 'pivot_node_domain' : 'pivot_tag_node'
+      const detailData = target.details[pivotField][key]
+      if (!detailData) return res.json(404, 'No Data')
+      const list = Object.entries(detailData).map(([name, val]) => ({ name, ...val }))
+      res.json(200, Utils.paginateAndSort(list, req.query))
+    }
+  )
 
   router.get('/v1/stats/history/months', {}, async (req, res) => {
     try {
