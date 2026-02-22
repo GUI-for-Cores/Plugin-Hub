@@ -278,7 +278,7 @@
   },
   {
     "id": "plugin-traffic-statistics",
-    "version": "v0.0.2",
+    "version": "v0.0.3",
     "name": "流量统计",
     "description": "高效流量统计插件，支持按域名、节点、规则、标签分析流量，提供每日/月汇总、排行和历史趋势",
     "tags": ["功能扩展"],
