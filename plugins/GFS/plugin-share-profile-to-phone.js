@@ -81,23 +81,25 @@ const Share = async (profile) => {
     }
   }
 
-  const type = await Plugins.picker.single(
-    '生成的配置类型',
+  const version = await Plugins.picker.single(
+    '生成的配置版本',
     [
-      { label: '远古版(v1.11.0-)', value: 'legacy' },
-      { label: '主流版(v1.11.0+)', value: 'main' },
-      { label: '最新版(v1.12.0+)', value: 'stable' }
+      { label: '远古版(v1.11.0-)', value: 1 },
+      { label: '主流版(v1.11.0+)', value: 2 },
+      { label: '稳定版(v1.13.0+)', value: 3 },
+      { label: '测试版(v1.13.0+)', value: 4 }
     ],
-    ['stable']
+    [3]
   )
-  const config = await Plugins.generateConfig(profile, type === 'stable' || type === 'legacy')
-  if (type === 'legacy') {
-    _adaptToMain(config)
-    _adaptToLegacy(config)
-  } else if (type === 'main') {
-    _adaptToMain(config)
-  } else {
-    // 最新版无需适配，GUI生成的就是最新版
+  const config = await Plugins.generateConfig(profile, version < 4)
+  if (version < 3) {
+    _adaptToV3(config)
+    if (version <= 2) {
+      _adaptToV2(config)
+      if (version <= 1) {
+        _adaptToV1(config)
+      }
+    }
   }
   // 新配置且禁用IPv6
   if (!profile.tunConfig && Plugin.Ipv6Mode === 'disabled') {
@@ -147,7 +149,17 @@ const onUninstall = async () => {
   return 0
 }
 
-const _adaptToMain = (config) => {
+const _adaptToV3 = (config) => {
+  config.route.rules.forEach((rule) => {
+    if (rule.action === 'reject') {
+      if (rule.method === 'reply') {
+        delete rule.method
+      }
+    }
+  })
+}
+
+const _adaptToV2 = (config) => {
   const DnsServer = {
     Local: 'local',
     Hosts: 'hosts',
@@ -227,7 +239,7 @@ const _adaptToMain = (config) => {
   })
 }
 
-const _adaptToLegacy = (config) => {
+const _adaptToV1 = (config) => {
   const isExists = (id) => config.outbounds.find((v) => v.type === id && v.tag === id)
 
   if (!isExists('direct')) {
