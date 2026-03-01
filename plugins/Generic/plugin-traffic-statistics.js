@@ -15,9 +15,25 @@ window[Plugin.id] = window[Plugin.id] || {
 const store = window[Plugin.id].state
 
 const getRootDomain = (host) => {
-  if (!host || host.includes(':') || /^\d+\.\d+\.\d+\.\d+$/.test(host)) return host
-  const parts = host.split('.')
-  if (parts.length <= 2) return host
+  if (!host) return host
+
+  let hostname = host.split(':')[0].replace(/[\[\]]/g, '')
+  hostname = hostname.replace(/\.$/, '')
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(hostname) || !hostname.includes('.')) {
+    return hostname
+  }
+
+  const parts = hostname.split('.')
+  if (parts.length <= 2) return hostname
+
+  const secondToLast = parts[parts.length - 2].toLowerCase()
+  const last = parts[parts.length - 1].toLowerCase()
+
+  const commonSecondLevel = ['com', 'co', 'net', 'org', 'gov', 'edu', 'ac']
+  if (last.length === 2 && commonSecondLevel.includes(secondToLast)) {
+    return parts.slice(-3).join('.')
+  }
+
   return parts.slice(-2).join('.')
 }
 
@@ -199,37 +215,72 @@ const handleLogs = async (data) => {
   updateLogType(store.data)
   updateLogType(dayData)
 
-  // 详细 DNS 统计
-  if (data.payload && data.payload.includes('dns: exchanged')) {
-    const dnsMatch = data.payload.match(/dns: exchanged\s+([A-Z0-9]+)\s+([^\s]+)\s+\d+\s+IN\s+[A-Z0-9]+\s+([^\s]+)/i)
+  // DNS 解析逻辑
+  let dnsInfo = null
 
-    if (dnsMatch) {
-      const dnsType = dnsMatch[1].toUpperCase()
-      const domain = dnsMatch[2].replace(/\.$/, '')
-      const result = dnsMatch[3] // IP 或 别名
+  // clash匹配逻辑：
+  // 1. 必须包含 [DNS]
+  // 2. 必须包含 --> (这代表它是结果返回，排除了 resolve 和 hijack 日志)
+  // 3. 兼容 "cache hit" 字样
+  // 正则解析：分组1=域名，分组2=结果列表，分组3=记录类型
+  const dnsMatch = data.payload.match(/\[DNS\](?:\s+cache\s+hit)?\s+([^\s]+)\s+-->\s+\[(.*?)\]\s+([A-Z0-9]+)/i)
 
-      const updateDnsStats = (target) => {
-        const d = target.details
-        if (!d.dns_types) d.dns_types = {}
-        if (!d.dns_domains) d.dns_domains = {}
-        if (!d.dns_ip_kinds) d.dns_ip_kinds = { 'fake-ip': 0, 'real-ip': 0 }
+  if (dnsMatch) {
+    const domain = dnsMatch[1].replace(/\.$/, '')
+    const results = dnsMatch[2].trim().split(/\s+/) // 获取 IP 列表
+    const dnsType = dnsMatch[3].toUpperCase()
 
-        // 统计类型和域名
-        d.dns_types[dnsType] = (d.dns_types[dnsType] || 0) + 1
-        if (!d.dns_domains[domain]) d.dns_domains[domain] = { hits: 0, types: {} }
-        d.dns_domains[domain].hits++
-        d.dns_domains[domain].types[dnsType] = (d.dns_domains[domain].types[dnsType] || 0) + 1
-
-        // Fake-IP 判定 (仅针对 A 和 AAAA 记录)
-        if (dnsType === 'A' || dnsType === 'AAAA') {
-          const isFake = result.startsWith('198.18.') || result.toLowerCase().startsWith('fc00')
-          const kind = isFake ? 'fake-ip' : 'real-ip'
-          d.dns_ip_kinds[kind] = (d.dns_ip_kinds[kind] || 0) + 1
-        }
-      }
-      updateDnsStats(store.data)
-      updateDnsStats(dayData)
+    dnsInfo = {
+      domain,
+      dnsType,
+      // 取第一个结果用于判定 Fake-IP，如果没有结果则传空字符串
+      result: results[0] || ''
     }
+  }
+  // singbox匹配逻辑
+  else if (data.payload.includes('dns: exchanged')) {
+    const legacyMatch = data.payload.match(/dns: exchanged\s+([A-Z0-9]+)\s+([^\s]+)\s+\d+\s+IN\s+[A-Z0-9]+\s+([^\s]+)/i)
+    if (legacyMatch) {
+      dnsInfo = {
+        dnsType: legacyMatch[1].toUpperCase(),
+        domain: legacyMatch[2].replace(/\.$/, ''),
+        result: legacyMatch[3]
+      }
+    }
+  }
+
+  // 统一更新统计数据
+  if (dnsInfo) {
+    const { dnsType, domain, result } = dnsInfo
+
+    const updateDnsStats = (target) => {
+      const d = target.details
+      // 初始化字段
+      if (!d.dns_types) d.dns_types = {}
+      if (!d.dns_domains) d.dns_domains = {}
+      if (!d.dns_ip_kinds) d.dns_ip_kinds = { 'fake-ip': 0, 'real-ip': 0 }
+
+      // 统计解析类型 (A, AAAA)
+      d.dns_types[dnsType] = (d.dns_types[dnsType] || 0) + 1
+
+      // 统计域名命中次数
+      if (!d.dns_domains[domain]) d.dns_domains[domain] = { hits: 0, types: {} }
+      d.dns_domains[domain].hits++
+      d.dns_domains[domain].types[dnsType] = (d.dns_domains[domain].types[dnsType] || 0) + 1
+
+      // Fake-IP 判定逻辑
+      if ((dnsType === 'A' || dnsType === 'AAAA') && result) {
+        // IPv4 Fake-IP: 198.18.x.x
+        // IPv6 Fake-IP: 通常以 fc00 或 fd00 开头 (用户可根据具体配置调整)
+        const isFake = result.startsWith('198.18.') || result.toLowerCase().startsWith('fc00') || result.toLowerCase().startsWith('fd00')
+
+        const kind = isFake ? 'fake-ip' : 'real-ip'
+        d.dns_ip_kinds[kind] = (d.dns_ip_kinds[kind] || 0) + 1
+      }
+    }
+
+    updateDnsStats(store.data)
+    updateDnsStats(dayData)
   }
 }
 
