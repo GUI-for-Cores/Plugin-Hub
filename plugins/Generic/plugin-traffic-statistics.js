@@ -150,7 +150,7 @@ const updateStats = (target, diffUp, diffDown, isNew, info) => {
 }
 
 const handleConnections = async (data) => {
-  const { connections = [] } = data
+  const connections = data.connections || []
   const now = new Date()
   const month = Plugins.formatDate(now.getTime(), 'YYYY-MM')
 
