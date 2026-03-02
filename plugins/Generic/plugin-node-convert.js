@@ -1706,7 +1706,11 @@ function URI_Producer() {
               query += encodeURIComponent(`simple-obfs;obfs=${opts.mode}${opts.host ? ';obfs-host=' + opts.host : ''}`)
               break
             case 'v2ray-plugin':
-              query += encodeURIComponent(`v2ray-plugin;obfs=${opts.mode}${opts.host ? ';obfs-host' + opts.host : ''}${opts.tls ? ';tls' : ''}`)
+              query += encodeURIComponent(
+                `v2ray-plugin;obfs=${opts.mode}${opts.host ? ';obfs-host=' + opts.host : ''}${opts.host ? ';host=' + opts.host : ''}${
+                  opts.path ? ';path=' + opts.path : ''
+                }${opts.tls ? ';tls' : ''}`
+              )
               break
             case 'shadow-tls':
               query += encodeURIComponent(`shadow-tls;host=${opts.host};password=${opts.password};version=${opts.version}`)
@@ -2402,7 +2406,7 @@ const PROXY_PARSERS = (() => {
             proxy.plugin = 'v2ray-plugin'
             proxy['plugin-opts'] = {
               mode: 'websocket',
-              host: getIfNotBlank(params['obfs-host']),
+              host: getIfNotBlank(params['obfs-host']) || getIfNotBlank(params['host']),
               path: getIfNotBlank(params.path),
               tls: getIfPresent(params.tls)
             }
