@@ -20,6 +20,12 @@ const onGenerate = async (config, profile) => {
     }
   }
 
+  // 映射代理组
+  for(const group of profile.proxyGroupsConfig) {
+    IdNameMapping[group.id] = group.name
+    IdNameMapping[group.name] = group.id
+  }
+
   // 2. 读取链式代理配置
   const filePath = `${PATH}/${profile.id}.json`
   // prettier-ignore
