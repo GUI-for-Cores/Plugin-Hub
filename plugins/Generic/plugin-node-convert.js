@@ -1682,7 +1682,7 @@ function URI_Producer() {
         delete proxy[key]
       }
     }
-    if (['trojan', 'tuic', 'hysteria', 'hysteria2', 'juicity', 'anytls', 'trusttunnel'].includes(proxy.type)) {
+    if (['tuic', 'hysteria', 'hysteria2', 'juicity', 'trusttunnel'].includes(proxy.type)) {
       delete proxy.tls
     }
     if (!['vmess'].includes(proxy.type) && proxy.server && isIPv6(proxy.server)) {
