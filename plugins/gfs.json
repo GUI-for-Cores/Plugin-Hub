@@ -209,5 +209,30 @@
     "disabled": false,
     "install": true,
     "installed": false
+  },
+  {
+    "id": "plugin-singbox-builder",
+    "version": "v1.0.0",
+    "name": "从零编译sing-box核心",
+    "description": "从编译环境到源码下载，再到核心定制，从0开始编译sing-box核心。",
+    "tags": ["实用工具"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-singbox-builder.js",
+    "path": "data/plugins/plugin-singbox-builder.js",
+    "status": 0,
+    "triggers": ["on::manual"],
+    "hasUI": true,
+    "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "configuration": [],
+    "disabled": false,
+    "install": false,
+    "installed": false
   }
 ]

@@ -125,6 +125,7 @@ interface Plugins {
     error(msg: string): void
   }
 
+  OpenURI(uri: string): Promise<void>
   AbsolutePath(relativePath: string): Promise<string>
   CopyFile(src: string, dest: string): Promise<void>
   MakeDir(path: string): Promise<void>
@@ -174,7 +175,7 @@ interface Plugins {
     args: string[],
     onOut: (out: string) => void,
     onExit: () => void,
-    options?: { Env?: Record<string, string>; Convert?: boolean; StopOutputKeyword?: string; PidFile?: string }
+    options?: { Env?: Record<string, string>; Convert?: boolean; StopOutputKeyword?: string; WorkingDirectory?: string; PidFile?: string }
   ): Promise<number>
 
   HttpGet(
