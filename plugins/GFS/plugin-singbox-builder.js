@@ -1,3 +1,5 @@
+const SourceCodePath = 'data/.cache/sing-box-main'
+
 const onRun = async () => {
   const component = {
     template: `
@@ -40,7 +42,7 @@ const onRun = async () => {
         </template>
         <template #3>
           <Card title="版本号">
-            <Input v-model="compile_version" placeholder="x.y.z" class="w-full" />
+            <Input v-model="compile_version" placeholder="例如: 1.14.0" class="w-full" />
           </Card>
           <Card title="特性支持" class="mt-8">
             <div class="flex flex-col gap-4">
@@ -59,7 +61,7 @@ const onRun = async () => {
             <div class="flex items-center">
               <div>
                 <div class="text-18">-trimpath</div>
-                <div class="text-12">删除本地路径</div>
+                <div class="text-12">删除本地路径（提高安全性与一致性）</div>
               </div>
               <div class="ml-auto">
                 <Switch v-model="compile_option_trimpath" />
@@ -68,7 +70,7 @@ const onRun = async () => {
             <div class="flex items-center mt-8">
               <div>
                 <div class="text-18">-ldflags "-s -w"</div>
-                <div class="text-12">去掉symbol table与DWARF调试信息，减少二进制体积</div>
+                <div class="text-12">去掉符号表与调试信息，显著减小体积</div>
               </div>
               <div class="ml-auto">
                 <Switch v-model="compile_option_ldflags" />
@@ -77,7 +79,7 @@ const onRun = async () => {
             <div class="flex items-center mt-8">
               <div>
                 <div class="text-18">CGO_ENABLED=1</div>
-                <div class="text-12">启用CGO</div>
+                <div class="text-12">启用CGO（某些特定功能可能需要）</div>
               </div>
               <div class="ml-auto">
                 <Switch v-model="compile_option_cgo_enabled" />
@@ -86,11 +88,19 @@ const onRun = async () => {
           </Card>
         </template>
         <template #4>
-          <Button @click="startCompile" type="primary" class="w-full">
-            {{ compile_running ? '编译中...' : '开始编译' }}
-          </Button>
+          <div class="flex items-center gap-8">
+            <Button @click="startCompile(true)">
+              重新编译
+            </Button>
+            <Button @click="startCompile()" type="primary" class="flex-1">
+              {{ compile_running ? '编译中...' : '开始编译' }}
+            </Button>
+            <Button @click="openDist">
+              打开目录
+            </Button>
+          </div>
           <Card class="mt-8">
-            <Empty v-if="compile_output.length === 0" />
+            <Empty v-if="compile_output.length === 0" class="py-32" />
             <div v-else class="flex flex-col text-12 overflow-auto" style="height: 300px">
               <div v-for="out in compile_output" :key="out">{{ out }}</div>
             </div>
@@ -110,51 +120,87 @@ const onRun = async () => {
         { key: '4', tab: '4.开始编译' }
       ]
 
-      const enabled_tags = ref(new Set(['with_gvisor', 'with_quic', 'with_utls', 'with_clash_api']))
+      const enabled_tags = ref(
+        new Set([
+          // 'with_quic',
+          // 'with_dhcp',
+          // 'with_wireguard',
+          'with_utls',
+          // 'with_acme',
+          'with_clash_api',
+          'with_gvisor'
+          // 'with_tailscale',
+          // 'with_ccm',
+          // 'with_ocm',
+          // 'with_naive_outbound',
+          // 'badlinkname',
+          // 'tfogo_checklinkname0',
+        ])
+      )
       const singbox_tags = [
         {
-          label: '启用 gVisor 网络栈（用户态 TCP/IP），用于 TUN 模式隔离与增强兼容性',
-          value: 'with_gvisor'
-        },
-        {
-          label: '启用 QUIC 协议支持（HTTP/3、Hysteria、TUIC 等依赖）',
+          label: '启用 QUIC 支持（用于 Hysteria、TUIC、HTTP3 DNS、Naive 入站等）',
           value: 'with_quic'
         },
         {
-          label: '启用 DHCP 支持，用于 TUN 自动获取网络配置',
+          label: '启用标准 gRPC 支持（用于 V2Ray 传输等）',
+          value: 'with_grpc'
+        },
+        {
+          label: '启用 DHCP 支持（用于 DHCP DNS 传输）',
           value: 'with_dhcp'
         },
         {
-          label: '启用 WireGuard 协议支持，可作为 inbound 或 outbound',
+          label: '启用 WireGuard 协议支持',
           value: 'with_wireguard'
         },
         {
-          label: '启用 uTLS（模仿真实浏览器 TLS 指纹以绕过检测）',
+          label: '启用 uTLS 支持（用于 TLS 出站指纹模拟）',
           value: 'with_utls'
         },
         {
-          label: '启用 ACME 自动证书申请（Let’s Encrypt 自动 TLS）',
+          label: '启用 ACME 证书申请支持（用于自动化 TLS）',
           value: 'with_acme'
         },
         {
-          label: '启用 Clash API 兼容接口（供 Clash Dashboard / 面板控制）',
+          label: '启用 Clash API 支持（用于支持外部控制面板）',
           value: 'with_clash_api'
         },
         {
-          label: '启用 Tailscale 集成（基于 WireGuard 的 mesh VPN 网络）',
+          label: '启用 V2Ray API 支持（实验性功能）',
+          value: 'with_v2ray_api'
+        },
+        {
+          label: '启用 gVisor 支持（用于 Tun 入站和 WireGuard 出站的网络栈）',
+          value: 'with_gvisor'
+        },
+        {
+          label: '启用内置 Tor 支持（需要 CGO 环境）',
+          value: 'with_embedded_tor'
+        },
+        {
+          label: '启用 Tailscale 支持（作为 Tailscale 端点使用）',
           value: 'with_tailscale'
         },
         {
-          label: '启用 CCM（Common Certificate Manager 证书管理模块）',
+          label: '启用 Claude Code Multiplexer (CCM) 服务支持',
           value: 'with_ccm'
         },
         {
-          label: '启用 OCM（Outbound Connection Manager 出站连接管理模块）',
+          label: '启用 OpenAI Codex Multiplexer (OCM) 服务支持',
           value: 'with_ocm'
         },
         {
-          label: '启用 NaiveProxy outbound（支持 naiveproxy 协议出站）',
+          label: '启用 NaiveProxy 出站支持',
           value: 'with_naive_outbound'
+        },
+        {
+          label: '启用 badlinkname（允许访问内部标准库函数，用于 kTLS 等底层操作）',
+          value: 'badlinkname'
+        },
+        {
+          label: '启用 tfogo_checklinkname0（用于绕过 Go 1.23+ 的 linkname 限制）',
+          value: 'tfogo_checklinkname0'
         },
         {
           label: '使用 purego 实现（纯 Go 调用系统库，减少 CGO 依赖）',
@@ -166,16 +212,28 @@ const onRun = async () => {
       const compile_output = ref([])
       const compile_args = computed(() => {
         const args = []
+
+        // 1. 添加 trimpath
         if (compile_option_trimpath.value) {
           args.push('-trimpath')
         }
+
+        // 2. 处理 Tags
         const tags = Array.from(enabled_tags.value)
         if (tags.length) {
-          args.push('-tags')
-          args.push(tags.join(','))
+          args.push('-tags', tags.join(','))
         }
-        args.push('-ldflags')
-        args.push(`-X github.com/sagernet/sing-box/constant.Version=${compile_version.value || ' '}${compile_option_ldflags.value ? ' -s -w -buildid=' : ''}`)
+
+        // 3. 构建 ldflags
+        let ldflagsParts = []
+        if (compile_option_ldflags.value) {
+          ldflagsParts.push('-s', '-w', '-buildid=')
+        }
+        // 注入版本号
+        ldflagsParts.push(`-X github.com/sagernet/sing-box/constant.Version=${compile_version.value || 'unknown'}`)
+
+        args.push('-ldflags', ldflagsParts.join(' '))
+
         return args
       })
       const compile_version = ref('')
@@ -238,25 +296,28 @@ const onRun = async () => {
             source_code_status.value = ''
             recheckSourceCode()
           })
-          await Plugins.RemoveFile('data/.cache/sing-box-main')
+          await Plugins.RemoveFile(SourceCodePath)
           Plugins.UnzipZIPFile('data/.cache/sing-box-source-code.zip', 'data/.cache')
         },
-        async startCompile() {
+        openDist() {
+          Plugins.OpenDir(SourceCodePath)
+        },
+        async startCompile(force) {
           if (compile_running.value) return
           compile_running.value = true
           await Plugins.sleep(1000)
-          const abs_path = await Plugins.AbsolutePath('data/.cache/sing-box-main')
+          const abs_path = await Plugins.AbsolutePath(SourceCodePath)
           await Plugins.ExecBackground(
             'go',
-            ['build', '-v', ...compile_args.value, './cmd/sing-box'],
+            ['build', '-v', ...(force ? ['-a'] : []), ...compile_args.value, './cmd/sing-box'],
             (out) => {
               compile_output.value.unshift(out)
             },
             async () => {
-              const dir = await Plugins.ReadDir('data/.cache/sing-box-main')
+              const dir = await Plugins.ReadDir(SourceCodePath)
               if (dir.some((file) => file.name.startsWith('sing-box'))) {
                 compile_output.value.unshift('-'.repeat(120))
-                compile_output.value.unshift('编译完成，核心文件路径：' + 'data/.cache/sing-box-main/sing-box*')
+                compile_output.value.unshift('编译完成，核心文件路径：' + SourceCodePath + '/sing-box*')
                 compile_output.value.unshift('-'.repeat(120))
               }
             },

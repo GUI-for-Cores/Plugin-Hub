@@ -125,6 +125,7 @@ interface Plugins {
     error(msg: string): void
   }
 
+  OpenDir(path: string): Promise<void>
   OpenURI(uri: string): Promise<void>
   AbsolutePath(relativePath: string): Promise<string>
   CopyFile(src: string, dest: string): Promise<void>
