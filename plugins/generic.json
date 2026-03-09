@@ -3009,7 +3009,7 @@
   {
     "id": "plugin-gui-bot-controller",
     "name": "Bot 控制器",
-    "version": "v1.0.0",
+    "version": "v0.0.1",
     "description": "通过 Telegram 机器人控制你的 GUI 客户端。(测试版) Supported by: 泡泡茶壶",
     "tags": ["提升体验", "功能扩展", "实用工具"],
     "type": "Http",
