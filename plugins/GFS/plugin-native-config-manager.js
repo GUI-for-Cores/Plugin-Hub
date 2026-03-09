@@ -53,45 +53,38 @@ const openMainUI = (manager) => {
   const component = defineComponent({
     template: `
     <div class="h-full w-full">
-        <div v-if="manager.configs.value.length === 0"
-             class="flex items-center justify-center h-full min-h-[200px] cursor-pointer"
-             @click="openGuide">
-            <span class="text-16 font-bold text-gray-400 hover:text-gray-600 transition-colors">
-                尚未添加任何原生配置，点击添加
-            </span>
-        </div>
-        <div v-else class="grid grid-cols-3 gap-6 p-8 overflow-y-auto max-h-[500px]" style="gap: 10px;">
-            <Card v-for="cfg in manager.configs.value" :key="cfg.id" class="border-none shadow-sm" :body-style="{ padding: '0px' }">
-                <div class="flex flex-col box-border" style="min-height: 75px; padding: 4px 0px;">
-                    <div class="flex justify-between items-start gap-4">
-                        <div class="font-bold text-16 truncate text-white" :title="cfg.profileName">
-                            {{ cfg.profileName }}
-                        </div>
-                        <Button class="text-gray-400 hover:text-red-500 flex-shrink-0" size="small" type="text" @click="deleteConfig(cfg)">
-                            删除
-                        </Button>
-                    </div>
-                    <div class="mt-auto flex items-center justify-between w-full">
-                        <div class="text-12 text-gray-400">
-                            类型：{{ cfg.type === 'local' ? '本地' : '远程' }}
-                        </div>
-                        <Button size="small" @click="editConfig(cfg)">
-                            编辑
-                        </Button>
-                    </div>
-
-                </div>
-            </Card>
-            <div class="col-span-3 mt-4">
-                <Button class="w-full" type="dashed" @click="openGuide">
-                    添加新配置
-                </Button>
+      <div v-if="manager.configs.value.length === 0"
+        class="flex items-center justify-center h-full min-h-[200px] cursor-pointer" @click="openGuide">
+        <span class="text-16 font-bold text-gray-400 hover:text-gray-600 transition-colors">
+          尚未添加任何原生配置，点击添加
+        </span>
+      </div>
+      <div v-else class="grid grid-cols-3 gap-8 p-8 overflow-y-auto max-h-[500px]">
+        <Card v-for="cfg in manager.configs.value" :key="cfg.id" :title="getProfileName(cfg)">
+          <template #extra>
+            <Button class="text-red-500 hover:text-red-700" size="small" type="text" @click.stop="deleteConfig(cfg)">
+              删除
+            </Button>
+          </template>
+          <div class="flex flex-col min-h-[70px]">
+            <div class="mt-auto pt-4 flex justify-between items-center w-full">
+              <div class="text-12 text-gray-500">
+                类型：{{ cfg.type === 'local' ? '本地' : '远程' }}
+              </div>
+              <Button size="small" type="primary" @click.stop="editConfig(cfg)">
+                编辑
+              </Button>
             </div>
-
-        </div>
+          </div>
+        </Card>
+        <Button class="col-span-3 mt-4" type="dashed" @click="openGuide">
+          添加新配置
+        </Button>
+      </div>
     </div>
-        `,
+    `,
     setup() {
+      const profilesStore = Plugins.useProfilesStore()
       return {
         manager,
         openGuide: () => {
@@ -106,10 +99,12 @@ const openMainUI = (manager) => {
           if (idx !== -1) {
             manager.configs.value?.splice(idx, 1)
             await manager.saveConfigs()
-            const profilesStore = Plugins.useProfilesStore()
             await profilesStore.deleteProfile(cfg.profileId)
             Plugins.message.success('配置删除成功')
           }
+        },
+        getProfileName: (cfg) => {
+          return profilesStore.getProfileById(cfg.profileId)?.name ?? 'Not Found'
         }
       }
     }
@@ -133,23 +128,23 @@ const openGuideModal = (manager) => {
   const remoteUrl = ref('')
   const component = defineComponent({
     template: `
-            <div class="flex flex-col gap-8 p-8">
-                <ul class="list-disc pl-6 text-14 text-gray-600 space-y-6 leading-relaxed">
-                    <li>你可以通过此插件添加与 sing-box 原生配置关联的 GUI 配置方案。你可以直接编辑所关联的原始配置，以将修改应用到运行时配置，而无需重新导入。</li>
-                    <li>此插件不支持任何解码操作。要关联的本地或远程配置必须是原始 JSON 文件。</li>
-                    <li>请勿直接修改所创建的 GUI 配置，因为这将不会生效。如果你需要修改或删除配置，请在此插件内进行操作。</li>
-                    <li>为确保插件正常运行，请确保要关联的本地原生配置放置在 <code class="bg-gray-200 px-2 py-1 rounded">data/sing-box</code> 目录中。</li>
-                </ul>
-                <div class="flex gap-8 mt-8">
-                    <Button class="flex-1" type="primary" @click="handleLocal">添加本地配置</Button>
-                    <Button class="flex-1" type="primary" @click="showUrlInput = !showUrlInput">添加远程配置</Button>
-                </div>
-                <div v-if="showUrlInput" class="mt-8 flex gap-4 items-center">
-                    <Input v-model="remoteUrl" placeholder="输入远程文件链接..." class="flex-1" />
-                    <Button type="primary" @click="handleRemote">确认</Button>
-                </div>
-            </div>
-        `,
+    <div class="flex flex-col gap-8 p-8">
+      <ul class="list-disc pl-6 text-14 text-gray-600 space-y-6 leading-relaxed">
+        <li>你可以通过此插件添加与 sing-box 原生配置关联的 GUI 配置方案。你可以直接编辑所关联的原始配置，以将修改应用到运行时配置，而无需重新导入。</li>
+        <li>此插件不支持任何解码操作。要关联的本地或远程配置必须是原始 JSON 文件。</li>
+        <li>请勿直接修改所创建的 GUI 配置，因为这将不会生效。如果你需要修改或删除配置，请在此插件内进行操作。</li>
+        <li>为确保插件正常运行，请确保要关联的本地原生配置放置在 <code class="bg-gray-200 px-2 py-1 rounded">data/sing-box</code> 目录中。</li>
+      </ul>
+      <div class="flex gap-8 mt-8">
+        <Button class="flex-1" type="primary" @click="handleLocal">添加本地配置</Button>
+        <Button class="flex-1" type="primary" @click="showUrlInput = !showUrlInput">添加远程配置</Button>
+      </div>
+      <div v-if="showUrlInput" class="mt-8 flex gap-4 items-center">
+        <Input v-model="remoteUrl" placeholder="输入远程文件链接..." class="flex-1" />
+        <Button type="primary" @click="handleRemote">确认</Button>
+      </div>
+    </div>
+    `,
     setup() {
       const handleLocal = async () => {
         const success = await manager.handleAddLocal()
@@ -176,15 +171,20 @@ const openGuideModal = (manager) => {
 }
 const openEditModal = (cfg, manager) => {
   const { ref, defineComponent } = Vue
-  const jsonStr = ref(JSON.stringify(cfg, null, 2))
+  const inputValue = ref(cfg.type === 'local' ? cfg.configPath : cfg.configUrl)
   const component = defineComponent({
     template: `
-            <div class="flex flex-col h-full gap-4 p-4">
-                <CodeViewer v-model="jsonStr" lang="json" editable class="flex-1 min-h-[300px] border rounded" />
-            </div>
-        `,
+    <div class="px-8 py-12 flex items-center justify-between gap-8">
+      <div class="text-16 font-bold shrink-0">
+        {{ label }}
+      </div>
+      <Input v-model="inputValue" :placeholder="placeholder" class="flex-1 text-14" />
+    </div>
+    `,
     setup() {
-      return { jsonStr }
+      const label = cfg.type === 'local' ? '原始配置路径' : '原始配置链接'
+      const placeholder = cfg.type === 'local' ? '请输入本地配置的绝对或相对路径' : '请输入远程配置的链接'
+      return { inputValue, label, placeholder }
     }
   })
   const modal = Plugins.modal({
@@ -193,8 +193,17 @@ const openEditModal = (cfg, manager) => {
     submitText: '保存',
     cancelText: '取消',
     onOk: async () => {
+      if (!inputValue.value.length) {
+        Plugins.message.error('输入不能为空')
+        return false
+      }
       try {
-        const updatedConfig = JSON.parse(jsonStr.value)
+        const updatedConfig = { ...cfg }
+        if (updatedConfig.type === 'local') {
+          updatedConfig.configPath = inputValue.value
+        } else {
+          updatedConfig.configUrl = inputValue.value
+        }
         const idx = manager.configs.value.findIndex((c) => c.id === cfg.id)
         if (idx !== -1) {
           manager.configs.value[idx] = updatedConfig
@@ -203,7 +212,7 @@ const openEditModal = (cfg, manager) => {
         }
         return true
       } catch (error) {
-        Plugins.message.error(`保存的格式错误：${error instanceof Error ? error.message : String(error)}`)
+        Plugins.message.error(`保存失败：${error instanceof Error ? error.message : String(error)}`)
         return false
       }
     },
@@ -271,7 +280,6 @@ class NativeConfigManager {
       id: Plugins.sampleID(),
       type: 'local',
       profileId: profile.id,
-      profileName,
       configPath: targetPath
     }
     this.configs.value.push(newItem)
@@ -308,7 +316,6 @@ class NativeConfigManager {
         id: Plugins.sampleID(),
         type: 'remote',
         profileId: profile.id,
-        profileName,
         configUrl: url
       }
       this.configs.value.push(newItem)
