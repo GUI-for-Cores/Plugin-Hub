@@ -237,7 +237,7 @@
   },
   {
     "id": "plugin-singbox-builder",
-    "version": "v1.1.0",
+    "version": "v1.2.0",
     "name": "从零编译sing-box核心",
     "description": "从编译环境到源码下载，再到核心定制，从0开始编译sing-box核心。",
     "tags": ["实用工具"],
