@@ -1,18 +1,21 @@
 window[Plugin.id] = window[Plugin.id] ?? {
   configs: Vue.ref([])
 }
-
 const BASE_PATH = `data/third/${Plugin.id}`
-const MANAGE_FILE_PATH = `${BASE_PATH}/manage.json`
+const MANAGE_FILE_PATH = `${BASE_PATH}/${Plugin.id}.json`
 const TEMP_CHECK_PATH = 'data/.cache/temp-check.json'
-
 /* 触发器 手动触发 */
 const onRun = async () => {
   const manager = new NativeConfigManager()
   await manager.init()
   openMainUI(manager)
 }
-
+/* 触发器 APP就绪后 */
+const onReady = async () => {
+  window[Plugin.id].configs.value = await Plugins.ReadFile(MANAGE_FILE_PATH)
+    .then((content) => JSON.parse(content))
+    .catch(() => [])
+}
 /* 触发器 生成配置时 */
 const onGenerate = async (config, profile) => {
   const configs = window[Plugin.id].configs.value ?? []
@@ -45,7 +48,6 @@ const onGenerate = async (config, profile) => {
   }
   return nativeConfig
 }
-
 const openMainUI = (manager) => {
   const { defineComponent } = Vue
   const component = defineComponent({
@@ -125,7 +127,6 @@ const openMainUI = (manager) => {
   modal.setContent(component)
   modal.open()
 }
-
 const openGuideModal = (manager) => {
   const { ref, defineComponent } = Vue
   const showUrlInput = ref(false)
@@ -154,7 +155,6 @@ const openGuideModal = (manager) => {
         const success = await manager.handleAddLocal()
         if (success) modal.close()
       }
-
       const handleRemote = async () => {
         const success = await manager.handleAddRemote(remoteUrl.value.trim())
         if (success) modal.close()
@@ -174,7 +174,6 @@ const openGuideModal = (manager) => {
   modal.setContent(component)
   modal.open()
 }
-
 const openEditModal = (cfg, manager) => {
   const { ref, defineComponent } = Vue
   const jsonStr = ref(JSON.stringify(cfg, null, 2))
@@ -204,7 +203,7 @@ const openEditModal = (cfg, manager) => {
         }
         return true
       } catch (error) {
-        Plugins.message.error(`保存格式错误：${error instanceof Error ? error.message : String(error)}`)
+        Plugins.message.error(`保存的格式错误：${error instanceof Error ? error.message : String(error)}`)
         return false
       }
     },
@@ -217,7 +216,6 @@ const openEditModal = (cfg, manager) => {
 }
 class NativeConfigManager {
   configs = window[Plugin.id].configs
-
   async init() {
     if (!(await Plugins.FileExists(BASE_PATH))) {
       await Plugins.MakeDir(BASE_PATH)
@@ -228,16 +226,14 @@ class NativeConfigManager {
         const content = await Plugins.ReadFile(MANAGE_FILE_PATH)
         this.configs.value = JSON.parse(content)
       } catch (error) {
-        console.log('管理文件解析失败', error)
+        console.log('管理文件读取失败', error)
         this.configs.value = []
       }
     }
   }
-
   async saveConfigs() {
     await Plugins.WriteFile(MANAGE_FILE_PATH, JSON.stringify(this.configs.value, null, 2))
   }
-
   async validateConfig(content) {
     try {
       JSON.parse(content)
@@ -256,7 +252,6 @@ class NativeConfigManager {
       })
     }
   }
-
   async handleAddLocal() {
     const file = await selectLocalJsonFile()
     if (!file) return false
@@ -284,7 +279,6 @@ class NativeConfigManager {
     Plugins.message.success('本地原生配置添加成功')
     return true
   }
-
   async handleAddRemote(url) {
     if (!url.length) {
       Plugins.message.error('URL 不能为空')
@@ -327,7 +321,6 @@ class NativeConfigManager {
     }
   }
 }
-
 const selectLocalJsonFile = () => {
   return new Promise((resolve) => {
     const input = document.createElement('input')
@@ -356,7 +349,6 @@ const selectLocalJsonFile = () => {
     input.click()
   })
 }
-
 const extractProfileNameFromUrl = (url) => {
   const id = Plugins.sampleID()
   const profileName = `remote-config-${id}`
