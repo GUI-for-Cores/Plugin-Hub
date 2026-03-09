@@ -21,7 +21,7 @@ const onGenerate = async (config, profile) => {
   }
 
   // 映射代理组
-  for(const group of profile.proxyGroupsConfig) {
+  for (const group of profile.proxyGroupsConfig) {
     IdNameMapping[group.id] = group.name
     IdNameMapping[group.name] = group.id
   }
