@@ -290,9 +290,14 @@ const onRun = async () => {
         async downloadMain() {
           if (source_code_status.value) return
           source_code_status.value = '下载中...'
-          await Plugins.Download('https://github.com/SagerNet/sing-box/archive/refs/heads/stable.zip', 'data/.cache/sing-box-source-code.zip', undefined, (p) => {
-            source_code_status.value = Plugins.formatBytes(p)
-          }).finally(() => {
+          await Plugins.Download(
+            'https://github.com/SagerNet/sing-box/archive/refs/heads/stable.zip',
+            'data/.cache/sing-box-source-code.zip',
+            undefined,
+            (p) => {
+              source_code_status.value = Plugins.formatBytes(p)
+            }
+          ).finally(() => {
             source_code_status.value = ''
             recheckSourceCode()
           })
