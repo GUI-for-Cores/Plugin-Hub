@@ -16,6 +16,7 @@ const onReady = async () => {
   window[Plugin.id].configs.value = await Plugins.ReadFile(MANAGE_FILE_PATH)
     .then((content) => JSON.parse(content))
     .catch(() => [])
+  addProfilesHeaderAction()
 }
 /* 触发器 生成配置时 */
 const onGenerate = async (config, profile) => {
@@ -48,6 +49,20 @@ const onGenerate = async (config, profile) => {
     }
   }
   return nativeConfig
+}
+const addProfilesHeaderAction = () => {
+  const appStore = Plugins.useAppStore()
+  appStore.addCustomActions('profiles_header', {
+    id: Plugin.id,
+    component: 'Button',
+    componentProps: {
+      type: 'link',
+      onClick: onRun
+    },
+    componentSlots: {
+      default: '管理原生配置'
+    }
+  })
 }
 const openMainUI = (manager) => {
   const { h, resolveComponent, defineComponent } = Vue
