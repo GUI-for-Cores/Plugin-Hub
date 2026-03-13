@@ -512,8 +512,8 @@ function ClashMeta_Producer() {
         return true
       })
       .map((proxy) => {
-        if (['trojan', 'vmess', 'vless'].includes(proxy.type)) {
-          proxy['client-fingerprint'] = proxy['client-fingerprint'] || 'chrome'
+        if (proxy['reality-opts'] && !proxy['client-fingerprint']) {
+          proxy['client-fingerprint'] = 'chrome'
         }
         if (proxy.type === 'vmess') {
           // handle vmess aead
@@ -1370,7 +1370,7 @@ function Singbox_Producer() {
   }
 
   const wireguardParser = (proxy = {}) => {
-    const local_address = ['ip', 'ipv6']
+    const address = ['ip', 'ipv6']
       .map((i) => proxy[i])
       .map((i) => {
         if (isIPv4(i)) return `${i}/32`
@@ -1378,11 +1378,15 @@ function Singbox_Producer() {
       })
       .filter((i) => i)
     const parsedProxy = {
+      system: !!proxy.system,
+      mtu: proxy.mtu ? parseInt(`${proxy.mtu}`, 10) : undefined,
+      udp_timeout: proxy['udp-timeout'] ? parseInt(`${proxy['udp-timeout']}`, 10) : undefined,
+      workers: proxy['workers'] ? parseInt(`${proxy['workers']}`, 10) : undefined,
       tag: proxy.name,
       type: 'wireguard',
       server: proxy.server,
       server_port: parseInt(`${proxy.port}`, 10),
-      local_address,
+      address,
       private_key: proxy['private-key'],
       peer_public_key: proxy['public-key'],
       pre_shared_key: proxy['pre-shared-key'],
@@ -1397,14 +1401,28 @@ function Singbox_Producer() {
     } else {
       delete parsedProxy.reserved
     }
+    if (!Array.isArray(proxy.peers) || proxy.peers.length === 0) {
+      proxy.peers = [{}]
+    }
     if (proxy.peers && proxy.peers.length > 0) {
       parsedProxy.peers = []
       for (const p of proxy.peers) {
+        let address
+        let port
+        if (p.server && p.port) {
+          address = p.server
+          port = parseInt(`${p.port}`, 10)
+        } else {
+          address = parsedProxy.server
+          port = parseInt(`${parsedProxy.server_port}`, 10)
+        }
         const peer = {
-          server: p.server,
-          server_port: parseInt(`${p.port}`, 10),
-          public_key: p['public-key'],
-          allowed_ips: p['allowed-ips'] || p.allowed_ips,
+          address,
+          port,
+          persistent_keepalive_interval: p['persistent-keepalive-interval'] ? parseInt(`${p['persistent-keepalive-interval']}`, 10) : undefined,
+          public_key: p['public-key'] || p['public_key'] || parsedProxy.peer_public_key,
+          pre_shared_key: p['pre-shared-key'] || p['pre_shared_key'] || parsedProxy.pre_shared_key,
+          allowed_ips: p['allowed-ips'] || p.allowed_ips || ['0.0.0.0/0', ...(proxy.ipv6 ? ['::/0'] : [])],
           reserved: []
         }
         if (typeof p.reserved === 'string') {
@@ -1414,7 +1432,10 @@ function Singbox_Producer() {
         } else {
           delete peer.reserved
         }
-        if (p['pre-shared-key']) peer.pre_shared_key = p['pre-shared-key']
+        if (!Array.isArray(peer.reserved) || peer.reserved.length === 0) {
+          peer.reserved = parsedProxy.reserved
+        }
+        // if (p['pre-shared-key']) peer.pre_shared_key = p['pre-shared-key'];
         parsedProxy.peers.push(peer)
       }
     }
@@ -1423,6 +1444,11 @@ function Singbox_Producer() {
     detourParser(proxy, parsedProxy)
     smuxParser(proxy.smux, parsedProxy)
     ipVersionParser(proxy, parsedProxy)
+    delete parsedProxy.server
+    delete parsedProxy.server_port
+    delete parsedProxy.pre_shared_key
+    delete parsedProxy.peer_public_key
+    delete parsedProxy.reserved
     return parsedProxy
   }
 
@@ -1547,8 +1573,21 @@ function Singbox_Producer() {
           $.error(e.message ?? e)
         }
       })
+    if (type === 'internal') return list
 
-    return type === 'internal' ? list : JSON.stringify({ outbounds: list }, null, 2)
+    const categorized = list.reduce(
+      (result, item) => {
+        if (['wireguard'].includes(item.type)) {
+          result.endpoints.push(item)
+        } else {
+          result.outbounds.push(item)
+        }
+        return result
+      },
+      { outbounds: [], endpoints: [] }
+    )
+
+    return JSON.stringify(categorized, null, 2)
   }
   return { type, produce }
 }
@@ -3385,14 +3424,11 @@ const PROXY_PREPROCESSORS = (() => {
         }
       })
 
-      const { proxies, 'global-client-fingerprint': globalClientFingerprint } = safeLoad(afterReplace)
+      const { proxies } = safeLoad(afterReplace)
       return (
         (includeProxies ? 'proxies:\n' : '') +
         proxies
           .map((p) => {
-            if (globalClientFingerprint && ['trojan', 'vmess', 'vless'].includes(p.type) && !p['client-fingerprint']) {
-              p['client-fingerprint'] = globalClientFingerprint
-            }
             return `${includeProxies ? '  - ' : ''}${JSON.stringify(p)}\n`
           })
           .join('')
@@ -3836,6 +3872,31 @@ ${list}`
       proxy.alpn = Array.isArray(proxy.alpn) ? proxy.alpn : [proxy.alpn || 'h3']
       proxy['congestion-controller'] = proxy['congestion-controller'] || 'cubic'
       proxy['udp-relay-mode'] = proxy['udp-relay-mode'] || 'native'
+    }
+    if (['wireguard'].includes(proxy.type)) {
+      if (Array.isArray(proxy.peers) && proxy.peers.length > 0) {
+        const validPeer = proxy.peers.find((peer) => peer.ip && peer.ipv6) || proxy.peers.find((peer) => peer.ip || peer.ipv6)
+        if (validPeer) {
+          if (!proxy.ip) {
+            proxy.ip = proxy.peers[0]?.ip
+          }
+          if (!proxy.ipv6) {
+            proxy.ipv6 = proxy.peers[0]?.ipv6
+          }
+        }
+      }
+      if (proxy.ip?.includes('/')) {
+        const [ip] = proxy.ip.split('/')
+        if (isIPv4(ip)) {
+          proxy.ip = ip
+        }
+      }
+      if (proxy.ipv6?.includes('/')) {
+        const [ip] = proxy.ipv6.split('/')
+        if (isIPv6(ip)) {
+          proxy.ipv6 = ip
+        }
+      }
     }
     return proxy
   }
