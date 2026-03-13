@@ -135,6 +135,7 @@ const Backup = async () => {
  * 插件钩子：配置上下文 - 部署到服务器
  */
 const Deploy = async (profile) => {
+  await Plugins.confirm('提示', '确定部署此配置到服务器吗？')
   const configPath = Plugin.ServerConfigPath
   const serviceName = Plugin.ServerServiceName
   if (!configPath) {
