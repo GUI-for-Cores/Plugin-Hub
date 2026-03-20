@@ -518,6 +518,9 @@ const getIPCDescription = (name, args) => {
             if (arg4 === 'ProxyEnable') {
               return '查询系统代理开启状态'
             }
+            if (arg4 === 'ProxyServer') {
+              return '查询系统代理服务器'
+            }
           }
           if (arg2 === 'HKEY_CURRENT_USER\\Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers') {
             if (arg4.includes(Plugins.APP_TITLE)) {
