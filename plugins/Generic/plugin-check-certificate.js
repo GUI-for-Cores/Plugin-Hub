@@ -7,7 +7,9 @@ const PATH = 'data/third/check-my-certificate'
 /* 触发器 手动触发 */
 const onRun = async () => {
   await checkOS()
-  const output = await Plugins.Exec(PATH + '/sigcheck.exe', ['-nobanner', '-accepteula', '-tuv', '-c'])
+  const raw = await Plugins.Exec(PATH + '/sigcheck.exe', ['-nobanner', '-accepteula', '-tuv', '-c'])
+  const bytes = new Uint8Array([...raw].map((c) => c.charCodeAt(0)))
+  const output = new TextDecoder('utf-16le').decode(bytes)
   if (output.includes('No certificates found')) {
     const img = await Plugins.ReadFile('data/.cache/imgs/notify_success.png', { Mode: 'Binary' })
     // prettier-ignore

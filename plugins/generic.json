@@ -573,7 +573,7 @@
   {
     "id": "plugin-check-certificate",
     "name": "系统证书安全检测",
-    "version": "v1.0.1",
+    "version": "v1.0.2",
     "description": "检测系统是否具有未经验证的证书！",
     "tags": ["实用工具", "安全检测"],
     "type": "Http",
