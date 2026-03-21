@@ -689,7 +689,7 @@
   {
     "id": "plugin-system-proxy-guard",
     "name": "代理守卫",
-    "version": "v2.1.0",
+    "version": "v2.2.0",
     "description": "谁动了我的系统代理？防止系统代理被篡改",
     "tags": ["提升体验", "功能扩展"],
     "type": "Http",

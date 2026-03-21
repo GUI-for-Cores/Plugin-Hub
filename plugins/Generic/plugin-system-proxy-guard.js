@@ -4,27 +4,38 @@ window[Plugin.id] = window[Plugin.id] || {}
 /* Trigger on::manual */
 const onRun = async () => {
   startProxyGuard()
-  Plugins.message.success('系统代理守卫启动成功')
+  updateWidget(true)
   return 1
 }
 
 /* Trigger on::ready */
 const onReady = async () => {
-  const isRunning = Plugin.status === 1
-  if (isRunning) {
+  if (Plugin.status === 1) {
     setTimeout(startProxyGuard, 3000)
   }
+  updateWidget(Plugin.status === 1)
+}
 
+const updateWidget = (value) => {
   const appStore = Plugins.useAppStore()
-  appStore.addCustomActions('core_state', {
+  window[Plugin.id].delWidget?.()
+  window[Plugin.id].delWidget = appStore.addCustomActions('core_state', {
     component: 'Switch',
     componentSlots: {
       default: '代理守卫'
     },
     componentProps: {
-      modelValue: isRunning,
+      size: 'small',
+      border: 'square',
+      modelValue: value,
       onChange: async (val) => {
-        ;(val ? onRun() : Stop()).catch((err) => Plugins.message.error(err))
+        if (val) {
+          startProxyGuard()
+          Plugin.status = 1
+        } else {
+          clearInterval(window[Plugin.id].interval)
+          Plugin.status = 2
+        }
       }
     }
   })
@@ -32,6 +43,7 @@ const onReady = async () => {
 
 const Stop = async () => {
   clearInterval(window[Plugin.id].interval)
+  updateWidget(false)
   return 2
 }
 
@@ -50,21 +62,26 @@ const onConfigure = async (config, old) => {
 
 const startProxyGuard = (interval) => {
   clearInterval(window[Plugin.id].interval)
-  window[Plugin.id].interval = Plugins.setIntervalImmediately(
-    () => {
-      const kernelApiStore = Plugins.useKernelApiStore()
-      if (!kernelApiStore.running) return
+  const envStore = Plugins.useEnvStore()
+  const kernelApiStore = Plugins.useKernelApiStore()
 
-      const envStore = Plugins.useEnvStore()
-      const flag = !envStore.systemProxy
-      envStore
-        .setSystemProxy()
-        .then(() => {
-          if (flag) {
-            Plugins.message.success(`[${Plugin.name}]: 守卫成功`)
-          }
-        })
-        .catch(Plugins.message.error)
+  window[Plugin.id].interval = Plugins.setIntervalImmediately(
+    async () => {
+      if (!kernelApiStore.running) {
+        // console.log(`[${Plugin.name}]`, '核心不在运行')
+        return
+      }
+      await envStore.updateSystemProxyStatus()
+      if (envStore.systemProxy) {
+        // console.log(`[${Plugin.name}]`, '代理已配置')
+        return
+      }
+      try {
+        await envStore.setSystemProxy()
+        Plugins.message.success(`[${Plugin.name}]: 守卫成功`)
+      } catch (error) {
+        Plugins.message.error(error.message || error)
+      }
     },
     (interval || Plugin.Interval) * 1000
   )
