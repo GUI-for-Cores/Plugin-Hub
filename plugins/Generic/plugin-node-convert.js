@@ -3333,6 +3333,36 @@ const PROXY_PARSERS = (() => {
 
 // 来源：https://github.com/sub-store-org/Sub-Store/blob/master/backend/src/core/proxy-utils/preprocessors/index.js
 const PROXY_PREPROCESSORS = (() => {
+  function normalizeClashYaml(raw) {
+    if (typeof raw !== 'string' || !raw.includes('proxies:') || !raw.includes('short-id:')) {
+      return raw
+    }
+
+    try {
+      const content = safeLoad(raw)
+      if (!Array.isArray(content.proxies) || content.proxies.length === 0) return raw
+    } catch (e) {
+      return raw
+    }
+
+    // 防止 VLESS 节点 reality-opts 里的 short-id 被 YAML 标量推断成数字
+    // 例如 08 / 0088 在部分内核重新解析时会触发 invalid REALITY short ID
+    return raw.replace(/short-id:([ \t]*[^#\n,}]*)/g, (matched, value) => {
+      const afterTrim = value.trim()
+
+      if (!afterTrim || afterTrim === '') {
+        return 'short-id: ""'
+      }
+
+      if (/^(['"]).*\1$/.test(afterTrim)) {
+        return `short-id: ${afterTrim}`
+      } else if (['null'].includes(afterTrim)) {
+        return `short-id: ${afterTrim}`
+      } else {
+        return `short-id: "${afterTrim}"`
+      }
+    })
+  }
   function HTML() {
     const name = 'HTML'
     const test = (raw) => /^<!DOCTYPE html>/.test(raw)
@@ -3404,25 +3434,7 @@ const PROXY_PREPROCESSORS = (() => {
     const parse = function (raw, includeProxies) {
       // Clash YAML format
 
-      // 防止 VLESS节点 reality-opts 选项中的 short-id 被解析成 Infinity
-      // 匹配 short-id 冒号后面的值(包含空格和引号)
-      const afterReplace = raw.replace(/short-id:([ \t]*[^#\n,}]*)/g, (matched, value) => {
-        const afterTrim = value.trim()
-
-        // 为空
-        if (!afterTrim || afterTrim === '') {
-          return 'short-id: ""'
-        }
-
-        // 是否被引号包裹
-        if (/^(['"]).*\1$/.test(afterTrim)) {
-          return `short-id: ${afterTrim}`
-        } else if (['null'].includes(afterTrim)) {
-          return `short-id: ${afterTrim}`
-        } else {
-          return `short-id: "${afterTrim}"`
-        }
-      })
+      const afterReplace = normalizeClashYaml(raw)
 
       const { proxies } = safeLoad(afterReplace)
       return (
