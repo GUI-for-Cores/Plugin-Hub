@@ -506,7 +506,7 @@ function ClashMeta_Producer() {
           (!['tcp'].includes(proxy.network) || (['tcp'].includes(proxy.network) && proxy['reality-opts']))
         ) {
           return false
-        } else if (['xhttp'].includes(proxy.network)) {
+        } else if (!['vless'].includes(proxy.type) && ['xhttp'].includes(proxy.network)) {
           return false
         }
         return true
@@ -907,6 +907,15 @@ function Singbox_Producer() {
       }
     if (proxy._ech && isPlainObject(proxy._ech)) {
       parsedProxy.tls.ech = proxy._ech
+    } else if (proxy['ech-opts'] && isPlainObject(proxy['ech-opts'])) {
+      parsedProxy.tls.ech = parsedProxy.tls.ech || {}
+      parsedProxy.tls.ech.enabled = proxy['ech-opts'].enable
+      parsedProxy.tls.ech.config = proxy['ech-opts'].config
+      parsedProxy.tls.ech.query_server_name = proxy['ech-opts']['query-server-name']
+      parsedProxy.tls.ech.config_path = proxy['ech-opts']['config-path']
+      parsedProxy.tls.ech.fragment = proxy['ech-opts']['fragment']
+      parsedProxy.tls.ech.fragment_fallback_delay = proxy['ech-opts']['fragment-fallback-delay']
+      parsedProxy.tls.ech.record_fragment = proxy['ech-opts']['record-fragment']
     }
     if (proxy._curve_preferences && Array.isArray(proxy._curve_preferences)) {
       parsedProxy.tls.curve_preferences = proxy._curve_preferences
@@ -1509,6 +1518,7 @@ function Singbox_Producer() {
       .produce(proxies, 'internal', { 'include-unsupported-proxy': true })
       .map((proxy) => {
         try {
+          if (['xhttp'].includes(proxy.network)) throw new Error(`Platform sing-box does not support network: ${proxy.network}`)
           switch (proxy.type) {
             case 'ssh':
               list.push(sshParser(proxy))
@@ -1709,7 +1719,9 @@ function URI_Producer() {
       extra = `&extra=${encodeURIComponent(proxy._extra)}`
     }
     let mode = ''
-    if (proxy._mode) {
+    if (['xhttp'].includes(proxy.network) && proxy[`${proxy.network}-opts`]?.mode) {
+      mode = `&mode=${encodeURIComponent(proxy[`${proxy.network}-opts`].mode)}`
+    } else if (proxy._mode) {
       mode = `&mode=${encodeURIComponent(proxy._mode)}`
     }
     let pqv = ''
@@ -2210,7 +2222,7 @@ function URI_Producer() {
         Object.keys(proxy).forEach((key) => {
           if (!['name', 'type', 'server', 'port', 'ip', 'ipv6', 'private-key'].includes(key)) {
             if (['public-key'].includes(key)) {
-              wireguardParams.push(`publickey=${proxy[key]}`)
+              wireguardParams.push(`publickey=${encodeURIComponent(proxy[key])}`)
             } else if (['udp'].includes(key)) {
               if (proxy[key]) {
                 wireguardParams.push(`${key}=1`)
@@ -2221,11 +2233,11 @@ function URI_Producer() {
           }
         })
         if (proxy.ip && proxy.ipv6) {
-          wireguardParams.push(`address=${proxy.ip}/32,${proxy.ipv6}/128`)
+          wireguardParams.push(`address=${encodeURIComponent(`${proxy.ip}/32,${proxy.ipv6}/128`)}`)
         } else if (proxy.ip) {
-          wireguardParams.push(`address=${proxy.ip}/32`)
+          wireguardParams.push(`address=${encodeURIComponent(`${proxy.ip}/32`)}`)
         } else if (proxy.ipv6) {
-          wireguardParams.push(`address=${proxy.ipv6}/128`)
+          wireguardParams.push(`address=${encodeURIComponent(`${proxy.ipv6}/128`)}`)
         }
         result = `wireguard://${encodeURIComponent(proxy['private-key'])}@${proxy.server}:${proxy.port}/?${wireguardParams.join(
           '&'
@@ -2957,11 +2969,30 @@ const PROXY_PARSERS = (() => {
           proxy.headerType = params.headerType || 'none'
         }
 
-        if (params.mode) {
-          proxy._mode = params.mode
-        }
         if (params.extra) {
           proxy._extra = params.extra
+        }
+        // 太麻烦了 暂时 extra 原封不动
+        // 单独解析一下
+        if (params.mode) {
+          if (['xhttp'].includes(proxy.network)) {
+            let extra = {}
+            try {
+              extra = proxy._extra ? JSON.parse(proxy._extra) : {}
+            } catch (e) {
+              $.error(`Failed to parse extra field as JSON: ${proxy._extra}`)
+            }
+            proxy[`${proxy.network}-opts`] = {
+              'no-grpc-header': extra['noGRPCHeader'],
+              'x-padding-bytes': extra['xPaddingBytes'],
+              // 'sc-max-each-post-bytes': extra['scMaxEachPostBytes'],
+              // 'sc-min-posts-interval-ms': extra['scMinPostsIntervalMs'],
+              mode: params.mode,
+              ...proxy[`${proxy.network}-opts`]
+            }
+          } else {
+            proxy._mode = params.mode
+          }
         }
       }
 
@@ -3824,16 +3855,21 @@ ${list}`
         proxy[`${proxy.network}-opts`].path = [transportPath]
       }
     }
-    if (proxy.tls && !proxy.sni) {
-      if (!isIP(proxy.server)) {
-        proxy.sni = proxy.server
-      }
-      if (!proxy.sni && proxy.network) {
+    // 允许设置 sni 为空字符串且为防止影响其他逻辑, 这里先改成这样判断
+    // 本质上是为了防止本来应该使用 server 作为 sni 的情况下, 若之后进行了域名解析, 导致 server 变成 ip 丢失了 sni
+    // 为了兼容性, 暂时先这么改
+    if (proxy.tls && !proxy.sni && proxy.sni !== '') {
+      // 传输层若有设置就使用
+      if (proxy.network) {
         let transportHost = proxy[`${proxy.network}-opts`]?.headers?.Host
         transportHost = Array.isArray(transportHost) ? transportHost[0] : transportHost
         if (transportHost) {
           proxy.sni = transportHost
         }
+      }
+      // 不区分是不是域名, 总之如果到这里还没 sni, 可以设置域名 server 为 sni
+      if (!proxy.sni && !isIP(proxy.server)) {
+        proxy.sni = proxy.server
       }
     }
     // if (['hysteria', 'hysteria2', 'tuic'].includes(proxy.type)) {
