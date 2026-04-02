@@ -2494,8 +2494,14 @@ const PROXY_PARSERS = (() => {
         const pluginInfo = ('plugin=' + decodeURIComponent(pluginMatch[1])).split(';')
         const params = {}
         for (const item of pluginInfo) {
-          const [key, val] = item.split('=')
-          if (key) params[key] = val || true // some options like "tls" will not have value
+          const separatorIndex = item.indexOf('=')
+          if (separatorIndex === -1) {
+            if (item) params[item] = true // some options like "tls" will not have value
+            continue
+          }
+          const key = item.slice(0, separatorIndex)
+          const val = item.slice(separatorIndex + 1).replace(/\\=/g, '=')
+          if (key) params[key] = val || true
         }
         switch (params.plugin) {
           case 'obfs-local':
