@@ -384,7 +384,7 @@ function getIfNotBlank(str, defaultValue) {
   return isNotBlank(str) ? str : defaultValue
 }
 
-function isPresent(obj) {
+function isPresent(obj, _) {
   if (arguments.length === 1) {
     return typeof obj !== 'undefined' && obj !== null
   } else if (arguments.length === 2) {
@@ -407,6 +407,30 @@ function getIfPresent(obj, defaultValue) {
 
 function isPlainObject(obj) {
   return obj !== null && typeof obj === 'object' && [null, Object.prototype].includes(Object.getPrototypeOf(obj))
+}
+
+const normalizePemLines = (value, label) => {
+  const items = Array.isArray(value) ? value : [value]
+  const lines = []
+
+  for (const item of items) {
+    const normalized = `${item}`
+      .trim()
+      .replace(/\\r\\n/g, '\n')
+      .replace(/\\n/g, '\n')
+    if (normalized === '') continue
+
+    for (const line of normalized.split(/\r?\n/)) {
+      const trimmed = line.trim()
+      if (trimmed !== '') lines.push(trimmed)
+    }
+  }
+
+  if (lines.length === 0) return undefined
+  if (lines.some((line) => /^-----BEGIN [A-Za-z0-9 -]+-----$/.test(line))) {
+    return lines
+  }
+  return [`-----BEGIN ${label}-----`, ...lines, `-----END ${label}-----`]
 }
 
 function isValidUUID(uuid) {
@@ -620,9 +644,13 @@ function ClashMeta_Producer() {
           }
         }
 
+        let mux = proxy['plugin-opts']?.mux
+        if (mux != null && typeof mux !== 'boolean') {
+          proxy['plugin-opts'].mux = mux > 0 ? true : false
+        }
         if (proxy['plugin-opts']?.tls) {
           if (isPresent(proxy, 'skip-cert-verify')) {
-            proxy['plugin-opts']['skip-cert-verify'] = proxy['skip-cert-verify']
+            proxy['plugin-opts']['skip-cert-verify'] = proxy['plugin-opts']['skip-cert-verify'] || proxy['skip-cert-verify']
           }
         }
         if (['trojan', 'tuic', 'hysteria', 'hysteria2', 'juicity', 'anytls', 'trusttunnel', 'naive'].includes(proxy.type)) {
@@ -910,7 +938,11 @@ function Singbox_Producer() {
     } else if (proxy['ech-opts'] && isPlainObject(proxy['ech-opts'])) {
       parsedProxy.tls.ech = parsedProxy.tls.ech || {}
       parsedProxy.tls.ech.enabled = proxy['ech-opts'].enable
-      parsedProxy.tls.ech.config = proxy['ech-opts'].config
+      const echOptsConfig = proxy['ech-opts'].config
+      if (Array.isArray(echOptsConfig) || typeof echOptsConfig === 'string') {
+        const config = normalizePemLines(echOptsConfig, 'ECH CONFIGS')
+        if (config) parsedProxy.tls.ech.config = config
+      }
       parsedProxy.tls.ech.query_server_name = proxy['ech-opts']['query-server-name']
       parsedProxy.tls.ech.config_path = proxy['ech-opts']['config-path']
       parsedProxy.tls.ech.fragment = proxy['ech-opts']['fragment']
@@ -1123,6 +1155,7 @@ function Singbox_Producer() {
               break
             case 'mux':
               if (proxy['plugin-opts'].mux) parsedProxy.multiplex = { enabled: true }
+              optArr.push(`mux=${proxy['plugin-opts'].mux}`)
               break
             default:
               optArr.push(`${k}=${proxy['plugin-opts'][k]}`)
@@ -1813,7 +1846,9 @@ function URI_Producer() {
               query += encodeURIComponent(
                 `v2ray-plugin;obfs=${opts.mode}${opts.host ? ';obfs-host=' + opts.host : ''}${opts.host ? ';host=' + opts.host : ''}${
                   opts.path ? ';path=' + opts.path : ''
-                }${opts.tls ? ';tls' : ''}`
+                }${opts.tls ? ';tls' : ''}${opts.sni ? ';sni=' + opts.sni : ''}${
+                  opts['skip-cert-verify'] ? ';skip-cert-verify=' + opts['skip-cert-verify'] : ''
+                }${opts.mux != null ? ';mux=' + opts.mux : ''}`
               )
               break
             case 'shadow-tls':
@@ -2518,7 +2553,10 @@ const PROXY_PARSERS = (() => {
               mode: 'websocket',
               host: getIfNotBlank(params['obfs-host']) || getIfNotBlank(params['host']),
               path: getIfNotBlank(params.path),
-              tls: getIfPresent(params.tls)
+              tls: getIfPresent(params.tls),
+              sni: getIfPresent(params.sni),
+              'skip-cert-verify': ['1', 'true', 1, true].includes(params['skip-cert-verify']),
+              mux: /^\d+$/.test(params.mux) ? parseInt(params.mux, 10) : undefined
             }
             break
           case 'shadow-tls': {
@@ -2988,9 +3026,12 @@ const PROXY_PARSERS = (() => {
             } catch (e) {
               $.error(`Failed to parse extra field as JSON: ${proxy._extra}`)
             }
+            if (extra?.downloadSettings) {
+              $.error('It is too complex to convert the downloadSettings in extra into the Mihomo format, so it is not supported.')
+            }
             proxy[`${proxy.network}-opts`] = {
-              'no-grpc-header': extra['noGRPCHeader'],
-              'x-padding-bytes': extra['xPaddingBytes'],
+              'no-grpc-header': extra?.['noGRPCHeader'],
+              'x-padding-bytes': extra?.['xPaddingBytes'],
               // 'sc-max-each-post-bytes': extra['scMaxEachPostBytes'],
               // 'sc-min-posts-interval-ms': extra['scMinPostsIntervalMs'],
               mode: params.mode,
@@ -3388,7 +3429,7 @@ const PROXY_PARSERS = (() => {
       const matched = /^(trojan:\/\/.*?@.*?)(:(\d+))?\/?(\?.*?)?$/.exec(line)
       const port = matched?.[2]
       if (!port) {
-        line = line.replace(matched[1], `${matched[1]}:443`)
+        line = line.replace(matched?.[1], `${matched?.[1]}:443`)
       }
       let [newLine, name] = line.split(/#(.+)/, 2)
       const parser = getTrojanURIParser()

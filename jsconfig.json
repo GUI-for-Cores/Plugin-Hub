@@ -5,7 +5,8 @@
     "lib": ["ESNext", "DOM"],
     "module": "NodeNext",
     "target": "ESNext",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noImplicitAny": false
   },
   "exclude": ["node_modules"],
   "include": ["plugins/**/*", "plugins.d.ts"]
