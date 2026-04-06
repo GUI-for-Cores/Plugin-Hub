@@ -234,7 +234,7 @@ const rs = {
     const binary = pemToBinary(caStr)
     const hex = binaryToHex(binary)
     const hashHex = sha256Sync(hex)
-    return hashHex.match(/.{2}/g).join(':').toUpperCase()
+    return hashHex.match(/.{2}/g)?.join(':').toUpperCase()
   }
 }
 
@@ -278,6 +278,10 @@ const _ = {
 
 const safeLoad = Plugins.YAML.parse
 
+const YAML = {
+  safeDump: (obj, _) => Plugins.YAML.stringify(obj)
+}
+
 const URI = URI_Producer()
 
 const PROXY_PRODUCERS = {
@@ -316,7 +320,7 @@ const getTrojanURIParser = () => {
       'skip-cert-verify': Boolean(query.get('allowInsecure'))
     }
     if (query.get('alpn')) {
-      trojan['alpn'] = query.get('alpn').split(',')
+      trojan['alpn'] = query.get('alpn')?.split(',')
     }
     if (query.get('sni')) {
       trojan.sni = query.get('sni')
@@ -460,6 +464,23 @@ function getRandomPort(portString) {
 
 function numberToString(value) {
   return Number.isSafeInteger(value) ? String(value) : BigInt(value).toString()
+}
+
+function produceProxyListOutput(list, type, opts = {}) {
+  if (type === 'internal') return list
+
+  if (opts.prettyYaml || opts['pretty-yaml']) {
+    return YAML.safeDump(
+      {
+        proxies: list
+      },
+      {
+        lineWidth: -1
+      }
+    )
+  }
+
+  return 'proxies:\n' + list.map((proxy) => '  - ' + JSON.stringify(proxy) + '\n').join('')
 }
 
 /**
@@ -631,8 +652,7 @@ function ClashMeta_Producer() {
           const networkPath = proxy[`${proxy.network}-opts`]?.path
           if (networkPath) {
             const reg = /^(.*?)(?:\?ed=(\d+))?$/
-            // eslint-disable-next-line no-unused-vars
-            const [_, path = '', ed = ''] = reg.exec(networkPath)
+            const [_, path = '', ed = ''] = reg.exec(networkPath) || []
             proxy[`${proxy.network}-opts`].path = path
             if (ed !== '') {
               proxy['ws-opts']['early-data-header-name'] = 'Sec-WebSocket-Protocol'
@@ -689,7 +709,7 @@ function ClashMeta_Producer() {
         return proxy
       })
 
-    return type === 'internal' ? list : 'proxies:\n' + list.map((proxy) => '  - ' + JSON.stringify(proxy) + '\n').join('')
+    return produceProxyListOutput(list, type, opts)
   }
   return { type, produce }
 }
@@ -805,8 +825,7 @@ function Singbox_Producer() {
     if (proxy['ws-path'] && proxy['ws-path'] !== '') transport.path = `${proxy['ws-path']}`
     if (transport.path) {
       const reg = /^(.*?)(?:\?ed=(\d+))?$/
-      // eslint-disable-next-line no-unused-vars
-      const [_, path = '', ed = ''] = reg.exec(transport.path)
+      const [_, path = '', ed = ''] = reg.exec(transport.path) || []
       transport.path = path
       if (ed !== '') {
         transport.early_data_header_name = 'Sec-WebSocket-Protocol'
@@ -2419,7 +2438,7 @@ const PROXY_PARSERS = (() => {
         if (query) {
           if (/(&|\?)v2ray-plugin=/.test(query)) {
             const parsed = query.match(/(&|\?)v2ray-plugin=(.*?)(&|$)/)
-            let v2rayPlugin = parsed[2]
+            let v2rayPlugin = parsed?.[2]
             if (v2rayPlugin) {
               proxy.plugin = 'v2ray-plugin'
               proxy['plugin-opts'] = JSON.parse(Base64.decode(v2rayPlugin))
@@ -2688,7 +2707,7 @@ const PROXY_PARSERS = (() => {
           server: partitions[1],
           port: partitions[2],
           cipher: getIfNotBlank(partitions[3], 'auto'),
-          uuid: partitions[4].match(/^"(.*)"$/)[1],
+          uuid: partitions[4].match(/^"(.*)"$/)?.[1],
           tls: params.obfs === 'wss',
           udp: getIfPresent(params['udp-relay']),
           tfo: getIfPresent(params['fast-open']),
@@ -2722,8 +2741,7 @@ const PROXY_PARSERS = (() => {
           params = JSON.parse(content)
         } catch (e) {
           // Shadowrocket URI format
-          // eslint-disable-next-line no-unused-vars
-          let [__, base64Line, qs] = /(^[^?]+?)\/?\?(.*)$/.exec(line)
+          let [__, base64Line, qs] = /(^[^?]+?)\/?\?(.*)$/.exec(line) || []
           content = Base64.decode(base64Line)
 
           for (const addon of qs.split('&')) {
@@ -2736,8 +2754,7 @@ const PROXY_PARSERS = (() => {
               params[key] = value.split(',')
             }
           }
-          // eslint-disable-next-line no-unused-vars
-          let [___, cipher, uuid, server, port] = /(^[^:]+?):([^:]+?)@(.*):(\d+)$/.exec(content)
+          let [___, cipher, uuid, server, port] = /(^[^:]+?):([^:]+?)@(.*):(\d+)$/.exec(content) || []
 
           params.scy = cipher
           params.id = uuid
@@ -2868,14 +2885,12 @@ const PROXY_PARSERS = (() => {
       let isShadowrocket
       let parsed = /^(.*?)@(.*?):(\d+)\/?(\?(.*?))?(?:#(.*?))?$/.exec(line)
       if (!parsed) {
-        // eslint-disable-next-line no-unused-vars
-        let [_, base64, other] = /^(.*?)(\?.*?$)/.exec(line)
+        let [_, base64, other] = /^(.*?)(\?.*?$)/.exec(line) || []
         line = `${Base64.decode(base64)}${other}`
         parsed = /^(.*?)@(.*?):(\d+)\/?(\?(.*?))?(?:#(.*?))?$/.exec(line)
         isShadowrocket = true
       }
-      // eslint-disable-next-line no-unused-vars
-      let [__, uuid, server, port, ___, addons = '', name] = parsed
+      let [__, uuid, server, port, ___, addons = '', name] = parsed || []
       if (isShadowrocket) {
         uuid = uuid.replace(/^.*?:/g, '')
       }
@@ -3059,8 +3074,7 @@ const PROXY_PARSERS = (() => {
       const parsed = URI_VLESS().parse(line.replace('anytls', 'vless'))
       // 偷个懒
       line = line.split(/anytls:\/\//)[1]
-      // eslint-disable-next-line no-unused-vars
-      let [__, password, server, port, addons = '', name] = /^(.*?)@(.*?)(?::(\d+))?\/?(?:\?(.*?))?(?:#(.*?))?$/.exec(line)
+      let [__, password, server, port, addons = '', name] = /^(.*?)@(.*?)(?::(\d+))?\/?(?:\?(.*?))?(?:#(.*?))?$/.exec(line) || []
       password = decodeURIComponent(password)
       // @ts-ignore
       port = parseInt(`${port}`, 10)
@@ -3127,11 +3141,8 @@ const PROXY_PARSERS = (() => {
       // https://hysteria.network/zh/docs/advanced/Port-Hopping
       // 2. 参数 mport
       let ports
-      /* eslint-disable no-unused-vars */
       let [__, password, server, ___, port, ____, _____, ______, _______, ________, addons = '', name] =
-        /^(.*?)@(.*?)(:((\d+(-\d+)?)([,;]\d+(-\d+)?)*))?\/?(\?(.*?))?(?:#(.*?))?$/.exec(line)
-
-      /* eslint-enable no-unused-vars */
+        /^(.*?)@(.*?)(:((\d+(-\d+)?)([,;]\d+(-\d+)?)*))?\/?(\?(.*?))?(?:#(.*?))?$/.exec(line) || []
       if (/^\d+$/.test(port)) {
         // @ts-ignore
         port = parseInt(`${port}`, 10)
@@ -3209,8 +3220,7 @@ const PROXY_PARSERS = (() => {
     }
     const parse = (line) => {
       line = line.split(/(hysteria|hy):\/\//)[2]
-      // eslint-disable-next-line no-unused-vars
-      let [__, server, ___, port, ____, addons = '', name] = /^(.*?)(:(\d+))?\/?(\?(.*?))?(?:#(.*?))?$/.exec(line)
+      let [__, server, ___, port, ____, addons = '', name] = /^(.*?)(:(\d+))?\/?(\?(.*?))?(?:#(.*?))?$/.exec(line) || []
       // @ts-ignore
       port = parseInt(`${port}`, 10)
       // @ts-ignore
@@ -3282,8 +3292,7 @@ const PROXY_PARSERS = (() => {
     }
     const parse = (line) => {
       line = line.split(/tuic:\/\//)[1]
-      // eslint-disable-next-line no-unused-vars
-      let [__, auth, server, port, addons = '', name] = /^(.*?)@(.*?)(?::(\d+))?\/?(?:\?(.*?))?(?:#(.*?))?$/.exec(line)
+      let [__, auth, server, port, addons = '', name] = /^(.*?)@(.*?)(?::(\d+))?\/?(?:\?(.*?))?(?:#(.*?))?$/.exec(line) || []
       auth = decodeURIComponent(auth)
       let [uuid, ...passwordParts] = auth.split(':')
       let password = passwordParts.join(':')
@@ -3342,10 +3351,7 @@ const PROXY_PARSERS = (() => {
     }
     const parse = (line) => {
       line = line.split(/(wireguard|wg):\/\//)[2]
-      /* eslint-disable no-unused-vars */
-      let [__, ___, privateKey, server, ____, port, _____, addons = '', name] = /^((.*?)@)?(.*?)(:(\d+))?\/?(\?(.*?))?(?:#(.*?))?$/.exec(line)
-      /* eslint-enable no-unused-vars */
-
+      let [__, ___, privateKey, server, ____, port, _____, addons = '', name] = /^((.*?)@)?(.*?)(:(\d+))?\/?(\?(.*?))?(?:#(.*?))?$/.exec(line) || []
       // @ts-ignore
       port = parseInt(`${port}`, 10)
       // @ts-ignore
