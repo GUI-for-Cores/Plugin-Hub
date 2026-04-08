@@ -3040,14 +3040,55 @@ const PROXY_PARSERS = (() => {
             if (extra?.downloadSettings) {
               $.error('It is too complex to convert the downloadSettings in extra into the Mihomo format, so it is not supported.')
             }
-            proxy[`${proxy.network}-opts`] = {
-              'no-grpc-header': extra?.['noGRPCHeader'],
-              'x-padding-bytes': extra?.['xPaddingBytes'],
-              // 'sc-max-each-post-bytes': extra['scMaxEachPostBytes'],
-              // 'sc-min-posts-interval-ms': extra['scMinPostsIntervalMs'],
-              mode: params.mode,
-              ...proxy[`${proxy.network}-opts`]
+            const xhttpOpts = {
+              ...proxy[`${proxy.network}-opts`],
+              mode: params.mode
             }
+            if (extra?.['noGRPCHeader'] === true) {
+              xhttpOpts['no-grpc-header'] = true
+            }
+            if (isNotBlank(extra?.['xPaddingBytes'])) {
+              xhttpOpts['x-padding-bytes'] = extra['xPaddingBytes']
+            }
+            const scMaxEachPostBytes = extra?.['scMaxEachPostBytes']
+            if (typeof scMaxEachPostBytes === 'string' || typeof scMaxEachPostBytes === 'number') {
+              const normalizedValue = `${scMaxEachPostBytes}`
+              if (/^\s*[1-9]\d*\s*$/.test(normalizedValue)) {
+                xhttpOpts['sc-max-each-post-bytes'] = parseInt(normalizedValue, 10)
+              } else {
+                const rangeMatch = normalizedValue.match(/^\s*([1-9]\d*)\s*-\s*([1-9]\d*)\s*$/)
+                if (rangeMatch) {
+                  const lowerBound = parseInt(rangeMatch[1], 10)
+                  const upperBound = parseInt(rangeMatch[2], 10)
+
+                  if (upperBound >= lowerBound) {
+                    xhttpOpts['sc-max-each-post-bytes'] = upperBound
+                  }
+                }
+              }
+            }
+            if (isPlainObject(extra?.xmux)) {
+              const reuseSettings = {}
+              const xmuxFieldMap = {
+                maxConnections: 'max-connections',
+                maxConcurrency: 'max-concurrency',
+                cMaxReuseTimes: 'c-max-reuse-times',
+                hMaxRequestTimes: 'h-max-request-times',
+                hMaxReusableSecs: 'h-max-reusable-secs'
+              }
+              for (const [sourceKey, targetKey] of Object.entries(xmuxFieldMap)) {
+                const value = extra.xmux[sourceKey]
+                if (typeof value === 'string' && value !== '') {
+                  reuseSettings[targetKey] = value
+                } else if (typeof value === 'number' && Number.isFinite(value)) {
+                  reuseSettings[targetKey] = `${value}`
+                }
+              }
+              if (Object.keys(reuseSettings).length > 0) {
+                xhttpOpts['reuse-settings'] = reuseSettings
+              }
+            }
+            proxy[`${proxy.network}-opts`] = xhttpOpts
           } else {
             proxy._mode = params.mode
           }
@@ -3689,6 +3730,11 @@ const ProxyUtils = (() => {
           $.info(`UUID may be invalid: ${proxy.name} ${proxy.uuid}`)
         }
         // return isProxyUUIDValid;
+      } else if (['hysteria2'].includes(proxy.type)) {
+        if (proxy.obfs && !proxy['obfs-password']) {
+          $.error(`Proxy ${proxy.name} has obfs ${proxy.obfs} but missing obfs-password`)
+          return false
+        }
       }
       return true
     })
