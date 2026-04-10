@@ -405,6 +405,10 @@ function isPresent(obj, _) {
   }
 }
 
+function isObject(value) {
+  return value != null && typeof value === 'object' && !Array.isArray(value)
+}
+
 function getIfPresent(obj, defaultValue) {
   return isPresent(obj) ? obj : defaultValue
 }
@@ -1707,6 +1711,135 @@ function Singbox_Producer() {
  * 来源：https://github.com/sub-store-org/Sub-Store/blob/master/backend/src/core/proxy-utils/producers/uri.js
  */
 function URI_Producer() {
+  function getTransportHost(network, transportOpts = {}) {
+    if (network === 'h2') {
+      return transportOpts.host ?? transportOpts.headers?.host ?? transportOpts.headers?.Host
+    }
+    if (network === 'xhttp') {
+      return transportOpts.host ?? transportOpts.headers?.Host ?? transportOpts.headers?.host
+    }
+    return transportOpts.headers?.Host ?? transportOpts.headers?.host ?? transportOpts.host
+  }
+
+  function mapReuseSettingsToXmux(reuseSettings) {
+    if (!isObject(reuseSettings)) {
+      return undefined
+    }
+
+    const xmux = {}
+    const reuseFieldMap = {
+      'max-connections': 'maxConnections',
+      'max-concurrency': 'maxConcurrency',
+      'c-max-reuse-times': 'cMaxReuseTimes',
+      'h-max-request-times': 'hMaxRequestTimes',
+      'h-max-reusable-secs': 'hMaxReusableSecs'
+    }
+
+    for (const [sourceKey, targetKey] of Object.entries(reuseFieldMap)) {
+      const value = reuseSettings[sourceKey]
+      if (typeof value === 'string' && value !== '') {
+        xmux[targetKey] = value
+      } else if (typeof value === 'number' && Number.isFinite(value)) {
+        xmux[targetKey] = `${value}`
+      }
+    }
+
+    return Object.keys(xmux).length > 0 ? xmux : undefined
+  }
+
+  function buildXhttpDownloadSettings(downloadSettings) {
+    if (!isObject(downloadSettings)) {
+      return undefined
+    }
+
+    const result = {}
+    if (downloadSettings.server) {
+      result.address = downloadSettings.server
+    }
+    if (downloadSettings.port != null && !Number.isNaN(parseInt(`${downloadSettings.port}`, 10))) {
+      result.port = parseInt(`${downloadSettings.port}`, 10)
+    }
+    if (downloadSettings.tls) {
+      result.security = 'tls'
+    }
+
+    const tlsSettings = {}
+    if (downloadSettings.servername) {
+      tlsSettings.serverName = downloadSettings.servername
+    }
+    if (downloadSettings['client-fingerprint']) {
+      tlsSettings.fingerprint = downloadSettings['client-fingerprint']
+    }
+    if (downloadSettings.alpn) {
+      tlsSettings.alpn = Array.isArray(downloadSettings.alpn) ? downloadSettings.alpn : [downloadSettings.alpn]
+    }
+    if (Object.keys(tlsSettings).length > 0) {
+      result.tlsSettings = tlsSettings
+    }
+
+    const xhttpSettings = {}
+    if (downloadSettings.path) {
+      xhttpSettings.path = downloadSettings.path
+    }
+    if (downloadSettings.host) {
+      xhttpSettings.host = downloadSettings.host
+    }
+    if (downloadSettings['no-grpc-header']) {
+      xhttpSettings.noGRPCHeader = true
+    }
+    if (downloadSettings['x-padding-bytes']) {
+      xhttpSettings.xPaddingBytes = downloadSettings['x-padding-bytes']
+    }
+
+    const xmux = mapReuseSettingsToXmux(downloadSettings['reuse-settings'])
+    if (xmux) {
+      xhttpSettings.extra = { xmux }
+    }
+    if (Object.keys(xhttpSettings).length > 0) {
+      result.xhttpSettings = xhttpSettings
+    }
+
+    return Object.keys(result).length > 0 ? result : undefined
+  }
+
+  function buildStructuredVlessExtra(proxy) {
+    const xhttpOpts = proxy['xhttp-opts'] || {}
+    const extra = {}
+
+    if (xhttpOpts['no-grpc-header'] === true) {
+      extra.noGRPCHeader = true
+    }
+    if (xhttpOpts['x-padding-bytes']) {
+      extra.xPaddingBytes = xhttpOpts['x-padding-bytes']
+    }
+    if (xhttpOpts['sc-max-each-post-bytes'] != null) {
+      extra.scMaxEachPostBytes = xhttpOpts['sc-max-each-post-bytes']
+    }
+
+    const xmux = mapReuseSettingsToXmux(xhttpOpts['reuse-settings'])
+    if (xmux) {
+      extra.xmux = xmux
+    }
+
+    const downloadSettings = buildXhttpDownloadSettings(xhttpOpts['download-settings'])
+    if (downloadSettings) {
+      extra.downloadSettings = downloadSettings
+    }
+
+    return Object.keys(extra).length > 0 ? JSON.stringify(extra) : ''
+  }
+
+  function buildVlessExtra(proxy) {
+    if (proxy.network !== 'xhttp') {
+      return proxy._extra || ''
+    }
+
+    if (proxy._extra) {
+      return proxy._extra
+    }
+
+    return buildStructuredVlessExtra(proxy)
+  }
   function vless(proxy) {
     let security = 'none'
     const isReality = proxy['reality-opts']
@@ -1743,8 +1876,8 @@ function URI_Producer() {
       h2 = `&h2=1`
     }
     let pcs = ''
-    if (proxy._pcs) {
-      pcs = `&pcs=${encodeURIComponent(proxy._pcs)}`
+    if (proxy['tls-fingerprint']) {
+      pcs = `&pcs=${encodeURIComponent(proxy['tls-fingerprint'])}`
     }
     let ech = ''
     if (proxy._echConfigList) {
@@ -1763,8 +1896,9 @@ function URI_Producer() {
       flow = `&flow=${encodeURIComponent(proxy.flow)}`
     }
     let extra = ''
-    if (proxy._extra) {
-      extra = `&extra=${encodeURIComponent(proxy._extra)}`
+    const extraPayload = buildVlessExtra(proxy)
+    if (extraPayload) {
+      extra = `&extra=${encodeURIComponent(extraPayload)}`
     }
     let mode = ''
     if (['xhttp'].includes(proxy.network) && proxy[`${proxy.network}-opts`]?.mode) {
@@ -1783,9 +1917,16 @@ function URI_Producer() {
     let vlessType = proxy.network
     if (proxy.network === 'ws' && proxy['ws-opts']?.['v2ray-http-upgrade']) {
       vlessType = 'httpupgrade'
+    } else if (proxy.network === 'http') {
+      vlessType = 'tcp'
+    } else if (proxy.network === 'h2') {
+      vlessType = 'http'
     }
 
     let vlessTransport = `&type=${encodeURIComponent(vlessType)}`
+    if (proxy.network === 'http') {
+      vlessTransport += '&headerType=http'
+    }
     if (['grpc'].includes(proxy.network)) {
       // https://github.com/XTLS/Xray-core/issues/91
       vlessTransport += `&mode=${encodeURIComponent(proxy[`${proxy.network}-opts`]?.['_grpc-type'] || 'gun')}`
@@ -1795,9 +1936,10 @@ function URI_Producer() {
       }
     }
 
-    let vlessTransportServiceName = proxy[`${proxy.network}-opts`]?.[`${proxy.network}-service-name`]
-    let vlessTransportPath = proxy[`${proxy.network}-opts`]?.path
-    let vlessTransportHost = proxy[`${proxy.network}-opts`]?.headers?.Host
+    const transportOpts = proxy[`${proxy.network}-opts`] || {}
+    let vlessTransportServiceName = transportOpts?.[`${proxy.network}-service-name`]
+    let vlessTransportPath = transportOpts?.path
+    let vlessTransportHost = getTransportHost(proxy.network, transportOpts)
     if (vlessTransportPath) {
       vlessTransport += `&path=${encodeURIComponent(Array.isArray(vlessTransportPath) ? vlessTransportPath[0] : vlessTransportPath)}`
     }
@@ -1806,6 +1948,9 @@ function URI_Producer() {
     }
     if (vlessTransportServiceName) {
       vlessTransport += `&serviceName=${encodeURIComponent(vlessTransportServiceName)}`
+    }
+    if (proxy.network === 'http' && proxy['http-opts']?.method) {
+      vlessTransport += `&method=${encodeURIComponent(proxy['http-opts'].method)}`
     }
     if (proxy.network === 'kcp') {
       if (proxy.seed) {
@@ -1816,9 +1961,32 @@ function URI_Producer() {
       }
     }
 
+    if (proxy.network === 'ws' && !proxy['ws-opts']?.['v2ray-http-upgrade'] && proxy['ws-opts']?.['max-early-data'] != null) {
+      vlessTransport += `&ed=${encodeURIComponent(proxy['ws-opts']['max-early-data'])}`
+    }
+    if (proxy.network === 'ws' && proxy['ws-opts']?.['v2ray-http-upgrade'] && proxy['ws-opts']?.['max-early-data'] != null) {
+      vlessTransport += `&ed=${encodeURIComponent(proxy['ws-opts']['max-early-data'])}`
+    }
+    const earlyDataHeaderName = proxy['ws-opts']?.['early-data-header-name']
+    if (
+      earlyDataHeaderName &&
+      (proxy['ws-opts']?.['v2ray-http-upgrade'] || proxy['ws-opts']?.['max-early-data'] == null || earlyDataHeaderName !== 'Sec-WebSocket-Protocol')
+    ) {
+      vlessTransport += `&eh=${encodeURIComponent(earlyDataHeaderName)}`
+    }
+
+    let packetEncoding = ''
+    if (proxy['packet-addr']) {
+      packetEncoding = '&packetEncoding=packet'
+    } else if (proxy.udp === true && !proxy.xudp) {
+      packetEncoding = '&packetEncoding=none'
+    }
+
     return `vless://${proxy.uuid}@${proxy.server}:${proxy.port}?security=${encodeURIComponent(
       security
-    )}${vlessTransport}${alpn}${allowInsecure}${pcs}${ech}${h2}${sni}${fp}${flow}${sid}${spx}${pbk}${mode}${extra}${pqv}${encryption}#${encodeURIComponent(proxy.name)}`
+    )}${vlessTransport}${packetEncoding}${alpn}${allowInsecure}${pcs}${ech}${h2}${sni}${fp}${flow}${sid}${spx}${pbk}${mode}${extra}${pqv}${encryption}#${encodeURIComponent(
+      proxy.name
+    )}`
   }
 
   const type = 'SINGLE'
@@ -2053,6 +2221,10 @@ function URI_Producer() {
         if (proxy['client-fingerprint']) {
           trojanFp = `&fp=${encodeURIComponent(proxy['client-fingerprint'])}`
         }
+        let trojanPcs = ''
+        if (proxy['tls-fingerprint']) {
+          trojanPcs = `&pcs=${encodeURIComponent(proxy['tls-fingerprint'])}`
+        }
         let trojanAlpn = ''
         if (proxy.alpn) {
           trojanAlpn = `&alpn=${encodeURIComponent(Array.isArray(proxy.alpn) ? proxy.alpn : proxy.alpn.join(','))}`
@@ -2087,7 +2259,7 @@ function URI_Producer() {
         }
         result = `trojan://${proxy.password}@${proxy.server}:${proxy.port}?sni=${encodeURIComponent(proxy.sni || proxy.server)}${
           proxy['skip-cert-verify'] ? '&allowInsecure=1' : ''
-        }${trojanTransport}${trojanAlpn}${trojanFp}${trojanSecurity}${trojanSid}${trojanPbk}${trojanSpx}${trojanMode}${trojanExtra}#${encodeURIComponent(
+        }${trojanTransport}${trojanAlpn}${trojanFp}${trojanPcs}${trojanSecurity}${trojanSid}${trojanPbk}${trojanSpx}${trojanMode}${trojanExtra}#${encodeURIComponent(
           proxy.name
         )}`
         break
@@ -2881,21 +3053,104 @@ const PROXY_PARSERS = (() => {
       return /^vless:\/\//.test(line)
     }
     const parse = (line) => {
+      const mapXmuxToReuseSettings = (xmux) => {
+        if (!isPlainObject(xmux)) {
+          return undefined
+        }
+
+        const reuseSettings = {}
+        const xmuxFieldMap = {
+          maxConnections: 'max-connections',
+          maxConcurrency: 'max-concurrency',
+          cMaxReuseTimes: 'c-max-reuse-times',
+          hMaxRequestTimes: 'h-max-request-times',
+          hMaxReusableSecs: 'h-max-reusable-secs'
+        }
+
+        for (const [sourceKey, targetKey] of Object.entries(xmuxFieldMap)) {
+          const value = xmux[sourceKey]
+          if (typeof value === 'string' && value !== '') {
+            reuseSettings[targetKey] = value
+          } else if (typeof value === 'number' && Number.isFinite(value)) {
+            reuseSettings[targetKey] = `${value}`
+          }
+        }
+
+        return Object.keys(reuseSettings).length > 0 ? reuseSettings : undefined
+      }
+
+      const parseDownloadSettings = (downloadSettings) => {
+        if (!isPlainObject(downloadSettings)) {
+          return undefined
+        }
+
+        const parsedDownloadSettings = {}
+        if (isNotBlank(downloadSettings.address)) {
+          parsedDownloadSettings.server = downloadSettings.address
+        }
+
+        if (typeof downloadSettings.port === 'number' && Number.isFinite(downloadSettings.port)) {
+          parsedDownloadSettings.port = parseInt(`${downloadSettings.port}`, 10)
+        }
+
+        if (typeof downloadSettings.security === 'string' && downloadSettings.security.toLowerCase() === 'tls') {
+          parsedDownloadSettings.tls = true
+        }
+
+        if (isPlainObject(downloadSettings.tlsSettings)) {
+          if (isNotBlank(downloadSettings.tlsSettings.serverName)) {
+            parsedDownloadSettings.servername = downloadSettings.tlsSettings.serverName
+          }
+          if (isNotBlank(downloadSettings.tlsSettings.fingerprint)) {
+            parsedDownloadSettings['client-fingerprint'] = downloadSettings.tlsSettings.fingerprint
+          }
+          if (Array.isArray(downloadSettings.tlsSettings.alpn)) {
+            const alpn = downloadSettings.tlsSettings.alpn.filter((item) => typeof item === 'string' && item !== '')
+            if (alpn.length > 0) {
+              parsedDownloadSettings.alpn = alpn
+            }
+          }
+        }
+
+        if (isPlainObject(downloadSettings.xhttpSettings)) {
+          if (isNotBlank(downloadSettings.xhttpSettings.path)) {
+            parsedDownloadSettings.path = downloadSettings.xhttpSettings.path
+          }
+          if (isNotBlank(downloadSettings.xhttpSettings.host)) {
+            parsedDownloadSettings.host = downloadSettings.xhttpSettings.host
+          }
+          if (downloadSettings.xhttpSettings.noGRPCHeader === true) {
+            parsedDownloadSettings['no-grpc-header'] = true
+          }
+          if (isNotBlank(downloadSettings.xhttpSettings.xPaddingBytes)) {
+            parsedDownloadSettings['x-padding-bytes'] = downloadSettings.xhttpSettings.xPaddingBytes
+          }
+
+          const reuseSettings = mapXmuxToReuseSettings(downloadSettings.xhttpSettings.extra?.xmux)
+          if (reuseSettings) {
+            parsedDownloadSettings['reuse-settings'] = reuseSettings
+          }
+        }
+
+        return Object.keys(parsedDownloadSettings).length > 0 ? parsedDownloadSettings : undefined
+      }
+
       line = line.split('vless://')[1]
       let isShadowrocket
       let parsed = /^(.*?)@(.*?):(\d+)\/?(\?(.*?))?(?:#(.*?))?$/.exec(line)
       if (!parsed) {
-        let [_, base64, other] = /^(.*?)(\?.*?$)/.exec(line) || []
+        // eslint-disable-next-line no-unused-vars
+        let [_, base64, other] = /^(.*?)(\?.*?$)/.exec(line)
         line = `${Base64.decode(base64)}${other}`
         parsed = /^(.*?)@(.*?):(\d+)\/?(\?(.*?))?(?:#(.*?))?$/.exec(line)
         isShadowrocket = true
       }
-      let [__, uuid, server, port, ___, addons = '', name] = parsed || []
+      // eslint-disable-next-line no-unused-vars
+      let [__, uuid, server, port, ___, addons = '', name] = parsed
       if (isShadowrocket) {
         uuid = uuid.replace(/^.*?:/g, '')
       }
 
-      // @ts-ignore
       port = parseInt(`${port}`, 10)
       uuid = decodeURIComponent(uuid)
       if (name != null) {
@@ -2907,7 +3162,8 @@ const PROXY_PARSERS = (() => {
         name,
         server,
         port,
-        uuid
+        uuid,
+        udp: true
       }
       const params = {}
       for (const addon of addons.split('&')) {
@@ -2939,8 +3195,19 @@ const PROXY_PARSERS = (() => {
       proxy.alpn = params.alpn ? params.alpn.split(',') : undefined
       proxy['skip-cert-verify'] = /(TRUE)|1/i.test(params.allowInsecure)
       proxy._echConfigList = getIfPresent(params.ech)
-      proxy._pcs = getIfPresent(params.pcs)
+      proxy['tls-fingerprint'] = getIfPresent(params.pcs)
       proxy._h2 = /(TRUE)|1/i.test(params.h2)
+
+      switch (`${params.packetEncoding || ''}`.toLowerCase()) {
+        case 'none':
+          break
+        case 'packet':
+          proxy['packet-addr'] = true
+          break
+        default:
+          proxy.xudp = true
+          break
+      }
 
       if (['reality'].includes(params.security)) {
         const opts = {}
@@ -2959,14 +3226,16 @@ const PROXY_PARSERS = (() => {
         }
       }
       let httpupgrade = false
-      proxy.network = params.type
+      proxy.network = params.type || 'tcp'
       if (proxy.network === 'tcp' && params.headerType === 'http') {
         proxy.network = 'http'
+      } else if (proxy.network === 'http') {
+        proxy.network = 'h2'
       } else if (proxy.network === 'httpupgrade') {
         proxy.network = 'ws'
         httpupgrade = true
       }
-      if (!proxy.network && isShadowrocket && params.obfs) {
+      if (!params.type && isShadowrocket && params.obfs) {
         proxy.network = params.obfs
         if (['none'].includes(proxy.network)) {
           proxy.network = 'tcp'
@@ -2975,6 +3244,7 @@ const PROXY_PARSERS = (() => {
       if (['websocket'].includes(proxy.network)) {
         proxy.network = 'ws'
       }
+
       if (proxy.network && !['tcp', 'none'].includes(proxy.network)) {
         const opts = {}
         const host = params.host ?? params.obfsParam
@@ -3004,6 +3274,9 @@ const PROXY_PARSERS = (() => {
         if (params.path) {
           opts.path = params.path
         }
+        if (proxy.network === 'http' && params.method) {
+          opts.method = params.method
+        }
         // https://github.com/XTLS/Xray-core/issues/91
         if (['grpc'].includes(proxy.network)) {
           opts['_grpc-type'] = params.mode || 'gun'
@@ -3011,6 +3284,25 @@ const PROXY_PARSERS = (() => {
         if (httpupgrade) {
           opts['v2ray-http-upgrade'] = true
           opts['v2ray-http-upgrade-fast-open'] = true
+        }
+        if (params.ed) {
+          const maxEarlyDataRaw = `${params.ed}`
+          if (!/^\d+$/.test(maxEarlyDataRaw)) {
+            throw new Error(`bad WebSocket max early data size: ${params.ed}`)
+          }
+          const maxEarlyData = parseInt(maxEarlyDataRaw, 10)
+          if (!Number.isSafeInteger(maxEarlyData)) {
+            throw new Error(`bad WebSocket max early data size: ${params.ed}`)
+          }
+          if (httpupgrade) {
+            opts['max-early-data'] = maxEarlyData
+          } else if (proxy.network === 'ws') {
+            opts['max-early-data'] = maxEarlyData
+            opts['early-data-header-name'] = params.eh || 'Sec-WebSocket-Protocol'
+          }
+        }
+        if (params.eh && (proxy.network === 'ws' || httpupgrade)) {
+          opts['early-data-header-name'] = params.eh
         }
         if (Object.keys(opts).length > 0) {
           proxy[`${proxy.network}-opts`] = opts
@@ -3023,78 +3315,62 @@ const PROXY_PARSERS = (() => {
           // mKCP 的伪装头部类型。当前可选值有 none / srtp / utp / wechat-video / dtls / wireguard。省略时默认值为 none，即不使用伪装头部，但不可以为空字符串。
           proxy.headerType = params.headerType || 'none'
         }
-
         if (params.extra) {
           proxy._extra = params.extra
         }
-        // 太麻烦了 暂时 extra 原封不动
-        // 单独解析一下
-        if (params.mode) {
-          if (['xhttp'].includes(proxy.network)) {
-            let extra = {}
-            try {
-              extra = proxy._extra ? JSON.parse(proxy._extra) : {}
-            } catch (e) {
-              $.error(`Failed to parse extra field as JSON: ${proxy._extra}`)
-            }
-            if (extra?.downloadSettings) {
-              $.error('It is too complex to convert the downloadSettings in extra into the Mihomo format, so it is not supported.')
-            }
-            const xhttpOpts = {
-              ...proxy[`${proxy.network}-opts`],
-              mode: params.mode
-            }
-            if (extra?.['noGRPCHeader'] === true) {
-              xhttpOpts['no-grpc-header'] = true
-            }
-            if (isNotBlank(extra?.['xPaddingBytes'])) {
-              xhttpOpts['x-padding-bytes'] = extra['xPaddingBytes']
-            }
-            const scMaxEachPostBytes = extra?.['scMaxEachPostBytes']
-            if (typeof scMaxEachPostBytes === 'string' || typeof scMaxEachPostBytes === 'number') {
-              const normalizedValue = `${scMaxEachPostBytes}`
-              if (/^\s*[1-9]\d*\s*$/.test(normalizedValue)) {
-                xhttpOpts['sc-max-each-post-bytes'] = parseInt(normalizedValue, 10)
-              } else {
-                const rangeMatch = normalizedValue.match(/^\s*([1-9]\d*)\s*-\s*([1-9]\d*)\s*$/)
-                if (rangeMatch) {
-                  const lowerBound = parseInt(rangeMatch[1], 10)
-                  const upperBound = parseInt(rangeMatch[2], 10)
-
-                  if (upperBound >= lowerBound) {
-                    xhttpOpts['sc-max-each-post-bytes'] = upperBound
-                  }
-                }
-              }
-            }
-            if (isPlainObject(extra?.xmux)) {
-              const reuseSettings = {}
-              const xmuxFieldMap = {
-                maxConnections: 'max-connections',
-                maxConcurrency: 'max-concurrency',
-                cMaxReuseTimes: 'c-max-reuse-times',
-                hMaxRequestTimes: 'h-max-request-times',
-                hMaxReusableSecs: 'h-max-reusable-secs'
-              }
-              for (const [sourceKey, targetKey] of Object.entries(xmuxFieldMap)) {
-                const value = extra.xmux[sourceKey]
-                if (typeof value === 'string' && value !== '') {
-                  reuseSettings[targetKey] = value
-                } else if (typeof value === 'number' && Number.isFinite(value)) {
-                  reuseSettings[targetKey] = `${value}`
-                }
-              }
-              if (Object.keys(reuseSettings).length > 0) {
-                xhttpOpts['reuse-settings'] = reuseSettings
-              }
-            }
-            proxy[`${proxy.network}-opts`] = xhttpOpts
-          } else {
-            proxy._mode = params.mode
+        if (['xhttp'].includes(proxy.network)) {
+          let extra = {}
+          try {
+            extra = proxy._extra ? JSON.parse(proxy._extra) : {}
+          } catch (e) {
+            $.error(`Failed to parse extra field as JSON: ${proxy._extra}`)
           }
+          const xhttpOpts = {
+            ...(proxy[`${proxy.network}-opts`] || {})
+          }
+          if (params.mode) {
+            xhttpOpts.mode = params.mode
+          }
+          if (extra?.['noGRPCHeader'] === true) {
+            xhttpOpts['no-grpc-header'] = true
+          }
+          if (isNotBlank(extra?.['xPaddingBytes'])) {
+            xhttpOpts['x-padding-bytes'] = extra['xPaddingBytes']
+          }
+          const scMaxEachPostBytes = extra?.['scMaxEachPostBytes']
+          if (typeof scMaxEachPostBytes === 'string' || typeof scMaxEachPostBytes === 'number') {
+            const normalizedValue = `${scMaxEachPostBytes}`
+            if (/^\s*[1-9]\d*\s*$/.test(normalizedValue)) {
+              xhttpOpts['sc-max-each-post-bytes'] = parseInt(normalizedValue, 10)
+            } else {
+              const rangeMatch = normalizedValue.match(/^\s*([1-9]\d*)\s*-\s*([1-9]\d*)\s*$/)
+              if (rangeMatch) {
+                const lowerBound = parseInt(rangeMatch[1], 10)
+                const upperBound = parseInt(rangeMatch[2], 10)
+
+                if (upperBound >= lowerBound) {
+                  xhttpOpts['sc-max-each-post-bytes'] = upperBound
+                }
+              }
+            }
+          }
+          if (isPlainObject(extra?.xmux)) {
+            const reuseSettings = mapXmuxToReuseSettings(extra.xmux)
+            if (reuseSettings) {
+              xhttpOpts['reuse-settings'] = reuseSettings
+            }
+          }
+          const downloadSettings = parseDownloadSettings(extra?.downloadSettings)
+          if (downloadSettings) {
+            xhttpOpts['download-settings'] = downloadSettings
+          }
+          if (Object.keys(xhttpOpts).length > 0) {
+            proxy[`${proxy.network}-opts`] = xhttpOpts
+          }
+        } else if (params.mode) {
+          proxy._mode = params.mode
         }
       }
-
       if (params.encryption) {
         proxy.encryption = params.encryption
       }
