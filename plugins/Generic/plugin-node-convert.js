@@ -3178,6 +3178,9 @@ const PROXY_PARSERS = (() => {
       proxy.name = name ?? params.remarks ?? params.remark ?? `VLESS ${server}:${port}`
 
       proxy.tls = params.security && params.security !== 'none'
+      if (params.pbk) {
+        params.security = 'reality'
+      }
       if (isShadowrocket && /TRUE|1/i.test(params.tls)) {
         proxy.tls = true
         params.security = params.security ?? 'reality'
@@ -3517,8 +3520,8 @@ const PROXY_PARSERS = (() => {
       proxy['tls-fingerprint'] = params.pinSHA256
       let hop_interval = params['hop-interval'] || params['hop_interval']
 
-      if (/^\d+$/.test(hop_interval)) {
-        proxy['hop-interval'] = parseInt(`${hop_interval}`, 10)
+      if (hop_interval != null) {
+        proxy['hop-interval'] = hop_interval
       }
       let keepalive = params['keepalive']
 
@@ -4134,6 +4137,36 @@ ${list}`
     }
     if (typeof proxy.password === 'number') {
       proxy.password = numberToString(proxy.password)
+    }
+    if (proxy['hop-interval'] != null) {
+      const hopInterval = `${proxy['hop-interval']}`.trim()
+      const hopIntervalRangeMatch = hopInterval.match(/^(\d+)\s*-\s*(\d+)$/)
+
+      if (hopIntervalRangeMatch) {
+        const hopIntervalMin = parseInt(hopIntervalRangeMatch[1], 10)
+        const hopIntervalMax = parseInt(hopIntervalRangeMatch[2], 10)
+
+        if (hopIntervalMin > 0 && hopIntervalMin <= hopIntervalMax) {
+          proxy['hop-interval'] = hopIntervalMin
+          proxy['hop-interval-max'] = hopIntervalMax
+        } else {
+          delete proxy['hop-interval']
+          delete proxy['hop-interval-max']
+        }
+      } else if (/^\d+$/.test(hopInterval)) {
+        const parsedHopInterval = parseInt(hopInterval, 10)
+
+        if (parsedHopInterval > 0) {
+          proxy['hop-interval'] = parsedHopInterval
+          delete proxy['hop-interval-max']
+        } else {
+          delete proxy['hop-interval']
+          delete proxy['hop-interval-max']
+        }
+      } else {
+        delete proxy['hop-interval']
+        delete proxy['hop-interval-max']
+      }
     }
     if (['ss'].includes(proxy.type) && proxy.cipher === 'none' && !proxy.password) {
       // https://github.com/MetaCubeX/mihomo/issues/1677
