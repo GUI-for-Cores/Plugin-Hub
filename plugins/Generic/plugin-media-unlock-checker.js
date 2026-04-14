@@ -16,7 +16,7 @@ const onRun = async () => {
   const content = {
     template: `
     <div v-if="!done" class="flex items-center justify-center min-h-128">
-      <Button @click="onClick" :loading="loading" type="primary" size="large"> 
+      <Button @click="onClick" :loading="loading" type="primary" size="large">
         {{ loading ? '正在检测...' + (progress + '/' + length) : '开始检测' }}
       </Button>
     </div>
@@ -68,7 +68,9 @@ const onRun = async () => {
           if (row.result.region?.includes('Client.Timeout')) {
             row.result.region = '😤连接超时'
           }
-          row.result.region = countryCodeToEmoji(row.result.region) + row.result.region
+          if (!/[\u{1F1E6}-\u{1F1FF}]{2}/u.test(row.result.region)) {
+            row.result.region = countryCodeToEmoji(row.result.region) + row.result.region
+          }
         })
 
         result.value = rows
@@ -100,12 +102,30 @@ const onRun = async () => {
 function countryCodeToEmoji(input) {
   if (typeof input !== 'string') return ''
 
-  const letters = input.toUpperCase().match(/[A-Z]/g)
+  let code = input.trim().toUpperCase()
+  const map = {
+    CHN: 'CN',
+    USA: 'US',
+    HKG: 'HK',
+    MAC: 'MO',
+    RUS: 'RU',
+    BLR: 'BY',
+    CUB: 'CU',
+    IRN: 'IR',
+    PRK: 'KP',
+    SYR: 'SY',
+    JPN: 'JP'
+  }
+
+  if (code.length === 3) {
+    code = map[code] || code.slice(0, 2)
+  }
+
+  const letters = code.match(/[A-Z]/g)
   if (!letters || letters.length < 2) return ''
 
-  const code = letters.slice(0, 2)
-  const firstChar = code[0].charCodeAt(0) - 65 + 0x1f1e6
-  const secondChar = code[1].charCodeAt(0) - 65 + 0x1f1e6
+  const firstChar = letters[0].charCodeAt(0) - 65 + 0x1f1e6
+  const secondChar = letters[1].charCodeAt(0) - 65 + 0x1f1e6
 
   return String.fromCodePoint(firstChar) + String.fromCodePoint(secondChar)
 }
@@ -160,7 +180,10 @@ const Checker = {
     async fetchRegion() {
       if (!this.regionPromise) {
         this.regionPromise = Plugins.HttpGet('https://chat.openai.com/cdn-cgi/trace')
-          .then(({ body }) => body.match(/loc=(\w*)/)?.[1])
+          .then(({ body }) => {
+            body = typeof body === 'string' ? body : JSON.stringify(body)
+            return body.match(/(?:^|\n)loc=([^\n]+)/)?.[1]?.trim() || null
+          })
           .catch((error) => error.message || error)
       }
       return this.regionPromise
@@ -169,19 +192,17 @@ const Checker = {
   chatgpt_ios: {
     name: 'ChatGPT iOS',
     async check() {
-      let status
+      let status = 'Failed'
 
       try {
         const { body } = await Plugins.HttpGet('https://ios.chat.openai.com/')
-        const bodyLower = JSON.stringify(body).toLowerCase()
+        const bodyLower = (typeof body === 'string' ? body : JSON.stringify(body)).toLowerCase()
         if (bodyLower.includes('you may be connected to a disallowed isp')) {
           status = 'Disallowed ISP'
         } else if (bodyLower.includes('request is not allowed. please try again later.')) {
           status = 'Yes'
         } else if (bodyLower.includes('sorry, you have been blocked')) {
           status = 'Blocked'
-        } else {
-          status = 'Failed'
         }
       } catch (error) {
         status = error.message || error
@@ -197,8 +218,8 @@ const Checker = {
 
       try {
         const { body } = await Plugins.HttpGet('https://api.openai.com/compliance/cookie_requirements')
-        const bodyLower = JSON.stringify(body).toLowerCase()
-        if (bodyLower.toLowerCase().includes('unsupported_country')) status = 'Unsupported Country/Region'
+        const bodyLower = (typeof body === 'string' ? body : JSON.stringify(body)).toLowerCase()
+        if (bodyLower.includes('unsupported_country')) status = 'Unsupported Country/Region'
         else status = 'Yes'
       } catch (error) {
         status = error.message || error
@@ -207,16 +228,43 @@ const Checker = {
       return new CheckResult(this.name, status, await Checker.chatgpt.fetchRegion())
     }
   },
+  claude: {
+    name: 'Claude',
+    async check() {
+      let status = 'Failed'
+      let region
+
+      try {
+        const { body } = await Plugins.HttpGet('https://claude.ai/cdn-cgi/trace')
+        const bodyText = typeof body === 'string' ? body : JSON.stringify(body)
+        region = bodyText.match(/(?:^|\n)loc=([^\n]+)/)?.[1]?.trim()?.toUpperCase()
+        if (!region) {
+          status = 'Failed'
+        } else if (['AF', 'BY', 'CN', 'CU', 'HK', 'IR', 'KP', 'MO', 'RU', 'SY'].includes(region)) {
+          status = 'No'
+        } else {
+          status = 'Yes'
+        }
+      } catch (error) {
+        status = error.message || error
+      }
+
+      return new CheckResult(this.name, status, region)
+    }
+  },
   gemini: {
     name: 'Gemini',
     async check() {
-      let status, region
+      let status = 'Failed'
+      let region
 
       try {
         const { body } = await Plugins.HttpGet('https://gemini.google.com')
-        if (body.includes('45631641,null,true')) status = 'Yes'
-        else status = 'No'
-        region = body.match(/,2,1,200,"([A-Z]{3})"/)?.[1]
+        const bodyText = typeof body === 'string' ? body : JSON.stringify(body)
+        region = bodyText.match(/,2,1,200,"([A-Z]{3})"/)?.[1]
+        if (!region) status = 'Failed'
+        else if (['CHN', 'RUS', 'BLR', 'CUB', 'IRN', 'PRK', 'SYR', 'HKG', 'MAC'].includes(region)) status = 'No'
+        else status = 'Yes'
       } catch (error) {
         status = error.message || error
       }
@@ -225,17 +273,19 @@ const Checker = {
     }
   },
   youtube_premium: {
-    name: 'Youtube Premium',
+    name: 'YouTube Premium',
     async check() {
-      let status, region
+      let status = 'Failed'
+      let region
 
       try {
         const { body } = await Plugins.HttpGet('https://www.youtube.com/premium')
-        const bodyLower = body.toLowerCase()
+        const bodyText = typeof body === 'string' ? body : JSON.stringify(body)
+        const bodyLower = bodyText.toLowerCase()
         if (bodyLower.includes('youtube premium is not available in your country')) {
           status = 'No'
         } else if (bodyLower.includes('ad-free')) {
-          region = body.match(/id="country-code"[^>]*>([^<]+)</)?.[1]
+          region = bodyText.match(/id="country-code"[^>]*>([^<]+)</)?.[1]?.trim()
           status = 'Yes'
         }
       } catch (error) {
@@ -249,25 +299,27 @@ const Checker = {
     name: 'Bahamut Anime',
     UserAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
     async check() {
-      // TODO: 需要处理下cookie
       try {
         const { body } = await Plugins.HttpGet('https://ani.gamer.com.tw/ajax/getdeviceid.php', {
           'User-Agent': this.UserAgent
         })
-        const deviceId = body.match(/"deviceid"\s*:\s*"([^"]+)/)?.[1]
+        const bodyText = typeof body === 'string' ? body : JSON.stringify(body)
+        const deviceId = bodyText.match(/"deviceid"\s*:\s*"([^"]+)/)?.[1]
         if (!deviceId) {
           return new CheckResult(this.name, 'Failed', null)
         }
         const { body: body2 } = await Plugins.HttpGet('https://ani.gamer.com.tw/ajax/token.php?adID=89422&sn=37783&device=' + deviceId, {
           'User-Agent': this.UserAgent
         })
-        if (!body2.includes('animeSn')) {
+        const body2Text = typeof body2 === 'string' ? body2 : JSON.stringify(body2)
+        if (!body2Text.includes('animeSn')) {
           return new CheckResult(this.name, 'No', null)
         }
         const { body: body3 } = await Plugins.HttpGet('https://ani.gamer.com.tw/', {
           'User-Agent': this.UserAgent
         })
-        const region = body3.match(/data-geo="([^"]+)/)?.[1]
+        const body3Text = typeof body3 === 'string' ? body3 : JSON.stringify(body3)
+        const region = body3Text.match(/data-geo="([^"]+)/)?.[1]
         return new CheckResult(this.name, 'Yes', region)
       } catch (error) {
         return new CheckResult(this.name, error.message || error, null)
@@ -280,39 +332,37 @@ const Checker = {
       const result = await Checker.netflix_cdn.check()
       if (result.status === 'Yes') return result
 
-      const url1 = 'https://www.netflix.com/title/81280792'
-      const url2 = 'https://www.netflix.com/title/70143836'
       try {
-        const [{ status: status1 }, { status: status2 }] = await Promise.all([Plugins.HttpGet(url1), Plugins.HttpGet(url2)])
+        const [{ status: status1 }, { status: status2 }] = await Promise.all([Plugins.HttpGet('https://www.netflix.com/title/81280792'), Plugins.HttpGet('https://www.netflix.com/title/70143836')])
 
         if (status1 === 404 && status2 === 404) {
           return new CheckResult(this.name, 'Originals Only', null)
         }
-        if (status1 === 403 && status2 === 403) {
+        if (status1 === 403 || status2 === 403) {
           return new CheckResult(this.name, 'No', null)
         }
         if (status1 === 200 || status1 === 301 || status2 === 200 || status2 === 301) {
           try {
-            let region = 'US'
-            const { headers } = await Plugins.HttpGet('https://www.netflix.com/title/80018499')
-            if (headers['Location']) {
-              const parts = headers['Location'].split('/')
+            const { headers } = await Plugins.HttpGet('https://www.netflix.com/title/80018499', undefined, { Redirect: false })
+            const location = headers['Location'] || headers['location']
+            if (location) {
+              const parts = location.split('/')
               if (parts.length >= 4) {
-                region = parts[3].split('-')[0] || 'Unknown'
+                return new CheckResult(this.name, 'Yes', parts[3].split('-')[0] || 'US')
               }
             }
-            return new CheckResult(this.name, 'Yes', region)
+            return new CheckResult(this.name, 'Yes', 'US')
           } catch (error) {
-            throw 'Yes（无法获取区域）'
+            throw 'Yes (但无法获取区域)'
           }
         }
+        return new CheckResult(this.name, `Failed (状态码: ${status1}_${status2})`, null)
       } catch (error) {
         return new CheckResult(this.name, error.message || error, null)
       }
     }
   },
   netflix_cdn: {
-    name: 'Netflix CDN',
     skip: true,
     async check() {
       let status = 'Failed'
@@ -324,110 +374,144 @@ const Checker = {
         )
         if (statusCode === 403) {
           status = 'No (IP Banned By Netflix)'
-        } else if (body.targets) {
+        } else if (body.targets?.[0]?.location?.country) {
           status = 'Yes'
-          region = body.targets[0].location?.country
-        } else {
+          region = body.targets[0].location.country
+        } else if (body.targets) {
           status = 'Unknown'
+        } else {
+          status = 'Failed (解析错误)'
         }
-      } catch (error) {
-        status = error.message || error
+      } catch {
+        status = 'Failed (CDN API)'
       }
 
-      return new CheckResult(this.name, status, region)
+      return new CheckResult('Netflix', status, region)
     }
   },
   disney_plus: {
     name: 'Disney+',
     Token: 'Bearer ZGlzbmV5JmJyb3dzZXImMS4wLjA.Cu56AgSfBTDag5NiRA81oLHkDZfu5L3CKadnefEAY84',
     async check() {
-      const { body, status } = await Plugins.HttpPost(
-        'https://disney.api.edge.bamgrid.com/devices',
-        {
-          Authorization: this.Token,
-          'Content-Type': 'application/json'
-        },
-        {
-          deviceFamily: 'browser',
-          applicationRuntime: 'chrome',
-          deviceProfile: 'windows',
-          attributes: {}
+      try {
+        const { body, status } = await Plugins.HttpPost(
+          'https://disney.api.edge.bamgrid.com/devices',
+          {
+            Authorization: this.Token,
+            'Content-Type': 'application/json; charset=UTF-8'
+          },
+          {
+            deviceFamily: 'browser',
+            applicationRuntime: 'chrome',
+            deviceProfile: 'windows',
+            attributes: {}
+          }
+        )
+        if (status === 403) {
+          return new CheckResult(this.name, 'No (IP Banned By Disney+)', null)
         }
-      )
-      if (status === 403) {
-        return new CheckResult(this.name, 'No (IP Banned By Disney+)', null)
-      }
-      const assertion = body.assertion
-      if (!assertion) {
-        return new CheckResult(this.name, 'Failed', null)
-      }
 
-      const { body: body2, status: status2 } = await Plugins.HttpPost(
-        'https://disney.api.edge.bamgrid.com/token',
-        {
-          Authorization: this.Token,
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        {
-          grant_type: 'urn:ietf:params:oauth:grant-type:token-exchange',
-          latitude: '0',
-          longitude: '0',
-          platform: 'browser',
-          subject_token: assertion,
-          subject_token_type: 'urn:bamtech:params:oauth:token-type:device'
+        const bodyText = typeof body === 'string' ? body : JSON.stringify(body)
+        const assertion = body.assertion || bodyText.match(/"assertion"\s*:\s*"([^"]+)"/)?.[1]
+        if (!assertion) {
+          return new CheckResult(this.name, 'Failed (Error: Cannot extract assertion)', null)
         }
-      )
-      const body2Str = JSON.stringify(body2)
-      if (status2 === 403 || body2Str.includes('forbidden-location')) {
-        return new CheckResult(this.name, 'No (IP Banned By Disney+)', null)
-      }
-      const refreshToken = body2.refresh_token || body2Str.match(/"refresh_token"\s*:\s*"([^"]+)/)?.[1]
-      if (!refreshToken) {
-        return new CheckResult(this.name, 'No (Cannot extract refresh token)', null)
-      }
 
-      const { body: body3, status: status3 } = await Plugins.HttpPost(
-        'https://disney.api.edge.bamgrid.com/graph/v1/device/graphql',
-        {
-          Authorization: this.Token,
-          'Content-Type': 'application/json'
-        },
-        {
-          query: `mutation refreshToken($input: RefreshTokenInput!) {
-            refreshToken(refreshToken: $input) {
-              activeSession {
-                sessionId
+        const { body: body2, status: status2 } = await Plugins.HttpPost(
+          'https://disney.api.edge.bamgrid.com/token',
+          {
+            Authorization: this.Token,
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          {
+            grant_type: 'urn:ietf:params:oauth:grant-type:token-exchange',
+            latitude: '0',
+            longitude: '0',
+            platform: 'browser',
+            subject_token: assertion,
+            subject_token_type: 'urn:bamtech:params:oauth:token-type:device'
+          }
+        )
+        const body2Text = typeof body2 === 'string' ? body2 : JSON.stringify(body2)
+        if (body2Text.includes('forbidden-location') || body2Text.includes('403 ERROR')) {
+          return new CheckResult(this.name, 'No (IP Banned By Disney+)', null)
+        }
+
+        const refreshToken = body2.refresh_token || body2Text.match(/"refresh_token"\s*:\s*"([^"]+)"/)?.[1]
+        if (!refreshToken) {
+          return new CheckResult(this.name, `Failed (Error: Cannot extract refresh token, status: ${status2}, response: ${body2Text.slice(0, 100)}...)`, null)
+        }
+
+        const { body: body3, status: status3 } = await Plugins.HttpPost(
+          'https://disney.api.edge.bamgrid.com/graph/v1/device/graphql',
+          {
+            Authorization: this.Token,
+            'Content-Type': 'application/json'
+          },
+          {
+            query: `mutation refreshToken($input: RefreshTokenInput!) {
+              refreshToken(refreshToken: $input) {
+                activeSession {
+                  sessionId
+                }
+              }
+            }`,
+            variables: {
+              input: {
+                refreshToken
               }
             }
-          }`,
-          variables: {
-            input: {
-              refreshToken: refreshToken
-            }
           }
+        )
+
+        const body3Text = typeof body3 === 'string' ? body3 : JSON.stringify(body3)
+        if (!body3Text || status3 >= 400) {
+          try {
+            const { body } = await Plugins.HttpGet('https://www.disneyplus.com/')
+            const bodyText = typeof body === 'string' ? body : JSON.stringify(body)
+            const region = bodyText.match(/region"\s*:\s*"([^"]+)"/)?.[1]
+            if (region) return new CheckResult(this.name, 'Yes', `${region} (from main page)`)
+          } catch {}
+          if (!body3Text) {
+            return new CheckResult(this.name, `Failed (GraphQL error: empty response, status: ${status3})`, null)
+          }
+          return new CheckResult(this.name, `Failed (GraphQL error: ${body3Text.slice(0, 50)}..., status: ${status3})`, null)
         }
-      )
-      const body3Str = JSON.stringify(body3)
-      let region = body3Str.match(/countryCode"\s*:\s*"([^"]+)"/)?.[1]
-      if (!region) {
-        try {
-          const { body, status } = await Plugins.HttpGet('https://disneyplus.com')
-          region = body.match(/region"\s*:\s*"([^"]+)"/)?.[1]
-        } catch {}
-      }
-      if (!region) {
-        return new CheckResult(this.name, 'No', null)
-      }
 
-      const supported = body3Str.match(/"inSupportedLocation"\s*:\s*(true|false)/)?.[1] === 'true'
+        let region = body3Text.match(/"countryCode"\s*:\s*"([^"]+)"/)?.[1]
+        const supported = body3Text.match(/"inSupportedLocation"\s*:\s*(true|false)/)?.[1]
 
-      const { headers: headers4 } = await Plugins.HttpGet('https://disneyplus.com', undefined, { Redirect: false })
-      const redirectUrl = headers4['Location']
-      if (redirectUrl.includes('preview') || redirectUrl.includes('unavailable')) {
-        return new CheckResult(this.name, 'No', null)
+        if (!region) {
+          try {
+            const { body } = await Plugins.HttpGet('https://www.disneyplus.com/')
+            const bodyText = typeof body === 'string' ? body : JSON.stringify(body)
+            region = bodyText.match(/region"\s*:\s*"([^"]+)"/)?.[1]
+            if (region) return new CheckResult(this.name, 'Yes', `${region} (from main page)`)
+          } catch {}
+          return new CheckResult(this.name, 'No', null)
+        }
+
+        if (region === 'JP') {
+          return new CheckResult(this.name, 'Yes', region)
+        }
+
+        const { headers } = await Plugins.HttpGet('https://disneyplus.com', undefined, { Redirect: false })
+        const redirectUrl = headers['Location'] || headers['location'] || ''
+        if (redirectUrl.includes('preview') || redirectUrl.includes('unavailable')) {
+          return new CheckResult(this.name, 'No', null)
+        }
+
+        if (supported === 'false') {
+          return new CheckResult(this.name, 'Soon', `${region}（即将上线）`)
+        }
+        if (supported === 'true') {
+          return new CheckResult(this.name, 'Yes', region)
+        }
+
+        return new CheckResult(this.name, `Failed (Error: Unknown region status for ${region})`, null)
+      } catch (error) {
+        return new CheckResult(this.name, error.message || error, null)
       }
-
-      return new CheckResult(this.name, supported ? 'Yes' : 'No', region)
     }
   },
   prime_video: {
@@ -438,14 +522,81 @@ const Checker = {
 
       try {
         const { body } = await Plugins.HttpGet('https://www.primevideo.com')
-        region = body.match(/"currentTerritory":"([^"]+)/)?.[1]
-        if (body.includes('isServiceRestricted')) {
+        const bodyText = typeof body === 'string' ? body : JSON.stringify(body)
+        region = bodyText.match(/"currentTerritory":"([^"]+)"/)?.[1]
+        if (bodyText.includes('isServiceRestricted')) {
           status = 'No (Service Not Available)'
+        } else if (region) {
+          status = 'Yes'
+        } else {
+          status = 'Failed (Error: PAGE ERROR)'
+        }
+      } catch {
+        status = 'Failed (Network Connection)'
+      }
+
+      return new CheckResult(this.name, status, region)
+    }
+  },
+  spotify: {
+    name: 'Spotify',
+    async check() {
+      let status = 'Failed'
+      let region
+
+      try {
+        const { body, status: statusCode } = await Plugins.HttpGet('https://www.spotify.com/api/content/v1/country-selector?platform=web&format=json')
+        const bodyText = typeof body === 'string' ? body : JSON.stringify(body)
+        region = body.countryCode || bodyText.match(/"countryCode"\s*:\s*"([^"]+)"/)?.[1]
+        if (region) region = region.toUpperCase()
+
+        if (statusCode === 403 || statusCode === 451) {
+          status = 'No'
+        } else if (statusCode < 200 || statusCode >= 300) {
+          status = 'Failed'
+        } else if (bodyText.toLowerCase().includes('not available in your country')) {
+          status = 'No'
         } else {
           status = 'Yes'
         }
       } catch (error) {
         status = error.message || error
+      }
+
+      return new CheckResult(this.name, status, region)
+    }
+  },
+  tiktok: {
+    name: 'TikTok',
+    async check() {
+      let status = 'Failed'
+      let region
+
+      try {
+        const { body, status: statusCode } = await Plugins.HttpGet('https://www.tiktok.com/cdn-cgi/trace')
+        const bodyText = typeof body === 'string' ? body : JSON.stringify(body)
+        region = bodyText.match(/(?:^|\n)loc=([^\n]+)/)?.[1]?.trim()?.toUpperCase()
+        if (statusCode === 403 || statusCode === 451) status = 'No'
+        else if (statusCode < 200 || statusCode >= 300) status = 'Failed'
+        else if (bodyText.toLowerCase().includes('access denied') || bodyText.toLowerCase().includes('not available in your region') || bodyText.toLowerCase().includes('tiktok is not available')) status = 'No'
+        else status = 'Yes'
+      } catch {}
+
+      if (!region || status === 'Failed') {
+        try {
+          const { body, status: statusCode } = await Plugins.HttpGet('https://www.tiktok.com/')
+          const bodyText = typeof body === 'string' ? body : JSON.stringify(body)
+          const fallbackRegion = bodyText.match(/"region"\s*:\s*"([a-zA-Z-]+)"/)?.[1]?.split('-')?.[0]?.toUpperCase()
+          if (!region) region = fallbackRegion
+          if (status !== 'No') {
+            if (statusCode === 403 || statusCode === 451) status = 'No'
+            else if (statusCode < 200 || statusCode >= 300) status = 'Failed'
+            else if (bodyText.toLowerCase().includes('access denied') || bodyText.toLowerCase().includes('not available in your region') || bodyText.toLowerCase().includes('tiktok is not available')) status = 'No'
+            else status = 'Yes'
+          }
+        } catch (error) {
+          if (status === 'Failed') status = error.message || error
+        }
       }
 
       return new CheckResult(this.name, status, region)
