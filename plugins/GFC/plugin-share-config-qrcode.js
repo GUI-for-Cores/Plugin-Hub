@@ -1,5 +1,4 @@
-const JS_FILE = 'https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.js'
-const PATH = 'data/third/share-config-qrcode'
+import * as QRCode from 'https://cdn.jsdelivr.net/npm/qrcode@1.5.4/+esm'
 
 /* 触发器 手动触发 */
 const onRun = async () => {
@@ -26,8 +25,7 @@ const onRun = async () => {
 }
 
 const share = async (profile) => {
-  const port = (Plugin.Port && Plugin.Port !== 'undefined' && Plugin.Port !== '') ? Plugin.Port : '18963'
-  await loadDependence()
+  const port = Plugin.Port && Plugin.Port !== 'undefined' && Plugin.Port !== '' ? Plugin.Port : '18963'
 
   // 1. 启用 TUN（手机端必须）
   profile.tunConfig.enable = true
@@ -144,7 +142,6 @@ const share = async (profile) => {
     }
   }
 
-
   // 8. 获取本机局域网 IP 并启动 HTTP 服务
   const ips = await getIPAddress()
   if (ips.length === 0) throw '未找到局域网 IP 地址，请检查网络连接'
@@ -169,7 +166,9 @@ const share = async (profile) => {
     Plugin.name,
     '### 注意事项：\n\n' +
       ' - 请保证电脑和手机处于同一局域网内\n' +
-      ' - 请关闭电脑防火墙或放行端口 ' + port + '\n' +
+      ' - 请关闭电脑防火墙或放行端口 ' +
+      port +
+      '\n' +
       ' - 如果 CMFA 无法通过深度链接导入，请复制链接在 CMFA 中手动添加\n' +
       ' - 如果仍无法导入，请更换不同二维码尝试\n\n' +
       '|分享链接|二维码|\n|-|-|\n' +
@@ -178,47 +177,6 @@ const share = async (profile) => {
   )
 
   close()
-}
-
-/* 触发器 安装 */
-const onInstall = async () => {
-  await Plugins.Download(JS_FILE, PATH + '/qrcode.min.js')
-  await Plugins.message.success('安装成功')
-  return 0
-}
-
-/* 触发器 卸载 */
-const onUninstall = async () => {
-  await Plugins.RemoveFile(PATH)
-  return 0
-}
-
-/**
- * 动态引入 QRCode 依赖，不存在时自动下载
- */
-async function loadDependence() {
-  if (window.QRCode) return
-
-  const filePath = PATH + '/qrcode.min.js'
-  let text = await Plugins.ignoredError(Plugins.ReadFile, filePath)
-
-  if (!text) {
-    const { id } = Plugins.message.info('正在下载二维码依赖...', 30000)
-    try {
-      await Plugins.Download(JS_FILE, filePath)
-      text = await Plugins.ReadFile(filePath)
-      Plugins.message.update(id, '依赖下载完成', 'success')
-      await Plugins.sleep(1000).then(() => Plugins.message.destroy(id))
-    } catch (error) {
-      Plugins.message.destroy(id)
-      throw '二维码依赖下载失败，请检查网络连接'
-    }
-  }
-
-  const script = document.createElement('script')
-  script.id = Plugin.id
-  script.text = text
-  document.body.appendChild(script)
 }
 
 /**
