@@ -2494,6 +2494,14 @@ function V2Ray_Producer() {
 
 // 来源：https://github.com/sub-store-org/Sub-Store/blob/master/backend/src/core/proxy-utils/parsers/index.js
 const PROXY_PARSERS = (() => {
+  function splitURIFragment(raw) {
+    const [__, content, fragment] = /^(.*?)(?:#(.*?))?$/.exec(raw)
+    return {
+      content,
+      fragment: fragment != null ? decodeURIComponent(fragment) : undefined
+    }
+  }
+
   function URI_PROXY() {
     // socks5+tls
     // socks5
@@ -2580,13 +2588,10 @@ const PROXY_PARSERS = (() => {
     }
     const parse = (line) => {
       // parse url
-      let content = line.split('ss://')[1]
-
-      let name = line.split('#')[1]
+      let { content, fragment: name } = splitURIFragment(line.split('ss://')[1])
       const proxy = {
         type: 'ss'
       }
-      content = content.split('#')[0] // strip proxy name
       // handle IPV4 and IPV6
       let serverAndPortArray = content.match(/@([^/?]*)(\/|\?|$)/)
 
@@ -2859,8 +2864,8 @@ const PROXY_PARSERS = (() => {
       return /^vmess:\/\//.test(line)
     }
     const parse = (line) => {
-      line = line.split('vmess://')[1]
-      let content = Base64.decode(line.replace(/\?.*?$/, ''))
+      let { content: lineWithoutFragment, fragment: fragmentName } = splitURIFragment(line.split('vmess://')[1])
+      let content = Base64.decode(lineWithoutFragment.replace(/\?.*?$/, ''))
       if (/=\s*vmess/.test(content)) {
         // Quantumult VMess URI format
         const partitions = content.split(',').map((p) => p.trim())
@@ -2904,6 +2909,9 @@ const PROXY_PARSERS = (() => {
             throw new Error(`Unsupported obfs: ${params.obfs}`)
           }
         }
+        if (isNotBlank(fragmentName)) {
+          proxy.name = fragmentName
+        }
         return proxy
       } else {
         let params = {}
@@ -2913,7 +2921,7 @@ const PROXY_PARSERS = (() => {
           params = JSON.parse(content)
         } catch (e) {
           // Shadowrocket URI format
-          let [__, base64Line, qs] = /(^[^?]+?)\/?\?(.*)$/.exec(line) || []
+          let [__, base64Line, qs] = /(^[^?]+?)\/?\?(.*)$/.exec(lineWithoutFragment) || []
           content = Base64.decode(base64Line)
 
           for (const addon of qs.split('&')) {
@@ -3040,6 +3048,9 @@ const PROXY_PARSERS = (() => {
         proxy.alpn = params.alpn ? params.alpn.split(',') : undefined
         // 然而 wiki 和 app 实测中都没有字段表示这个
         // proxy['skip-cert-verify'] = /(TRUE)|1/i.test(params.allowInsecure);
+        if (isNotBlank(fragmentName)) {
+          proxy.name = fragmentName
+        }
 
         return proxy
       }
