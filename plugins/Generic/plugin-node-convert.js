@@ -409,6 +409,41 @@ function isObject(value) {
   return value != null && typeof value === 'object' && !Array.isArray(value)
 }
 
+function normalizeXhttpScalarUpperBound(value) {
+  if (typeof value !== 'string' && typeof value !== 'number') {
+    return undefined
+  }
+
+  const parseUnsignedIntegerToken = (token) => {
+    const normalizedToken = token.trim()
+    if (!/^\+?\d+$/.test(normalizedToken)) {
+      return undefined
+    }
+
+    const parsedInteger = parseInt(normalizedToken, 10)
+    return Number.isSafeInteger(parsedInteger) ? parsedInteger : undefined
+  }
+
+  const normalizedValue = `${value}`.trim()
+  const rangeParts = normalizedValue.split('-')
+  if (rangeParts.length === 1) {
+    const normalizedInteger = parseUnsignedIntegerToken(rangeParts[0])
+    return normalizedInteger > 0 ? normalizedInteger : undefined
+  }
+
+  if (rangeParts.length !== 2) {
+    return undefined
+  }
+
+  const lowerBound = parseUnsignedIntegerToken(rangeParts[0])
+  const upperBound = parseUnsignedIntegerToken(rangeParts[1])
+  if (lowerBound == null || upperBound == null) {
+    return undefined
+  }
+
+  return upperBound > 0 && upperBound >= lowerBound ? upperBound : undefined
+}
+
 function getIfPresent(obj, defaultValue) {
   return isPresent(obj) ? obj : defaultValue
 }
@@ -487,6 +522,15 @@ function produceProxyListOutput(list, type, opts = {}) {
   return 'proxies:\n' + list.map((proxy) => '  - ' + JSON.stringify(proxy) + '\n').join('')
 }
 
+function supportsShadowsocksV2rayPluginMode(proxy, supportedModes) {
+  if (proxy?.type !== 'ss' || proxy?.plugin !== 'v2ray-plugin') return true
+
+  const normalizedMode =
+    typeof proxy?.['plugin-opts']?.mode === 'string' ? proxy['plugin-opts'].mode.trim().toLowerCase() : proxy?.['plugin-opts']?.mode
+
+  return supportedModes.includes(normalizedMode)
+}
+
 /**
  * 来源：https://github.com/sub-store-org/Sub-Store/blob/master/backend/src/core/proxy-utils/producers/clashmeta.js
  */
@@ -504,7 +548,9 @@ function ClashMeta_Producer() {
     const list = proxies
       .filter((proxy) => {
         if (opts['include-unsupported-proxy']) return true
-        if (proxy.type === 'snell' && proxy.version >= 4) {
+        if (!supportsShadowsocksV2rayPluginMode(proxy, ['websocket'])) {
+          return false
+        } else if (proxy.type === 'snell' && proxy.version >= 4) {
           return false
         } else if (['tailscale', 'juicity', 'naive'].includes(proxy.type)) {
           return false
@@ -1790,6 +1836,18 @@ function URI_Producer() {
     if (downloadSettings['x-padding-bytes']) {
       xhttpSettings.xPaddingBytes = downloadSettings['x-padding-bytes']
     }
+    if (downloadSettings['sc-max-each-post-bytes'] != null) {
+      const scMaxEachPostBytes = normalizeXhttpScalarUpperBound(downloadSettings['sc-max-each-post-bytes'])
+      if (scMaxEachPostBytes != null) {
+        xhttpSettings.scMaxEachPostBytes = scMaxEachPostBytes
+      }
+    }
+    if (downloadSettings['sc-min-posts-interval-ms'] != null) {
+      const scMinPostsIntervalMs = normalizeXhttpScalarUpperBound(downloadSettings['sc-min-posts-interval-ms'])
+      if (scMinPostsIntervalMs != null) {
+        xhttpSettings.scMinPostsIntervalMs = scMinPostsIntervalMs
+      }
+    }
 
     const xmux = mapReuseSettingsToXmux(downloadSettings['reuse-settings'])
     if (xmux) {
@@ -1813,7 +1871,16 @@ function URI_Producer() {
       extra.xPaddingBytes = xhttpOpts['x-padding-bytes']
     }
     if (xhttpOpts['sc-max-each-post-bytes'] != null) {
-      extra.scMaxEachPostBytes = xhttpOpts['sc-max-each-post-bytes']
+      const scMaxEachPostBytes = normalizeXhttpScalarUpperBound(xhttpOpts['sc-max-each-post-bytes'])
+      if (scMaxEachPostBytes != null) {
+        extra.scMaxEachPostBytes = scMaxEachPostBytes
+      }
+    }
+    if (xhttpOpts['sc-min-posts-interval-ms'] != null) {
+      const scMinPostsIntervalMs = normalizeXhttpScalarUpperBound(xhttpOpts['sc-min-posts-interval-ms'])
+      if (scMinPostsIntervalMs != null) {
+        extra.scMinPostsIntervalMs = scMinPostsIntervalMs
+      }
     }
 
     const xmux = mapReuseSettingsToXmux(xhttpOpts['reuse-settings'])
@@ -1834,8 +1901,91 @@ function URI_Producer() {
       return proxy._extra || ''
     }
 
+    function applyNormalizedXhttpScalar(target, rawKey, value) {
+      if (!isObject(target)) {
+        return false
+      }
+
+      const normalizedValue = normalizeXhttpScalarUpperBound(value)
+      if (normalizedValue != null) {
+        if (target[rawKey] === normalizedValue) {
+          return false
+        }
+        target[rawKey] = normalizedValue
+        return true
+      }
+
+      if (Object.prototype.hasOwnProperty.call(target, rawKey)) {
+        delete target[rawKey]
+        return true
+      }
+
+      return false
+    }
+
+    function normalizeRawXhttpExtra() {
+      if (!proxy._extra) {
+        return ''
+      }
+
+      let rawExtra
+      try {
+        rawExtra = JSON.parse(proxy._extra)
+      } catch (e) {
+        return proxy._extra
+      }
+
+      if (!isObject(rawExtra) || !isObject(proxy['xhttp-opts'])) {
+        return proxy._extra
+      }
+
+      let didChange = false
+      const xhttpOpts = proxy['xhttp-opts']
+
+      if (xhttpOpts['sc-max-each-post-bytes'] != null) {
+        didChange = applyNormalizedXhttpScalar(rawExtra, 'scMaxEachPostBytes', xhttpOpts['sc-max-each-post-bytes']) || didChange
+      }
+      if (xhttpOpts['sc-min-posts-interval-ms'] != null) {
+        didChange = applyNormalizedXhttpScalar(rawExtra, 'scMinPostsIntervalMs', xhttpOpts['sc-min-posts-interval-ms']) || didChange
+      }
+
+      const downloadSettings = xhttpOpts['download-settings']
+      if (isObject(downloadSettings)) {
+        const rawDownloadSettings = isObject(rawExtra.downloadSettings) ? rawExtra.downloadSettings : undefined
+
+        let rawXhttpSettings = isObject(rawDownloadSettings?.xhttpSettings) ? rawDownloadSettings.xhttpSettings : undefined
+        if (!rawXhttpSettings && (downloadSettings['sc-max-each-post-bytes'] != null || downloadSettings['sc-min-posts-interval-ms'] != null)) {
+          rawExtra.downloadSettings = isObject(rawExtra.downloadSettings) ? rawExtra.downloadSettings : {}
+          rawExtra.downloadSettings.xhttpSettings = {}
+          rawXhttpSettings = rawExtra.downloadSettings.xhttpSettings
+          didChange = true
+        }
+
+        if (rawXhttpSettings) {
+          if (downloadSettings['sc-max-each-post-bytes'] != null) {
+            didChange =
+              applyNormalizedXhttpScalar(rawXhttpSettings, 'scMaxEachPostBytes', downloadSettings['sc-max-each-post-bytes']) || didChange
+          }
+          if (downloadSettings['sc-min-posts-interval-ms'] != null) {
+            didChange =
+              applyNormalizedXhttpScalar(rawXhttpSettings, 'scMinPostsIntervalMs', downloadSettings['sc-min-posts-interval-ms']) || didChange
+          }
+
+          if (Object.keys(rawXhttpSettings).length === 0) {
+            delete rawExtra.downloadSettings.xhttpSettings
+            didChange = true
+            if (Object.keys(rawExtra.downloadSettings).length === 0) {
+              delete rawExtra.downloadSettings
+            }
+          }
+        }
+      }
+
+      return didChange ? JSON.stringify(rawExtra) : proxy._extra
+    }
+
     if (proxy._extra) {
-      return proxy._extra
+      return normalizeRawXhttpExtra()
     }
 
     return buildStructuredVlessExtra(proxy)
@@ -2026,8 +2176,9 @@ function URI_Producer() {
               query += encodeURIComponent(`simple-obfs;obfs=${opts.mode}${opts.host ? ';obfs-host=' + opts.host : ''}`)
               break
             case 'v2ray-plugin':
+              // 为了兼容性 多输出 mode 和 host 两个字段
               query += encodeURIComponent(
-                `v2ray-plugin;obfs=${opts.mode}${opts.host ? ';obfs-host=' + opts.host : ''}${opts.host ? ';host=' + opts.host : ''}${
+                `v2ray-plugin;obfs=${opts.mode};mode=${opts.mode}${opts.host ? ';obfs-host=' + opts.host : ''}${opts.host ? ';host=' + opts.host : ''}${
                   opts.path ? ';path=' + opts.path : ''
                 }${opts.tls ? ';tls' : ''}${opts.sni ? ';sni=' + opts.sni : ''}${
                   opts['skip-cert-verify'] ? ';skip-cert-verify=' + opts['skip-cert-verify'] : ''
@@ -2742,7 +2893,7 @@ const PROXY_PARSERS = (() => {
           case 'v2ray-plugin':
             proxy.plugin = 'v2ray-plugin'
             proxy['plugin-opts'] = {
-              mode: 'websocket',
+              mode: getIfNotBlank(params['obfs']) || getIfNotBlank(params['mode']) || 'websocket',
               host: getIfNotBlank(params['obfs-host']) || getIfNotBlank(params['host']),
               path: getIfNotBlank(params.path),
               tls: getIfPresent(params.tls),
@@ -3136,6 +3287,14 @@ const PROXY_PARSERS = (() => {
           if (isNotBlank(downloadSettings.xhttpSettings.xPaddingBytes)) {
             parsedDownloadSettings['x-padding-bytes'] = downloadSettings.xhttpSettings.xPaddingBytes
           }
+          const scMaxEachPostBytes = normalizeXhttpScalarUpperBound(downloadSettings.xhttpSettings.scMaxEachPostBytes)
+          if (scMaxEachPostBytes != null) {
+            parsedDownloadSettings['sc-max-each-post-bytes'] = scMaxEachPostBytes
+          }
+          const scMinPostsIntervalMs = normalizeXhttpScalarUpperBound(downloadSettings.xhttpSettings.scMinPostsIntervalMs)
+          if (scMinPostsIntervalMs != null) {
+            parsedDownloadSettings['sc-min-posts-interval-ms'] = scMinPostsIntervalMs
+          }
 
           const reuseSettings = mapXmuxToReuseSettings(downloadSettings.xhttpSettings.extra?.xmux)
           if (reuseSettings) {
@@ -3351,22 +3510,13 @@ const PROXY_PARSERS = (() => {
           if (isNotBlank(extra?.['xPaddingBytes'])) {
             xhttpOpts['x-padding-bytes'] = extra['xPaddingBytes']
           }
-          const scMaxEachPostBytes = extra?.['scMaxEachPostBytes']
-          if (typeof scMaxEachPostBytes === 'string' || typeof scMaxEachPostBytes === 'number') {
-            const normalizedValue = `${scMaxEachPostBytes}`
-            if (/^\s*[1-9]\d*\s*$/.test(normalizedValue)) {
-              xhttpOpts['sc-max-each-post-bytes'] = parseInt(normalizedValue, 10)
-            } else {
-              const rangeMatch = normalizedValue.match(/^\s*([1-9]\d*)\s*-\s*([1-9]\d*)\s*$/)
-              if (rangeMatch) {
-                const lowerBound = parseInt(rangeMatch[1], 10)
-                const upperBound = parseInt(rangeMatch[2], 10)
-
-                if (upperBound >= lowerBound) {
-                  xhttpOpts['sc-max-each-post-bytes'] = upperBound
-                }
-              }
-            }
+          const scMaxEachPostBytes = normalizeXhttpScalarUpperBound(extra?.['scMaxEachPostBytes'])
+          if (scMaxEachPostBytes != null) {
+            xhttpOpts['sc-max-each-post-bytes'] = scMaxEachPostBytes
+          }
+          const scMinPostsIntervalMs = normalizeXhttpScalarUpperBound(extra?.['scMinPostsIntervalMs'])
+          if (scMinPostsIntervalMs != null) {
+            xhttpOpts['sc-min-posts-interval-ms'] = scMinPostsIntervalMs
           }
           if (isPlainObject(extra?.xmux)) {
             const reuseSettings = mapXmuxToReuseSettings(extra.xmux)
