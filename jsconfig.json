@@ -6,7 +6,8 @@
     "module": "NodeNext",
     "target": "ESNext",
     "skipLibCheck": true,
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "useUnknownInCatchVariables": false
   },
   "exclude": ["node_modules"],
   "include": ["plugins/**/*", "plugins.d.ts"]

@@ -2,252 +2,18 @@
  * 实现动态代理选择机制，包含故障转移、断路器、EWMA 延迟跟踪、基于分数调度与滞后控制。
  */
 
-/*
-调整参数可用大语言模型提示词：
-你是一个代理服务器调度系统的参数专家。我想要不同风格的调度参数配置。系统包括 EWMA、优先级、断路器、惩罚分机制和滞后控制（hysteresis）等策略。请只输出**与默认值不同的参数和注释**，格式如下：
-
-{
-  "参数名": 新值,
-  "_参数名": "简洁说明"
-}
-
-默认值如下（用于参考）：  
-ewmaAlpha: 0.3
-failureThreshold: 3
-circuitBreakerTimeout: 360000
-penaltyIncrement: 5
-penaltyDecayRate: 0.1
-priorityWeight: 1.0
-latencyWeight: 100.0
-penaltyWeight: 1.0
-hysteresisMargin: 0.1
-
-请根据以下风格返回配置（任选一种或多种）：
-
-- 稳定型：减少切换，宽容波动
-- 延迟优先型：频繁检测，追求最快响应
-- 高可用型：容忍短暂失败，但快速恢复
-- 掉线惩罚型：代理一旦失败，长时间惩罚不让用
-- 最小波动型：非常保守切换策略
-
-返回 JSON 格式，只输出修改过的参数及注释。
-*/
-
-window[Plugin.id] = window[Plugin.id] || initSmartProxy()
-
-/* 触发器 手动触发 */
-const onRun = async () => {
-  const modal = createUI()
-  modal.open()
-}
-
-const onReady = async () => {
-  setTimeout(() => {
-    window[Plugin.id]
-      .start()
-      .then(() => {
-        Plugin.status = 1
-      })
-      .catch(() => {
-        Plugin.status = 2
-      })
-  }, 3000)
-}
-
-const onConfigure = async (config, old) => {
-  await Stop().catch((err) => {
-    console.log(`[${Plugin.name}]`, err)
-  })
-  try {
-    window[Plugin.id].start(config)
-    return 1
-  } catch (error) {
-    return 2
-  }
-}
-
-const Start = async () => {
-  await window[Plugin.id].start()
-  return 1
-}
-
-const Stop = async () => {
-  await window[Plugin.id].stop()
-  return 2
-}
-
-const onCoreStopped = () => {
-  return Stop()
-}
-
-const onCoreStarted = () => {
-  return Start()
-}
-
-const createUI = () => {
-  const component = {
-    template: `
-    <Card>
-      <template #title-suffix>
-        <div class="font-bold">
-          运行状态：{{ isRunning ? '运行中' : '已停止' }}
-        </div>
-      </template>
-      <template #extra>
-        <Button v-if="isRunning" type="primary" icon="pause" @click="stop()">停止</Button>
-        <Button v-else type="primary" icon="play" @click="handleStart()">启动</Button>
-      </template>
-      <Empty v-if="!isRunning" />
-      <Tabs v-else :items="tabs" v-model:active-key="tab" tabPosition="top" />
-    </Card>`,
-    setup() {
-      const { h, ref, computed, resolveComponent } = Vue
-      const { start, stop, isRunning, managers } = window[Plugin.id]
-
-      const groups = computed(() =>
-        managers.value.map((manager) => {
-          const group = manager.proxies[0].group
-          const rows = manager.proxies.map((proxy) => {
-            const { id, lastDelay, ewmaLatency, failureCount, penalty, state, lastPenaltyUpdate, nextAttempt } = proxy
-            return {
-              _selected: manager.current?.id === id,
-              id,
-              state,
-              lastDelay: lastDelay ? lastDelay.toFixed(2) + 'ms' : '-',
-              ewmaLatency: ewmaLatency ? ewmaLatency.toFixed(2) + 'ms' : '-',
-              score: proxy.getScore().toFixed(2),
-              failureCount,
-              penalty: penalty ? penalty.toFixed(2) : penalty,
-              isAvailable: lastDelay !== '' ? '✅' : '❌',
-              lastPenaltyUpdate,
-              nextAttempt
-            }
-          })
-          return { group, rows, options: manager.options }
-        })
-      )
-
-      const columns = [
-        {
-          title: '节点名',
-          key: 'id',
-          align: 'center',
-          customRender: ({ value, record }) => {
-            if (!record._selected) return value
-            return h(resolveComponent('Tag'), { color: 'green' }, () => value)
-          }
-        },
-        {
-          title: '分数',
-          key: 'score',
-          align: 'center',
-          sort(a, b) {
-            return a.score - b.score
-          }
-        },
-        { title: '当前延迟', key: 'lastDelay', align: 'center' },
-        { title: 'EWMA平滑延迟', key: 'ewmaLatency', align: 'center' },
-        { title: '失败次数', key: 'failureCount', align: 'center' },
-        { title: '惩罚值', key: 'penalty', align: 'center' },
-        {
-          title: '更新时间',
-          key: 'lastPenaltyUpdate',
-          align: 'center',
-          customRender({ value }) {
-            return Plugins.formatRelativeTime(value)
-          }
-        },
-        {
-          title: '下次检测时间',
-          key: 'nextAttempt',
-          align: 'center',
-          customRender({ value }) {
-            return value ? Plugins.formatRelativeTime(value) : '-'
-          }
-        },
-        {
-          title: '断路器',
-          key: 'state',
-          align: 'center',
-          customRender({ value }) {
-            switch (value) {
-              case 'CLOSED':
-                return '🟢 正常'
-              case 'OPEN':
-                return '🔴 故障'
-              case 'HALF_OPEN':
-                return '🟡 检测中'
-              default:
-                return '❓未知'
-            }
-          }
-        },
-        { title: '可用性', key: 'isAvailable', align: 'center' }
-      ]
-
-      const tab = ref(groups.value[0]?.group)
-      const tabs = computed(() => {
-        return groups.value.map((item) => {
-          return {
-            key: item.group,
-            tab: item.group,
-            component: () => {
-              return h(resolveComponent('Table'), {
-                dataSource: item.rows,
-                columns,
-                sort: 'score'
-              })
-            }
-          }
-        })
-      })
-
-      return {
-        isRunning,
-        groups,
-        start,
-        stop,
-        tabs,
-        tab,
-        async handleStart() {
-          try {
-            await start()
-          } catch (error) {
-            Plugins.message.error(error.message || error)
-          }
-        }
-      }
-    }
-  }
-  const modal = Plugins.modal(
-    {
-      title: Plugin.name,
-      maskClosable: true,
-      submit: false,
-      width: '90',
-      height: '90',
-      cancelText: 'common.close',
-      afterClose() {
-        modal.destroy()
-      }
-    },
-    {
-      default: () => Vue.h(component)
-    }
-  )
-  return modal
-}
-
-function initSmartProxy() {
+/** @type {EsmPlugin } */
+export default (Plugin) => {
   const { ref } = Vue
 
   const kernelApi = Plugins.useKernelApiStore()
+
+  /** @type {{value: ProxyManager[]}} */
   const managers = ref([])
   const isRunning = ref(false)
 
-  const start = async (config) => {
+  const start = (config) => {
     console.log(`[${Plugin.name}]`, '启动监测')
-    // TODO: 这里有个bug，可能是GUI的问题
     config = config || Plugin
     const presetMap = {
       Stable: config.StableMode,
@@ -267,7 +33,11 @@ function initSmartProxy() {
     const options = {
       ...JSON.parse(presetMap[config.Preset]),
       monitoringInterval: Number(config.MonitoringInterval),
-      requestTimeout: Number(config.RequestTimeout)
+      requestTimeout: Number(config.RequestTimeout),
+      request,
+      RequestTimeout: Plugin.RequestTimeout,
+      ConcurrencyLimit: Plugin.ConcurrencyLimit,
+      TestUrl: Plugin.TestUrl
     }
     managers.value = []
     config.IncludeGroup.forEach((group) => {
@@ -287,54 +57,234 @@ function initSmartProxy() {
     })
     managers.value.forEach((manager) => manager.startMonitoring())
     isRunning.value = true
+    return 1
   }
-  const stop = async () => {
+  const stop = () => {
     console.log(`[${Plugin.name}]`, '停止监测')
     managers.value.forEach((manager) => manager.stopMonitoring())
     isRunning.value = false
+    return 2
+  }
+
+  const createUI = () => {
+    const component = {
+      template: `
+    <Card>
+      <template #title-suffix>
+        <div class="font-bold">
+          运行状态：{{ isRunning ? '运行中' : '已停止' }}
+        </div>
+      </template>
+      <template #extra>
+        <Button v-if="isRunning" type="primary" icon="pause" @click="stop()">停止</Button>
+        <Button v-else type="primary" icon="play" @click="handleStart()">启动</Button>
+      </template>
+      <Empty v-if="!isRunning" />
+      <Tabs v-else :items="tabs" v-model:active-key="tab" tabPosition="top" />
+    </Card>`,
+      setup() {
+        const { h, ref, computed, resolveComponent } = Vue
+
+        const groups = computed(() =>
+          managers.value.map((manager) => {
+            const group = manager.proxies[0].group
+            const rows = manager.proxies.map((proxy) => {
+              const { id, lastDelay, ewmaLatency, failureCount, penalty, state, lastPenaltyUpdate, nextAttempt } = proxy
+              return {
+                _selected: manager.current?.id === id,
+                id,
+                state,
+                lastDelay: lastDelay ? lastDelay.toFixed(2) + 'ms' : '-',
+                ewmaLatency: ewmaLatency ? ewmaLatency.toFixed(2) + 'ms' : '-',
+                score: proxy.getScore().toFixed(2),
+                failureCount,
+                penalty: penalty ? penalty.toFixed(2) : penalty,
+                isAvailable: lastDelay !== '' ? '✅' : '❌',
+                lastPenaltyUpdate,
+                nextAttempt
+              }
+            })
+            return { group, rows, options: manager.options }
+          })
+        )
+
+        const columns = [
+          {
+            title: '节点名',
+            key: 'id',
+            align: 'center',
+            customRender: ({ value, record }) => {
+              if (!record._selected) return value
+              return h(resolveComponent('Tag'), { color: 'green' }, () => value)
+            }
+          },
+          {
+            title: '分数',
+            key: 'score',
+            align: 'center',
+            sort(a, b) {
+              return a.score - b.score
+            }
+          },
+          { title: '当前延迟', key: 'lastDelay', align: 'center' },
+          { title: 'EWMA平滑延迟', key: 'ewmaLatency', align: 'center' },
+          { title: '失败次数', key: 'failureCount', align: 'center' },
+          { title: '惩罚值', key: 'penalty', align: 'center' },
+          {
+            title: '更新时间',
+            key: 'lastPenaltyUpdate',
+            align: 'center',
+            customRender({ value }) {
+              return Plugins.formatRelativeTime(value)
+            }
+          },
+          {
+            title: '下次检测时间',
+            key: 'nextAttempt',
+            align: 'center',
+            customRender({ value }) {
+              return value ? Plugins.formatRelativeTime(value) : '-'
+            }
+          },
+          {
+            title: '断路器',
+            key: 'state',
+            align: 'center',
+            customRender({ value }) {
+              switch (value) {
+                case 'CLOSED':
+                  return '🟢 正常'
+                case 'OPEN':
+                  return '🔴 故障'
+                case 'HALF_OPEN':
+                  return '🟡 检测中'
+                default:
+                  return '❓未知'
+              }
+            }
+          },
+          { title: '可用性', key: 'isAvailable', align: 'center' }
+        ]
+
+        const tab = ref(groups.value[0]?.group)
+        const tabs = computed(() => {
+          return groups.value.map((item) => {
+            return {
+              key: item.group,
+              tab: item.group,
+              component: () => {
+                return h(resolveComponent('Table'), {
+                  dataSource: item.rows,
+                  columns,
+                  sort: 'score'
+                })
+              }
+            }
+          })
+        })
+
+        return {
+          isRunning,
+          groups,
+          start,
+          stop,
+          tabs,
+          tab,
+          async handleStart() {
+            try {
+              await start()
+            } catch (error) {
+              Plugins.message.error(error.message || error)
+            }
+          }
+        }
+      }
+    }
+    const modal = Plugins.modal(
+      {
+        title: Plugin.name,
+        maskClosable: true,
+        submit: false,
+        width: '90',
+        height: '90',
+        cancelText: 'common.close',
+        afterClose() {
+          modal.destroy()
+        }
+      },
+      {
+        default: () => Vue.h(component)
+      }
+    )
+    return modal
+  }
+
+  const request = {
+    async get(url, params) {
+      const { base, bearer } = setupRequestApi()
+      const res = await fetch(base + url + '?' + new URLSearchParams(params).toString(), {
+        headers: { Authorization: `Bearer ${bearer}` }
+      })
+      const data = await res.json()
+      return data
+      // if (Math.random() > 0.5) throw new Error('hhh')
+      // return { delay: Math.random() * 10 }
+    }
+  }
+
+  const setupRequestApi = () => {
+    let base = Plugins.APP_TITLE.includes('SingBox') ? 'http://127.0.0.1:20123' : 'http://127.0.0.1:20113'
+    let bearer = ''
+
+    const { currentProfile: profile } = Plugins.useProfilesStore()
+
+    if (profile) {
+      if (Plugins.APP_TITLE.includes('SingBox')) {
+        const controller = profile.experimental.clash_api.external_controller || '127.0.0.1:20123'
+        const [, port = 20123] = controller.split(':')
+        base = `http://127.0.0.1:${port}`
+        bearer = profile.experimental.clash_api.secret
+      } else {
+        const controller = profile.advancedConfig['external-controller'] || '127.0.0.1:20113'
+        const [, port = 20113] = controller.split(':')
+        base = `http://127.0.0.1:${port}`
+        bearer = profile.advancedConfig.secret
+      }
+    }
+    return { base, bearer }
   }
 
   return {
-    isRunning,
-    start,
-    stop,
-    managers
-  }
-}
-
-const request = {
-  async get(url, params) {
-    const { base, bearer } = setupRequestApi()
-    const res = await fetch(base + url + '?' + new URLSearchParams(params).toString(), {
-      headers: { Authorization: `Bearer ${bearer}` }
-    })
-    const data = await res.json()
-    return data
-    // if (Math.random() > 0.5) throw new Error('hhh')
-    // return { delay: Math.random() * 10 }
-  }
-}
-
-const setupRequestApi = () => {
-  let base = Plugins.APP_TITLE.includes('SingBox') ? 'http://127.0.0.1:20123' : 'http://127.0.0.1:20113'
-  let bearer = ''
-
-  const { currentProfile: profile } = Plugins.useProfilesStore()
-
-  if (profile) {
-    if (Plugins.APP_TITLE.includes('SingBox')) {
-      const controller = profile.experimental.clash_api.external_controller || '127.0.0.1:20123'
-      const [, port = 20123] = controller.split(':')
-      base = `http://127.0.0.1:${port}`
-      bearer = profile.experimental.clash_api.secret
-    } else {
-      const controller = profile.advancedConfig['external-controller'] || '127.0.0.1:20113'
-      const [, port = 20113] = controller.split(':')
-      base = `http://127.0.0.1:${port}`
-      bearer = profile.advancedConfig.secret
+    onRun: () => {
+      const modal = createUI()
+      modal.open()
+    },
+    onReady: () => {
+      setTimeout(() => {
+        start()
+        Plugin.status = 1
+      }, 3000)
+    },
+    onConfigure: async (config, old) => {
+      stop()
+      return start(config)
+    },
+    Start: async () => {
+      return start()
+    },
+    Stop: async () => {
+      return stop()
+    },
+    onCoreStopped: () => {
+      return stop()
+    },
+    onCoreStarted: () => {
+      return start()
+    },
+    onDispose() {
+      return stop()
     }
   }
-  return { base, bearer }
 }
 
 class ProxyServer {
@@ -464,9 +414,9 @@ class ProxyManager {
         return
       }
       try {
-        const { delay } = await request.get(proxy.url, {
-          url: Plugin.TestUrl || 'https://www.gstatic.com/generate_204',
-          timeout: Number(Plugin.RequestTimeout)
+        const { delay } = await this.options.request.get(proxy.url, {
+          url: this.options.TestUrl || 'https://www.gstatic.com/generate_204',
+          timeout: Number(this.options.RequestTimeout)
         })
         if (delay) {
           proxy.recordSuccess(delay)
@@ -477,7 +427,7 @@ class ProxyManager {
         proxy.recordFailure()
       }
     }
-    await Plugins.asyncPool(Number(Plugin.ConcurrencyLimit), this.proxies, checkProxy)
+    await Plugins.asyncPool(Number(this.options.ConcurrencyLimit), this.proxies, checkProxy)
   }
 
   // 判断是否应切换代理

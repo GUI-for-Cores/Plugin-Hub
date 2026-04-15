@@ -355,7 +355,64 @@ interface Plugins {
 
 declare namespace globalThis {
   var Plugins: Plugins
-  var Plugin: any
   var Vue: Vue
   var AsyncFunction: FunctionConstructor
 }
+
+type PluginMetadata = {
+  [k: string]: any
+  id: string
+  name: string
+  version: string
+  description: string
+  tags: string[]
+  type: 'Http' | 'File'
+  url: string
+  path: string
+  triggers: string[]
+  hasUI: boolean
+  menus: Recordable<string>
+  context: {
+    profiles: Recordable<string>
+    subscriptions: Recordable<string>
+    rulesets: Recordable<string>
+    plugins: Recordable<string>
+    scheduledtasks: Recordable<string>
+  }
+  status: 0 | 1 | 2
+  configuration: {
+    id: string
+    title: string
+    description: string
+    key: string
+    component: string
+    value: any
+    options: string[]
+  }[]
+}
+
+type PluginStatus = number | void
+
+type PluginExposed = {
+  onRun?: () => MaybePromise<PluginStatus>
+  onEnabled?: () => MaybePromise<PluginStatus>
+  onDisabled?: () => MaybePromise<PluginStatus>
+  onDispose?: () => MaybePromise<PluginStatus>
+  onInstall?: () => MaybePromise<PluginStatus>
+  onUninstall?: () => MaybePromise<PluginStatus>
+  onTrayUpdate?: (tray, menus) => MaybePromise<{ tray; menus }>
+  onSubscribe?: (proxies, subscription) => MaybePromise<proxies>
+  onGenerate?: (config, profile) => MaybePromise<config>
+  onStartup?: () => MaybePromise<PluginStatus>
+  onShutdown?: () => MaybePromise<PluginStatus>
+  onCoreStarted?: () => MaybePromise<PluginStatus>
+  onCoreStopped?: () => MaybePromise<PluginStatus>
+  onBeforeCoreStart?: (config, profile) => MaybePromise<Recordable>
+  onBeforeCoreStop?: () => MaybePromise<PluginStatus>
+  onReady?: () => MaybePromise<PluginStatus>
+  onReload?: () => MaybePromise<PluginStatus>
+  onTask?: () => MaybePromise<PluginStatus>
+  onConfigure?: (config, old) => MaybePromise<PluginStatus>
+}
+
+type EsmPlugin = PluginExposed | MaybePromise<(Plugin: PluginMetadata) => PluginExposed>
