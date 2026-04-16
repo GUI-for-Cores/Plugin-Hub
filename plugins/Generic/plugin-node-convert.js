@@ -531,6 +531,72 @@ function supportsShadowsocksV2rayPluginMode(proxy, supportedModes) {
   return supportedModes.includes(normalizedMode)
 }
 
+function parseWireGuardCIDR(cidr, max) {
+  if (cidr == null) return undefined
+  const normalized = `${cidr}`.trim()
+  if (!/^\d+$/.test(normalized)) return undefined
+  const parsed = parseInt(normalized, 10)
+  if (parsed < 0 || parsed > max) return undefined
+  return parsed
+}
+
+function parseWireGuardInterfaceAddress(value, family) {
+  if (value == null) return null
+  const raw = `${value}`.trim()
+  if (!raw) return null
+  const [, hostRaw = raw, cidrRaw] = /^(.*?)(?:\/(\d+))?$/.exec(raw) || []
+  const host = `${hostRaw}`.trim().replace(/^\[/, '').replace(/\]$/, '')
+  const isIPv4Family = family === 'ipv4'
+  const isValid = isIPv4Family ? isIPv4(host) : isIPv6(host)
+  if (!isValid) return null
+  const max = isIPv4Family ? 32 : 128
+  return {
+    address: host,
+    cidr: parseWireGuardCIDR(cidrRaw, max)
+  }
+}
+
+function normalizeWireGuardInterfaceAddress(proxy, config) {
+  const { addressKey, cidrKey, family, defaultCIDR } = config
+  const parsed = parseWireGuardInterfaceAddress(proxy[addressKey], family)
+  if (!parsed) {
+    if (proxy[addressKey] == null || `${proxy[addressKey]}`.trim().length === 0) {
+      delete proxy[cidrKey]
+    }
+    return
+  }
+  proxy[addressKey] = parsed.address
+  const normalizedCIDR = parseWireGuardCIDR(proxy[cidrKey], defaultCIDR)
+  proxy[cidrKey] = normalizedCIDR ?? parsed.cidr ?? defaultCIDR
+}
+
+function normalizeWireGuardInterface(proxy = {}) {
+  normalizeWireGuardInterfaceAddress(proxy, {
+    addressKey: 'ip',
+    cidrKey: 'ip-cidr',
+    family: 'ipv4',
+    defaultCIDR: 32
+  })
+  normalizeWireGuardInterfaceAddress(proxy, {
+    addressKey: 'ipv6',
+    cidrKey: 'ipv6-cidr',
+    family: 'ipv6',
+    defaultCIDR: 128
+  })
+  return proxy
+}
+
+function getWireGuardAddressWithCIDR(proxy = {}, family = 'ipv4') {
+  const config =
+    family === 'ipv6'
+      ? { addressKey: 'ipv6', cidrKey: 'ipv6-cidr', defaultCIDR: 128 }
+      : { addressKey: 'ip', cidrKey: 'ip-cidr', defaultCIDR: 32 }
+  const parsed = parseWireGuardInterfaceAddress(proxy[config.addressKey], family)
+  if (!parsed) return undefined
+  const normalizedCIDR = parseWireGuardCIDR(proxy[config.cidrKey], config.defaultCIDR)
+  return `${parsed.address}/${normalizedCIDR ?? parsed.cidr ?? config.defaultCIDR}`
+}
+
 /**
  * 来源：https://github.com/sub-store-org/Sub-Store/blob/master/backend/src/core/proxy-utils/producers/clashmeta.js
  */
@@ -657,6 +723,8 @@ function ClashMeta_Producer() {
           proxy['persistent-keepalive'] = proxy.keepalive
           proxy['preshared-key'] = proxy['preshared-key'] ?? proxy['pre-shared-key']
           proxy['pre-shared-key'] = proxy['preshared-key']
+          proxy.ip = getWireGuardAddressWithCIDR(proxy, 'ipv4')
+          proxy.ipv6 = getWireGuardAddressWithCIDR(proxy, 'ipv6')
         } else if (proxy.type === 'snell' && proxy.version < 3) {
           delete proxy.udp
         } else if (proxy.type === 'vless') {
@@ -741,6 +809,8 @@ function ClashMeta_Producer() {
         delete proxy.id
         delete proxy.resolved
         delete proxy['no-resolve']
+        delete proxy['ip-cidr']
+        delete proxy['ipv6-cidr']
         if (type !== 'internal' || opts['delete-underscore-fields']) {
           for (const key in proxy) {
             if (proxy[key] == null || /^_/i.test(key)) {
@@ -1526,12 +1596,8 @@ function Singbox_Producer() {
   }
 
   const wireguardParser = (proxy = {}) => {
-    const address = ['ip', 'ipv6']
-      .map((i) => proxy[i])
-      .map((i) => {
-        if (isIPv4(i)) return `${i}/32`
-        if (isIPv6(i)) return `${i}/128`
-      })
+    const address = ['ipv4', 'ipv6']
+      .map((family) => getWireGuardAddressWithCIDR(proxy, family))
       .filter((i) => i)
     const parsedProxy = {
       system: !!proxy.system,
@@ -2593,7 +2659,7 @@ function URI_Producer() {
         let wireguardParams = []
 
         Object.keys(proxy).forEach((key) => {
-          if (!['name', 'type', 'server', 'port', 'ip', 'ipv6', 'private-key'].includes(key)) {
+          if (!['name', 'type', 'server', 'port', 'ip', 'ipv6', 'ip-cidr', 'ipv6-cidr', 'private-key'].includes(key)) {
             if (['public-key'].includes(key)) {
               wireguardParams.push(`publickey=${encodeURIComponent(proxy[key])}`)
             } else if (['udp'].includes(key)) {
@@ -2605,12 +2671,14 @@ function URI_Producer() {
             }
           }
         })
-        if (proxy.ip && proxy.ipv6) {
-          wireguardParams.push(`address=${encodeURIComponent(`${proxy.ip}/32,${proxy.ipv6}/128`)}`)
-        } else if (proxy.ip) {
-          wireguardParams.push(`address=${encodeURIComponent(`${proxy.ip}/32`)}`)
-        } else if (proxy.ipv6) {
-          wireguardParams.push(`address=${encodeURIComponent(`${proxy.ipv6}/128`)}`)
+        const wireguardIPv4 = getWireGuardAddressWithCIDR(proxy, 'ipv4')
+        const wireguardIPv6 = getWireGuardAddressWithCIDR(proxy, 'ipv6')
+        if (wireguardIPv4 && wireguardIPv6) {
+          wireguardParams.push(`address=${encodeURIComponent(`${wireguardIPv4},${wireguardIPv6}`)}`)
+        } else if (wireguardIPv4) {
+          wireguardParams.push(`address=${encodeURIComponent(wireguardIPv4)}`)
+        } else if (wireguardIPv6) {
+          wireguardParams.push(`address=${encodeURIComponent(wireguardIPv6)}`)
         }
         result = `wireguard://${encodeURIComponent(proxy['private-key'])}@${proxy.server}:${proxy.port}/?${wireguardParams.join(
           '&'
@@ -3831,6 +3899,28 @@ const PROXY_PARSERS = (() => {
       return /^(wireguard|wg):\/\//.test(line)
     }
     const parse = (line) => {
+      const parseWireGuardURIAddressValue = (value) => {
+        if (value == null) return null
+        const raw = `${value}`.trim()
+        if (!raw) return null
+        const [, hostRaw = raw, cidrRaw] = /^(.*?)(?:\/(\d+))?$/.exec(raw) || []
+        const host = `${hostRaw}`.trim().replace(/^\[/, '').replace(/\]$/, '')
+        const normalizeCIDR = (cidr, max) => {
+          if (cidr == null) return undefined
+          if (!/^\d+$/.test(cidr)) return undefined
+          const parsed = parseInt(cidr, 10)
+          if (parsed < 0 || parsed > max) return undefined
+          return parsed
+        }
+        if (isIPv4(host)) {
+          return { family: 'ipv4', address: host, cidr: normalizeCIDR(cidrRaw, 32) }
+        }
+        if (isIPv6(host)) {
+          return { family: 'ipv6', address: host, cidr: normalizeCIDR(cidrRaw, 128) }
+        }
+        return null
+      }
+
       line = line.split(/(wireguard|wg):\/\//)[2]
       let [__, ___, privateKey, server, ____, port, _____, addons = '', name] = /^((.*?)@)?(.*?)(:(\d+))?\/?(\?(.*?))?(?:#(.*?))?$/.exec(line) || []
       // @ts-ignore
@@ -3855,7 +3945,16 @@ const PROXY_PARSERS = (() => {
       }
       for (const addon of addons.split('&')) {
         if (addon) {
-          let [key, value] = addon.split('=')
+          const equalIndex = addon.indexOf('=')
+          let key
+          let value
+          if (equalIndex === -1) {
+            key = addon
+            value = ''
+          } else {
+            key = addon.slice(0, equalIndex)
+            value = addon.slice(equalIndex + 1)
+          }
           key = key.replace(/_/, '-')
           value = decodeURIComponent(value)
           if (['reserved'].includes(key)) {
@@ -3868,15 +3967,18 @@ const PROXY_PARSERS = (() => {
             }
           } else if (['address', 'ip'].includes(key)) {
             value.split(',').map((i) => {
-              const ip = i
-                .trim()
-                .replace(/\/\d+$/, '')
-                .replace(/^\[/, '')
-                .replace(/\]$/, '')
-              if (isIPv4(ip)) {
-                proxy.ip = ip
-              } else if (isIPv6(ip)) {
-                proxy.ipv6 = ip
+              const parsed = parseWireGuardURIAddressValue(i)
+              if (!parsed) return
+              if (parsed.family === 'ipv4') {
+                proxy.ip = parsed.address
+                if (typeof parsed.cidr !== 'undefined') {
+                  proxy['ip-cidr'] = parsed.cidr
+                }
+              } else if (parsed.family === 'ipv6') {
+                proxy.ipv6 = parsed.address
+                if (typeof parsed.cidr !== 'undefined') {
+                  proxy['ipv6-cidr'] = parsed.cidr
+                }
               }
             })
           } else if (['mtu'].includes(key)) {
@@ -4232,6 +4334,9 @@ const ProxyUtils = (() => {
           proxy.port = getRandomPort(proxy.ports)
         }
       }
+      if (proxy.type === 'wireguard') {
+        normalizeWireGuardInterface(proxy)
+      }
 
       return proxy
     })
@@ -4551,18 +4656,7 @@ ${list}`
           }
         }
       }
-      if (proxy.ip?.includes('/')) {
-        const [ip] = proxy.ip.split('/')
-        if (isIPv4(ip)) {
-          proxy.ip = ip
-        }
-      }
-      if (proxy.ipv6?.includes('/')) {
-        const [ip] = proxy.ipv6.split('/')
-        if (isIPv6(ip)) {
-          proxy.ipv6 = ip
-        }
-      }
+      normalizeWireGuardInterface(proxy)
     }
     return proxy
   }
