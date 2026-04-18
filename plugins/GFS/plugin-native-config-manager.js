@@ -1,77 +1,78 @@
-window[Plugin.id] = window[Plugin.id] ?? {
-  configs: Vue.ref([])
-}
-const BASE_PATH = `data/third/${Plugin.id}`
-const CACHE_PATH = `data/.cache/${Plugin.id}`
-const MANAGE_FILE_PATH = `${BASE_PATH}/${Plugin.id}.json`
-const TEMP_CHECK_PATH = `${CACHE_PATH}/temp-check.json`
-/* 触发器 手动触发 */
-const onRun = async () => {
-  const manager = new NativeConfigManager()
-  await manager.init()
-  openMainUI(manager)
-}
-/* 触发器 APP就绪后 */
-const onReady = async () => {
-  window[Plugin.id].configs.value = await Plugins.ReadFile(MANAGE_FILE_PATH)
-    .then((content) => JSON.parse(content))
-    .catch(() => [])
-  addProfilesHeaderAction()
-}
-/* 触发器 生成配置时 */
-const onGenerate = async (config, profile) => {
-  const configs = window[Plugin.id]?.configs.value ?? []
-  const cfg = configs.find((c) => c.profileId === profile.id)
-  if (!cfg) return config
-  let nativeConfig
-  try {
-    if (cfg.type === 'local') {
-      const content = await Plugins.ReadFile(cfg.configPath)
-      nativeConfig = JSON.parse(content)
-    } else {
-      let content
-      if (cfg.cache?.enable && cfg.cache.path) {
-        content = await Plugins.ReadFile(cfg.cache.path)
-      } else {
-        content = await fetchRemoteFile(cfg.configUrl)
-      }
-      nativeConfig = JSON.parse(content)
-    }
-  } catch (error) {
-    throw `原始配置获取失败：${error instanceof Error ? error.message : String(error)}`
-  }
-  nativeConfig.experimental = {
-    ...nativeConfig.experimental,
-    clash_api: {
-      ...nativeConfig.experimental?.clash_api,
-      external_controller: config.experimental?.clash_api?.external_controller ?? '127.0.0.1:20123',
-      secret: config.experimental?.clash_api?.secret ?? ''
-    }
-  }
-  return nativeConfig
-}
-const addProfilesHeaderAction = () => {
+/** @type {EsmPlugin} */
+export default (Plugin) => {
+  const basePath = `data/third/${Plugin.id}`
+  const cacheDir = `data/.cache/${Plugin.id}`
+  const managerPath = `${basePath}/${Plugin.id}.json`
   const appStore = Plugins.useAppStore()
-  appStore.addCustomActions('profiles_header', {
-    id: Plugin.id,
-    component: 'Button',
-    componentProps: {
-      type: 'link',
-      onClick: onRun
-    },
-    componentSlots: {
-      default: '管理原生配置'
-    }
-  })
-}
-const openMainUI = (manager) => {
-  const { h, resolveComponent, defineComponent } = Vue
   const profilesStore = Plugins.useProfilesStore()
-  const getProfileName = (cfg) => {
-    return profilesStore.getProfileById(cfg.profileId)?.name ?? 'Not Found'
+  const manager = new NativeConfigManager({ cacheDir, managerPath })
+  /* 触发器 手动触发 */
+  const onRun = async () => {
+    await manager.init()
+    openMainUI(manager)
   }
-  const component = defineComponent({
-    template: `
+  /* 触发器 APP就绪后 */
+  const onReady = async () => {
+    await manager.init()
+    appStore.addCustomActions('profiles_header', {
+      id: Plugin.id,
+      component: 'Button',
+      componentProps: {
+        type: 'link',
+        onClick: onRun
+      },
+      componentSlots: {
+        default: '管理原生配置'
+      }
+    })
+  }
+  /* 触发器 生成配置时 */
+  const onGenerate = async (config, profile) => {
+    const cfg = manager.configs.value.find((c) => c.profileId === profile.id)
+    if (!cfg) return config
+    let nativeConfig
+    try {
+      if (cfg.type === 'local') {
+        const content = await Plugins.ReadFile(cfg.configPath)
+        nativeConfig = JSON.parse(content)
+      } else {
+        let content
+        if (cfg.cache?.enable && cfg.cache.path) {
+          content = await Plugins.ReadFile(cfg.cache.path)
+        } else {
+          content = await fetchRemoteFile(cfg.configUrl)
+        }
+        nativeConfig = JSON.parse(content)
+      }
+    } catch (error) {
+      throw `原始配置获取失败：${error instanceof Error ? error.message : String(error)}`
+    }
+    return {
+      ...nativeConfig,
+      experimental: {
+        ...nativeConfig.experimental,
+        clash_api: {
+          ...nativeConfig.experimental?.clash_api,
+          external_controller: config.experimental?.clash_api?.external_controller ?? '127.0.0.1:20123',
+          secret: config.experimental?.clash_api?.secret ?? ''
+        }
+      }
+    }
+  }
+  const onInstall = async () => {
+    await Promise.all([basePath, cacheDir].map((dir) => Plugins.MakeDir(dir)))
+    await Plugins.WriteFile(managerPath, '[]')
+  }
+  const onUninstall = async () => {
+    await Promise.all([basePath, cacheDir].map((dir) => Plugins.RemoveFile(dir)))
+  }
+  const openMainUI = (manager) => {
+    const { h, resolveComponent, defineComponent } = Vue
+    const getProfileName = (cfg) => {
+      return profilesStore.getProfileById(cfg.profileId)?.name ?? 'Not Found'
+    }
+    const component = defineComponent({
+      template: `
     <div class="h-full w-full">
       <div v-if="manager.configs.value.length === 0"
         class="flex items-center justify-center h-full min-h-[200px] cursor-pointer" @click="openGuide">
@@ -103,78 +104,78 @@ const openMainUI = (manager) => {
       </div>
     </div>
     `,
-    setup(_, { expose }) {
-      expose({
-        modalSlots: {
-          toolbar: () => [
-            h(
-              resolveComponent('Button'),
-              {
-                type: 'link',
-                onClick: async () => {
-                  await Plugins.OpenDir(BASE_PATH)
-                }
-              },
-              () => '打开插件目录'
-            ),
-            h(
-              resolveComponent('Button'),
-              {
-                type: 'link',
-                onClick: async () => {
-                  await Plugins.OpenDir(CACHE_PATH)
-                }
-              },
-              () => '打开缓存目录'
-            ),
-            h(
-              resolveComponent('Button'),
-              {
-                type: 'link',
-                onClick: async () => {
-                  await manager.updateCache()
-                }
-              },
-              () => '更新缓存'
-            )
-          ]
+      setup(_, { expose }) {
+        expose({
+          modalSlots: {
+            toolbar: () => [
+              h(
+                resolveComponent('Button'),
+                {
+                  type: 'link',
+                  onClick: async () => {
+                    await Plugins.OpenDir(basePath)
+                  }
+                },
+                () => '打开插件目录'
+              ),
+              h(
+                resolveComponent('Button'),
+                {
+                  type: 'link',
+                  onClick: async () => {
+                    await Plugins.OpenDir(cacheDir)
+                  }
+                },
+                () => '打开缓存目录'
+              ),
+              h(
+                resolveComponent('Button'),
+                {
+                  type: 'link',
+                  onClick: async () => {
+                    await manager.updateCache()
+                  }
+                },
+                () => '更新缓存'
+              )
+            ]
+          }
+        })
+        return {
+          manager,
+          openGuide: () => {
+            openGuideModal(manager)
+          },
+          editConfig: (cfg) => {
+            openEditModal(cfg, manager)
+          },
+          deleteConfig: async (cfg) => {
+            await manager.deleteConfig(cfg)
+          },
+          getProfileName
         }
-      })
-      return {
-        manager,
-        openGuide: () => {
-          openGuideModal(manager)
-        },
-        editConfig: (cfg) => {
-          openEditModal(cfg, manager)
-        },
-        deleteConfig: async (cfg) => {
-          await manager.deleteConfig(cfg)
-        },
-        getProfileName
       }
-    }
-  })
-  const modal = Plugins.modal({
-    title: '原生配置管理',
-    submit: false,
-    cancelText: '关闭',
-    width: '80',
-    height: '80',
-    afterClose: () => {
-      modal.destroy()
-    }
-  })
-  modal.setContent(component)
-  modal.open()
-}
-const openGuideModal = (manager) => {
-  const { ref, defineComponent } = Vue
-  const showUrlInput = ref(false)
-  const remoteUrl = ref('')
-  const enableCache = ref(false)
-  const component = defineComponent({
-    template: `
+    })
+    const modal = Plugins.modal({
+      title: '原生配置管理',
+      submit: false,
+      cancelText: '关闭',
+      width: '80',
+      height: '80',
+      afterClose: () => {
+        modal.destroy()
+      }
+    })
+    modal.setContent(component)
+    modal.open()
+  }
+  const openGuideModal = (manager) => {
+    const { ref, defineComponent } = Vue
+    const showUrlInput = ref(false)
+    const remoteUrl = ref('')
+    const enableCache = ref(false)
+    const component = defineComponent({
+      template: `
     <div class="flex flex-col gap-8 p-8">
       <ul class="list-disc pl-6 text-14 text-gray-600 space-y-6 leading-relaxed">
         <li>你可以通过此插件添加与 sing-box 原始配置关联的 GUI 配置方案。你可以直接编辑所关联的原始配置，将修改应用到运行时配置，而无需重新导入。</li>
@@ -197,36 +198,36 @@ const openGuideModal = (manager) => {
       </div>
     </div>
     `,
-    setup() {
-      const handleLocal = async () => {
-        const success = await manager.handleAddLocal()
-        if (success) modal.close()
+      setup() {
+        const handleLocal = async () => {
+          const success = await manager.handleAddLocal()
+          if (success) modal.close()
+        }
+        const handleRemote = async () => {
+          const success = await manager.handleAddRemote(remoteUrl.value.trim(), enableCache.value)
+          if (success) modal.close()
+        }
+        return { showUrlInput, remoteUrl, enableCache, handleLocal, handleRemote }
       }
-      const handleRemote = async () => {
-        const success = await manager.handleAddRemote(remoteUrl.value.trim(), enableCache.value)
-        if (success) modal.close()
+    })
+    const modal = Plugins.modal({
+      title: '原生配置添加向导',
+      submit: false,
+      cancelText: '关闭',
+      width: '60',
+      afterClose: () => {
+        modal.destroy()
       }
-      return { showUrlInput, remoteUrl, enableCache, handleLocal, handleRemote }
-    }
-  })
-  const modal = Plugins.modal({
-    title: '原生配置添加向导',
-    submit: false,
-    cancelText: '关闭',
-    width: '60',
-    afterClose: () => {
-      modal.destroy()
-    }
-  })
-  modal.setContent(component)
-  modal.open()
-}
-const openEditModal = (cfg, manager) => {
-  const { ref, defineComponent } = Vue
-  const inputValue = ref(cfg.type === 'local' ? cfg.configPath : cfg.configUrl)
-  const cacheOptions = ref(cfg.type === 'remote' ? (cfg.cache?.enable ?? false) : undefined)
-  const component = defineComponent({
-    template: `
+    })
+    modal.setContent(component)
+    modal.open()
+  }
+  const openEditModal = (cfg, manager) => {
+    const { ref, defineComponent } = Vue
+    const inputValue = ref(cfg.type === 'local' ? cfg.configPath : cfg.configUrl)
+    const cacheOptions = ref(cfg.type === 'remote' ? (cfg.cache?.enable ?? false) : undefined)
+    const component = defineComponent({
+      template: `
     <div class="flex flex-col">
       <div class="px-8 py-12 flex items-center justify-between gap-8">
         <div class="text-16 font-bold shrink-0">
@@ -240,59 +241,60 @@ const openEditModal = (cfg, manager) => {
       </div>
     </div>
     `,
-    setup() {
-      const isRemote = cfg.type === 'remote'
-      const label = isRemote ? '配置链接' : '配置路径'
-      const placeholder = isRemote ? 'http(s)://...' : '/PATH/TO/FILE.json'
-      return { inputValue, label, placeholder, isRemote, cacheOptions }
-    }
-  })
-  const modal = Plugins.modal({
-    title: '编辑',
-    width: '50',
-    submitText: '保存',
-    cancelText: '取消',
-    onOk: async () => {
-      if (!inputValue.value.length) {
-        Plugins.message.error('输入不能为空')
-        return false
+      setup() {
+        const isRemote = cfg.type === 'remote'
+        const label = isRemote ? '配置链接' : '配置路径'
+        const placeholder = isRemote ? 'http(s)://...' : '/PATH/TO/FILE.json'
+        return { inputValue, label, placeholder, isRemote, cacheOptions }
       }
-      try {
-        await manager.updateConfig(cfg, {
-          input: inputValue.value,
-          cache: cacheOptions.value
-        })
-        return true
-      } catch (error) {
-        Plugins.message.error(`保存失败：${error instanceof Error ? error.message : String(error)}`)
-        return false
+    })
+    const modal = Plugins.modal({
+      title: '编辑',
+      width: '50',
+      submitText: '保存',
+      cancelText: '取消',
+      onOk: async () => {
+        if (!inputValue.value.length) {
+          Plugins.message.error('输入不能为空')
+          return false
+        }
+        try {
+          await manager.updateConfig(cfg, {
+            input: inputValue.value,
+            cache: cacheOptions.value
+          })
+          return true
+        } catch (error) {
+          Plugins.message.error(`保存失败：${error instanceof Error ? error.message : String(error)}`)
+          return false
+        }
+      },
+      afterClose: () => {
+        modal.destroy()
       }
-    },
-    afterClose: () => {
-      modal.destroy()
-    }
-  })
-  modal.setContent(component)
-  modal.open()
+    })
+    modal.setContent(component)
+    modal.open()
+  }
+  return { onRun, onReady, onGenerate, onInstall, onUninstall }
 }
 class NativeConfigManager {
-  configs = window[Plugin.id].configs
+  configs = Vue.ref([])
+  cacheDir
+  managerPath
+  tempPath
+  constructor(opts) {
+    this.cacheDir = opts.cacheDir
+    this.managerPath = opts.managerPath
+    this.tempPath = `${this.cacheDir}/temp.json`
+  }
   async init() {
-    if (!(await Plugins.FileExists(CACHE_PATH))) {
-      await Plugins.MakeDir(CACHE_PATH)
-    }
-    if (!(await Plugins.FileExists(BASE_PATH))) {
-      await Plugins.MakeDir(BASE_PATH)
-      await Plugins.WriteFile(MANAGE_FILE_PATH, '[]')
+    try {
+      const content = await Plugins.ReadFile(this.managerPath)
+      this.configs.value = JSON.parse(content)
+    } catch (error) {
+      console.error('管理器配置读取失败', error)
       this.configs.value = []
-    } else {
-      try {
-        const content = await Plugins.ReadFile(MANAGE_FILE_PATH)
-        this.configs.value = JSON.parse(content)
-      } catch (error) {
-        console.log('管理文件读取失败', error)
-        this.configs.value = []
-      }
     }
   }
   async handleAddLocal() {
@@ -302,7 +304,7 @@ class NativeConfigManager {
     const isValid = await this.validateConfig(content)
     if (!isValid) return false
     const id = Plugins.sampleID()
-    const cachePath = `${CACHE_PATH}/${id}.json`
+    const cachePath = `${this.cacheDir}/${id}.json`
     await Plugins.WriteFile(cachePath, content)
     Plugins.message.info(`配置已缓存至 ${cachePath}，可自行修改为其他路径，本地配置缓存不会触发更新`)
     const sourceConfig = JSON.parse(content)
@@ -339,7 +341,7 @@ class NativeConfigManager {
       const id = Plugins.sampleID()
       const handleCache = async () => {
         if (!cache) return { enable: false }
-        const cachePath = `${CACHE_PATH}/${id}.json`
+        const cachePath = `${this.cacheDir}/${id}.json`
         await Plugins.WriteFile(cachePath, content)
         Plugins.message.info(`配置已缓存至 ${cachePath}，请在远程配置发生变化时，手动更新`)
         return { enable: true, path: cachePath }
@@ -370,23 +372,24 @@ class NativeConfigManager {
   async validateConfig(content) {
     try {
       JSON.parse(content)
-      await Plugins.WriteFile(TEMP_CHECK_PATH, content)
-      const coreName = await Plugins.getKernelFileName(false)
+      await Plugins.WriteFile(this.tempPath, content)
+      const isAlpha = Plugins.useAppSettingsStore().app.kernel.branch === 'alpha'
+      const coreName = await Plugins.getKernelFileName(isAlpha)
       const corePath = await Plugins.AbsolutePath(`data/sing-box/${coreName}`)
-      const tempPath = await Plugins.AbsolutePath(TEMP_CHECK_PATH)
+      const tempPath = await Plugins.AbsolutePath(this.tempPath)
       await Plugins.Exec(corePath, ['check', '-c', tempPath])
       return true
     } catch (error) {
       Plugins.message.error(`配置效验不通过：${error instanceof Error ? error.message : String(error)}`)
       return false
     } finally {
-      await Plugins.RemoveFile(TEMP_CHECK_PATH).catch(() => {
+      await Plugins.RemoveFile(this.tempPath).catch(() => {
         /*  */
       })
     }
   }
   async saveConfigs() {
-    await Plugins.WriteFile(MANAGE_FILE_PATH, JSON.stringify(this.configs.value, null, 2))
+    await Plugins.WriteFile(this.managerPath, JSON.stringify(this.configs.value, null, 2))
   }
   async deleteConfig(cfg) {
     if (!(await Plugins.confirm('提示', '确定要删除该配置吗？').catch(() => false))) return
@@ -398,7 +401,7 @@ class NativeConfigManager {
     this.configs.value?.splice(idx, 1)
     await this.saveConfigs()
     await Plugins.useProfilesStore().deleteProfile(cfg.profileId)
-    await Plugins.RemoveFile(`${CACHE_PATH}/${cfg.id}.json`).catch(() => {
+    await Plugins.RemoveFile(`${this.cacheDir}/${cfg.id}.json`).catch(() => {
       /*  */
     })
     Plugins.message.success('配置删除成功')
@@ -430,7 +433,7 @@ class NativeConfigManager {
           throw 'Validation failed'
         }
         if (!cfg.cache.path) {
-          const cachePath = `${CACHE_PATH}/${cfg.id}.json`
+          const cachePath = `${this.cacheDir}/${cfg.id}.json`
           await Plugins.WriteFile(cachePath, content)
           cfg.cache.path = cachePath
           await this.saveConfigs()

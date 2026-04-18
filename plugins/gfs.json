@@ -167,7 +167,7 @@
   {
     "id": "plugin-native-config-manager",
     "name": "原生配置管理",
-    "version": "v1.2.0",
+    "version": "v1.3.0",
     "description": "允许在 GUI 中直接运行和管理未经修改的 sing-box 原始配置，跳过 GUI 的默认配置覆盖，完美保留你的自定义规则，专为需要高度定制化配置的用户设计。Supported by: 泡泡茶壶",
     "tags": ["实用工具", "功能扩展", "提升体验"],
     "type": "Http",
