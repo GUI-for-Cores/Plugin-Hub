@@ -415,4 +415,4 @@ type PluginExposed = {
   onConfigure?: (config, old) => MaybePromise<PluginStatus>
 }
 
-type EsmPlugin = PluginExposed | MaybePromise<(Plugin: PluginMetadata) => PluginExposed>
+type EsmPlugin = PluginExposed | ((Plugin: PluginMetadata) => MaybePromise<PluginExposed>)

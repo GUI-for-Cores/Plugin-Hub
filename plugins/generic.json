@@ -222,7 +222,7 @@
   {
     "id": "plugin-node-convert",
     "name": "节点转换",
-    "version": "v2.21.11",
+    "version": "v3.0.0",
     "description": "节点格式转换插件，支持v2Ray格式转clash、clash格式转sing-box。",
     "tags": ["节点处理"],
     "type": "Http",
@@ -230,7 +230,9 @@
     "path": "data/plugins/plugin-node-convert.js",
     "triggers": ["on::manual", "on::subscribe"],
     "hasUI": false,
-    "menus": {},
+    "menus": {
+      "更新依赖": "Update"
+    },
     "context": {
       "profiles": {},
       "subscriptions": {
