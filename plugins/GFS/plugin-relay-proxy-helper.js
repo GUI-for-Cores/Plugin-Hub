@@ -1,57 +1,24 @@
-window[Plugin.id] = window[Plugin.id] || {}
-window[Plugin.id].selectedProfileId = null
-window[Plugin.id].outbounds = []
-
-/**
- * 插件钩子 - 点击运行按钮时
- */
-const onRun = async () => {
-  window[Plugin.id].outbounds = await selectProfile()
-  home().open()
-  return 0
-}
-
-const selectProfile = async () => {
-  const profilesStore = Plugins.useProfilesStore()
-  let profile = null
-  if (profilesStore.profiles.length === 1) {
-    profile = profilesStore.profiles[0]
-  } else {
-    profile = await Plugins.picker.single(
-      '请选择要添加代理链的配置',
-      profilesStore.profiles.map((v) => ({
-        label: v.name,
-        value: v
-      })),
-      [profilesStore.profiles[0]]
-    )
+/** @type {EsmPlugin} */
+export default (Plugin) => {
+  /**
+   * 插件钩子 - 点击运行按钮时
+   */
+  const onRun = async () => {
+    const profile = await selectProfile()
+    openUI(profile)
+    return 0
   }
-  window[Plugin.id].selectedProfileId = profile.id
-  const outTags = getOutTags(profile)
-  return outTags
+
+  return { onRun }
 }
 
 const addRelayProxy = async (profile) => {
-  window[Plugin.id].selectedProfileId = profile.id
-  window[Plugin.id].outbounds = await getOutTags(profile)
-  home().open()
+  openUI(profile)
 }
 
-const getOutTags = async (profile) => {
-  const config = await Plugins.generateConfig(profile)
-  const outTags = config.outbounds
-    .map((out) => {
-      if (!['direct', 'block'].includes(out.type) && out.tag !== 'GLOBAL') {
-        return out.tag
-      }
-      return null
-    })
-    .filter(Boolean)
-  return outTags
-}
-
-const home = () => {
+const openUI = async (profile) => {
   const { ref, h, computed, watch } = Vue
+  const outTags = await getOutTags(profile)
   const component = {
     template: `
     <div class="pr-8">
@@ -91,7 +58,7 @@ const home = () => {
     setup() {
       // 每条链是数组
       const relayChains = ref([[]])
-      const outList = window[Plugin.id].outbounds.map((v) => ({ label: v, value: v }))
+      const outList = outTags.map((v) => ({ label: v, value: v }))
 
       // 全局 select
       const globalOutSelected = ref(outList[0]?.value ?? null)
@@ -158,16 +125,129 @@ const home = () => {
         }
 
         const reversedChains = handleRelayChains(normalized)
-        const configScript = configScriptGenerate(reversedChains)
-        displayConfigScript(configScript).open()
+        const configScript = generateConfigScript(reversedChains)
+        displayConfigScript(profile, configScript)
       }
 
-      const configScriptGenerate = (relayChainsArg) => {
-        const escape = (s) => String(s).replace(/'/g, "\\'")
-        const relayChainsStr = '[' + relayChainsArg.map((chain) => '[' + chain.map((v) => `'${escape(v)}'`).join(', ') + ']').join(', ') + ']'
+      if (relayChains.value.length > 0) targetChainIndex.value = 0
 
-        // 支持为分组内实际 outbounds 添加上游
-        const configScript = `  const relayChains = ${relayChainsStr}; // 代理链定义
+      return {
+        relayChains,
+        outList,
+        globalOutSelected,
+        targetChainIndex,
+        chainOptions,
+        addChain,
+        removeChain,
+        addOutToTargetChain,
+        relayConfigGenerate
+      }
+    }
+  }
+
+  const modal = Plugins.modal(
+    {
+      title: '链式代理列表',
+      submit: false,
+      width: '90',
+      cancelText: '关闭',
+      afterClose: () => {
+        modal.destroy()
+      }
+    },
+    {
+      default: () => h(component)
+    }
+  )
+
+  modal.open()
+}
+
+const displayConfigScript = (profile, configScript) => {
+  const profilesStore = Plugins.useProfilesStore()
+  const { ref, h } = Vue
+  const previewComponent = {
+    template: `
+          <div class="pr-8">
+            <Card>
+              <div class="flex justify-between items-start gap-12 rounded px-12 py-8">
+                <div
+                  class="flex-1"
+                  style="line-height: 1.5"
+                >
+                  你可以点击右侧的 <b>复制脚本</b> 按钮将脚本复制到剪贴板，然后到对应配置的
+                  “设置 → 混入和脚本 → 脚本操作”中粘贴使用，或点击右侧的
+                  <b>覆盖写入</b> 按钮直接将脚本覆盖到当前配置。
+                </div>
+                <div style="flex:0 0 auto; display:flex; flex-direction:column; gap:6px;">
+                  <Button 
+                    @click="onCopy" 
+                    type="primary"
+                    title="将脚本复制到剪贴板"
+                  >
+                    复制脚本
+                  </Button>
+                  <Button 
+                    @click="onOverWrite" 
+                    type="link"
+                    title="点击后代理链脚本将直接覆盖当前配置的脚本"
+                  >
+                    覆盖写入
+                  </Button>
+                </div>
+              </div>
+              <CodeViewer
+                v-model="code"
+                lang="javascript"
+                style="min-height:320px; width:100%; border-radius:6px; overflow:hidden;"
+              />
+            </Card>
+          </div>
+          `,
+    setup() {
+      const code = ref(configScript)
+
+      const onOverWrite = async () => {
+        profile.script.code = configScript
+        profilesStore.editProfile(profile.id, profile)
+        Plugins.message.info('代理链脚本已成功写入当前配置')
+      }
+
+      const onCopy = async () => {
+        await Plugins.ClipboardSetText(code.value)
+        Plugins.message.info('脚本已复制到剪贴板')
+      }
+
+      return {
+        code,
+        onOverWrite,
+        onCopy
+      }
+    }
+  }
+
+  const modal = Plugins.modal(
+    {
+      title: '配置脚本预览',
+      submit: false,
+      cancelText: '关闭',
+      afterClose: () => {
+        modal.destroy()
+      }
+    },
+    {
+      default: () => h(previewComponent)
+    }
+  )
+  modal.open()
+}
+
+const generateConfigScript = (relayChainsArg) => {
+  const escape = (s) => String(s).replace(/'/g, "\\'")
+  const relayChainsStr = '[' + relayChainsArg.map((chain) => '[' + chain.map((v) => `'${escape(v)}'`).join(', ') + ']').join(', ') + ']'
+
+  // 支持为分组内实际 outbounds 添加上游
+  const configScript = `  const relayChains = ${relayChainsStr}; // 代理链定义
   const excludeReg = /selector|urltest/; // 排除分组类型
   const outsMap = Object.fromEntries(config.outbounds.map((out) => [out.tag, out])); // 将所有出站转换为以 tag 为键的映射
 
@@ -243,123 +323,37 @@ const home = () => {
     });
   });`
 
-        return `const onGenerate = async (config) => {
+  return `const onGenerate = async (config) => {
 ${configScript}
   return config
 }`.replace(/^\s*$(?:\r\n?|\n)/gm, '')
-      }
+}
 
-      const displayConfigScript = (configScript) => {
-        const previewComponent = {
-          template: `
-          <div class="pr-8">
-            <Card>
-              <div class="flex justify-between items-start gap-12 rounded px-12 py-8">
-                <div
-                  class="flex-1"
-                  style="line-height: 1.5"
-                >
-                  你可以点击右侧的 <b>复制脚本</b> 按钮将脚本复制到剪贴板，然后到对应配置的
-                  “设置 → 混入和脚本 → 脚本操作”中粘贴使用，或点击右侧的
-                  <b>覆盖写入</b> 按钮直接将脚本覆盖到当前配置。
-                </div>
-                <div style="flex:0 0 auto; display:flex; flex-direction:column; gap:6px;">
-                  <Button 
-                    @click="onCopy" 
-                    type="primary"
-                    title="将脚本复制到剪贴板"
-                  >
-                    复制脚本
-                  </Button>
-                  <Button 
-                    @click="onOverWrite" 
-                    type="link"
-                    title="点击后代理链脚本将直接覆盖当前配置的脚本"
-                  >
-                    覆盖写入
-                  </Button>
-                </div>
-              </div>
-              <CodeViewer
-                v-model="code"
-                lang="javascript"
-                style="min-height:320px; width:100%; border-radius:6px; overflow:hidden;"
-              />
-            </Card>
-          </div>
-          `,
-          setup() {
-            const code = ref(configScript)
-
-            const onOverWrite = async () => {
-              const profilesStore = Plugins.useProfilesStore()
-              const profile = profilesStore.getProfileById(window[Plugin.id].selectedProfileId)
-              profile.script.code = configScript
-              profilesStore.editProfile(profile.id, profile)
-              Plugins.message.info('代理链脚本已成功写入当前配置')
-            }
-
-            const onCopy = async () => {
-              await Plugins.ClipboardSetText(code.value)
-              Plugins.message.info('脚本已复制到剪贴板')
-            }
-
-            return {
-              code,
-              onOverWrite,
-              onCopy
-            }
-          }
-        }
-
-        const modal = Plugins.modal(
-          {
-            title: '配置脚本预览',
-            submit: false,
-            cancelText: '关闭',
-            afterClose: () => {
-              modal.destroy()
-            }
-          },
-          {
-            default: () => h(previewComponent)
-          }
-        )
-        return modal
-      }
-
-      if (relayChains.value.length > 0) targetChainIndex.value = 0
-
-      return {
-        relayChains,
-        outList,
-        globalOutSelected,
-        targetChainIndex,
-        chainOptions,
-        addChain,
-        removeChain,
-        addOutToTargetChain,
-        relayConfigGenerate,
-        configScriptGenerate,
-        displayConfigScript
-      }
-    }
+const selectProfile = async () => {
+  const profilesStore = Plugins.useProfilesStore()
+  let profile
+  if (profilesStore.profiles.length === 1) {
+    profile = profilesStore.profiles[0]
+  } else {
+    profile = await Plugins.picker.single(
+      '请选择要添加代理链的配置',
+      profilesStore.profiles.map((v) => ({
+        label: v.name,
+        value: v
+      })),
+      [profilesStore.profiles[0]]
+    )
   }
+  return profile
+}
 
-  const modal = Plugins.modal(
-    {
-      title: '链式代理列表',
-      submit: false,
-      width: '90',
-      cancelText: '关闭',
-      afterClose: () => {
-        modal.destroy()
-      }
-    },
-    {
-      default: () => h(component)
+const getOutTags = async (profile) => {
+  const config = await Plugins.generateConfig(profile)
+  const outTags = config.outbounds.flatMap((out) => {
+    if (!['direct', 'block'].includes(out.type) && out.tag !== 'GLOBAL') {
+      return out.tag
     }
-  )
-
-  return modal
+    return []
+  })
+  return outTags
 }
