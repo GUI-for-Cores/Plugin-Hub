@@ -2815,7 +2815,7 @@
   {
     "id": "plugin-generate-warp-config",
     "name": "WARP 配置生成",
-    "version": "v1.0.3",
+    "version": "v1.1.0",
     "description": "自动注册并生成 Cloudflare WARP 的配置信息。Supported by: 泡泡茶壶",
     "tags": ["实用工具"],
     "type": "Http",
