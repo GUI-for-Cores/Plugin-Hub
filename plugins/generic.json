@@ -350,7 +350,6 @@
     "path": "data/plugins/plugin-smart-proxy-switcher.js",
     "triggers": ["on::manual", "on::ready", "on::core::started", "on::core::stopped"],
     "hasUI": true,
-
     "menus": {
       "启动": "Start",
       "停止": "Stop"
@@ -2910,7 +2909,7 @@
   {
     "id": "plugin-subscribe-collection",
     "name": "聚合订阅",
-    "version": "v2.0.0",
+    "version": "v2.1.0",
     "description": "将现有的多个订阅组合为一个新订阅。Supported by: 泡泡茶壶",
     "tags": ["提升体验", "功能扩展"],
     "type": "Http",
