@@ -1,3 +1,201 @@
+/** @type {EsmPlugin} */
+export default (Plugin) => {
+  const appStore = Plugins.useAppStore()
+  /* 触发器 手动触发 */
+  const onRun = async () => {
+    openUI()
+  }
+  /* 触发器 APP就绪后 */
+  const onReady = async () => {
+    appStore.addCustomActions('profiles_header', {
+      id: Plugin.id,
+      component: 'Button',
+      componentProps: {
+        type: 'link',
+        onClick: openUI
+      },
+      componentSlots: {
+        default: '导入配置'
+      }
+    })
+  }
+  const openUI = () => {
+    const { h, defineComponent } = Vue
+    const component = defineComponent({
+      template: `
+    <div class="flex flex-col gap-4">
+      <Card>
+        <div class="text-12" style="line-height: 1.6;">
+          <div class="mb-8">
+            <span class="font-bold text-primary">格式要求：</span>
+            <span>此插件仅支持导入 <b>sing-box v1.12.0</b> 及以上版本的配置。</span>
+          </div>
+
+          <div class="mb-8">
+            <div class="font-bold text-primary mb-4">工作原理：</div>
+            <p class="mb-4 opacity-80">
+              如果你的配置中包含 GUI 尚未支持的设置项，插件将采取<b>动态生成脚本</b>的方式处理：
+            </p>
+            <ul class="list-disc pl-20 opacity-80 mb-4">
+              <li>
+                对于尚未支持的端点、入站和 DNS 服务器，插件会创建同名的<b>占位项</b>。
+                <div class="mt-2 text-11 italic opacity-90">
+                  * 注：端点占位项将同步在<b>入站</b>与<b>出站</b>中创建。
+                </div>
+                <div class="mt-2">
+                  为了脚本能正确还原配置，<span style="color: #ff4d4f;">请勿删除这些占位项</span>，它们将在运行时被脚本替换为原始配置。
+                </div>
+              </li>
+              <li>
+                其他<b>尚未支持</b>的字段同样会在运行时通过脚本自动<b>还原</b>。
+              </li>
+            </ul>
+            <p class="opacity-80">
+              在大多数情况下，GUI 最终生成的运行时配置将与你导入的原始配置<b>保持一致</b>。
+            </p>
+          </div>
+        </div>
+      </Card>
+
+      <div class="flex gap-12 mt-2">
+        <Button type="primary" @click="importLocalConfig" icon="file" class="flex-1">
+          从文件导入
+        </Button>
+        <Button type="primary" @click="importRemoteConfig" icon="link" class="flex-1">
+          从链接导入
+        </Button>
+      </div>
+    </div>
+    `,
+      setup() {
+        return {
+          importLocalConfig,
+          importRemoteConfig
+        }
+      }
+    })
+    const modal = Plugins.modal(
+      {
+        title: '配置导入帮助',
+        width: '420px',
+        submit: false,
+        cancelText: '关闭',
+        maskClosable: true,
+        afterClose: () => {
+          modal.destroy()
+        }
+      },
+      {
+        default: () => h(component),
+        action: () => h('div', { class: 'mr-auto text-12 opacity-60' }, '注：如果看不懂以上说明，建议使用快速开始。')
+      }
+    )
+    modal.open()
+  }
+  /* 导入本地配置 */
+  const importLocalConfig = async () => {
+    const files = await selectFile({ multiple: true, accept: '.json, application/json' })
+    if (!files) {
+      Plugins.message.warn('未选择任何文件')
+      return
+    }
+    Plugins.message.info(`开始解析 ${files.length} 个文件...`)
+    const fileList = Array.from(files)
+    const results = await Promise.allSettled(fileList.map(readJson))
+    for (const [i, result] of results.entries()) {
+      const fileName = fileList[i].name
+      if (result.status === 'fulfilled') {
+        try {
+          const importer = new ConfigImporter(result.value, fileName)
+          await importer.process()
+          Plugins.message.info(`文件 "${fileName}" 导入成功`)
+        } catch (err) {
+          Plugins.message.error(`文件 "${fileName}" 导入失败: ${err.message ?? String(err)}`)
+        }
+      } else {
+        Plugins.message.error(result.reason.message ?? result.reason)
+      }
+    }
+  }
+  /* 导入远程配置 */
+  const importRemoteConfig = () => {
+    const { h, ref, computed, defineComponent } = Vue
+    const component = defineComponent({
+      template: `
+    <div class="flex flex-col gap-4">
+      <div>
+        <div class="text-14 opacity-80 mb-4">请输入链接（每行一个）：</div>
+        <textarea
+          v-model="remoteUrls"
+          class="w-full p-8 rounded border outline-none resize-none font-mono text-14 box-border"
+          style="height: 120px; background: transparent; color: inherit; border-color: var(--el-border-color); box-sizing: border-box;"
+          placeholder="https://example.com/config.json"
+        ></textarea>
+      </div>
+
+      <div class="flex justify-end mt-2">
+          <Button type="primary" @click="handleImport" :loading="importing" icon="play">
+          {{ importBtnText }}
+        </Button>
+      </div>
+    </div>
+    `,
+      setup() {
+        const remoteUrls = ref('')
+        const importing = ref(false)
+        const urlCount = computed(() => {
+          return remoteUrls.value.split('\n').filter((u) => u.trim().length > 0).length
+        })
+        const importBtnText = computed(() => {
+          return urlCount.value > 0 ? `导入 (${urlCount.value})` : '开始导入'
+        })
+        const handleImport = async () => {
+          const urls = remoteUrls.value.split('\n').flatMap((u) => {
+            const clean = u.trim()
+            return clean.length > 0 ? [clean] : []
+          })
+          if (urls.length === 0) {
+            Plugins.message.warn('未输入任何链接')
+            return
+          }
+          importing.value = true
+          try {
+            const failCount = await processRemoteImport(urls)
+            if (failCount === 0) {
+              modal.close()
+            }
+          } finally {
+            importing.value = false
+          }
+        }
+        return {
+          remoteUrls,
+          importing,
+          importBtnText,
+          handleImport
+        }
+      }
+    })
+    const modal = Plugins.modal(
+      {
+        title: '批量导入 URL',
+        width: '420px',
+        submit: false,
+        cancelText: '关闭',
+        maskClosable: false,
+        afterClose: () => {
+          modal.destroy()
+        }
+      },
+      {
+        default: () => h(component),
+        action: () => h('div', { class: 'mr-auto text-12 opacity-60' }, '注：请确保导入来源可信')
+      }
+    )
+    modal.open()
+  }
+  return { onRun, onReady }
+}
 const FilterMode = { Include: 'include', Exclude: 'exclude' }
 const RequestMethod = {
   Get: 'GET',
@@ -1023,6 +1221,7 @@ class ConfigImporter {
       disabled: false,
       inSecure: false,
       requestMethod: RequestMethod.Get,
+      requestTimeout: 15,
       header: { request: {}, response: {} },
       proxies: proxies.map((p) => ({ id: this.states.proxyTagToId.get(p.tag), tag: p.tag, type: p.type })),
       script: DefaultSubscribeScript
@@ -1135,210 +1334,4 @@ const processRemoteImport = async (urls) => {
     }
   }
   return failCount
-}
-/* 导入本地配置 */
-const importLocalConfig = async () => {
-  const files = await selectFile({ multiple: true, accept: '.json, application/json' })
-  if (!files) {
-    Plugins.message.warn('未选择任何文件')
-    return
-  }
-  Plugins.message.info(`开始解析 ${files.length} 个文件...`)
-  const fileList = Array.from(files)
-  const results = await Promise.allSettled(fileList.map(readJson))
-  for (const [i, result] of results.entries()) {
-    const fileName = fileList[i].name
-    if (result.status === 'fulfilled') {
-      try {
-        const importer = new ConfigImporter(result.value, fileName)
-        await importer.process()
-        Plugins.message.info(`文件 "${fileName}" 导入成功`)
-      } catch (err) {
-        Plugins.message.error(`文件 "${fileName}" 导入失败: ${err.message ?? String(err)}`)
-      }
-    } else {
-      Plugins.message.error(result.reason.message ?? result.reason)
-    }
-  }
-}
-/* 导入远程配置 */
-const importRemoteConfig = () => {
-  const { h, ref, computed, defineComponent } = Vue
-  const component = defineComponent({
-    template: `
-    <div class="flex flex-col gap-4">
-      <div>
-        <div class="text-14 opacity-80 mb-4">请输入链接（每行一个）：</div>
-        <textarea
-          v-model="remoteUrls"
-          class="w-full p-8 rounded border outline-none resize-none font-mono text-14 box-border"
-          style="height: 120px; background: transparent; color: inherit; border-color: var(--el-border-color); box-sizing: border-box;"
-          placeholder="https://example.com/config.json"
-        ></textarea>
-      </div>
-
-      <div class="flex justify-end mt-2">
-          <Button type="primary" @click="handleImport" :loading="importing" icon="play">
-          {{ importBtnText }}
-        </Button>
-      </div>
-    </div>
-    `,
-    setup() {
-      const remoteUrls = ref('')
-      const importing = ref(false)
-      const urlCount = computed(() => {
-        return remoteUrls.value.split('\n').filter((u) => u.trim().length > 0).length
-      })
-      const importBtnText = computed(() => {
-        return urlCount.value > 0 ? `导入 (${urlCount.value})` : '开始导入'
-      })
-      const handleImport = async () => {
-        const urls = remoteUrls.value.split('\n').flatMap((u) => {
-          const clean = u.trim()
-          return clean.length > 0 ? [clean] : []
-        })
-        if (urls.length === 0) {
-          Plugins.message.warn('未输入任何链接')
-          return
-        }
-        importing.value = true
-        try {
-          const failCount = await processRemoteImport(urls)
-          if (failCount === 0) {
-            modal.close()
-          }
-        } finally {
-          importing.value = false
-        }
-      }
-      return {
-        remoteUrls,
-        importing,
-        importBtnText,
-        handleImport
-      }
-    }
-  })
-  const modal = Plugins.modal(
-    {
-      title: '批量导入 URL',
-      width: '420px',
-      submit: false,
-      cancelText: '关闭',
-      maskClosable: false,
-      afterClose: () => {
-        modal.destroy()
-      }
-    },
-    {
-      default: () => h(component),
-      action: () => h('div', { class: 'mr-auto text-12 opacity-60' }, '注：请确保导入来源可信')
-    }
-  )
-  modal.open()
-}
-const openUI = () => {
-  const { h, defineComponent } = Vue
-  const component = defineComponent({
-    template: `
-    <div class="flex flex-col gap-4">
-      <Card>
-        <div class="text-12" style="line-height: 1.6;">
-          <div class="mb-8">
-            <span class="font-bold text-primary">格式要求：</span>
-            <span>此插件仅支持导入 <b>sing-box v1.12.0</b> 及以上版本的配置。</span>
-          </div>
-
-          <div class="mb-8">
-            <div class="font-bold text-primary mb-4">工作原理：</div>
-            <p class="mb-4 opacity-80">
-              如果你的配置中包含 GUI 尚未支持的设置项，插件将采取<b>动态生成脚本</b>的方式处理：
-            </p>
-            <ul class="list-disc pl-20 opacity-80 mb-4">
-              <li>
-                对于尚未支持的端点、入站和 DNS 服务器，插件会创建同名的<b>占位项</b>。
-                <div class="mt-2 text-11 italic opacity-90">
-                  * 注：端点占位项将同步在<b>入站</b>与<b>出站</b>中创建。
-                </div>
-                <div class="mt-2">
-                  为了脚本能正确还原配置，<span style="color: #ff4d4f;">请勿删除这些占位项</span>，它们将在运行时被脚本替换为原始配置。
-                </div>
-              </li>
-              <li>
-                其他<b>尚未支持</b>的字段同样会在运行时通过脚本自动<b>还原</b>。
-              </li>
-            </ul>
-            <p class="opacity-80">
-              在大多数情况下，GUI 最终生成的运行时配置将与你导入的原始配置<b>保持一致</b>。
-            </p>
-          </div>
-        </div>
-      </Card>
-
-      <div class="flex gap-12 mt-2">
-        <Button type="primary" @click="handleLocal" icon="file" class="flex-1">
-          从文件导入
-        </Button>
-        <Button type="primary" @click="handleRemote" icon="link" class="flex-1">
-          从链接导入
-        </Button>
-      </div>
-    </div>
-    `,
-    setup() {
-      const handleLocal = () => {
-        modal.close()
-        setTimeout(() => importLocalConfig(), 200)
-      }
-      const handleRemote = () => {
-        modal.close()
-        setTimeout(() => {
-          importRemoteConfig()
-        }, 200)
-      }
-      return {
-        handleLocal,
-        handleRemote
-      }
-    }
-  })
-  const modal = Plugins.modal(
-    {
-      title: '配置导入帮助',
-      width: '420px',
-      submit: false,
-      cancelText: '关闭',
-      maskClosable: true,
-      afterClose: () => {
-        modal.destroy()
-      }
-    },
-    {
-      default: () => h(component),
-      action: () => h('div', { class: 'mr-auto text-12 opacity-60' }, '注：如果看不懂以上说明，建议使用快速开始。')
-    }
-  )
-  modal.open()
-}
-/* 触发器 手动触发 */
-const onRun = async () => {
-  openUI()
-}
-/* 触发器 APP就绪后 */
-const onReady = async () => {
-  const appStore = Plugins.useAppStore()
-  // appStore.removeCustomActions('profiles_header', Plugin.id)
-  appStore.addCustomActions('profiles_header', {
-    id: Plugin.id,
-    component: 'Dropdown',
-    componentSlots: {
-      default: ({ h }) => h('Button', { type: 'link' }, () => Plugin.name),
-      overlay: ({ h }) =>
-        h('div', { class: 'flex flex-col gap-4 min-w-64 p-4' }, [
-          h('Button', { type: 'text', onClick: importLocalConfig }, () => '从文件导入'),
-          h('Button', { type: 'text', onClick: importRemoteConfig }, () => '从URL导入')
-        ])
-    }
-  })
 }

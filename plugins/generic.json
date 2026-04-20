@@ -350,7 +350,6 @@
     "path": "data/plugins/plugin-smart-proxy-switcher.js",
     "triggers": ["on::manual", "on::ready", "on::core::started", "on::core::stopped"],
     "hasUI": true,
-
     "menus": {
       "启动": "Start",
       "停止": "Stop"
@@ -2813,84 +2812,9 @@
     "installed": false
   },
   {
-    "id": "plugin-sni-spoofing",
-    "name": "SNI 伪造",
-    "version": "v4.0.2",
-    "description": "通过为浏览器注入伪造参数，实现直连访问部分被墙网站。Supported by: 泡泡茶壶",
-    "tags": ["实用工具", "功能扩展"],
-    "type": "Http",
-    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sni-spoofing.js",
-    "path": "data/plugins/plugin-sni-spoofing.js",
-    "triggers": ["on::manual", "on::shutdown", "on::ready"],
-    "hasUI": false,
-    "menus": {
-      "更新规则": "updateRule",
-      "启动服务": "onStart",
-      "停止服务": "onStop"
-    },
-    "context": {
-      "profiles": {},
-      "subscriptions": {},
-      "rulesets": {},
-      "plugins": {},
-      "scheduledtasks": {}
-    },
-    "status": 0,
-    "configuration": [
-      {
-        "id": "ID_h37od3q7",
-        "title": "浏览器路径",
-        "description": "用 Chromium 作为内核的浏览器的绝对路径 (包括但不限于 Chrome，Edge，Brave)",
-        "key": "BrowserPath",
-        "component": "Input",
-        "value": "",
-        "options": []
-      },
-      {
-        "id": "ID_jcd2ujqo",
-        "title": "OpenSSL 可执行文件路径",
-        "description": "此选项仅限于 Windwos，填写你的 OpenSSL 程序的绝对路径",
-        "key": "OpensslPath",
-        "component": "Input",
-        "value": "C:/Program Files/FireDaemon OpenSSL 3/bin/openssl.exe",
-        "options": []
-      },
-      {
-        "id": "ID_wvnnkd3x",
-        "title": "启用全局伪造",
-        "description": "启用后可以伪造浏览器之外的应用，如需观看 Youtube 视频，则必需启用",
-        "key": "GlobalSpoofing",
-        "component": "Switch",
-        "value": false,
-        "options": []
-      },
-      {
-        "id": "ID_n16nxaql",
-        "title": "自定义规则",
-        "description": "填写你自己的伪造规则，将会合并到基础规则中",
-        "key": "CustomRules",
-        "component": "CodeViewer",
-        "value": "[]",
-        "options": []
-      },
-      {
-        "id": "ID_zkafn4dl",
-        "title": "额外启动参数",
-        "description": "填写的参数将添加到最终的浏览器启动参数中",
-        "key": "ExtraStartArgs",
-        "component": "Input",
-        "value": "",
-        "options": []
-      }
-    ],
-    "disabled": false,
-    "install": true,
-    "installed": false
-  },
-  {
     "id": "plugin-generate-warp-config",
     "name": "WARP 配置生成",
-    "version": "v1.0.3",
+    "version": "v1.1.0",
     "description": "自动注册并生成 Cloudflare WARP 的配置信息。Supported by: 泡泡茶壶",
     "tags": ["实用工具"],
     "type": "Http",
@@ -2925,7 +2849,7 @@
   {
     "id": "plugin-log-record",
     "name": "日志记录器",
-    "version": "v2.1.0",
+    "version": "v2.2.0",
     "description": "记录内核输出的日志到文件中，方便后续调试。Supported by: 泡泡茶壶",
     "tags": ["提升体验", "功能扩展"],
     "type": "Http",
@@ -2985,7 +2909,7 @@
   {
     "id": "plugin-subscribe-collection",
     "name": "聚合订阅",
-    "version": "v2.0.0",
+    "version": "v2.1.0",
     "description": "将现有的多个订阅组合为一个新订阅。Supported by: 泡泡茶壶",
     "tags": ["提升体验", "功能扩展"],
     "type": "Http",
@@ -3003,125 +2927,6 @@
     },
     "status": 0,
     "configuration": [],
-    "disabled": false,
-    "install": false,
-    "installed": false
-  },
-  {
-    "id": "plugin-gui-bot-controller",
-    "name": "Bot 控制器",
-    "version": "v0.0.1",
-    "description": "通过 Telegram 机器人控制你的 GUI 客户端。(测试版) Supported by: 泡泡茶壶",
-    "tags": ["提升体验", "功能扩展", "实用工具"],
-    "type": "Http",
-    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-gui-bot-controller.js",
-    "path": "data/plugins/plugin-gui-bot-controller.js",
-    "triggers": ["on::manual", "on::ready", "on::core::started", "on::core::stopped"],
-    "hasUI": true,
-    "menus": {
-      "启动服务": "start",
-      "停止服务": "stop"
-    },
-    "context": {
-      "profiles": {},
-      "subscriptions": {},
-      "rulesets": {},
-      "plugins": {},
-      "scheduledtasks": {}
-    },
-    "status": 0,
-    "configuration": [
-      {
-        "id": "ID_e64d8t57",
-        "title": "机器人工作模式",
-        "description": "",
-        "key": "work_mode",
-        "component": "Radio",
-        "value": "polling",
-        "options": ["polling", "webhook"]
-      },
-      {
-        "id": "ID_c1x6zi8o",
-        "title": "Telegram 机器人 Token",
-        "description": "",
-        "key": "bot_token",
-        "component": "Input",
-        "value": "",
-        "options": []
-      },
-      {
-        "id": "ID_pzhjlhrq",
-        "title": "长轮询超时（秒）",
-        "description": "",
-        "key": "polling_timeout",
-        "component": "Input",
-        "value": "30",
-        "options": []
-      },
-      {
-        "id": "ID_usv94lff",
-        "title": "Webhook 更新接收 URL",
-        "description": "",
-        "key": "webhook_url",
-        "component": "Input",
-        "value": "",
-        "options": []
-      },
-      {
-        "id": "ID_ttvn4ife",
-        "title": "Webhook 服务监听地址",
-        "description": "",
-        "key": "webhook_listen",
-        "component": "Input",
-        "value": "0.0.0.0",
-        "options": []
-      },
-      {
-        "id": "ID_mrjtvj65",
-        "title": "Webhook 服务监听端口",
-        "description": "",
-        "key": "webhook_port",
-        "component": "Input",
-        "value": "",
-        "options": []
-      },
-      {
-        "id": "ID_yy4olc44",
-        "title": "Webhook 服务验证 Token",
-        "description": "",
-        "key": "webhook_token",
-        "component": "Input",
-        "value": "",
-        "options": []
-      },
-      {
-        "id": "ID_406vvwtf",
-        "title": "启动时丢弃未处理更新",
-        "description": "",
-        "key": "drop_updates",
-        "component": "Switch",
-        "value": true,
-        "options": []
-      },
-      {
-        "id": "ID_tj4p7j2c",
-        "title": "你的 Telegram 用户 ID",
-        "description": "",
-        "key": "user_id",
-        "component": "Input",
-        "value": "",
-        "options": []
-      },
-      {
-        "id": "ID_jaz6jaz9",
-        "title": "GUI 启动时自动运行",
-        "description": "",
-        "key": "auto_start",
-        "component": "Switch",
-        "value": false,
-        "options": []
-      }
-    ],
     "disabled": false,
     "install": false,
     "installed": false

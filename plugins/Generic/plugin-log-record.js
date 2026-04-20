@@ -1,39 +1,39 @@
-window[Plugin.id] = window[Plugin.id] || {}
-
 const TMP_DIR = 'data/.cache'
 
-class Logger {
-  constructor() {
-    this.coreType = Plugins.APP_TITLE.includes('SingBox') ? 'sing-box' : 'clash'
-  }
+/** @type {EsmPlugin} */
+export default (Plugin) => {
+  const logLimit = Number(Plugin.MaxRecords) || 1000
+  const logger = new Logger(logLimit)
 
-  static getInstance() {
-    if (!window[Plugin.id].logger) {
-      window[Plugin.id].logger = new Logger()
+  return {
+    onCoreStarted: () => {
+      logger.start()
+    },
+    onCoreStopped: () => {
+      logger.destroy()
     }
-    return window[Plugin.id].logger
   }
+}
 
-  init() {
-    this.maxLogCount = Number(Plugin.MaxRecords) || 1000
-    this.logsBuffer = []
-    this.cleanUp()
+class Logger {
+  core = Plugins.APP_TITLE.includes('SingBox') ? 'sing-box' : 'mihomo'
+  logsBuffer = []
+  unregisterLogsHandle
+  removeComponent
+
+  constructor(logLimit) {
+    this.logLimit = logLimit
   }
 
   start() {
+    this.destroy()
     this.registerLogsHandler()
     this.addComponent()
   }
 
   destroy() {
-    if (this.logsBuffer?.length > 0) {
-      this.logsBuffer.length = 0
-    }
-    this.cleanUp()
-    window[Plugin.id].logger = null
-  }
+    this.logsBuffer.length = 0
 
-  cleanUp() {
     this.unregisterLogsHandler?.()
     this.unregisterLogsHandler = null
 
@@ -42,7 +42,7 @@ class Logger {
   }
 
   handleNewLog(logData) {
-    if (this.logsBuffer.length >= this.maxLogCount) {
+    if (this.logsBuffer.length >= this.logLimit) {
       this.logsBuffer.shift()
     }
 
@@ -78,24 +78,11 @@ class Logger {
     }
     const logTexts = this.logsBuffer.map((log) => `${Plugins.formatDate(log.time, 'YYYY-MM-DD HH:mm:ss')} ${log.type.toUpperCase()} ${log.payload}`).join('\n')
     const savedTime = Plugins.formatDate(Date.now(), 'YYYY-MM-DD_HH-mm-ss')
-    const fileName = `${this.coreType}_${savedTime}.log`
+    const fileName = `${this.core}_${savedTime}.log`
     const filePath = await Plugins.AbsolutePath(`${TMP_DIR}/${fileName}`)
 
     await Plugins.WriteFile(filePath, logTexts.trim())
 
     Plugins.message.info(`日志已导出到 ${filePath}`)
   }
-}
-
-/* 触发器 核心启动后 */
-const onCoreStarted = () => {
-  const logger = Logger.getInstance()
-  logger.init()
-  logger.start()
-}
-
-/* 触发器 核心停止后 */
-const onCoreStopped = () => {
-  const logger = Logger.getInstance()
-  logger.destroy()
 }
