@@ -259,5 +259,40 @@
     "disabled": false,
     "install": false,
     "installed": false
+  },
+  {
+    "id": "plugin-config-override",
+    "version": "v1.0.0",
+    "name": "配置覆盖",
+    "description": "在 sing-box 启动前，将本地或远程 JSON 作为 override 合并进 GUI 生成的 config.json，支持远程缓存与数组路径追加策略。 Supported by: CorneliaMo",
+    "tags": ["实用工具", "功能扩展", "提升体验"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-config-override.js",
+    "path": "data/plugins/plugin-config-override.js",
+    "status": 0,
+    "triggers": ["on::manual", "on::ready", "on::before::core::start"],
+    "hasUI": true,
+    "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "configuration": [
+      {
+        "id": "ID_append_paths",
+        "title": "数组追加路径",
+        "description": "命中的数组路径会使用追加而不是覆盖，例如 route.rules 或 dns.rules。",
+        "key": "appendPaths",
+        "component": "InputList",
+        "value": [],
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
   }
 ]
