@@ -63,7 +63,7 @@ export default (Plugin) => {
     onCoreStopped() {
       del_UI()
     },
-    onDispose(){
+    onDispose() {
       del_UI()
     }
   }

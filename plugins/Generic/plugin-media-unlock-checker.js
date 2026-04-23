@@ -237,7 +237,10 @@ const Checker = {
       try {
         const { body } = await Plugins.HttpGet('https://claude.ai/cdn-cgi/trace')
         const bodyText = typeof body === 'string' ? body : JSON.stringify(body)
-        region = bodyText.match(/(?:^|\n)loc=([^\n]+)/)?.[1]?.trim()?.toUpperCase()
+        region = bodyText
+          .match(/(?:^|\n)loc=([^\n]+)/)?.[1]
+          ?.trim()
+          ?.toUpperCase()
         if (!region) {
           status = 'Failed'
         } else if (['AF', 'BY', 'CN', 'CU', 'HK', 'IR', 'KP', 'MO', 'RU', 'SY'].includes(region)) {
@@ -333,7 +336,10 @@ const Checker = {
       if (result.status === 'Yes') return result
 
       try {
-        const [{ status: status1 }, { status: status2 }] = await Promise.all([Plugins.HttpGet('https://www.netflix.com/title/81280792'), Plugins.HttpGet('https://www.netflix.com/title/70143836')])
+        const [{ status: status1 }, { status: status2 }] = await Promise.all([
+          Plugins.HttpGet('https://www.netflix.com/title/81280792'),
+          Plugins.HttpGet('https://www.netflix.com/title/70143836')
+        ])
 
         if (status1 === 404 && status2 === 404) {
           return new CheckResult(this.name, 'Originals Only', null)
@@ -575,10 +581,18 @@ const Checker = {
       try {
         const { body, status: statusCode } = await Plugins.HttpGet('https://www.tiktok.com/cdn-cgi/trace')
         const bodyText = typeof body === 'string' ? body : JSON.stringify(body)
-        region = bodyText.match(/(?:^|\n)loc=([^\n]+)/)?.[1]?.trim()?.toUpperCase()
+        region = bodyText
+          .match(/(?:^|\n)loc=([^\n]+)/)?.[1]
+          ?.trim()
+          ?.toUpperCase()
         if (statusCode === 403 || statusCode === 451) status = 'No'
         else if (statusCode < 200 || statusCode >= 300) status = 'Failed'
-        else if (bodyText.toLowerCase().includes('access denied') || bodyText.toLowerCase().includes('not available in your region') || bodyText.toLowerCase().includes('tiktok is not available')) status = 'No'
+        else if (
+          bodyText.toLowerCase().includes('access denied') ||
+          bodyText.toLowerCase().includes('not available in your region') ||
+          bodyText.toLowerCase().includes('tiktok is not available')
+        )
+          status = 'No'
         else status = 'Yes'
       } catch {}
 
@@ -586,12 +600,20 @@ const Checker = {
         try {
           const { body, status: statusCode } = await Plugins.HttpGet('https://www.tiktok.com/')
           const bodyText = typeof body === 'string' ? body : JSON.stringify(body)
-          const fallbackRegion = bodyText.match(/"region"\s*:\s*"([a-zA-Z-]+)"/)?.[1]?.split('-')?.[0]?.toUpperCase()
+          const fallbackRegion = bodyText
+            .match(/"region"\s*:\s*"([a-zA-Z-]+)"/)?.[1]
+            ?.split('-')?.[0]
+            ?.toUpperCase()
           if (!region) region = fallbackRegion
           if (status !== 'No') {
             if (statusCode === 403 || statusCode === 451) status = 'No'
             else if (statusCode < 200 || statusCode >= 300) status = 'Failed'
-            else if (bodyText.toLowerCase().includes('access denied') || bodyText.toLowerCase().includes('not available in your region') || bodyText.toLowerCase().includes('tiktok is not available')) status = 'No'
+            else if (
+              bodyText.toLowerCase().includes('access denied') ||
+              bodyText.toLowerCase().includes('not available in your region') ||
+              bodyText.toLowerCase().includes('tiktok is not available')
+            )
+              status = 'No'
             else status = 'Yes'
           }
         } catch (error) {

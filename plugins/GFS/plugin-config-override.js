@@ -1,5 +1,5 @@
 window[Plugin.id] = window[Plugin.id] ?? {
-  configs: Vue.ref([]),
+  configs: Vue.ref([])
 }
 
 const BASE_PATH = `data/third/${Plugin.id}`
@@ -39,7 +39,10 @@ const getProfileName = (profileId) => {
   return Plugins.useProfilesStore().getProfileById(profileId)?.name ?? 'Not Found'
 }
 
-const normalizePath = (path) => String(path || '').trim().replace(/\[(\d+)\]/g, '.$1')
+const normalizePath = (path) =>
+  String(path || '')
+    .trim()
+    .replace(/\[(\d+)\]/g, '.$1')
 
 const getAppendPaths = () => {
   const paths = Plugin.appendPaths
@@ -66,7 +69,7 @@ const createMergeContext = () => ({
   appendPaths: getAppendPaths(),
   hitAppendPaths: new Set(),
   warnings: [],
-  warnedPaths: new Set(),
+  warnedPaths: new Set()
 })
 
 const warnMergePath = (ctx, path, reason) => {
@@ -189,7 +192,7 @@ const fetchRemoteFile = async (url) => {
     method: 'GET',
     url,
     headers: { 'User-Agent': 'sing-box' },
-    autoTransformBody: false,
+    autoTransformBody: false
   })
   return body
 }
@@ -217,9 +220,7 @@ const readOverrideContent = async (cfg) => {
 }
 
 const ensureProfileUnbound = (profileId, currentId) => {
-  const duplicated = getState().configs.value.find(
-    (item) => item.profileId === profileId && item.id !== currentId,
-  )
+  const duplicated = getState().configs.value.find((item) => item.profileId === profileId && item.id !== currentId)
   if (duplicated) {
     throw `配置 ${getProfileName(profileId)} 已存在覆盖规则`
   }
@@ -233,11 +234,11 @@ const addProfilesHeaderAction = () => {
     component: 'Button',
     componentProps: {
       type: 'link',
-      onClick: onRun,
+      onClick: onRun
     },
     componentSlots: {
-      default: '管理配置覆盖',
-    },
+      default: '管理配置覆盖'
+    }
   })
 }
 
@@ -272,9 +273,7 @@ const onBeforeCoreStart = async (config, profile) => {
   const mergeContext = createMergeContext()
   const mergedConfig = deepMerge(config, overrideObject, '', mergeContext)
 
-  const unmatchedPaths = mergeContext.appendPaths.filter(
-    (path) => !mergeContext.hitAppendPaths.has(normalizePath(path)),
-  )
+  const unmatchedPaths = mergeContext.appendPaths.filter((path) => !mergeContext.hitAppendPaths.has(normalizePath(path)))
 
   unmatchedPaths.forEach((path) => {
     warnMergePath(mergeContext, path, '未命中任何 override 路径，已忽略该数组追加规则')
@@ -337,9 +336,7 @@ const openMainUI = (manager) => {
     </div>
     `,
     setup(_, { expose }) {
-      const remoteCount = computed(
-        () => manager.configs.value.filter((item) => item.type === 'remote' && item.cache?.enable).length,
-      )
+      const remoteCount = computed(() => manager.configs.value.filter((item) => item.type === 'remote' && item.cache?.enable).length)
 
       expose({
         modalSlots: {
@@ -350,9 +347,9 @@ const openMainUI = (manager) => {
                 type: 'link',
                 onClick: () => {
                   openAppendPathsModal()
-                },
+                }
               },
-              () => '数组追加路径',
+              () => '数组追加路径'
             ),
             h(
               resolveComponent('Button'),
@@ -360,9 +357,9 @@ const openMainUI = (manager) => {
                 type: 'link',
                 onClick: async () => {
                   await Plugins.OpenDir(BASE_PATH)
-                },
+                }
               },
-              () => '打开插件目录',
+              () => '打开插件目录'
             ),
             h(
               resolveComponent('Button'),
@@ -370,9 +367,9 @@ const openMainUI = (manager) => {
                 type: 'link',
                 onClick: async () => {
                   await Plugins.OpenDir(CACHE_PATH)
-                },
+                }
               },
-              () => '打开缓存目录',
+              () => '打开缓存目录'
             ),
             h(
               resolveComponent('Button'),
@@ -381,12 +378,12 @@ const openMainUI = (manager) => {
                 disabled: remoteCount.value === 0,
                 onClick: async () => {
                   await manager.updateCache()
-                },
+                }
               },
-              () => '更新缓存',
-            ),
-          ],
-        },
+              () => '更新缓存'
+            )
+          ]
+        }
       })
 
       return {
@@ -395,8 +392,7 @@ const openMainUI = (manager) => {
         edit: (cfg) => openEditModal(cfg, manager),
         remove: (cfg) => manager.deleteConfig(cfg),
         profileName: getProfileName,
-        sourceText: (cfg) =>
-          cfg.type === 'local' ? `本地快照：${cfg.configPath}` : `远程链接：${cfg.configUrl}`,
+        sourceText: (cfg) => (cfg.type === 'local' ? `本地快照：${cfg.configPath}` : `远程链接：${cfg.configUrl}`),
         cacheText: (cfg) => {
           if (cfg.type !== 'remote') {
             return '该规则读取导入后的本地快照，不会自动跟踪原始文件变更'
@@ -405,9 +401,9 @@ const openMainUI = (manager) => {
             return '缓存：关闭'
           }
           return `缓存：${cfg.cache.path || '尚未生成'}`
-        },
+        }
       }
-    },
+    }
   })
 
   const modal = Plugins.modal({
@@ -418,7 +414,7 @@ const openMainUI = (manager) => {
     height: '80',
     afterClose: () => {
       modal.destroy()
-    },
+    }
   })
 
   modal.setContent(component)
@@ -441,7 +437,7 @@ const openAppendPathsModal = () => {
     `,
     setup() {
       return { items }
-    },
+    }
   })
 
   const modal = Plugins.modal({
@@ -456,7 +452,7 @@ const openAppendPathsModal = () => {
     },
     afterClose: () => {
       modal.destroy()
-    },
+    }
   })
 
   modal.setContent(component)
@@ -511,8 +507,8 @@ const openGuideModal = (manager) => {
       const profileOptions = computed(() =>
         Plugins.useProfilesStore().profiles.map((profile) => ({
           label: profile.name,
-          value: profile.id,
-        })),
+          value: profile.id
+        }))
       )
 
       const ensureProfileSelected = () => {
@@ -531,11 +527,7 @@ const openGuideModal = (manager) => {
 
       const handleRemote = async () => {
         if (!ensureProfileSelected()) return
-        const success = await manager.handleAddRemote(
-          selectedProfileId.value,
-          remoteUrl.value.trim(),
-          enableCache.value,
-        )
+        const success = await manager.handleAddRemote(selectedProfileId.value, remoteUrl.value.trim(), enableCache.value)
         if (success) modal.close()
       }
 
@@ -546,9 +538,9 @@ const openGuideModal = (manager) => {
         selectedProfileId,
         profileOptions,
         handleLocal,
-        handleRemote,
+        handleRemote
       }
-    },
+    }
   })
 
   const modal = Plugins.modal({
@@ -558,7 +550,7 @@ const openGuideModal = (manager) => {
     width: '64',
     afterClose: () => {
       modal.destroy()
-    },
+    }
   })
 
   modal.setContent(component)
@@ -596,8 +588,8 @@ const openEditModal = (cfg, manager) => {
       const profileOptions = computed(() =>
         Plugins.useProfilesStore().profiles.map((profile) => ({
           label: profile.name,
-          value: profile.id,
-        })),
+          value: profile.id
+        }))
       )
 
       return {
@@ -607,9 +599,9 @@ const openEditModal = (cfg, manager) => {
         cacheEnabled,
         profileOptions,
         inputLabel: cfg.type === 'local' ? '重新导入文件路径' : '配置链接',
-        placeholder: cfg.type === 'local' ? '/PATH/TO/override.json' : 'http(s)://...',
+        placeholder: cfg.type === 'local' ? '/PATH/TO/override.json' : 'http(s)://...'
       }
-    },
+    }
   })
 
   const modal = Plugins.modal({
@@ -631,7 +623,7 @@ const openEditModal = (cfg, manager) => {
         await manager.updateConfig(cfg, {
           profileId: selectedProfileId.value,
           input: inputValue.value.trim(),
-          cache: cacheEnabled.value,
+          cache: cacheEnabled.value
         })
         return true
       } catch (error) {
@@ -641,7 +633,7 @@ const openEditModal = (cfg, manager) => {
     },
     afterClose: () => {
       modal.destroy()
-    },
+    }
   })
 
   modal.setContent(component)
@@ -686,8 +678,8 @@ class ConfigOverrideManager {
       cache: {
         enable: true,
         path: cachePath,
-        lastTime: Date.now(),
-      },
+        lastTime: Date.now()
+      }
     })
 
     await saveConfigs()
@@ -722,8 +714,8 @@ class ConfigOverrideManager {
         cache: {
           enable: enableCache,
           path: '',
-          lastTime: 0,
-        },
+          lastTime: 0
+        }
       }
 
       if (enableCache) {
@@ -779,14 +771,14 @@ class ConfigOverrideManager {
         ...(cfg.cache || {}),
         enable: true,
         path: snapshotPath,
-        lastTime: Date.now(),
+        lastTime: Date.now()
       }
     } else {
       cfg.configUrl = options.input
       cfg.cache = {
         ...(cfg.cache || {}),
         enable: !!options.cache,
-        path: cfg.cache?.path || `${CACHE_PATH}/${cfg.id}.json`,
+        path: cfg.cache?.path || `${CACHE_PATH}/${cfg.id}.json`
       }
 
       if (cfg.cache.enable) {
