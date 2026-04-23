@@ -251,6 +251,33 @@
     "installed": false
   },
   {
+    "id": "plugin-node-configurator",
+    "name": "节点配置器",
+    "version": "v1.0.0",
+    "description": "基于 JSON Schema 的代理协议配置器，支持协议/传输/TLS/插件字段联动，并将输入 JSON 实时 produce 为目标客户端格式。Supported by: Codex",
+    "tags": ["实用工具", "节点处理"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-node-configurator.js",
+    "path": "data/plugins/plugin-node-configurator.js",
+    "triggers": ["on::manual"],
+    "hasUI": true,
+    "menus": {
+      "更新依赖": "Update"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-ipc-logs",
     "name": "日志系统",
     "version": "v2.3.6",
@@ -2934,3 +2961,4 @@
     "installed": false
   }
 ]
+
