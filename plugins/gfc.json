@@ -57,7 +57,7 @@
     "id": "plugin-share-config-qrcode",
     "name": "扫码分享配置到手机CMFA",
     "version": "v1.1.0",
-    "group": "Tool",
+    "group": "Tools",
     "description": "手机端CMFA(Clash Meta for Android)扫码即可一键导入完整Mihomo配置。电脑端启动局域网临时HTTP服务，自动完成手机适配：条件继承TUN模式（PC端启用才补全，未启用则不干预）、内联proxy-providers消除重名冲突（失败时降级http或报错）、本地rule-providers转远程HTTP并最终校验、补全GLOBAL代理组确保CMFA可见、智能DNS适配（DNS启用时保证proxy-server-nameserver防循环依赖，TUN启用时补全所有bootstrap字段）。支持链式代理(dialer-proxy)、自定义代理组等完整配置透传。Supported by: KkemChen",
     "tags": ["实用工具", "功能扩展", "提升体验"],
     "type": "Http",
