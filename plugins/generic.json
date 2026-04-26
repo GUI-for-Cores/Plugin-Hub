@@ -1547,9 +1547,9 @@
   {
     "id": "plugin-github-workflows",
     "name": "GitHub工作流管理",
-    "version": "v1.0.1",
+    "version": "v2.0.0",
     "group": "Tools",
-    "description": "添加目标仓库，管理其工作流",
+    "description": "添加目标仓库，管理其工作流、Runs、Artifacts、Release 和 Tag，支持按需加载与批量删除",
     "tags": ["实用工具"],
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-github-workflows.js",
@@ -1569,7 +1569,7 @@
       {
         "id": "ID_igog5b39",
         "title": "Token",
-        "description": "具有仓库Actions权限的GitHub API Token",
+        "description": "具有仓库 Actions 和 Contents 权限的 GitHub API Token",
         "key": "Token",
         "component": "Input",
         "value": "",
