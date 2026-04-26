@@ -303,5 +303,61 @@
     "disabled": false,
     "install": false,
     "installed": false
+  },
+  {
+    "id": "plugin-fast-delay-test",
+    "version": "v1.0.0",
+    "name": "快速延迟测试",
+    "description": "在独立的核心进程中对订阅的节点进行延迟测试。Supported by: 泡泡茶壶",
+    "tags": ["功能扩展", "提升体验"],
+    "group": "Extensions",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-fast-delay-test.js",
+    "path": "data/plugins/plugin-fast-delay-test.js",
+    "status": 0,
+    "triggers": [],
+    "hasUI": false,
+    "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {
+        "测试延迟": "testDelay"
+      },
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "configuration": [
+      {
+        "id": "ID_5rlc6uk2",
+        "title": "测试地址",
+        "description": "",
+        "key": "test_url",
+        "component": "Select",
+        "value": "Google",
+        "options": ["Google", "Cloudflare", "Qualcomm", "Apple", "Microsoft"]
+      },
+      {
+        "id": "ID_35u5m3ty",
+        "title": "测试超时(ms)",
+        "description": "",
+        "key": "test_timeout",
+        "component": "Input",
+        "value": "5000",
+        "options": []
+      },
+      {
+        "id": "ID_wwmbdjp8",
+        "title": "并发测试数量",
+        "description": "",
+        "key": "concurrency_limit",
+        "component": "Input",
+        "value": "20",
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
   }
 ]
