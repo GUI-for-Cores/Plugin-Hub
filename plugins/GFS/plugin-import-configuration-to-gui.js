@@ -369,7 +369,9 @@ const DefaultOutbound = {
   interval: '3m',
   tolerance: 50,
   include: '',
-  exclude: ''
+  exclude: '',
+  icon: '',
+  hidden: false
 }
 const DefaultRouteRule = {
   id: '',

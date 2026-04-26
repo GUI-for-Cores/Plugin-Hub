@@ -120,7 +120,7 @@
   {
     "id": "plugin-relay-proxy-helper",
     "name": "链式代理助手",
-    "version": "v2.3.0",
+    "version": "v2.3.1",
     "group": "Extensions",
     "description": "帮助用户快速生成用于添加代理链的配置脚本。Supported by: 泡泡茶壶",
     "tags": ["实用工具", "功能扩展", "提升体验"],
@@ -146,7 +146,7 @@
   {
     "id": "plugin-import-configuration-to-gui",
     "name": "导入 sing-box 配置",
-    "version": "v3.1.0",
+    "version": "v3.1.1",
     "group": "Recommended",
     "description": "将完整的 sing-box 配置导入到 GUI 中。Supported by: 泡泡茶壶",
     "tags": ["实用工具", "功能扩展", "提升体验"],
