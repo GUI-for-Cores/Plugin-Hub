@@ -1,152 +1,142 @@
-const JS_FILE = 'https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.js'
-const PATH = 'data/third/share-profile-to-phone'
+import * as QRCode from 'https://cdn.jsdelivr.net/npm/qrcode@1.5.4/+esm'
 
-/* 触发器 手动触发 */
-const onRun = async () => {
-  const store = Plugins.useProfilesStore()
-  if (store.profiles.length === 0) {
-    throw '请先创建一个配置'
+/** @type {EsmPlugin} */
+export default (Plugin) => {
+  /* 触发器 手动触发 */
+  const onRun = async () => {
+    const store = Plugins.useProfilesStore()
+    if (store.profiles.length === 0) {
+      throw '请先创建一个配置'
+    }
+    let profile = null
+    if (store.profiles.length === 1) {
+      profile = store.profiles[0]
+    } else {
+      profile = await Plugins.picker.single(
+        '请选择要分享的配置',
+        store.profiles.map((v) => ({
+          label: v.name,
+          value: v
+        })),
+        [store.profiles[0]]
+      )
+    }
+    await Share(Plugins.deepClone(profile))
   }
-  let profile = null
-  if (store.profiles.length === 1) {
-    profile = store.profiles[0]
-  } else {
-    profile = await Plugins.picker.single(
-      '请选择要分享的配置',
-      store.profiles.map((v) => ({
-        label: v.name,
-        value: v
-      })),
-      [store.profiles[0]]
-    )
-  }
-  await Share(Plugins.deepClone(profile))
-}
 
-const Share = async (profile) => {
-  await loadDependence()
-  // * 开启TUN
-  let tun = profile.inbounds.find((v) => v.type === 'tun')
-  const mixed = profile.inbounds.find((v) => v.type === 'mixed' && v.enable)
-  const http = profile.inbounds.find((v) => v.type === 'http' && v.enable)
-  const inbound = mixed || http
-  if (!tun) {
-    tun = {
-      id: Plugins.sampleID(),
-      type: 'tun',
-      tag: 'tun-in',
-      enable: true,
-      tun: {
-        address: ['172.18.0.1/30', 'fdfe:dcba:9876::1/126'],
-        mtu: 0,
-        auto_route: true,
-        strict_route: true,
-        endpoint_independent_nat: false,
-        stack: 'mixed'
+  const Share = async (profile) => {
+    // * 开启TUN
+    let tun = profile.inbounds.find((v) => v.type === 'tun')
+    const mixed = profile.inbounds.find((v) => v.type === 'mixed' && v.enable)
+    const http = profile.inbounds.find((v) => v.type === 'http' && v.enable)
+    const inbound = mixed || http
+    if (!tun) {
+      tun = {
+        id: Plugins.sampleID(),
+        type: 'tun',
+        tag: 'tun-in',
+        enable: true,
+        tun: {
+          address: ['172.18.0.1/30', 'fdfe:dcba:9876::1/126'],
+          mtu: 0,
+          auto_route: true,
+          strict_route: true,
+          endpoint_independent_nat: false,
+          stack: 'mixed'
+        }
+      }
+      profile.inbounds.push(tun)
+    }
+    tun.enable = true
+    if (inbound) {
+      const port = inbound.type === 'mixed' ? inbound.mixed.listen.listen_port : inbound.http.listen.listen_port
+      tun.tun.platform = {
+        http_proxy: {
+          enabled: true,
+          server: '127.0.0.1',
+          server_port: port
+        }
       }
     }
-    profile.inbounds.push(tun)
-  }
-  tun.enable = true
-  if (inbound) {
-    const port = inbound.type === 'mixed' ? inbound.mixed.listen.listen_port : inbound.http.listen.listen_port
-    tun.tun.platform = {
-      http_proxy: {
-        enabled: true,
-        server: '127.0.0.1',
-        server_port: port
-      }
-    }
-  }
-  // * 替换本地规则集为远程规则集
-  const rulesetsStore = Plugins.useRulesetsStore()
-  for (const ruleset of profile.route.rule_set) {
-    if (ruleset.type === 'local') {
-      const _ruleset = rulesetsStore.getRulesetById(ruleset.path)
-      if (_ruleset) {
-        if (_ruleset.type === 'Http') {
-          ruleset.type = 'remote'
-          ruleset.url = _ruleset.url
-          ruleset.path = ''
-        } else if (['File', 'Manual'].includes(_ruleset.type)) {
-          if (_ruleset.format === 'source') {
-            const _rules = JSON.parse(await Plugins.ReadFile(_ruleset.path)).rules
-            ruleset.type = 'inline'
-            ruleset.rules = JSON.stringify(_rules)
-            ruleset.url = ''
+    // * 替换本地规则集为远程规则集
+    const rulesetsStore = Plugins.useRulesetsStore()
+    for (const ruleset of profile.route.rule_set) {
+      if (ruleset.type === 'local') {
+        const _ruleset = rulesetsStore.getRulesetById(ruleset.path)
+        if (_ruleset) {
+          if (_ruleset.type === 'Http') {
+            ruleset.type = 'remote'
+            ruleset.url = _ruleset.url
             ruleset.path = ''
+          } else if (['File', 'Manual'].includes(_ruleset.type)) {
+            if (_ruleset.format === 'source') {
+              const _rules = JSON.parse(await Plugins.ReadFile(_ruleset.path)).rules
+              ruleset.type = 'inline'
+              ruleset.rules = JSON.stringify(_rules)
+              ruleset.url = ''
+              ruleset.path = ''
+            }
           }
         }
       }
     }
-  }
 
-  const version = await Plugins.picker.single(
-    '生成的配置版本',
-    [
-      { label: '远古版(v1.11.0-)', value: 1 },
-      { label: '主流版(v1.11.0+)', value: 2 },
-      { label: '稳定版(v1.13.0+)', value: 3 },
-      { label: '测试版(v1.13.0+)', value: 4 }
-    ],
-    [3]
-  )
-  const config = await Plugins.generateConfig(profile, version < 4)
-  if (version < 3) {
-    _adaptToV3(config)
-    if (version <= 2) {
-      _adaptToV2(config)
-      if (version <= 1) {
-        _adaptToV1(config)
+    const version = await Plugins.picker.single(
+      '生成的配置版本',
+      [
+        { label: '远古版(v1.11.0-)', value: 1 },
+        { label: '主流版(v1.11.0+)', value: 2 },
+        { label: '稳定版(v1.13.0+)', value: 3 },
+        { label: '测试版(v1.13.0+)', value: 4 }
+      ],
+      [3]
+    )
+    const config = await Plugins.generateConfig(profile, version < 4)
+    if (version < 3) {
+      _adaptToV3(config)
+      if (version <= 2) {
+        _adaptToV2(config)
+        if (version <= 1) {
+          _adaptToV1(config)
+        }
       }
     }
+    // 新配置且禁用IPv6
+    if (!profile.tunConfig && Plugin.Ipv6Mode === 'disabled') {
+      config.dns.strategy = 'ipv4_only'
+      config.inbounds.forEach((inbound) => {
+        if (inbound.type === 'tun') {
+          inbound.address = inbound.address.filter((address) => Plugins.isValidIPv4(address.split('/')[0]))
+        }
+      })
+      config.dns.rules.forEach((rule) => {
+        if (rule.strategy) rule.strategy = 'ipv4_only'
+      })
+      config.route.rules.forEach((rule) => {
+        if (rule.strategy) rule.strategy = 'ipv4_only'
+      })
+    }
+    const ips = await getIPAddress()
+    const urls = await Promise.all(
+      ips.map((ip) => {
+        const url = `http://${ip}:${Plugin.Port}`
+        return getQRCode(url, `sing-box://import-remote-profile?url=${encodeURIComponent(url)}#${profile.name}`)
+      })
+    )
+    // await Plugins.StopServer(Plugin.id)
+    const { close } = await Plugins.StartServer('0.0.0.0:' + Plugin.Port, Plugin.id, async (req, res) => {
+      res.end(200, { 'Content-Type': 'application/json; charset=utf-8' }, JSON.stringify(config, null, 2))
+    })
+    await Plugins.alert(
+      Plugin.name,
+      '### 注意事项： \n\n - 请保证电脑和手机处于同一局域网内\n - 请关闭电脑防火墙\n - 如果仍无法导入，请更换不同二维码尝试\n\n|分享链接|二维码|\n|-|-|\n' +
+        urls.map((url) => `|${url.url}|![](${url.qrcode})|`).join('\n'),
+      { type: 'markdown' }
+    )
+    close()
   }
-  // 新配置且禁用IPv6
-  if (!profile.tunConfig && Plugin.Ipv6Mode === 'disabled') {
-    config.dns.strategy = 'ipv4_only'
-    config.inbounds.forEach((inbound) => {
-      if (inbound.type === 'tun') {
-        inbound.address = inbound.address.filter((address) => Plugins.isValidIPv4(address.split('/')[0]))
-      }
-    })
-    config.dns.rules.forEach((rule) => {
-      if (rule.strategy) rule.strategy = 'ipv4_only'
-    })
-    config.route.rules.forEach((rule) => {
-      if (rule.strategy) rule.strategy = 'ipv4_only'
-    })
-  }
-  const ips = await getIPAddress()
-  const urls = await Promise.all(
-    ips.map((ip) => {
-      const url = `http://${ip}:${Plugin.Port}`
-      return getQRCode(url, `sing-box://import-remote-profile?url=${encodeURIComponent(url)}#${profile.name}`)
-    })
-  )
-  // await Plugins.StopServer(Plugin.id)
-  const { close } = await Plugins.StartServer('0.0.0.0:' + Plugin.Port, Plugin.id, async (req, res) => {
-    res.end(200, { 'Content-Type': 'application/json; charset=utf-8' }, JSON.stringify(config, null, 2))
-  })
-  await Plugins.alert(
-    Plugin.name,
-    '### 注意事项： \n\n - 请保证电脑和手机处于同一局域网内\n - 请关闭电脑防火墙\n - 如果仍无法导入，请更换不同二维码尝试\n\n|分享链接|二维码|\n|-|-|\n' +
-      urls.map((url) => `|${url.url}|![](${url.qrcode})|`).join('\n'),
-    { type: 'markdown' }
-  )
-  close()
-}
 
-/* 触发器 安装 */
-const onInstall = async () => {
-  await Plugins.Download(JS_FILE, PATH + '/qrcode.min.js')
-  await Plugins.message.success('安装成功')
-  return 0
-}
-
-/* 触发器 卸载 */
-const onUninstall = async () => {
-  await Plugins.RemoveFile(PATH)
-  return 0
+  return { onRun, Share }
 }
 
 const _adaptToV3 = (config) => {
@@ -294,28 +284,6 @@ const _adaptToV1 = (config) => {
     rule.action = undefined
   })
 }
-/**
- * 动态引入依赖
- */
-function loadDependence() {
-  return new Promise(async (resolve, reject) => {
-    if (window.QRCode) {
-      resolve()
-      return
-    }
-    try {
-      const text = await Plugins.ReadFile(PATH + '/qrcode.min.js')
-      const script = document.createElement('script')
-      script.id = Plugin.id
-      script.text = text
-      document.body.appendChild(script)
-      resolve()
-    } catch (error) {
-      console.error(error)
-      reject('二维码生成依赖安装失败，请重新安装本插件')
-    }
-  })
-}
 
 function getQRCode(rawUrl, rawStr) {
   return new Promise((resolve) => {
@@ -353,7 +321,7 @@ async function getIPAddress() {
     linux: ['a'],
     darwin: []
   }[os]
-  const text = await Plugins.Exec(cmd, arg, { convert: os === 'windows' })
+  const text = await Plugins.Exec(cmd, arg, { Convert: os === 'windows' })
   const ipv4Pattern = /\b(?:\d{1,3}\.){3}\d{1,3}\b/g
   let ips = text.match(ipv4Pattern) || []
   ips = ips.filter((ip) => isPrivateIP(ip))
