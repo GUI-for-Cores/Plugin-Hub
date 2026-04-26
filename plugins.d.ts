@@ -124,6 +124,7 @@ interface Plugins {
     destroy(id: string | number): void
     error(msg: string): void
   }
+  Notify: (msg: string) => Promise<void>
 
   OpenDir(path: string): Promise<void>
   OpenURI(uri: string): Promise<void>
