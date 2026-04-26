@@ -9,18 +9,15 @@ export default (Plugin) => {
     return 0
   }
 
-  return { onRun }
-}
+  const addRelayProxy = async (profile) => {
+    openUI(profile)
+  }
 
-const addRelayProxy = async (profile) => {
-  openUI(profile)
-}
-
-const openUI = async (profile) => {
-  const { ref, h, computed, watch } = Vue
-  const outTags = await getOutTags(profile)
-  const component = {
-    template: `
+  const openUI = async (profile) => {
+    const { ref, h, computed, watch } = Vue
+    const outTags = await getOutTags(profile)
+    const component = {
+      template: `
     <div class="pr-8">
       <div class="py-8 flex items-center gap-4">
         快速添加：向
@@ -55,119 +52,119 @@ const openUI = async (profile) => {
       </div>
     </div>
     `,
-    setup() {
-      // 每条链是数组
-      const relayChains = ref([[]])
-      const outList = outTags.map((v) => ({ label: v, value: v }))
+      setup() {
+        // 每条链是数组
+        const relayChains = ref([[]])
+        const outList = outTags.map((v) => ({ label: v, value: v }))
 
-      // 全局 select
-      const globalOutSelected = ref(outList[0]?.value ?? null)
-      // 目标链索引（选择插入到哪条链）
-      const targetChainIndex = ref(0)
+        // 全局 select
+        const globalOutSelected = ref(outList[0]?.value ?? null)
+        // 目标链索引（选择插入到哪条链）
+        const targetChainIndex = ref(0)
 
-      // 生成链下拉选项：链 1, 链 2, ...
-      const chainOptions = computed(() =>
-        relayChains.value.map((_, i) => ({
-          label: `第 ${i + 1} 条代理链`,
-          value: i
-        }))
-      )
+        // 生成链下拉选项：链 1, 链 2, ...
+        const chainOptions = computed(() =>
+          relayChains.value.map((_, i) => ({
+            label: `第 ${i + 1} 条代理链`,
+            value: i
+          }))
+        )
 
-      // 当链数变化时，确保 targetChainIndex 在有效范围
-      watch(
-        relayChains,
-        () => {
+        // 当链数变化时，确保 targetChainIndex 在有效范围
+        watch(
+          relayChains,
+          () => {
+            if (targetChainIndex.value >= relayChains.value.length) {
+              targetChainIndex.value = relayChains.value.length - 1
+            }
+          },
+          { deep: true }
+        )
+
+        const addChain = () => {
+          relayChains.value.push([])
+          // 自动把 target 设为最后一条（便于快速添加）
+          targetChainIndex.value = relayChains.value.length - 1
+        }
+
+        const removeChain = (idx) => {
+          if (relayChains.value.length <= 1) return
+          relayChains.value.splice(idx, 1)
           if (targetChainIndex.value >= relayChains.value.length) {
             targetChainIndex.value = relayChains.value.length - 1
           }
-        },
-        { deep: true }
-      )
-
-      const addChain = () => {
-        relayChains.value.push([])
-        // 自动把 target 设为最后一条（便于快速添加）
-        targetChainIndex.value = relayChains.value.length - 1
-      }
-
-      const removeChain = (idx) => {
-        if (relayChains.value.length <= 1) return
-        relayChains.value.splice(idx, 1)
-        if (targetChainIndex.value >= relayChains.value.length) {
-          targetChainIndex.value = relayChains.value.length - 1
         }
-      }
 
-      // 将全局选中的出站插入到目标链（尾部）
-      const addOutToTargetChain = () => {
-        if (!globalOutSelected.value) return
-        const idx = Number(targetChainIndex.value || 0)
-        if (idx < 0 || idx >= relayChains.value.length) return
-        relayChains.value[idx].push(globalOutSelected.value)
-      }
+        // 将全局选中的出站插入到目标链（尾部）
+        const addOutToTargetChain = () => {
+          if (!globalOutSelected.value) return
+          const idx = Number(targetChainIndex.value || 0)
+          if (idx < 0 || idx >= relayChains.value.length) return
+          relayChains.value[idx].push(globalOutSelected.value)
+        }
 
-      // 规范化每条链
-      const normalizeChains = (chains) => chains.map((chain) => (chain || []).map((v) => (typeof v === 'string' ? v.trim() : v)).filter(Boolean))
+        // 规范化每条链
+        const normalizeChains = (chains) => chains.map((chain) => (chain || []).map((v) => (typeof v === 'string' ? v.trim() : v)).filter(Boolean))
 
-      // 对每条链反转
-      const handleRelayChains = (chains) => chains.map((c) => c.slice().reverse())
+        // 对每条链反转
+        const handleRelayChains = (chains) => chains.map((c) => c.slice().reverse())
 
-      // 生成逻辑：对每条链单独校验最少出站
-      const relayConfigGenerate = async () => {
-        const normalized = normalizeChains(relayChains.value)
+        // 生成逻辑：对每条链单独校验最少出站
+        const relayConfigGenerate = async () => {
+          const normalized = normalizeChains(relayChains.value)
 
-        // 每条链单独校验
-        for (let i = 0; i < normalized.length; i++) {
-          if (normalized[i].length < 2) {
-            Plugins.message.error(`第 ${i + 1} 条链至少需要 2 个出站（当前 ${normalized[i].length} 个）`)
-            throw `第 ${i + 1} 条链出站不足`
+          // 每条链单独校验
+          for (let i = 0; i < normalized.length; i++) {
+            if (normalized[i].length < 2) {
+              Plugins.message.error(`第 ${i + 1} 条链至少需要 2 个出站（当前 ${normalized[i].length} 个）`)
+              throw `第 ${i + 1} 条链出站不足`
+            }
           }
+
+          const reversedChains = handleRelayChains(normalized)
+          const configScript = generateConfigScript(reversedChains)
+          displayConfigScript(profile, configScript)
         }
 
-        const reversedChains = handleRelayChains(normalized)
-        const configScript = generateConfigScript(reversedChains)
-        displayConfigScript(profile, configScript)
-      }
+        if (relayChains.value.length > 0) targetChainIndex.value = 0
 
-      if (relayChains.value.length > 0) targetChainIndex.value = 0
-
-      return {
-        relayChains,
-        outList,
-        globalOutSelected,
-        targetChainIndex,
-        chainOptions,
-        addChain,
-        removeChain,
-        addOutToTargetChain,
-        relayConfigGenerate
+        return {
+          relayChains,
+          outList,
+          globalOutSelected,
+          targetChainIndex,
+          chainOptions,
+          addChain,
+          removeChain,
+          addOutToTargetChain,
+          relayConfigGenerate
+        }
       }
     }
+
+    const modal = Plugins.modal(
+      {
+        title: '链式代理列表',
+        submit: false,
+        width: '90',
+        cancelText: '关闭',
+        afterClose: () => {
+          modal.destroy()
+        }
+      },
+      {
+        default: () => h(component)
+      }
+    )
+
+    modal.open()
   }
 
-  const modal = Plugins.modal(
-    {
-      title: '链式代理列表',
-      submit: false,
-      width: '90',
-      cancelText: '关闭',
-      afterClose: () => {
-        modal.destroy()
-      }
-    },
-    {
-      default: () => h(component)
-    }
-  )
-
-  modal.open()
-}
-
-const displayConfigScript = (profile, configScript) => {
-  const profilesStore = Plugins.useProfilesStore()
-  const { ref, h } = Vue
-  const previewComponent = {
-    template: `
+  const displayConfigScript = (profile, configScript) => {
+    const profilesStore = Plugins.useProfilesStore()
+    const { ref, h } = Vue
+    const previewComponent = {
+      template: `
           <div class="pr-8">
             <Card>
               <div class="flex justify-between items-start gap-12 rounded px-12 py-8">
@@ -180,15 +177,15 @@ const displayConfigScript = (profile, configScript) => {
                   <b>覆盖写入</b> 按钮直接将脚本覆盖到当前配置。
                 </div>
                 <div style="flex:0 0 auto; display:flex; flex-direction:column; gap:6px;">
-                  <Button 
-                    @click="onCopy" 
+                  <Button
+                    @click="onCopy"
                     type="primary"
                     title="将脚本复制到剪贴板"
                   >
                     复制脚本
                   </Button>
-                  <Button 
-                    @click="onOverWrite" 
+                  <Button
+                    @click="onOverWrite"
                     type="link"
                     title="点击后代理链脚本将直接覆盖当前配置的脚本"
                   >
@@ -204,50 +201,50 @@ const displayConfigScript = (profile, configScript) => {
             </Card>
           </div>
           `,
-    setup() {
-      const code = ref(configScript)
+      setup() {
+        const code = ref(configScript)
 
-      const onOverWrite = async () => {
-        profile.script.code = configScript
-        profilesStore.editProfile(profile.id, profile)
-        Plugins.message.info('代理链脚本已成功写入当前配置')
-      }
+        const onOverWrite = async () => {
+          profile.script.code = configScript
+          profilesStore.editProfile(profile.id, profile)
+          Plugins.message.info('代理链脚本已成功写入当前配置')
+        }
 
-      const onCopy = async () => {
-        await Plugins.ClipboardSetText(code.value)
-        Plugins.message.info('脚本已复制到剪贴板')
-      }
+        const onCopy = async () => {
+          await Plugins.ClipboardSetText(code.value)
+          Plugins.message.info('脚本已复制到剪贴板')
+        }
 
-      return {
-        code,
-        onOverWrite,
-        onCopy
+        return {
+          code,
+          onOverWrite,
+          onCopy
+        }
       }
     }
+
+    const modal = Plugins.modal(
+      {
+        title: '配置脚本预览',
+        submit: false,
+        cancelText: '关闭',
+        afterClose: () => {
+          modal.destroy()
+        }
+      },
+      {
+        default: () => h(previewComponent)
+      }
+    )
+    modal.open()
   }
 
-  const modal = Plugins.modal(
-    {
-      title: '配置脚本预览',
-      submit: false,
-      cancelText: '关闭',
-      afterClose: () => {
-        modal.destroy()
-      }
-    },
-    {
-      default: () => h(previewComponent)
-    }
-  )
-  modal.open()
-}
+  const generateConfigScript = (relayChainsArg) => {
+    const escape = (s) => String(s).replace(/'/g, "\\'")
+    const relayChainsStr = '[' + relayChainsArg.map((chain) => '[' + chain.map((v) => `'${escape(v)}'`).join(', ') + ']').join(', ') + ']'
 
-const generateConfigScript = (relayChainsArg) => {
-  const escape = (s) => String(s).replace(/'/g, "\\'")
-  const relayChainsStr = '[' + relayChainsArg.map((chain) => '[' + chain.map((v) => `'${escape(v)}'`).join(', ') + ']').join(', ') + ']'
-
-  // 支持为分组内实际 outbounds 添加上游
-  const configScript = `  const relayChains = ${relayChainsStr}; // 代理链定义
+    // 支持为分组内实际 outbounds 添加上游
+    const configScript = `  const relayChains = ${relayChainsStr}; // 代理链定义
   const excludeReg = /selector|urltest/; // 排除分组类型
   const outsMap = Object.fromEntries(config.outbounds.map((out) => [out.tag, out])); // 将所有出站转换为以 tag 为键的映射
 
@@ -294,7 +291,7 @@ const generateConfigScript = (relayChainsArg) => {
           throw \`错误：分组 \${tag} 未识别到可用成员，请检查配置\`;
         }
         members.forEach((mTag) => {
-          // 如果成员自身就是上游，则跳过，避免自循环 
+          // 如果成员自身就是上游，则跳过，避免自循环
           if (mTag === upStream) {
             Plugins.message.warn(\`警告：分组 \${tag} 的成员 \${mTag} 上游与其自身一致，已跳过设置。\`);
             return;
@@ -323,37 +320,40 @@ const generateConfigScript = (relayChainsArg) => {
     });
   });`
 
-  return `const onGenerate = async (config) => {
+    return `const onGenerate = async (config) => {
 ${configScript}
   return config
 }`.replace(/^\s*$(?:\r\n?|\n)/gm, '')
-}
-
-const selectProfile = async () => {
-  const profilesStore = Plugins.useProfilesStore()
-  let profile
-  if (profilesStore.profiles.length === 1) {
-    profile = profilesStore.profiles[0]
-  } else {
-    profile = await Plugins.picker.single(
-      '请选择要添加代理链的配置',
-      profilesStore.profiles.map((v) => ({
-        label: v.name,
-        value: v
-      })),
-      [profilesStore.profiles[0]]
-    )
   }
-  return profile
-}
 
-const getOutTags = async (profile) => {
-  const config = await Plugins.generateConfig(profile)
-  const outTags = config.outbounds.flatMap((out) => {
-    if (!['direct', 'block'].includes(out.type) && out.tag !== 'GLOBAL') {
-      return out.tag
+  const selectProfile = async () => {
+    const profilesStore = Plugins.useProfilesStore()
+    let profile
+    if (profilesStore.profiles.length === 1) {
+      profile = profilesStore.profiles[0]
+    } else {
+      profile = await Plugins.picker.single(
+        '请选择要添加代理链的配置',
+        profilesStore.profiles.map((v) => ({
+          label: v.name,
+          value: v
+        })),
+        [profilesStore.profiles[0]]
+      )
     }
-    return []
-  })
-  return outTags
+    return profile
+  }
+
+  const getOutTags = async (profile) => {
+    const config = await Plugins.generateConfig(profile)
+    const outTags = config.outbounds.flatMap((out) => {
+      if (!['direct', 'block'].includes(out.type) && out.tag !== 'GLOBAL') {
+        return out.tag
+      }
+      return []
+    })
+    return outTags
+  }
+
+  return { onRun, addRelayProxy }
 }
