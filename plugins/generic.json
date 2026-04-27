@@ -260,7 +260,7 @@
     "id": "plugin-node-configurator",
     "name": "节点配置器",
     "version": "v1.0.0",
-    "group": "Recommended",
+    "group": "Tools",
     "description": "基于 JSON Schema 的代理协议配置器，支持协议/传输/TLS/插件字段联动，并将输入 JSON 实时 produce 为目标客户端格式。Supported by: Codex",
     "tags": ["实用工具", "节点处理"],
     "type": "Http",
