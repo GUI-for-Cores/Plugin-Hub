@@ -53,14 +53,14 @@ export default (Plugin) => {
     const component = defineComponent({
       template: `
     <div class="h-full w-full">
-      <div v-if="collections.value.length === 0"
+      <div v-if="collections.length === 0"
         class="flex items-center justify-center h-full min-h-[200px] cursor-pointer" @click="openCreateUI">
         <span class="text-16 font-bold text-gray-400 hover:text-gray-600 transition-colors">
           尚未添加任何组合，点击添加
         </span>
       </div>
       <div v-else class="grid grid-cols-3 gap-8 p-8 overflow-y-auto max-h-[500px]">
-        <Card v-for="col in collections.value" :key="col.id" :title="getSubscribeName(col.subscriptionId)">
+        <Card v-for="col in collections" :key="col.id" :title="getSubscribeName(col.subscriptionId)">
           <template #extra>
             <Dropdown>
               <Button type="link" size="small" icon="more" />

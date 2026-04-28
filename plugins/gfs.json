@@ -306,7 +306,7 @@
   },
   {
     "id": "plugin-fast-delay-test",
-    "version": "v1.0.0",
+    "version": "v1.0.1",
     "name": "快速延迟测试",
     "description": "在独立的核心进程中对订阅的节点进行延迟测试。Supported by: 泡泡茶壶",
     "tags": ["功能扩展", "提升体验"],

@@ -50,6 +50,7 @@ export default (Plugin) => {
     const totalCount = proxies.length
     const { update, destroy, success: msgSuccess } = Plugins.message.info(`[${subscription.name}] 测试中...`, 999999)
     const proxyUpdateMap = new Map()
+    const newTagDelayMap = new Map()
     const completedProxies = await Plugins.asyncPool(concurrencyLimit, proxies, async (proxy) => {
       index += 1
       update(`[${subscription.name}] 测试中... ${index} / ${totalCount}, 成功：${success} 失败：${failure}`)
@@ -67,6 +68,7 @@ export default (Plugin) => {
       }
       const newTag = `${proxy.tag.replace(/(\s*\[-?[\d.]+ms\])?$/, ` [${delay}ms]`)}`
       proxyUpdateMap.set(proxy.tag, { newTag, delay })
+      newTagDelayMap.set(newTag, delay)
       update(`[${subscription.name}] 测试中... ${index} / ${totalCount}, 成功：${success} 失败：${failure}`)
       return {
         ...proxy,
@@ -75,14 +77,6 @@ export default (Plugin) => {
     })
     await stopCore(subscription.id)
     await Plugins.RemoveFile(testConfigPath)
-    await Plugins.WriteFile(
-      subscription.path,
-      JSON.stringify(
-        completedProxies.map((p) => p.value),
-        null,
-        2
-      )
-    )
     subscription.proxies.sort((a, b) => {
       const delayA = proxyUpdateMap.get(a.tag)?.delay ?? -1
       const delayB = proxyUpdateMap.get(b.tag)?.delay ?? -1
@@ -96,6 +90,16 @@ export default (Plugin) => {
       }
     })
     await subscribesStore.editSubscribe(subscription.id, subscription)
+    const rawProxies = completedProxies
+      .map((p) => p.value)
+      .sort((a, b) => {
+        const delayA = newTagDelayMap.get(a.tag) ?? -1
+        const delayB = newTagDelayMap.get(b.tag) ?? -1
+        const valA = delayA <= 0 ? Infinity : delayA
+        const valB = delayB <= 0 ? Infinity : delayB
+        return valA - valB
+      })
+    await Plugins.WriteFile(subscription.path, JSON.stringify(rawProxies, null, 2))
     const successMsg = `订阅 [${subscription.name}] 测试完成`
     msgSuccess(`${successMsg} ${index} / ${totalCount}, 成功：${success} 失败：${failure}`)
     Plugins.Notify(successMsg)
