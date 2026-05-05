@@ -6,7 +6,7 @@ export default (Plugin) => {
   const add_UI = () => {
     appStore.removeCustomActions('profiles_header', [ui_id])
     appStore.addCustomActions('profiles_header', {
-      id: Plugin.id,
+      id: ui_id,
       component: 'Button',
       componentProps: {
         type: 'link',
