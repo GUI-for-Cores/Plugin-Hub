@@ -1,51 +1,68 @@
-/* 触发器 手动触发 */
-const onRun = async () => {
-  showUI()
-}
-
-/* 触发器 APP就绪后 */
-const onReady = async () => {
+/** @type {EsmPlugin} */
+export default (Plugin) => {
+  const ui_id = Plugin.id + '_ui'
   const appStore = Plugins.useAppStore()
-  appStore.addCustomActions('profiles_header', {
-    id: Plugin.id,
-    component: 'Button',
-    componentProps: {
-      type: 'link',
-      onClick: showUI
-    },
-    componentSlots: {
-      default: '快速配置向导'
-    }
-  })
-}
 
-const showUI = () => {
-  const { h, ref, watch, computed, resolveComponent } = Vue
+  const add_UI = () => {
+    appStore.removeCustomActions('profiles_header', [ui_id])
+    appStore.addCustomActions('profiles_header', {
+      id: Plugin.id,
+      component: 'Button',
+      componentProps: {
+        type: 'link',
+        onClick: showUI
+      },
+      componentSlots: {
+        default: '快速配置向导'
+      }
+    })
+  }
 
-  const currentStep = ref(0)
-  const isDirectIPv6Enabled = ref(false)
-  const isProxyIPv6Enabled = ref(false)
-  const isAllowLanEnabled = ref(false)
-  const lanPort = ref()
-  const isTUNEnabled = ref(false)
-  const isFakeIPEnabled = ref(false)
-  const isBanQUICEnabled = ref(true)
-  const isDohEnabled = ref(true)
+  const del_UI = () => {
+    appStore.removeCustomActions('profiles_header', [ui_id])
+  }
 
-  const name = ref(Plugins.sampleID())
-  const subsMap = ref({})
-  const subsRef = ref([])
+  /* 触发器 手动触发 */
+  const onRun = async () => {
+    showUI()
+  }
 
-  const isSupportIPv6 = ref()
-  watch(currentStep, async (step) => {
-    if (step === 1) {
-      isSupportIPv6.value = undefined
-      isSupportIPv6.value = await checkIPv6Support()
-    }
-  })
+  /* 触发器 APP就绪后 */
+  const onReady = async () => {
+    add_UI()
+  }
 
-  const component = {
-    template: `
+  const onDispose = () => {
+    del_UI()
+  }
+
+  const showUI = () => {
+    const { h, ref, watch, computed, resolveComponent } = Vue
+
+    const currentStep = ref(0)
+    const isDirectIPv6Enabled = ref(false)
+    const isProxyIPv6Enabled = ref(false)
+    const isAllowLanEnabled = ref(false)
+    const lanPort = ref()
+    const isTUNEnabled = ref(false)
+    const isFakeIPEnabled = ref(false)
+    const isBanQUICEnabled = ref(true)
+    const isDohEnabled = ref(true)
+
+    const name = ref(Plugins.sampleID())
+    const subsMap = ref({})
+    const subsRef = ref([])
+
+    const isSupportIPv6 = ref()
+    watch(currentStep, async (step) => {
+      if (step === 1) {
+        isSupportIPv6.value = undefined
+        isSupportIPv6.value = await checkIPv6Support()
+      }
+    })
+
+    const component = {
+      template: `
     <div>
       <Progress :percent="(currentStep / 7) * 100" />
       <div v-if="currentStep === 0">
@@ -148,116 +165,119 @@ const showUI = () => {
       </div>
     </div>
     `,
-    setup() {
-      const subscribeStore = Plugins.useSubscribesStore()
-
-      const subs = computed(() => subscribeStore.subscribes.map((v) => ({ name: v.name, id: v.id })))
-
-      return {
-        currentStep,
-        isSupportIPv6,
-        isDirectIPv6Enabled,
-        isProxyIPv6Enabled,
-        isAllowLanEnabled,
-        lanPort,
-        isTUNEnabled,
-        isDohEnabled,
-        isFakeIPEnabled,
-        isBanQUICEnabled,
-        subsMap,
-        subsRef,
-        subs,
-        name,
-        toggleSubRef(sub) {
-          const idx = subsRef.value.indexOf(sub)
-          if (idx === -1) {
-            subsRef.value.push(sub)
-          } else {
-            subsRef.value.splice(idx, 1)
-          }
-        }
-      }
-    }
-  }
-
-  const modal = Plugins.modal(
-    {
-      title: Plugin.name,
-      width: '90',
-      height: '90',
-      maskClosable: true,
-      submitText: '完成',
-      afterClose() {
-        modal.destroy()
-      },
-      async onOk() {
-        const profilesStore = Plugins.useProfilesStore()
+      setup() {
         const subscribeStore = Plugins.useSubscribesStore()
 
-        // 1、导入订阅
-        const subIds = []
-        for (const [name, url] of Object.entries(subsMap.value)) {
-          const sub = subscribeStore.getSubscribeTemplate(name, { url })
-          await subscribeStore.addSubscribe(sub)
-          await Plugins.sleep(1000)
-          subIds.push({ name, id: sub.id })
-        }
+        const subs = computed(() => subscribeStore.subscribes.map((v) => ({ name: v.name, id: v.id })))
 
-        // 2、导入配置
-        const profile = profilesStore.getProfileTemplate(name.value)
-        ;[...subIds, ...subsRef.value].forEach(({ name, id }) => {
-          if (Plugins.APP_TITLE.includes('SingBox')) {
-            profile.outbounds[0].outbounds.push({ id: id, tag: name, type: 'Subscription' })
-            profile.outbounds[1].outbounds.push({ id: id, tag: name, type: 'Subscription' })
-          } else if (Plugins.APP_TITLE.includes('Clash')) {
-            profile.proxyGroupsConfig[0].use.push(id)
-            profile.proxyGroupsConfig[1].use.push(id)
+        return {
+          currentStep,
+          isSupportIPv6,
+          isDirectIPv6Enabled,
+          isProxyIPv6Enabled,
+          isAllowLanEnabled,
+          lanPort,
+          isTUNEnabled,
+          isDohEnabled,
+          isFakeIPEnabled,
+          isBanQUICEnabled,
+          subsMap,
+          subsRef,
+          subs,
+          name,
+          toggleSubRef(sub) {
+            const idx = subsRef.value.indexOf(sub)
+            if (idx === -1) {
+              subsRef.value.push(sub)
+            } else {
+              subsRef.value.splice(idx, 1)
+            }
           }
-        })
-
-        // 3、个性化配置
-        personalizeProfile(profile, {
-          isDirectIPv6Enabled: isDirectIPv6Enabled.value,
-          isProxyIPv6Enabled: isProxyIPv6Enabled.value,
-          isAllowLanEnabled: isAllowLanEnabled.value,
-          lanPort: lanPort.value,
-          isTUNEnabled: isTUNEnabled.value,
-          isDohEnabled: isDohEnabled.value,
-          isFakeIPEnabled: isFakeIPEnabled.value,
-          isBanQUICEnabled: isBanQUICEnabled.value
-        })
-
-        await profilesStore.addProfile(profile)
-        Plugins.message.success('完事~')
+        }
       }
-    },
-    {
-      default: () => h(component),
-      action: () =>
-        h('div', { class: 'mr-auto' }, [
-          h(
-            resolveComponent('Button'),
-            {
-              type: 'text',
-              disabled: currentStep.value < 1,
-              onClick: () => (currentStep.value -= 1)
-            },
-            () => '上一步'
-          ),
-          h(
-            resolveComponent('Button'),
-            {
-              type: 'text',
-              disabled: currentStep.value >= 8,
-              onClick: () => (currentStep.value += 1)
-            },
-            () => '下一步'
-          )
-        ])
     }
-  )
 
-  modal.open()
+    const modal = Plugins.modal(
+      {
+        title: Plugin.name,
+        width: '90',
+        height: '90',
+        maskClosable: true,
+        submitText: '完成',
+        afterClose() {
+          modal.destroy()
+        },
+        async onOk() {
+          const profilesStore = Plugins.useProfilesStore()
+          const subscribeStore = Plugins.useSubscribesStore()
+
+          // 1、导入订阅
+          const subIds = []
+          for (const [name, url] of Object.entries(subsMap.value)) {
+            const sub = subscribeStore.getSubscribeTemplate(name, { url })
+            await subscribeStore.addSubscribe(sub)
+            await Plugins.sleep(1000)
+            subIds.push({ name, id: sub.id })
+          }
+
+          // 2、导入配置
+          const profile = profilesStore.getProfileTemplate(name.value)
+          ;[...subIds, ...subsRef.value].forEach(({ name, id }) => {
+            if (Plugins.APP_TITLE.includes('SingBox')) {
+              profile.outbounds[0].outbounds.push({ id: id, tag: name, type: 'Subscription' })
+              profile.outbounds[1].outbounds.push({ id: id, tag: name, type: 'Subscription' })
+            } else if (Plugins.APP_TITLE.includes('Clash')) {
+              profile.proxyGroupsConfig[0].use.push(id)
+              profile.proxyGroupsConfig[1].use.push(id)
+            }
+          })
+
+          // 3、个性化配置
+          personalizeProfile(profile, {
+            isDirectIPv6Enabled: isDirectIPv6Enabled.value,
+            isProxyIPv6Enabled: isProxyIPv6Enabled.value,
+            isAllowLanEnabled: isAllowLanEnabled.value,
+            lanPort: lanPort.value,
+            isTUNEnabled: isTUNEnabled.value,
+            isDohEnabled: isDohEnabled.value,
+            isFakeIPEnabled: isFakeIPEnabled.value,
+            isBanQUICEnabled: isBanQUICEnabled.value
+          })
+
+          await profilesStore.addProfile(profile)
+          Plugins.message.success('完事~')
+        }
+      },
+      {
+        default: () => h(component),
+        action: () =>
+          h('div', { class: 'mr-auto' }, [
+            h(
+              resolveComponent('Button'),
+              {
+                type: 'text',
+                disabled: currentStep.value < 1,
+                onClick: () => (currentStep.value -= 1)
+              },
+              () => '上一步'
+            ),
+            h(
+              resolveComponent('Button'),
+              {
+                type: 'text',
+                disabled: currentStep.value >= 8,
+                onClick: () => (currentStep.value += 1)
+              },
+              () => '下一步'
+            )
+          ])
+      }
+    )
+
+    modal.open()
+  }
+
+  return { onRun, onReady, onDispose }
 }
 
 const getRandomUA = () => {

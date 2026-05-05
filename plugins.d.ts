@@ -177,7 +177,7 @@ interface Plugins {
     args: string[],
     onOut: (out: string) => void,
     onExit: () => void,
-    options?: { Env?: Record<string, string>; Convert?: boolean; StopOutputKeyword?: string; WorkingDirectory?: string; PidFile?: string }
+    options?: { Env?: Record<string, string>; Convert?: boolean; StopOutputKeyword?: string; WorkingDirectory?: string; PidFile?: string; LogFile?: string }
   ): Promise<number>
 
   HttpGet(
