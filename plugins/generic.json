@@ -2560,7 +2560,7 @@
   {
     "id": "plugin-global-click-ripple-effect",
     "name": "点击波纹效果",
-    "version": "v1.0.0",
+    "version": "v1.1.0",
     "group": "Extensions",
     "description": "增加全局点击波纹效果。",
     "tags": ["UI美化"],

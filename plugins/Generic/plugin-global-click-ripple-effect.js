@@ -1,7 +1,30 @@
-/* 触发器 APP就绪后 */
-const onReady = async () => {
+const styleId = Plugin.id + '_style'
+const className = `${Plugin.id}-ripple`
+
+/** @type {EsmPlugin} */
+export default (Plugin) => {
+  const active = () => {
+    addStyle()
+    addListener()
+  }
+
+  const onReady = active
+  const onInstall = onReady
+  const onEnabled = onReady
+
+  const onDispose = () => {
+    delStyle()
+    delListener()
+  }
+
+  return { onReady, onInstall, onDispose, onEnabled }
+}
+
+const addStyle = () => {
+  const dom = document.getElementById(styleId)
+  if (dom) return
   const style = document.createElement('style')
-  const className = `${Plugin.id}-ripple`
+  style.id = styleId
   style.textContent = `
     .${className} {
         position: fixed;
@@ -20,22 +43,34 @@ const onReady = async () => {
     }
     `
   document.head.appendChild(style)
+}
 
-  document.addEventListener('click', (e) => {
-    const ripple = document.createElement('span')
-    ripple.className = className
-    const pC = document.documentElement.style.getPropertyValue('--primary-color')
-    const sC = document.documentElement.style.getPropertyValue('--secondary-color')
-    ripple.style.background = `radial-gradient(${sC}, ${pC})`
+const delStyle = () => {
+  document.getElementById(styleId)?.remove()
+}
 
-    const size = Math.max(window.innerWidth, window.innerHeight) * 0.5
-    ripple.style.width = ripple.style.height = size + 'px'
+const addListener = () => {
+  document.addEventListener('click', onDomClick)
+}
 
-    ripple.style.left = e.clientX - size / 2 + 'px'
-    ripple.style.top = e.clientY - size / 2 + 'px'
+const delListener = () => {
+  document.removeEventListener('click', onDomClick)
+}
 
-    document.body.appendChild(ripple)
+const onDomClick = (e) => {
+  const ripple = document.createElement('span')
+  ripple.className = className
+  const pC = document.documentElement.style.getPropertyValue('--primary-color')
+  const sC = document.documentElement.style.getPropertyValue('--secondary-color')
+  ripple.style.background = `radial-gradient(${sC}, ${pC})`
 
-    ripple.addEventListener('animationend', () => ripple.remove(), { once: true })
-  })
+  const size = Math.max(window.innerWidth, window.innerHeight) * 0.5
+  ripple.style.width = ripple.style.height = size + 'px'
+
+  ripple.style.left = e.clientX - size / 2 + 'px'
+  ripple.style.top = e.clientY - size / 2 + 'px'
+
+  document.body.appendChild(ripple)
+
+  ripple.addEventListener('animationend', () => ripple.remove(), { once: true })
 }
