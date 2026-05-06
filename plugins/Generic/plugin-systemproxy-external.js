@@ -1,52 +1,77 @@
-const onRun = async () => {
-  await checkOS()
-  const action = await Plugins.picker.single(Plugin.name, [
-    { label: '设置代理', value: 'Set' },
-    { label: '清除代理', value: 'Clear' }
-  ])
-  const handler = { Set, Clear }[action]
-  await handler()
-}
+/** @type {EsmPlugin} */
+export default (Plugin) => {
+  const ui_id = Plugin.id + '_id'
 
-/* 触发器 APP就绪后 */
-const onReady = async () => {
-  try {
-    await checkOS()
-  } catch (error) {
-    return
-  }
   const appStore = Plugins.useAppStore()
-  appStore.addCustomActions('core_state', {
-    component: 'Switch',
-    componentSlots: {
-      default: '外接网卡系统代理'
-    },
-    componentProps: {
-      onChange: async (val) => {
-        ;(val ? Set() : Clear()).catch((err) => {
-          Plugins.message.error(err)
-        })
+
+  const add_ui = () => {
+    appStore.removeCustomActions('core_state', [ui_id])
+    appStore.addCustomActions('core_state', {
+      id: ui_id,
+      component: 'Switch',
+      componentSlots: {
+        default: '外接网卡系统代理'
+      },
+      componentProps: {
+        onChange: async (val) => {
+          ;(val ? Set() : Clear()).catch((err) => {
+            Plugins.message.error(err)
+          })
+        }
       }
+    })
+  }
+
+  const del_ui = () => {
+    appStore.removeCustomActions('core_state', [ui_id])
+  }
+
+  const onRun = async () => {
+    await checkOS()
+    const action = await Plugins.picker.single(Plugin.name, [
+      { label: '设置代理', value: 'Set' },
+      { label: '清除代理', value: 'Clear' }
+    ])
+    const handler = { Set, Clear }[action]
+    await handler()
+  }
+
+  /* 触发器 APP就绪后 */
+  const onReady = async () => {
+    try {
+      await checkOS()
+    } catch (error) {
+      return
     }
-  })
-}
+    add_ui()
+  }
 
-/**
- * 右键 - 设置代理
- */
-const Set = async () => {
-  await checkOS()
-  await setSystemProxy()
-  Plugins.message.success('设置成功')
-}
+  const onInstall = onReady
 
-/**
- * 右键 - 清除代理
- */
-const Clear = async () => {
-  await checkOS()
-  await setDarwinSystemProxy('', false)
-  Plugins.message.success('清除成功')
+  /**
+   * 右键 - 设置代理
+   */
+  const Set = async () => {
+    await checkOS()
+    await setSystemProxy()
+    Plugins.message.success('设置成功')
+  }
+
+  /**
+   * 右键 - 清除代理
+   */
+  const Clear = async () => {
+    await checkOS()
+    await setDarwinSystemProxy('', false)
+    Plugins.message.success('清除成功')
+  }
+
+  const onDispose = () => {
+    Clear()
+    del_ui()
+  }
+
+  return { onRun, onReady, Set, Clear, onInstall, onDispose }
 }
 
 const checkOS = async () => {

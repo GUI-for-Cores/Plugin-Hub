@@ -773,7 +773,7 @@
   {
     "id": "plugin-systemproxy-external",
     "name": "外接网卡系统代理",
-    "version": "v2.0.0",
+    "version": "v2.1.0",
     "group": "Extensions",
     "description": "为macOS的外接网卡设置系统代理。",
     "tags": ["功能扩展"],
