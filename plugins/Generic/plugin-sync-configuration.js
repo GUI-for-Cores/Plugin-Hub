@@ -1,166 +1,180 @@
 /**
  * 本插件使用项目：https://github.com/GUI-for-Cores/gui-sync
  */
+import CryptoJS from 'https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/+esm'
 
-const PATH = 'data/third/sync-gui'
-const JS_FILE = PATH + '/crypto-js.js'
+/** @type {EsmPlugin} */
+export default (Plugin) => {
+  const onRun = async () => {
+    const action = await Plugins.picker.single(
+      '请选择操作',
+      [
+        { label: '立即备份', value: 'backup' },
+        { label: '同步至本地', value: 'sync' },
+        { label: '查看备份列表', value: 'list' },
+        { label: '管理备份列表', value: 'remove' }
+      ],
+      ['list']
+    )
 
-const onRun = async () => {
-  const action = await Plugins.picker.single(
-    '请选择操作',
-    [
-      { label: '立即备份', value: 'backup' },
-      { label: '同步至本地', value: 'sync' },
-      { label: '查看备份列表', value: 'list' },
-      { label: '管理备份列表', value: 'remove' }
-    ],
-    ['list']
-  )
+    const handler = {
+      backup: Backup,
+      sync: Sync,
+      list: List,
+      remove: Remove
+    }
 
-  const handler = {
-    backup: Backup,
-    sync: Sync,
-    list: List,
-    remove: Remove
+    await handler[action]()
   }
 
-  await handler[action]()
-}
+  /**
+   * 插件钩子：右键 - 同步至本地
+   */
+  const Sync = async () => {
+    if (!Plugin.Secret) throw '为了数据安全，请先配置文件加密密钥'
 
-/**
- * 插件钩子：右键 - 同步至本地
- */
-const Sync = async () => {
-  if (!window.CryptoJS) throw '请先安装插件或重新安装插件'
-  if (!Plugin.Secret) throw '为了数据安全，请先配置文件加密密钥'
+    const list = await httpGet('/backup?tag=' + getTag())
+    if (list.length === 0) throw '没有可同步的备份'
+    const backupId = await Plugins.picker.single('请选择要同步至本地的备份', list.map((v) => ({ label: v, value: v })).reverse(), [list.pop()])
 
-  const list = await httpGet('/backup?tag=' + getTag())
-  if (list.length === 0) throw '没有可同步的备份'
-  const backupId = await Plugins.picker.single('请选择要同步至本地的备份', list.map((v) => ({ label: v, value: v })).reverse(), [list.pop()])
+    const { update, destroy, success, error } = Plugins.message.info('获取备份文件...', 60 * 60 * 1000)
 
-  const { update, destroy, success, error } = Plugins.message.info('获取备份文件...', 60 * 60 * 1000)
+    const { files } = await httpGet(`/sync?tag=${getTag()}&id=${backupId}`)
 
-  const { files } = await httpGet(`/sync?tag=${getTag()}&id=${backupId}`)
+    let failed = false
 
-  let failed = false
-
-  const _files = Object.keys(files)
-  for (let i = 0; i < _files.length; i++) {
-    const file = _files[i]
-    const encrypted = files[file]
-    update(`正在恢复文件...[ ${i + 1}/${_files.length} ]`, 'info')
-    try {
-      await Plugins.WriteFile(file, decrypt(encrypted))
-    } catch (error) {
-      if (error === '解密失败') {
-        failed = true
+    const _files = Object.keys(files)
+    for (let i = 0; i < _files.length; i++) {
+      const file = _files[i]
+      const encrypted = files[file]
+      update(`正在恢复文件...[ ${i + 1}/${_files.length} ]`, 'info')
+      try {
+        await Plugins.WriteFile(file, decrypt(encrypted))
+      } catch (error) {
+        if (error === '解密失败') {
+          failed = true
+        }
+        console.log(file + ' ： ' + error)
+        Plugins.message.error(`恢复文件失败：` + error)
+      } finally {
+        await Plugins.sleep(100)
       }
-      console.log(file + ' ： ' + error)
-      Plugins.message.error(`恢复文件失败：` + error)
-    } finally {
-      await Plugins.sleep(100)
     }
+
+    if (failed) {
+      error('有文件解密失败，考虑是否是密钥配置错误')
+      await Plugins.sleep(3000).then(() => destroy())
+      return
+    }
+
+    success('同步完成，即将重载界面')
+    await Plugins.sleep(1500).then(() => destroy())
+
+    const kernelApiStore = Plugins.useKernelApiStore()
+    if (kernelApiStore.running) {
+      await kernelApiStore.stopCore()
+    }
+
+    await Plugins.WindowReloadApp()
   }
 
-  if (failed) {
-    error('有文件解密失败，考虑是否是密钥配置错误')
-    await Plugins.sleep(3000).then(() => destroy())
-    return
-  }
+  /**
+   * 插件钩子：右键 - 立即备份
+   */
+  const Backup = async () => {
+    if (!Plugin.Secret) throw '为了数据安全，请先配置文件加密密钥'
 
-  success('同步完成，即将重载界面')
-  await Plugins.sleep(1500).then(() => destroy())
+    const files = ['data/user.yaml', 'data/profiles.yaml', 'data/subscribes.yaml', 'data/rulesets.yaml', 'data/plugins.yaml', 'data/scheduledtasks.yaml']
 
-  const kernelApiStore = Plugins.useKernelApiStore()
-  if (kernelApiStore.running) {
-    await kernelApiStore.stopCore()
-  }
+    const subscribesStore = Plugins.useSubscribesStore()
+    const pluginsStore = Plugins.usePluginsStore()
+    const rulesetsStore = Plugins.useRulesetsStore()
 
-  await Plugins.WindowReloadApp()
-}
+    const l1 = subscribesStore.subscribes.map((v) => v.path).filter((v) => v.startsWith('data'))
+    const l2 = pluginsStore.plugins.map((v) => v.path).filter((v) => v.startsWith('data'))
+    const l3 = rulesetsStore.rulesets.map((v) => v.path).filter((v) => v.startsWith('data') && (v.endsWith('yaml') || v.endsWith('json')))
 
-/**
- * 插件钩子：右键 - 立即备份
- */
-const Backup = async () => {
-  if (!window.CryptoJS) throw '请先安装插件或重新安装插件'
-  if (!Plugin.Secret) throw '为了数据安全，请先配置文件加密密钥'
+    files.push(...l1, ...l2, ...l3)
 
-  const files = ['data/user.yaml', 'data/profiles.yaml', 'data/subscribes.yaml', 'data/rulesets.yaml', 'data/plugins.yaml', 'data/scheduledtasks.yaml']
+    const { destroy, update, success, error } = Plugins.message.info('正在创建备份...', 60 * 60 * 1000)
 
-  const subscribesStore = Plugins.useSubscribesStore()
-  const pluginsStore = Plugins.usePluginsStore()
-  const rulesetsStore = Plugins.useRulesetsStore()
+    const data = {
+      id: Plugins.formatDate(Date.now(), 'YYYY-MM-DD_HHmmss'),
+      tag: getTag(),
+      files: {}
+    }
 
-  const l1 = subscribesStore.subscribes.map((v) => v.path).filter((v) => v.startsWith('data'))
-  const l2 = pluginsStore.plugins.map((v) => v.path).filter((v) => v.startsWith('data'))
-  const l3 = rulesetsStore.rulesets.map((v) => v.path).filter((v) => v.startsWith('data') && (v.endsWith('yaml') || v.endsWith('json')))
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      update(`正在加密文件...[ ${i + 1}/${files.length} ]`, 'info')
+      try {
+        const text = await Plugins.ReadFile(file)
+        data.files[file] = encrypt(text)
+      } catch (error) {
+        console.log(error)
+        Plugins.message.error(`[${file}] 加密失败，跳过`)
+      } finally {
+        await Plugins.sleep(100)
+      }
+    }
 
-  files.push(...l1, ...l2, ...l3)
-
-  const { destroy, update, success, error } = Plugins.message.info('正在创建备份...', 60 * 60 * 1000)
-
-  const data = {
-    id: Plugins.formatDate(Date.now(), 'YYYY-MM-DD_HHmmss'),
-    tag: getTag(),
-    files: {}
-  }
-
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i]
-    update(`正在加密文件...[ ${i + 1}/${files.length} ]`, 'info')
     try {
-      const text = await Plugins.ReadFile(file)
-      data.files[file] = encrypt(text)
-    } catch (error) {
-      console.log(error)
-      Plugins.message.error(`[${file}] 加密失败，跳过`)
+      await httpPost('/backup', data)
+      success('备份完成')
+    } catch (err) {
+      console.log(`[${Plugin.name}]`, err)
+      error('备份失败：' + err)
+    }
+
+    await Plugins.sleep(1500).then(() => destroy())
+  }
+
+  /*
+   * 插件钩子：配置上下文 - 部署到服务器
+   */
+  const Deploy = async (profile) => {
+    await Plugins.confirm('提示', '确定部署此配置到服务器吗？')
+    const configPath = Plugin.ServerConfigPath
+    const serviceName = Plugin.ServerServiceName
+    if (!configPath) {
+      throw '请先配置配置文件路径'
+    }
+    if (!serviceName) {
+      throw '请先配置核心服务名称'
+    }
+    const config = await Plugins.generateConfig(profile)
+    const { success, error, destroy } = Plugins.message.info('部署中...', 88888)
+    const isClash = Plugins.APP_TITLE.includes('Clash')
+    try {
+      await httpPost('/deploy', {
+        configPath,
+        serviceName,
+        content: encrypt(isClash ? Plugins.YAML.stringify(config) : JSON.stringify(config, null, 2)),
+        timeout: 5
+      })
+      success('部署成功')
+    } catch (err) {
+      error(err.message || err)
     } finally {
-      await Plugins.sleep(100)
+      await Plugins.sleep(3000)
+      destroy()
     }
   }
-
-  try {
-    await httpPost('/backup', data)
-    success('备份完成')
-  } catch (err) {
-    console.log(`[${Plugin.name}]`, err)
-    error('备份失败：' + err)
+  const List = async () => {
+    const list = await httpGet('/backup?tag=' + getTag())
+    if (list.length === 0) throw '备份列表为空'
+    await Plugins.picker.single('服务器备份列表如下：', list.map((v) => ({ label: v, value: v })).reverse(), [])
   }
 
-  await Plugins.sleep(1500).then(() => destroy())
-}
+  const Remove = async () => {
+    const list = await httpGet('/backup?tag=' + getTag())
+    if (list.length === 0) throw '没有可管理的备份'
+    const ids = await Plugins.picker.multi('请勾选要删除的备份', list.map((v) => ({ label: v, value: v })).reverse(), [])
+    await httpDelete(`/backup?tag=${getTag()}&ids=${ids.join(',')}`)
+    Plugins.message.success('删除成功')
+  }
 
-/*
- * 插件钩子：配置上下文 - 部署到服务器
- */
-const Deploy = async (profile) => {
-  await Plugins.confirm('提示', '确定部署此配置到服务器吗？')
-  const configPath = Plugin.ServerConfigPath
-  const serviceName = Plugin.ServerServiceName
-  if (!configPath) {
-    throw '请先配置配置文件路径'
-  }
-  if (!serviceName) {
-    throw '请先配置核心服务名称'
-  }
-  const config = await Plugins.generateConfig(profile)
-  const { success, error, destroy } = Plugins.message.info('部署中...', 88888)
-  const isClash = Plugins.APP_TITLE.includes('Clash')
-  try {
-    await httpPost('/deploy', {
-      configPath,
-      serviceName,
-      content: encrypt(isClash ? Plugins.YAML.stringify(config) : JSON.stringify(config, null, 2)),
-      timeout: 5
-    })
-    success('部署成功')
-  } catch (err) {
-    error(err.message || err)
-  } finally {
-    await Plugins.sleep(3000)
-    destroy()
-  }
+  return { onRun, Sync, Backup, Deploy }
 }
 
 const getTag = () => {
@@ -169,65 +183,11 @@ const getTag = () => {
   return ''
 }
 
-const List = async () => {
-  const list = await httpGet('/backup?tag=' + getTag())
-  if (list.length === 0) throw '备份列表为空'
-  await Plugins.picker.single('服务器备份列表如下：', list.map((v) => ({ label: v, value: v })).reverse(), [])
-}
-
-const Remove = async () => {
-  const list = await httpGet('/backup?tag=' + getTag())
-  if (list.length === 0) throw '没有可管理的备份'
-  const ids = await Plugins.picker.multi('请勾选要删除的备份', list.map((v) => ({ label: v, value: v })).reverse(), [])
-  await httpDelete(`/backup?tag=${getTag()}&ids=${ids.join(',')}`)
-  Plugins.message.success('删除成功')
-}
-
-const onInstall = async () => {
-  await Plugins.Download('https://unpkg.com/crypto-js@latest/crypto-js.js', JS_FILE)
-  await loadDependence()
-  return 0
-}
-
-const onUninstall = async () => {
-  const dom = document.getElementById(Plugin.id)
-  dom && dom.remove()
-  await Plugins.RemoveFile(PATH)
-  return 0
-}
-
-const onReady = async () => {
-  await loadDependence()
-}
-
-/**
- * 动态引入依赖
- */
-function loadDependence() {
-  return new Promise(async (resolve, reject) => {
-    if (window.CryptoJS) {
-      resolve()
-      return
-    }
-    try {
-      const text = await Plugins.ReadFile(JS_FILE)
-      const script = document.createElement('script')
-      script.id = Plugin.id
-      script.text = text
-      document.body.appendChild(script)
-      resolve()
-    } catch (error) {
-      console.error(error)
-      reject('加载加密套件失败，请重新安装本插件')
-    }
-  })
-}
-
 /**
  * 加密
  */
 function encrypt(data) {
-  return window.CryptoJS.AES.encrypt(data, Plugin.Secret).toString()
+  return CryptoJS.AES.encrypt(data, Plugin.Secret).toString()
 }
 
 /**
@@ -235,7 +195,7 @@ function encrypt(data) {
  */
 function decrypt(data) {
   try {
-    return window.CryptoJS.AES.decrypt(data, Plugin.Secret).toString(CryptoJS.enc.Utf8)
+    return CryptoJS.AES.decrypt(data, Plugin.Secret).toString(CryptoJS.enc.Utf8)
   } catch (error) {
     throw '解密失败'
   }

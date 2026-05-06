@@ -1592,14 +1592,14 @@
   {
     "id": "plugin-sync-configuration",
     "name": "配置同步",
-    "version": "v1.0.4",
+    "version": "v2.0.0",
     "group": "Extensions",
     "description": "使用自建服务同步GUI配置。",
     "tags": ["提升体验", "功能扩展", "提升体验"],
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sync-configuration.js",
     "path": "data/plugins/plugin-sync-configuration.js",
-    "triggers": ["on::manual", "on::ready"],
+    "triggers": ["on::manual"],
     "hasUI": false,
     "menus": {
       "立即备份": "Backup",
