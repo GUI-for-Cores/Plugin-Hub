@@ -1,5 +1,4 @@
-const PATH = 'data/third/sync-gui-webdav'
-const JS_FILE = PATH + '/crypto-js.js'
+import CryptoJS from 'https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/+esm'
 
 /* 触发器 手动触发 */
 const onRun = async () => {
@@ -152,23 +151,6 @@ const Remove = async () => {
   }
 }
 
-const onInstall = async () => {
-  await Plugins.Download('https://unpkg.com/crypto-js@latest/crypto-js.js', JS_FILE)
-  await loadDependence()
-  return 0
-}
-
-const onUninstall = async () => {
-  const dom = document.getElementById(Plugin.id)
-  dom && dom.remove()
-  await Plugins.Removefile(PATH)
-  return 0
-}
-
-const onReady = async () => {
-  await loadDependence()
-}
-
 const getPrefix = () => {
   return Plugins.APP_TITLE.includes('Clash') ? 'GUI.for.Clash' : 'GUI.for.SingBox'
 }
@@ -208,7 +190,6 @@ const filterList = (list) => {
 }
 
 const checkConfiguration = async () => {
-  if (!window.CryptoJS) throw '请先安装插件或重新安装插件'
   if (!Plugin.Secret) throw '为了数据安全，请先配置文件加密密钥'
   let url
   try {
@@ -222,33 +203,10 @@ const checkConfiguration = async () => {
 }
 
 /**
- * 动态引入依赖
- */
-function loadDependence() {
-  return new Promise(async (resolve, reject) => {
-    if (window.CryptoJS) {
-      resolve()
-      return
-    }
-    try {
-      const text = await Plugins.ReadFile(JS_FILE)
-      const script = document.createElement('script')
-      script.id = Plugin.id
-      script.text = text
-      document.body.appendChild(script)
-      resolve()
-    } catch (error) {
-      console.error(error)
-      reject('加载加密套件失败，请重新安装本插件')
-    }
-  })
-}
-
-/**
  * 加密
  */
 function encrypt(data) {
-  return window.CryptoJS.AES.encrypt(data, Plugin.Secret).toString()
+  return CryptoJS.AES.encrypt(data, Plugin.Secret).toString()
 }
 
 /**
@@ -256,7 +214,7 @@ function encrypt(data) {
  */
 function decrypt(data) {
   try {
-    return window.CryptoJS.AES.decrypt(data, Plugin.Secret).toString(CryptoJS.enc.Utf8)
+    return CryptoJS.AES.decrypt(data, Plugin.Secret).toString(CryptoJS.enc.Utf8)
   } catch (error) {
     throw '解密失败'
   }

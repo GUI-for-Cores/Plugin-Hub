@@ -1726,14 +1726,14 @@
   {
     "id": "plugin-sync-configuration-webdav",
     "name": "配置同步 - WebDAV",
-    "version": "v2.1.2",
+    "version": "v3.0.0",
     "group": "Extensions",
     "description": "使用webDAV协议同步GUI配置。",
     "tags": ["实用工具", "功能扩展", "提升体验"],
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sync-configuration-webdav.js",
     "path": "data/plugins/plugin-sync-configuration-webdav.js",
-    "triggers": ["on::manual", "on::ready"],
+    "triggers": ["on::manual"],
     "hasUI": false,
     "menus": {
       "立即备份": "Backup",
