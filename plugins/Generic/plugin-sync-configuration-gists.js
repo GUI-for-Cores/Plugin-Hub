@@ -1,5 +1,4 @@
-const PATH = 'data/third/sync-gui-gists'
-const JS_FILE = PATH + '/crypto-js.js'
+import CryptoJS from 'https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/+esm'
 
 const onRun = async () => {
   const action = await Plugins.picker.single(
@@ -27,8 +26,6 @@ const onRun = async () => {
  * 插件钩子：右键 - 同步至本地
  */
 const Sync = async () => {
-  if (!window.CryptoJS) throw '请先安装插件或重新安装插件'
-
   const list = await httpGet('/gists')
   const _list = filterList(list)
   if (_list.length === 0) throw '没有可同步的备份'
@@ -67,8 +64,6 @@ const Sync = async () => {
  * 插件钩子：右键 - 立即备份
  */
 const Backup = async () => {
-  if (!window.CryptoJS) throw '请先安装插件或重新安装插件'
-
   const files = ['data/user.yaml', 'data/profiles.yaml', 'data/subscribes.yaml', 'data/rulesets.yaml', 'data/plugins.yaml', 'data/scheduledtasks.yaml']
 
   const subscribesStore = Plugins.useSubscribesStore()
@@ -136,23 +131,6 @@ const Remove = async () => {
   }
 }
 
-const onInstall = async () => {
-  await Plugins.Download('https://unpkg.com/crypto-js@latest/crypto-js.js', JS_FILE)
-  await loadDependence()
-  return 0
-}
-
-const onUninstall = async () => {
-  const dom = document.getElementById(Plugin.id)
-  dom && dom.remove()
-  await Plugins.RemoveFile(PATH)
-  return 0
-}
-
-const onReady = async () => {
-  await loadDependence()
-}
-
 const getPrefix = () => {
   return Plugins.APP_TITLE.includes('Clash') ? 'GUI.for.Clash' : 'GUI.for.SingBox'
 }
@@ -163,35 +141,11 @@ const filterList = (list) => {
 }
 
 /**
- * 动态引入依赖
- */
-function loadDependence() {
-  return new Promise(async (resolve, reject) => {
-    if (window.CryptoJS) {
-      resolve()
-      return
-    }
-    try {
-      const text = await Plugins.ReadFile(JS_FILE)
-      const script = document.createElement('script')
-      script.id = Plugin.id
-      script.text = text
-      document.body.appendChild(script)
-      resolve()
-    } catch (error) {
-      console.error(error)
-      reject('加载加密套件失败，请重新安装本插件')
-    }
-  })
-}
-
-/**
  * 加密
  */
 function encrypt(data) {
   if (!Plugin.Secret) throw '未配置密钥'
-  if (!window.CryptoJS) throw '加密套件未加载，请卸载并重新安装插件'
-  return window.CryptoJS.AES.encrypt(data, Plugin.Secret).toString()
+  return CryptoJS.AES.encrypt(data, Plugin.Secret).toString()
 }
 
 /**
@@ -199,8 +153,7 @@ function encrypt(data) {
  */
 function decrypt(data) {
   if (!Plugin.Secret) throw '未配置密钥'
-  if (!window.CryptoJS) throw '加密套件未加载，请卸载并重新安装插件'
-  return window.CryptoJS.AES.decrypt(data, Plugin.Secret).toString(CryptoJS.enc.Utf8)
+  return CryptoJS.AES.decrypt(data, Plugin.Secret).toString(CryptoJS.enc.Utf8)
 }
 
 async function httpGet(url) {
@@ -212,7 +165,6 @@ async function httpGet(url) {
     Connection: 'close',
     Authorization: 'Bearer ' + Plugin.Authorization
   })
-  console.log(body)
   if (body.message) {
     throw body.message
   }

@@ -1678,14 +1678,14 @@
   {
     "id": "plugin-sync-configuration-gists",
     "name": "配置同步 - Gists",
-    "version": "v1.0.2",
+    "version": "v2.0.0",
     "group": "Extensions",
     "description": "使用Gists同步GUI配置。",
     "tags": ["实用工具", "功能扩展", "提升体验"],
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sync-configuration-gists.js",
     "path": "data/plugins/plugin-sync-configuration-gists.js",
-    "triggers": ["on::manual", "on::ready"],
+    "triggers": ["on::manual"],
     "hasUI": false,
     "menus": {
       "立即备份": "Backup",
