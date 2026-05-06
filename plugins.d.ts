@@ -302,10 +302,11 @@ interface Plugins {
       os: string
       arch: string
     }
-    systemProxy(): Promise<void>
+    systemProxy: boolean
     setSystemProxy(): Promise<void>
     clearSystemProxy(): Promise<void>
     switchSystemProxy: (enable: boolean) => Promise<void>
+    updateSystemProxyStatus() : Promise<void>
   }
   useAppSettingsStore(): {
     app: Recordable
