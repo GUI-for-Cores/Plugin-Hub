@@ -358,6 +358,8 @@ declare namespace globalThis {
   var Plugins: Plugins
   var Vue: Vue
   var AsyncFunction: FunctionConstructor
+  var WailsInvoke: any
+  var wails: any
 }
 
 type PluginMetadata = {

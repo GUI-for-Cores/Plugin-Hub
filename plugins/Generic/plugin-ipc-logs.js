@@ -1,26 +1,40 @@
-window[Plugin.id] = window[Plugin.id] || {
-  logs: Vue.ref([])
+const disallowedList = [':wails:WindowIsMaximised', ':wails:WindowIsMinimised']
+const logs = Vue.ref([])
+let hooked = false
+const originalInvoke = window.WailsInvoke
+
+/** @type {EsmPlugin} */
+export default (Plugin) => {
+  /* 触发器 手动触发 */
+  const onRun = async () => {
+    openUI()
+  }
+
+  const onReady = hookWailsIPC
+  const onInstall = hookWailsIPC
+  const onEnabled = hookWailsIPC
+
+  const onDispose = () => {
+    console.log(`[${Plugin.name}]`, '已还原IPC')
+    window.WailsInvoke = originalInvoke
+    hooked = false
+    logs.value.splice(0)
+  }
+
+  /* 右键 - 清空日志 */
+  const ClearHistory = () => {
+    logs.value.splice(0)
+    Plugins.message.success('common.success')
+  }
+
+  /* 右键 - 导出日志 */
+  const ExportLogs = exportLogs
+
+  return { onRun, onReady, onInstall, onEnabled, onDispose, ClearHistory, ExportLogs }
 }
 
-/* 触发器 手动触发 */
-const onRun = async () => {
-  openUI()
-}
-
-/* 触发器 APP就绪后 */
-const onReady = async () => {
-  hookWailsIPC()
-}
-
-/* 右键 - 清空日志 */
-const ClearHistory = () => {
-  window[Plugin.id].logs.value.splice(0)
-  Plugins.message.success('common.success')
-}
-
-/* 右键 - 导出日志 */
-const ExportLogs = () => {
-  const content = JSON.stringify(window[Plugin.id].logs.value, null, 2)
+const exportLogs = () => {
+  const content = JSON.stringify(logs.value, null, 2)
   const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -30,8 +44,8 @@ const ExportLogs = () => {
   URL.revokeObjectURL(url)
 }
 
-const SecurelyExportLogs = () => {
-  const list = Plugins.deepClone(window[Plugin.id].logs.value)
+const securelyExportLogs = () => {
+  const list = Plugins.deepClone(logs.value)
   const maskedLogs = []
   list.forEach((item) => {
     const { name, args } = item
@@ -173,7 +187,7 @@ const openUI = () => {
 
       const expandedMap = ref({})
       const expandAll = ref(false)
-      const dataSource = window[Plugin.id].logs
+      const dataSource = logs
 
       expose({
         modalSlots: {
@@ -211,7 +225,7 @@ const openUI = () => {
               {
                 type: 'link',
                 onClick: () => {
-                  ExportLogs()
+                  exportLogs()
                 }
               },
               () => '完整导出'
@@ -221,7 +235,7 @@ const openUI = () => {
               {
                 type: 'link',
                 onClick: () => {
-                  SecurelyExportLogs()
+                  securelyExportLogs()
                 }
               },
               () => '简洁导出(开发中)'
@@ -599,18 +613,19 @@ const getIPCDescription = (name, args) => {
   }
 }
 
-const hookWailsIPC = async () => {
-  const originalInvoke = window.WailsInvoke
-  const blacklist = [':wails:WindowIsMaximised', ':wails:WindowIsMinimised']
+const hookWailsIPC = () => {
+  if (hooked) return
+  console.log(`[${Plugin.name}]`, '已 HOOK IPC')
+  hooked = true
   window.WailsInvoke = (e) => {
     originalInvoke(e)
     if (e.startsWith('C')) {
       const { name, args, callbackID } = JSON.parse(e.slice(1))
-      if (blacklist.includes(name)) {
+      if (disallowedList.includes(name)) {
         return
       }
       const log = {
-        id: window[Plugin.id].logs.value.length,
+        id: logs.value.length,
         name,
         args,
         description: getIPCDescription(name, args),
@@ -619,7 +634,7 @@ const hookWailsIPC = async () => {
         success: true,
         result: 'Loading...'
       }
-      window[Plugin.id].logs.value.unshift(log)
+      logs.value.unshift(log)
       const { resolve, reject } = wails.callbacks[callbackID]
       wails.callbacks[callbackID].resolve = (e) => {
         log.result = e
