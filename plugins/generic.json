@@ -2937,42 +2937,6 @@
     "installed": false
   },
   {
-    "id": "plugin-log-record",
-    "name": "日志记录器",
-    "version": "v2.2.0",
-    "group": "Extensions",
-    "description": "记录内核输出的日志到文件中，方便后续调试。Supported by: 泡泡茶壶",
-    "tags": ["提升体验", "功能扩展"],
-    "type": "Http",
-    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-log-record.js",
-    "path": "data/plugins/plugin-log-record.js",
-    "triggers": ["on::core::started", "on::core::stopped"],
-    "hasUI": false,
-    "menus": {},
-    "context": {
-      "profiles": {},
-      "subscriptions": {},
-      "rulesets": {},
-      "plugins": {},
-      "scheduledtasks": {}
-    },
-    "status": 0,
-    "configuration": [
-      {
-        "id": "ID_imh5ksqp",
-        "title": "最大记录条数",
-        "description": "",
-        "key": "MaxRecords",
-        "component": "Input",
-        "value": "1000",
-        "options": []
-      }
-    ],
-    "disabled": false,
-    "install": false,
-    "installed": false
-  },
-  {
     "id": "plugin-duplicate-proxies-removal",
     "name": "重复节点移除",
     "version": "v1.0.0",
