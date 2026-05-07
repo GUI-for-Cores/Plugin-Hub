@@ -11,6 +11,7 @@ export default (Plugin) => {
   const ui_id = Plugin.id + '_UI'
   const src = `https://sub-store.vercel.app/subs?api=http://${Plugin.Address}`
   const appStore = Plugins.useAppStore()
+  const subscribesStore = Plugins.useSubscribesStore()
 
   const openSubStoreUI = () => {
     const modal = Plugins.modal(
@@ -89,6 +90,10 @@ export default (Plugin) => {
   }
   const del_ui = () => {
     appStore.removeCustomActions('core_state', [ui_id])
+  }
+
+  const getSubUrl = (name) => {
+    return `http://${Plugin.Address}/download/${name}?target=` + (Plugins.APP_TITLE.includes('SingBox') ? 'sing-box' : 'ClashMeta')
   }
 
   /**
@@ -237,11 +242,57 @@ export default (Plugin) => {
       }
       if (/^\/api|^\/download/.test(req.url)) {
         try {
+          const reqBody = Plugins.base64Decode(req.body)
           const response = await runSubStore({
             ...req,
             url: `http://127.0.0.1${req.url}`,
-            body: Plugins.base64Decode(req.body)
+            body: reqBody
           })
+          // 订阅联动处理开始
+          setTimeout(async () => {
+            const { status } = JSON.parse(response.body)
+            if (status !== 'success') return
+
+            // 添加订阅
+            if (req.url === '/api/subs' && req.method === 'POST') {
+              const reqBodyJson = JSON.parse(reqBody)
+              const sub = subscribesStore.getSubscribeById(reqBodyJson.name)
+              if (!sub) {
+                const name = reqBodyJson.displayName || reqBodyJson.name
+                if (await Plugins.confirm('提示', `是否同步此订阅到${Plugins.APP_TITLE}？`).catch(() => false)) {
+                  const newSub = subscribesStore.getSubscribeTemplate(name, { url: getSubUrl(reqBodyJson.name) })
+                  newSub.id = reqBodyJson.name
+                  await subscribesStore.addSubscribe(newSub)
+                  Plugins.message.success('同步成功')
+                }
+              }
+            }
+            // 更新订阅
+            else if (req.url.startsWith('/api/sub/') && req.method === 'PATCH') {
+              const reqBodyJson = JSON.parse(reqBody)
+              const subId = new URL(req.url, 'https://example.com').pathname.split('/').pop()
+              const sub = subscribesStore.getSubscribeById(subId)
+              if (sub) {
+                sub.name = reqBodyJson.displayName
+                sub.url = getSubUrl(reqBodyJson.name)
+                await subscribesStore.editSubscribe(sub.id, sub)
+                Plugins.message.success('同步成功')
+              }
+            }
+            // 删除订阅
+            else if (req.url.startsWith('/api/sub/') && req.method === 'DELETE') {
+              const subId = new URL(req.url, 'https://example.com').pathname.split('/').pop()
+              const sub = subscribesStore.getSubscribeById(subId)
+              if (sub) {
+                if (await Plugins.confirm('提示', `是否在${Plugins.APP_TITLE}中同步删除此订阅？`).catch(() => false)) {
+                  await subscribesStore.deleteSubscribe(subId)
+                  Plugins.message.success('删除成功')
+                }
+              }
+            }
+          }, 0)
+          // 订阅联动处理结束
+
           return res.end(response.status, response.headers, response.body)
         } catch (error) {
           return res.end(500, { 'Content-Type': 'text/plain; charset=utf-8' }, error.message || String(error))
