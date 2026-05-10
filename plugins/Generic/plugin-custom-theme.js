@@ -189,7 +189,7 @@ const onReady = async () => {
   const config = JSON.parse(await Plugins.ReadFile(THEME_FILE))
   await setVariable(config)
   await setBackground(config)
-  await setCustomCSS
+  await setCustomCSS()
 }
 
 const onRun = async () => {

@@ -2510,7 +2510,7 @@
   {
     "id": "plugin-custom-theme",
     "name": "自定义主题",
-    "version": "v5.0.2",
+    "version": "v5.0.3",
     "group": "Extensions",
     "description": "通过修改css变量，实现任意主题配色！",
     "tags": ["UI美化", "功能扩展"],
