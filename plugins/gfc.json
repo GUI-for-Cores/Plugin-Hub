@@ -31,7 +31,7 @@
     "id": "plugin-strategy-group-listener",
     "name": "策略组入站设置",
     "version": "v1.0.0",
-    "description": "为 Clash 配置添加多个独立 HTTP、SOCKS、Mixed 入站监听端口，支持绑定策略组、使用子规则或使用全局规则，并可为每个入站单独设置认证。",
+    "description": "为 Clash 配置添加多个独立 HTTP、SOCKS、Mixed 入站监听端口，支持绑定策略组、使用子规则或使用全局规则，并可为每个入站单独设置认证。Supported by: qqqasdwx",
     "tags": ["实用工具", "功能扩展", "提升体验"],
     "group": "Extensions",
     "type": "Http",
