@@ -28,6 +28,34 @@
     "installed": false
   },
   {
+    "id": "plugin-strategy-chain-manager",
+    "name": "策略组批量链式代理",
+    "version": "v1.0.0",
+    "description": "按策略组或节点批量配置链式代理，基于当前生成配置的成员自动写入 dialer-proxy。",
+    "tags": ["实用工具", "功能扩展", "提升体验"],
+    "group": "Extensions",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFC/plugin-strategy-chain-manager.js",
+    "path": "data/plugins/plugin-strategy-chain-manager.js",
+    "triggers": ["on::manual", "on::generate"],
+    "hasUI": true,
+    "menus": {},
+    "context": {
+      "profiles": {
+        "策略组批量链式代理": "showUI"
+      },
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-add-rulesets",
     "name": "一键添加规则集",
     "version": "v1.0.1",
