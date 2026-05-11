@@ -10,7 +10,7 @@ const onRun = async () => {
 
   const pingurl = 'http://connectivitycheck.gstatic.com/generate_204'
 
-  const { id } = Plugins.message.info('延迟测试中，请稍后...', 200_000)
+  const { id } = Plugins.message.info('延迟测试中，请稍候...', 200_000)
 
   let pingduration // 在共同作用域内声明变量
 
@@ -36,7 +36,7 @@ const onRun = async () => {
   }
 
   await Plugins.sleep(1_000)
-  Plugins.message.update(id, '下行速度测试中，请稍后...')
+  Plugins.message.update(id, '下行速度测试中，请稍候...')
 
   let end
   let speed
