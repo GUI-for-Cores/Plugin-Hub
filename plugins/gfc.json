@@ -28,10 +28,38 @@
     "installed": false
   },
   {
+    "id": "plugin-strategy-group-listener",
+    "name": "策略组入站设置",
+    "version": "v1.0.0",
+    "description": "为 Clash 配置添加多个独立 HTTP、SOCKS、Mixed 入站监听端口，支持绑定策略组、使用子规则或使用全局规则，并可为每个入站单独设置认证。Supported by: qqqasdwx",
+    "tags": ["实用工具", "功能扩展", "提升体验"],
+    "group": "Extensions",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFC/plugin-strategy-group-listener.js",
+    "path": "data/plugins/plugin-strategy-group-listener.js",
+    "triggers": ["on::manual", "on::generate", "on::ready", "on::uninstall"],
+    "hasUI": true,
+    "menus": {},
+    "context": {
+      "profiles": {
+        "策略组入站设置": "showUI"
+      },
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-strategy-chain-manager",
     "name": "策略组批量链式代理",
     "version": "v1.0.0",
-    "description": "按策略组或节点批量配置链式代理，基于当前生成配置的成员自动写入 dialer-proxy。",
+    "description": "按策略组或节点批量配置链式代理，基于当前生成配置的成员自动写入 dialer-proxy。Supported by: qqqasdwx",
     "tags": ["实用工具", "功能扩展", "提升体验"],
     "group": "Extensions",
     "type": "Http",

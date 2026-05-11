@@ -340,6 +340,8 @@ interface Plugins {
   asyncPool: <T>(poolLimit: number, array: T[], iteratorFn: (item: T, array: T[]) => Promise<any>) => Promise<any[]>
   sampleID(): string
   isValidIPv4(ip: string): boolean
+  isValidSubYAML(text: string): boolean
+  isValidSubJson(text: string): boolean
   generateConfig(profile: any, stable?: boolean): Promise<Record<string, any>>
   formatBytes(bytes: number): string
   formatDate(date: string | number, format: string): string
