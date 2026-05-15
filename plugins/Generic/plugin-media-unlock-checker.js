@@ -60,11 +60,8 @@ const onRun = async () => {
         const rows = await Promise.all(promises)
         duration.value = (Date.now() - startTime) / 1000 + 's'
         rows.forEach((row) => {
-          row.result.status = row.result.status?.replace('Yes', '✅')?.replace('No', '❌')
+          row.result.status = formatDisplayStatus(row.result.status)
           row.result.region = row.result.region || '-'
-          if (row.result.status.includes('Client.Timeout')) {
-            row.result.status = '😤连接超时'
-          }
           if (row.result.region?.includes('Client.Timeout')) {
             row.result.region = '😤连接超时'
           }
@@ -130,6 +127,81 @@ function countryCodeToEmoji(input) {
   return String.fromCodePoint(firstChar) + String.fromCodePoint(secondChar)
 }
 
+function toBodyText(body) {
+  return typeof body === 'string' ? body : JSON.stringify(body)
+}
+
+function extractMatch(text, patterns, transform = (value) => value) {
+  for (const pattern of patterns) {
+    const matched = text.match(pattern)?.[1]
+    if (matched) return transform(matched)
+  }
+  return null
+}
+
+function extractTraceRegion(body) {
+  return (
+    toBodyText(body)
+      .match(/(?:^|\n)loc=([^\n]+)/)?.[1]
+      ?.trim()
+      ?.toUpperCase() || null
+  )
+}
+
+function getHeaderValue(headers, key) {
+  if (!headers || typeof headers !== 'object') return null
+
+  const matchedKey = Object.keys(headers).find((headerKey) => headerKey.toLowerCase() === key.toLowerCase())
+  const value = matchedKey ? headers[matchedKey] : null
+
+  if (Array.isArray(value)) return value.join('; ')
+  return typeof value === 'string' ? value : null
+}
+
+function isCloudflareChallenge(bodyText, headers) {
+  const server = getHeaderValue(headers, 'server')?.toLowerCase() || ''
+  return (
+    bodyText.includes('__cf_chl_tk') ||
+    bodyText.includes('challenge-platform') ||
+    bodyText.includes('Enable JavaScript and cookies to continue') ||
+    server.includes('cloudflare')
+  )
+}
+
+function extractSpotifyRegion(bodyText, headers) {
+  const bodyRegion = extractMatch(
+    bodyText,
+    [/"countryCode"\s*:\s*"([^"]+)"/, /"market"\s*:\s*\{\s*"id"\s*:\s*"([^"]+)"/, /"market":\{"id":"([^"]+)"/],
+    (value) => value.split('-')[0].trim().toUpperCase()
+  )
+  if (bodyRegion) return bodyRegion
+
+  const setCookie = getHeaderValue(headers, 'set-cookie') || ''
+  const cookieRegion = extractMatch(
+    setCookie,
+    [/spotify\.com%2F([a-z]{2})%2Fapi/i, [/; ]sp_landing=https?:\/\/www\.spotify\.com\/([a-z]{2})\/api/i][0]],
+    (value) => value.trim().toUpperCase()
+  )
+
+  return cookieRegion
+}
+
+function formatDisplayStatus(status) {
+  if (typeof status !== 'string') return status
+
+  const normalized = status.trim()
+  if (normalized.includes('Client.Timeout')) return '😤连接超时'
+  if (normalized === 'Failed (Cloudflare Challenge)') return '⚠️验证拦截'
+  if (normalized === 'Disallowed ISP') return '⚠️受限网络'
+  if (normalized === 'Unsupported Country/Region') return '❌不支持地区'
+  if (normalized === 'Originals Only') return '⚠️仅自制剧'
+  if (normalized === 'Blocked') return '❌已封锁'
+  if (normalized === 'Soon') return '⏳即将上线'
+  if (normalized === 'Unknown') return '⚠️未知'
+
+  return normalized.replace('Yes', '✅').replace('No', '❌')
+}
+
 class CheckResult {
   constructor(name, status, region) {
     this.name = name
@@ -180,11 +252,8 @@ const Checker = {
     async fetchRegion() {
       if (!this.regionPromise) {
         this.regionPromise = Plugins.HttpGet('https://chat.openai.com/cdn-cgi/trace')
-          .then(({ body }) => {
-            body = typeof body === 'string' ? body : JSON.stringify(body)
-            return body.match(/(?:^|\n)loc=([^\n]+)/)?.[1]?.trim() || null
-          })
-          .catch((error) => error.message || error)
+          .then(({ body }) => extractTraceRegion(body))
+          .catch(() => null)
       }
       return this.regionPromise
     }
@@ -196,7 +265,7 @@ const Checker = {
 
       try {
         const { body } = await Plugins.HttpGet('https://ios.chat.openai.com/')
-        const bodyLower = (typeof body === 'string' ? body : JSON.stringify(body)).toLowerCase()
+        const bodyLower = toBodyText(body).toLowerCase()
         if (bodyLower.includes('you may be connected to a disallowed isp')) {
           status = 'Disallowed ISP'
         } else if (bodyLower.includes('request is not allowed. please try again later.')) {
@@ -218,7 +287,7 @@ const Checker = {
 
       try {
         const { body } = await Plugins.HttpGet('https://api.openai.com/compliance/cookie_requirements')
-        const bodyLower = (typeof body === 'string' ? body : JSON.stringify(body)).toLowerCase()
+        const bodyLower = toBodyText(body).toLowerCase()
         if (bodyLower.includes('unsupported_country')) status = 'Unsupported Country/Region'
         else status = 'Yes'
       } catch (error) {
@@ -236,11 +305,7 @@ const Checker = {
 
       try {
         const { body } = await Plugins.HttpGet('https://claude.ai/cdn-cgi/trace')
-        const bodyText = typeof body === 'string' ? body : JSON.stringify(body)
-        region = bodyText
-          .match(/(?:^|\n)loc=([^\n]+)/)?.[1]
-          ?.trim()
-          ?.toUpperCase()
+        region = extractTraceRegion(body)
         if (!region) {
           status = 'Failed'
         } else if (['AF', 'BY', 'CN', 'CU', 'HK', 'IR', 'KP', 'MO', 'RU', 'SY'].includes(region)) {
@@ -263,8 +328,8 @@ const Checker = {
 
       try {
         const { body } = await Plugins.HttpGet('https://gemini.google.com')
-        const bodyText = typeof body === 'string' ? body : JSON.stringify(body)
-        region = bodyText.match(/,2,1,200,"([A-Z]{3})"/)?.[1]
+        const bodyText = toBodyText(body)
+        region = extractMatch(bodyText, [/,2,1,200,"([A-Z]{3})"/], (value) => value.toUpperCase())
         if (!region) status = 'Failed'
         else if (['CHN', 'RUS', 'BLR', 'CUB', 'IRN', 'PRK', 'SYR', 'HKG', 'MAC'].includes(region)) status = 'No'
         else status = 'Yes'
@@ -282,13 +347,30 @@ const Checker = {
       let region
 
       try {
-        const { body } = await Plugins.HttpGet('https://www.youtube.com/premium')
-        const bodyText = typeof body === 'string' ? body : JSON.stringify(body)
+        const { body, status: statusCode } = await Plugins.HttpGet('https://www.youtube.com/premium?hl=en')
+        const bodyText = toBodyText(body)
         const bodyLower = bodyText.toLowerCase()
-        if (bodyLower.includes('youtube premium is not available in your country')) {
+        region = extractMatch(
+          bodyText,
+          [
+            /id=["']country-code["'][^>]*>\s*([A-Za-z]{2,3})\s*</,
+            /"GL"\s*:\s*"([A-Za-z]{2})"/,
+            /"countryCode"\s*:\s*"([A-Za-z]{2})"/,
+            /"country_code"\s*:\s*"([A-Za-z]{2})"/
+          ],
+          (value) => value.trim().toUpperCase()
+        )
+        if (
+          bodyLower.includes('youtube premium is not available in your country') ||
+          bodyLower.includes('premium is not available in your country') ||
+          bodyLower.includes('premium is not available in your region')
+        ) {
           status = 'No'
-        } else if (bodyLower.includes('ad-free')) {
-          region = bodyText.match(/id="country-code"[^>]*>([^<]+)</)?.[1]?.trim()
+        } else if (
+          statusCode >= 200 &&
+          statusCode < 300 &&
+          (bodyLower.includes('youtube premium') || bodyLower.includes('ad-free') || bodyLower.includes('"browseid":"spunlimited"'))
+        ) {
           status = 'Yes'
         }
       } catch (error) {
@@ -303,25 +385,31 @@ const Checker = {
     UserAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
     async check() {
       try {
-        const { body } = await Plugins.HttpGet('https://ani.gamer.com.tw/ajax/getdeviceid.php', {
+        const { body, headers } = await Plugins.HttpGet('https://ani.gamer.com.tw/ajax/getdeviceid.php', {
           'User-Agent': this.UserAgent
         })
-        const bodyText = typeof body === 'string' ? body : JSON.stringify(body)
+        const bodyText = toBodyText(body)
+        if (isCloudflareChallenge(bodyText, headers)) {
+          return new CheckResult(this.name, 'Failed (Cloudflare Challenge)', null)
+        }
         const deviceId = bodyText.match(/"deviceid"\s*:\s*"([^"]+)/)?.[1]
         if (!deviceId) {
           return new CheckResult(this.name, 'Failed', null)
         }
-        const { body: body2 } = await Plugins.HttpGet('https://ani.gamer.com.tw/ajax/token.php?adID=89422&sn=37783&device=' + deviceId, {
+        const { body: body2, headers: headers2 } = await Plugins.HttpGet('https://ani.gamer.com.tw/ajax/token.php?adID=89422&sn=37783&device=' + deviceId, {
           'User-Agent': this.UserAgent
         })
-        const body2Text = typeof body2 === 'string' ? body2 : JSON.stringify(body2)
+        const body2Text = toBodyText(body2)
+        if (isCloudflareChallenge(body2Text, headers2)) {
+          return new CheckResult(this.name, 'Failed (Cloudflare Challenge)', null)
+        }
         if (!body2Text.includes('animeSn')) {
           return new CheckResult(this.name, 'No', null)
         }
         const { body: body3 } = await Plugins.HttpGet('https://ani.gamer.com.tw/', {
           'User-Agent': this.UserAgent
         })
-        const body3Text = typeof body3 === 'string' ? body3 : JSON.stringify(body3)
+        const body3Text = toBodyText(body3)
         const region = body3Text.match(/data-geo="([^"]+)/)?.[1]
         return new CheckResult(this.name, 'Yes', region)
       } catch (error) {
@@ -359,7 +447,7 @@ const Checker = {
             }
             return new CheckResult(this.name, 'Yes', 'US')
           } catch (error) {
-            throw 'Yes (但无法获取区域)'
+            return new CheckResult(this.name, 'Yes (但无法获取区域)', null)
           }
         }
         return new CheckResult(this.name, `Failed (状态码: ${status1}_${status2})`, null)
@@ -417,7 +505,7 @@ const Checker = {
           return new CheckResult(this.name, 'No (IP Banned By Disney+)', null)
         }
 
-        const bodyText = typeof body === 'string' ? body : JSON.stringify(body)
+        const bodyText = toBodyText(body)
         const assertion = body.assertion || bodyText.match(/"assertion"\s*:\s*"([^"]+)"/)?.[1]
         if (!assertion) {
           return new CheckResult(this.name, 'Failed (Error: Cannot extract assertion)', null)
@@ -438,7 +526,7 @@ const Checker = {
             subject_token_type: 'urn:bamtech:params:oauth:token-type:device'
           }
         )
-        const body2Text = typeof body2 === 'string' ? body2 : JSON.stringify(body2)
+        const body2Text = toBodyText(body2)
         if (body2Text.includes('forbidden-location') || body2Text.includes('403 ERROR')) {
           return new CheckResult(this.name, 'No (IP Banned By Disney+)', null)
         }
@@ -470,11 +558,11 @@ const Checker = {
           }
         )
 
-        const body3Text = typeof body3 === 'string' ? body3 : JSON.stringify(body3)
+        const body3Text = toBodyText(body3)
         if (!body3Text || status3 >= 400) {
           try {
             const { body } = await Plugins.HttpGet('https://www.disneyplus.com/')
-            const bodyText = typeof body === 'string' ? body : JSON.stringify(body)
+            const bodyText = toBodyText(body)
             const region = bodyText.match(/region"\s*:\s*"([^"]+)"/)?.[1]
             if (region) return new CheckResult(this.name, 'Yes', `${region} (from main page)`)
           } catch {}
@@ -490,7 +578,7 @@ const Checker = {
         if (!region) {
           try {
             const { body } = await Plugins.HttpGet('https://www.disneyplus.com/')
-            const bodyText = typeof body === 'string' ? body : JSON.stringify(body)
+            const bodyText = toBodyText(body)
             region = bodyText.match(/region"\s*:\s*"([^"]+)"/)?.[1]
             if (region) return new CheckResult(this.name, 'Yes', `${region} (from main page)`)
           } catch {}
@@ -528,7 +616,7 @@ const Checker = {
 
       try {
         const { body } = await Plugins.HttpGet('https://www.primevideo.com')
-        const bodyText = typeof body === 'string' ? body : JSON.stringify(body)
+        const bodyText = toBodyText(body)
         region = bodyText.match(/"currentTerritory":"([^"]+)"/)?.[1]
         if (bodyText.includes('isServiceRestricted')) {
           status = 'No (Service Not Available)'
@@ -551,9 +639,9 @@ const Checker = {
       let region
 
       try {
-        const { body, status: statusCode } = await Plugins.HttpGet('https://www.spotify.com/api/content/v1/country-selector?platform=web&format=json')
-        const bodyText = typeof body === 'string' ? body : JSON.stringify(body)
-        region = body.countryCode || bodyText.match(/"countryCode"\s*:\s*"([^"]+)"/)?.[1]
+        const { body, status: statusCode, headers } = await Plugins.HttpGet('https://www.spotify.com/api/content/v1/country-selector?platform=web&format=json')
+        const bodyText = toBodyText(body)
+        region = body?.countryCode || extractSpotifyRegion(bodyText, headers)
         if (region) region = region.toUpperCase()
 
         if (statusCode === 403 || statusCode === 451) {
@@ -580,11 +668,8 @@ const Checker = {
 
       try {
         const { body, status: statusCode } = await Plugins.HttpGet('https://www.tiktok.com/cdn-cgi/trace')
-        const bodyText = typeof body === 'string' ? body : JSON.stringify(body)
-        region = bodyText
-          .match(/(?:^|\n)loc=([^\n]+)/)?.[1]
-          ?.trim()
-          ?.toUpperCase()
+        const bodyText = toBodyText(body)
+        region = extractTraceRegion(body)
         if (statusCode === 403 || statusCode === 451) status = 'No'
         else if (statusCode < 200 || statusCode >= 300) status = 'Failed'
         else if (
@@ -599,7 +684,7 @@ const Checker = {
       if (!region || status === 'Failed') {
         try {
           const { body, status: statusCode } = await Plugins.HttpGet('https://www.tiktok.com/')
-          const bodyText = typeof body === 'string' ? body : JSON.stringify(body)
+          const bodyText = toBodyText(body)
           const fallbackRegion = bodyText
             .match(/"region"\s*:\s*"([a-zA-Z-]+)"/)?.[1]
             ?.split('-')?.[0]
