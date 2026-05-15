@@ -57,11 +57,11 @@ export default (Plugin) => {
     onReady: () => {
       add_UI()
     },
-    onCoreStarted() {
+    onInstall() {
       add_UI()
     },
-    onCoreStopped() {
-      del_UI()
+    onEnabled() {
+      add_UI()
     },
     onDispose() {
       del_UI()
