@@ -144,6 +144,34 @@
     "installed": false
   },
   {
+    "id": "plugin-outbound-chain-manager",
+    "name": "出站分组批量链式代理",
+    "version": "v1.0.0",
+    "group": "Extensions",
+    "description": "按出站分组或出站批量配置链式代理，基于当前生成配置的成员自动写入 detour。Supported by: qqqasdwx",
+    "tags": ["实用工具", "功能扩展", "提升体验"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-outbound-chain-manager.js",
+    "path": "data/plugins/plugin-outbound-chain-manager.js",
+    "triggers": ["on::manual", "on::generate"],
+    "hasUI": true,
+    "menus": {},
+    "context": {
+      "profiles": {
+        "出站分组批量链式代理": "showUI"
+      },
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-import-configuration-to-gui",
     "name": "导入 sing-box 配置",
     "version": "v3.1.1",
