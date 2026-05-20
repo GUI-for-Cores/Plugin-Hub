@@ -285,6 +285,44 @@
     "installed": false
   },
   {
+    "id": "plugin-codex-usage-viewer",
+    "name": "Codex 用量查看",
+    "version": "v1.0.0",
+    "group": "Tools",
+    "description": "查看 Codex 当前账号的 primary/secondary 用量窗口、剩余额度与重置时间。Supported by: Codex",
+    "tags": ["实用工具", "开发工具"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-codex-usage-viewer.js",
+    "path": "data/plugins/plugin-codex-usage-viewer.js",
+    "triggers": ["on::manual"],
+    "hasUI": true,
+    "menus": {
+      "快速刷新": "Refresh"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_codex_usage_accounts",
+        "title": "账号列表",
+        "description": "每行一个账号：名称|auth.json完整路径，或 名称|Bearer token/access_token，或 名称|Cookie字符串。留空时读取用户目录下的 .codex/auth.json。",
+        "key": "Accounts",
+        "component": "InputList",
+        "value": [],
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-ipc-logs",
     "name": "日志系统",
     "version": "v2.4.0",
