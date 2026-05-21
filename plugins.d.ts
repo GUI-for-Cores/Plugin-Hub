@@ -3,6 +3,7 @@ type Recordable<T = any> = { [x: string]: T }
 type MaybePromise<T> = T | Promise<T>
 
 type Vue = typeof import('vue')
+type VNode = import('vue').VNode
 
 type UseModalOptions = Partial<{
   open: boolean
@@ -307,7 +308,7 @@ interface Plugins {
     setSystemProxy(): Promise<void>
     clearSystemProxy(): Promise<void>
     switchSystemProxy: (enable: boolean) => Promise<void>
-    updateSystemProxyStatus() : Promise<void>
+    updateSystemProxyStatus(): Promise<void>
   }
   useAppSettingsStore(): {
     app: Recordable
@@ -338,7 +339,23 @@ interface Plugins {
   base64Encode(text: string): string
   deepClone<T>(obj: T): T
   deepAssign<T, U>(target: T, source: U): T & U
-  asyncPool: <T>(poolLimit: number, array: T[], iteratorFn: (item: T, array: T[]) => Promise<any>) => Promise<any[]>
+  asyncPool: <T, K>(
+    poolLimit: number,
+    array: T[],
+    iteratorFn: (item: T, array: T[]) => Promise<K>
+  ) => Promise<Array<{ ok: true; value: K } | { ok: false; error: Error }>>
+  createAsyncPool<T, K>(
+    poolLimit: number,
+    array: T[],
+    iteratorFn: (item: T, array: T[]) => Promise<K>
+  ): {
+    run: () => Promise<Array<{ ok: true; value: K } | { ok: false; error: Error }>>
+    controller: {
+      pause(): void
+      resume(): void
+      cancel(): void
+    }
+  }
   sampleID(): string
   isValidIPv4(ip: string): boolean
   isValidSubYAML(text: string): boolean
