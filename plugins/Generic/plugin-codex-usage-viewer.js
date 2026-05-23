@@ -1,4 +1,5 @@
 const CODEX_USAGE_API = 'https://chatgpt.com/backend-api/wham/usage'
+const REFRESH_INTERVAL = 5 * 60 * 1000
 
 /** @type {EsmPlugin} */
 export default (Plugin) => {
@@ -7,18 +8,37 @@ export default (Plugin) => {
     return 0
   }
 
-  const Refresh = async () => {
-    const accounts = await loadAccountResults(Plugin)
-    const ok = accounts.filter((item) => item.success).length
-    Plugins.message.info(`已刷新 ${accounts.length} 个账号，成功 ${ok} 个`)
+  const onReady = async () => {
+    addCoreStateUI(Plugin)
+    startAutoRefresh(Plugin)
     return 0
   }
 
-  return { onRun, Refresh }
+  const onEnabled = onReady
+  const onInstall = onReady
+
+  const onDispose = () => {
+    stopAutoRefresh(Plugin)
+    removeCoreStateUI(Plugin)
+    return 0
+  }
+
+  const onTrayUpdate = async (tray, menus) => {
+    return {
+      tray: {
+        ...tray,
+        tooltip: getTrayTooltip(getPluginState(Plugin).accounts.value)
+      },
+      menus
+    }
+  }
+
+  return { onRun, onReady, onEnabled, onInstall, onDispose, onTrayUpdate }
 }
 
 function openUsageUI(Plugin) {
   const { h, defineComponent, ref, computed, onMounted, resolveComponent } = Vue
+  const state = getPluginState(Plugin)
   const showEmail = ref(false)
 
   const component = defineComponent({
@@ -86,24 +106,20 @@ function openUsageUI(Plugin) {
       </div>
     `,
     setup() {
-      const accounts = ref([])
-      const loading = ref(false)
-
       async function refreshUsage() {
-        loading.value = true
-        try {
-          accounts.value = await loadAccountResults(Plugin)
-        } finally {
-          loading.value = false
-        }
+        await refreshAndUpdateTray(Plugin)
       }
 
-      onMounted(refreshUsage)
+      onMounted(() => {
+        if (state.accounts.value.length === 0 && !state.loading.value) {
+          refreshUsage()
+        }
+      })
 
       return {
-        accounts,
-        loading,
-        hasAnyError: computed(() => accounts.value.some((item) => !item.success)),
+        accounts: state.accounts,
+        loading: state.loading,
+        hasAnyError: computed(() => state.accounts.value.some((item) => !item.success)),
         refreshUsage,
         formatAccount(account) {
           const email = showEmail.value ? account.email || 'Unknown email' : '邮箱已隐藏'
@@ -146,6 +162,93 @@ async function loadAccountResults(Plugin) {
   const accounts = await getConfiguredAccounts(Plugin)
   const results = await Promise.all(accounts.map((account) => loadAccountUsage(account)))
   return results
+}
+
+async function refreshAndUpdateTray(Plugin) {
+  const state = getPluginState(Plugin)
+  state.loading.value = true
+  try {
+    const accounts = await loadAccountResults(Plugin)
+    state.accounts.value = accounts
+    await updateTrayTooltip(accounts)
+    return accounts
+  } finally {
+    state.loading.value = false
+  }
+}
+
+function startAutoRefresh(Plugin) {
+  const state = getPluginState(Plugin)
+  stopAutoRefresh(Plugin)
+  state.timer = setInterval(() => {
+    refreshAndUpdateTray(Plugin).catch((e) => {
+      console.log(`[${Plugin.name}]`, '自动刷新 Codex 用量失败', e)
+    })
+  }, REFRESH_INTERVAL)
+  refreshAndUpdateTray(Plugin).catch((e) => {
+    console.log(`[${Plugin.name}]`, '刷新 Codex 用量失败', e)
+  })
+}
+
+function stopAutoRefresh(Plugin) {
+  const state = getPluginState(Plugin)
+  if (state.timer) {
+    clearInterval(state.timer)
+    state.timer = null
+  }
+}
+
+function getPluginState(Plugin) {
+  window[Plugin.id] =
+    window[Plugin.id] ||
+    {
+      timer: null,
+      accounts: Vue.ref([]),
+      loading: Vue.ref(false)
+    }
+  return window[Plugin.id]
+}
+
+function addCoreStateUI(Plugin) {
+  const uiId = Plugin.id + '_core_state'
+  const appStore = Plugins.useAppStore()
+  appStore.removeCustomActions('core_state', [uiId])
+  appStore.addCustomActions('core_state', {
+    id: uiId,
+    component: 'Button',
+    componentProps: {
+      type: 'link',
+      size: 'small',
+      onClick: () => openUsageUI(Plugin)
+    },
+    componentSlots: {
+      default: ({ h }) => h('span', getCoreStateText(Plugin))
+    }
+  })
+}
+
+function removeCoreStateUI(Plugin) {
+  Plugins.useAppStore().removeCustomActions('core_state', [Plugin.id + '_core_state'])
+}
+
+function getCoreStateText(Plugin) {
+  const state = getPluginState(Plugin)
+  if (state.loading.value) return 'Codex 刷新中'
+  const okAccounts = state.accounts.value.filter((item) => item.success)
+  if (okAccounts.length === 0) return 'Codex --'
+  return `Codex ${okAccounts[0].primary.remaining}%`
+}
+
+async function updateTrayTooltip(accounts) {
+  await Plugins.UpdateTray({
+    tooltip: getTrayTooltip(accounts)
+  })
+}
+
+function getTrayTooltip(accounts) {
+  const okAccounts = accounts.filter((item) => item.success)
+  const value = okAccounts.length > 0 ? `${okAccounts[0].primary.remaining}%` : 'error'
+  return Plugins.APP_TITLE + ' ' + Plugins.APP_VERSION + '\n' + 'codex: ' + value
 }
 
 async function getConfiguredAccounts(Plugin) {

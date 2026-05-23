@@ -235,6 +235,7 @@ interface Plugins {
   WindowShow(): Promise<void>
   WindowSetAlwaysOnTop(v: boolean): Promise<void>
 
+  UpdateTray(options: { tooltip?: string; icon?: string; title?: string }): Promise<void>
   GetEnv(key: string): Promise<string>
   ClipboardSetText(text: string): Promise<void>
   ClipboardGetText(): Promise<string>
