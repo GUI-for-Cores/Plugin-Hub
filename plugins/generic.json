@@ -3023,5 +3023,33 @@
     "disabled": false,
     "install": false,
     "installed": false
+  },
+  {
+    "id": "plugin-fast-delay-test",
+    "version": "v2.1.0",
+    "name": "快速延迟测试",
+    "description": "快速测试订阅内节点延迟，支持按延迟排序与一键清理失败/高延迟节点，并可在订阅更新时自动处理。Supported by: 泡泡茶壶",
+    "tags": ["功能扩展", "提升体验"],
+    "group": "Extensions",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-fast-delay-test.js",
+    "path": "data/plugins/plugin-fast-delay-test.js",
+    "status": 0,
+    "triggers": ["on::manual", "on::subscribe", "on::shutdown"],
+    "hasUI": true,
+    "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {
+        "测试延迟": "testDelay"
+      },
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "configuration": [],
+    "disabled": false,
+    "install": false,
+    "installed": false
   }
 ]
