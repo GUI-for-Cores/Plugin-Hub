@@ -189,6 +189,44 @@
     "installed": false
   },
   {
+    "id": "plugin-mitm-core",
+    "version": "v0.0.1",
+    "name": "MITM-Core",
+    "description": "MITM-Core 是一个使用 Go 编写的 HTTP/HTTPS 中间人代理核心。它可以作为本地代理服务器接收客户端请求，按规则匹配 URL，并在请求转发前或响应返回前执行拦截动作，例如修改请求头、替换请求体、改写响应体、执行 JavaScript 钩子、执行 JQ JSON 变换、重定向、拒绝连接或丢弃连接。",
+    "tags": [],
+    "group": "Extensions",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-mitm-core.js",
+    "status": 0,
+    "path": "data/plugins/plugin-mitm-core.js",
+    "triggers": ["on::manual", "on::core::started", "on::core::stopped"],
+    "hasUI": false,
+    "menus": {
+      "编辑规则": "EditRules"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "configuration": [
+      {
+        "id": "ID_cq0ojwvh",
+        "title": "监听地址与端口",
+        "description": "",
+        "key": "AddrAndPort",
+        "component": "Input",
+        "value": "127.0.0.1:8080",
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-ui-dev-helper",
     "name": "插件UI开发助手",
     "version": "v1.2.0",

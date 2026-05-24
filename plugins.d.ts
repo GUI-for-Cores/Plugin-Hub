@@ -181,6 +181,7 @@ interface Plugins {
     options?: { Env?: Record<string, string>; Convert?: boolean; StopOutputKeyword?: string; WorkingDirectory?: string; PidFile?: string; LogFile?: string }
   ): Promise<number>
 
+  GetRequestProxy(mode?: 'system' | 'kernel' | 'custom', customProxy?: string): Promise<string>
   HttpGet(
     url: string,
     headers?: Record<string, string>,
