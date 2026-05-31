@@ -34,6 +34,14 @@ const createUIModal = () => {
         <Tag color="primary">primary</Tag>
         <Tag size="small">小标签</Tag>
       </Card>
+
+      <Card title="资源选择器" class="mt-8">
+        <ResourceSelect type="profile" @submit="onResourceSubmit" #="{open}"><Button @click="open">选择配置</Button></ResourceSelect>
+        <ResourceSelect type="subscription" @submit="onResourceSubmit" #="{open}"><Button @click="open">选择订阅</Button></ResourceSelect>
+        <ResourceSelect type="ruleset" @submit="onResourceSubmit" #="{open}"><Button @click="open">选择规则集</Button></ResourceSelect>
+        <ResourceSelect type="plugin" @submit="onResourceSubmit" #="{open}"><Button @click="open">选择插件</Button></ResourceSelect>
+        <ResourceSelect type="scheduledtask" @submit="onResourceSubmit" #="{open}"><Button @click="open">选择计划任务</Button></ResourceSelect>
+      </Card>
     
       <Card title="其他组件" class="mt-8">
         <div class="flex items-center">
@@ -85,61 +93,69 @@ const createUIModal = () => {
     setup() {
       return {
         icons: [
-          'link',
-          'loading',
-          'selected',
-          'disabled',
-          'pin',
-          'pinFill',
-          'minimize',
-          'maximize',
-          'maximize2',
-          'close',
-          'arrowLeft',
-          'arrowDown',
-          'arrowRight',
-          'speedTest',
-          'empty',
-          'github',
-          'forbidden',
-          'telegram',
-          'expand',
-          'collapse',
-          'refresh',
-          'error',
-          'reset',
-          'folder',
-          'restartApp',
-          'log',
-          'settings',
-          'stop',
-          'restart',
           'messageSuccess',
           'messageError',
           'messageWarn',
           'messageInfo',
-          'pause',
-          'play',
           'clear',
-          'clear2',
-          'drag',
-          'more',
-          'add',
-          'filter',
-          'edit',
-          'delete',
-          'file',
-          'code',
           'overview',
           'profiles',
           'subscriptions',
           'rulesets',
           'plugins',
           'scheduledTasks',
-          'settings2',
-          'grant',
+          'settings',
+          'arrowDown',
+          'arrowLeft',
+          'arrowRight',
+          'clear3',
+          'disabled',
+          'empty',
+          'reset',
+          'telegram',
+          'search',
+          'copy',
+          'paste',
+          'link',
+          'loading',
+          'log',
+          'minimize',
+          'maximize',
+          'maximize2',
+          'more',
+          'pinFill',
+          'pin',
           'preview',
-          'rollback'
+          'refresh',
+          'restartApp',
+          'restart',
+          'rollback',
+          'selected',
+          'settings2',
+          'settings3',
+          'sparkle',
+          'speedTest',
+          'stop',
+          'add',
+          'clear2',
+          'close',
+          'code',
+          'collapse',
+          'delete',
+          'drag',
+          'edit',
+          'error',
+          'expand',
+          'file',
+          'filter',
+          'folder',
+          'forbidden',
+          'backward',
+          'pause',
+          'play',
+          'forward',
+          'github',
+          'grant'
         ],
         val1: ref(['1', '3']),
         val2: ref('1'),
@@ -164,7 +180,10 @@ const createUIModal = () => {
           { name: '插件1', version: 'v1.0.0', downloads: '99+' },
           { name: '插件2', version: 'v2.0.0', downloads: '99+' },
           { name: '插件3', version: 'v3.0.0', downloads: '99+' }
-        ]
+        ],
+        onResourceSubmit(ids, list) {
+          Plugins.message.info('选中项目：' + list.map(v => v.name).join('、'))
+        }
       }
     }
   })

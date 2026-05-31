@@ -139,7 +139,7 @@
   {
     "id": "plugin-ui-example",
     "name": "插件UI示例",
-    "version": "v1.1.0",
+    "version": "v1.2.0",
     "group": "Examples",
     "description": "插件创建UI示例",
     "tags": ["插件示例"],
