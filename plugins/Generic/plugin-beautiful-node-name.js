@@ -79,8 +79,9 @@ async function beautifyNodeName(proxies, metadata) {
     return flag1 && flag2 && flag3 && flag4
   })
 
+  const flag = Plugins.APP_TITLE.includes('SingBox') ? 'tag' : 'name'
+
   proxies = proxies.map((proxy) => {
-    const flag = Plugins.APP_TITLE.includes('SingBox') ? 'tag' : 'name'
     let tag = proxy[flag]
     let matchedRegion = null
     let subMatchedRegion = null
@@ -176,10 +177,10 @@ async function beautifyNodeName(proxies, metadata) {
     }
     const prefix = `${metadata.name} | `
     tag = enableSubscriptionName && !tag?.startsWith(prefix) ? prefix + tag : tag
-    return { ...proxy, [flag]: tag ?? proxy.tag }
+    return { ...proxy, [flag]: tag ?? proxy[flag] }
   })
-  const sort = enableUnifyRegionName === 2 ? 'en' : 'zh-Hans-CN'
-  proxies.sort((a, b) => a.tag.localeCompare(b.tag, sort, { numeric: true }))
+  const sort = enableUnifyRegionName === '统一为英文' ? 'en' : 'zh-Hans-CN'
+  proxies.sort((a, b) => (a[flag] ?? '').localeCompare(b[flag] ?? '', sort, { numeric: true }))
   return proxies
 }
 
