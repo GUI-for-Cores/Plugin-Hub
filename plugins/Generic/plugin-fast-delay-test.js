@@ -1,16 +1,35 @@
+const IPV6_TEST_URL = 'https://ipv6.google.com/generate_204'
+const DEFAULT_SCRIPT_CONTENT = `
+// 此脚本将在所有节点测试完成后执行（订阅更新时/手动测试全部）
+
+/**
+ * 脚本入口函数，接收测试完成的节点列表，返回处理后的节点列表
+ *
+ * proxies 数组中的单个对象结构：
+ * - _delay_ : 测试延迟 (number)
+ * - _ipv6_  : IPv6 支持 (boolean)
+ * - ...     : 原始节点数据
+ */
+const operate = async (proxies) => {
+  // 示例：过滤掉超时节点，并只保留支持 IPv6 的节点
+  // return proxies.filter((p) => p._delay_ > 0).filter((p) => p._ipv6_)
+  return proxies
+}`
 const DEFAULT_PLUGIN_SETTINGS = Object.freeze({
   testUrl: 'Google',
   customTestUrl: '',
   ipv6Test: true,
   testTimeout: 5000,
-  concurrencyLimit: 20,
-  cleanThreshold: 0
+  concurrencyLimit: 20
 })
-const DEFAULT_AUTOMATION_CONFIG = Object.freeze({
-  enabled: false,
-  sort: false,
-  clean: false,
-  cleanThreshold: 0
+const DEFAULT_SUBSCRIPTION_CONFIG = Object.freeze({
+  automation: {
+    enabled: false,
+    sort: false,
+    clean: false,
+    cleanThreshold: 0
+  },
+  script: DEFAULT_SCRIPT_CONTENT.trim()
 })
 const TEST_URL_MAP = Object.freeze({
   Google: 'https://www.gstatic.com/generate_204',
@@ -20,7 +39,6 @@ const TEST_URL_MAP = Object.freeze({
   Microsoft: 'https://www.msftconnecttest.com/connecttest.txt',
   Custom: ''
 })
-const IPV6_TEST_URL = 'https://ipv6.google.com/generate_204'
 const CORE_STOP_OUTPUT_KEYWORD = Object.freeze({
   GFS: 'sing-box started',
   GFC: 'Start initial compatible provider default'
@@ -123,14 +141,6 @@ export default (plugin) => {
           ...JSON.parse(content)
         }
   }
-  const createStorage = (pathGenerator, defaultVal) => {
-    return {
-      load: (id = '') => loadJson(pathGenerator(id), defaultVal),
-      save: async (data, id = '') => {
-        await saveJson(pathGenerator(id), data)
-      }
-    }
-  }
   const normalizeProxy = (p) => ({
     tag: p.tag ?? p.name,
     type: p.type,
@@ -222,10 +232,18 @@ export default (plugin) => {
   }
   const createClientAdapter = (appName) => (appName.includes('Clash') ? createGFCAdapter() : createGFSAdapter())
   const getDelayDataPath = (subId) => `${cachePath}/${subId}/delay-data.json`
-  const getAutomationConfigPath = (subId) => `${cachePath}/${subId}/automation.json`
+  const getSubConfigPath = (subId) => `${cachePath}/${subId}/subConfig.json`
+  const createStorage = (pathGenerator, defaultVal) => {
+    return {
+      load: (id = '') => loadJson(pathGenerator(id), defaultVal),
+      save: async (data, id = '') => {
+        await saveJson(pathGenerator(id), data)
+      }
+    }
+  }
   const SettingsStore = createStorage(() => settingsPath, DEFAULT_PLUGIN_SETTINGS)
   const DelayDataStore = createStorage(getDelayDataPath, [])
-  const AutomationStore = createStorage(getAutomationConfigPath, DEFAULT_AUTOMATION_CONFIG)
+  const SubConfigStore = createStorage(getSubConfigPath, DEFAULT_SUBSCRIPTION_CONFIG)
   const adapter = createClientAdapter(envStore.env.appName)
   const sortProxiesByDelayData = (proxies, delayDataList) => {
     const delayMap = new Map(delayDataList.map((d) => [getProxyKey(d), d.delay]))
@@ -243,29 +261,34 @@ export default (plugin) => {
     url.searchParams.append('url', testUrl)
     url.searchParams.append('timeout', timeout)
     try {
-      const { body } = await Plugins.HttpGet(
-        url.toString(),
-        {
+      const { body } = await Plugins.Requests({
+        method: 'GET',
+        url: url.toString(),
+        autoTransformBody: false,
+        headers: {
           Authorization: `Bearer ${secret}`
         },
-        {
+        options: {
+          Proxy: '',
           Timeout: Number(timeout)
         }
-      )
-      return body.delay ?? -1
-    } catch {
+      })
+      return JSON.parse(body).delay ?? -1
+    } catch (err) {
+      console.error(`[${plugin.name}] `, err)
       return -1
     }
   }
   const testSingleProxy = async (ctx, proxy, settings) => {
+    const { baseUrl, secret } = ctx
     const { tag, type } = proxy
     const testUrl = settings.testUrl === 'Custom' ? settings.customTestUrl || TEST_URL_MAP.Google : TEST_URL_MAP[settings.testUrl]
     const createDelayGetParams = (targetUrl) => ({
-      baseUrl: ctx.baseUrl,
+      baseUrl,
       proxy: tag,
       testUrl: targetUrl,
       timeout: String(settings.testTimeout),
-      secret: ctx.secret
+      secret
     })
     const delayPromise = getProxyDelay(createDelayGetParams(testUrl))
     const ipv6DelayPromise = settings.ipv6Test ? getProxyDelay(createDelayGetParams(IPV6_TEST_URL)) : Promise.resolve(-1)
@@ -447,6 +470,10 @@ export default (plugin) => {
     if (ctx.configPath) await Plugins.RemoveFile(ctx.configPath).catch(() => {})
     runtimeContextMap.delete(subId)
   }
+  const executeScript = (code, proxies) => {
+    const fn = new window.AsyncFunction('proxies', `${code}; return operate(proxies)`)
+    return fn(proxies)
+  }
   const persistUIStateOnClose = async (subscription, uiProxies) => {
     const sorted = [...uiProxies].sort((a, b) => {
       const valA = a.delay <= 0 ? Infinity : a.delay
@@ -474,14 +501,14 @@ export default (plugin) => {
     const settings = ref({
       ...DEFAULT_PLUGIN_SETTINGS
     })
-    const automationConfig = ref({
-      ...DEFAULT_AUTOMATION_CONFIG
+    const subConfig = ref({
+      ...DEFAULT_SUBSCRIPTION_CONFIG
     })
     const uiProxiesList = ref([])
     const allTesting = ref(false)
     const loadData = async () => {
       settings.value = await SettingsStore.load()
-      automationConfig.value = await AutomationStore.load(subscription.id)
+      subConfig.value = await SubConfigStore.load(subscription.id)
       const unifiedProxies = await adapter.data.readRawProxies(subscription)
       const persistedDelayData = await DelayDataStore.load(subscription.id)
       const persistedMap = new Map(persistedDelayData.map((d) => [getProxyKey(d), d]))
@@ -519,7 +546,6 @@ export default (plugin) => {
     const cleanNodes = async (threshold) => {
       const text = threshold > 0 ? `延迟大于 ${threshold}ms 与测试失败` : '测试失败'
       if (!(await Plugins.confirm('清理节点', `确定要删除所有${text}的节点吗？`).catch(() => false))) return false
-      settings.value.cleanThreshold = threshold
       const toKeep = uiProxiesList.value.filter((p) => isValidNode(p.delay, threshold))
       const deleteCount = uiProxiesList.value.length - toKeep.length
       if (deleteCount === 0) {
@@ -547,23 +573,14 @@ export default (plugin) => {
     const testAllNodes = async () => {
       if (allTesting.value) return
       allTesting.value = true
-      try {
-        await testAllProxies(ctx, uiProxiesList.value, settings.value, {
-          onProxyStart: (proxy) => {
-            proxy.testing = true
-          },
-          onProxyTested: (result) => {
-            updateUIProxy(result)
-          }
-        })
-      } catch (err) {
-        Plugins.message.error(String(err))
-      } finally {
-        uiProxiesList.value.forEach((p) => {
-          p.testing = false
-        })
-        allTesting.value = false
-      }
+      await testAllProxies(ctx, uiProxiesList.value, settings.value, {
+        onProxyStart: (proxy) => {
+          proxy.testing = true
+        },
+        onProxyTested: (result) => {
+          updateUIProxy(result)
+        }
+      })
     }
     const openSettingsUI = () => {
       const draft = ref({
@@ -633,9 +650,42 @@ export default (plugin) => {
       modal.setContent(component)
       modal.open()
     }
+    const openScriptUI = () => {
+      const code = ref(subConfig.value.script)
+      const component = defineComponent({
+        template: `
+        <div>
+          <CodeViewer v-model="code" lang="javascript" editable />
+        </div>
+        `,
+        setup() {
+          return {
+            code
+          }
+        }
+      })
+      const modal = Plugins.modal({
+        title: '脚本编辑',
+        width: '90',
+        height: '90',
+        submitText: '保存',
+        cancelText: '取消',
+        onOk: async () => {
+          subConfig.value.script = code.value
+          await SubConfigStore.save(subConfig.value, subscription.id)
+          Plugins.message.success('已保存')
+          return true
+        },
+        afterClose: () => {
+          modal.destroy()
+        }
+      })
+      modal.setContent(component)
+      modal.open()
+    }
     const openAutomationUI = () => {
       const draft = ref({
-        ...automationConfig.value
+        ...subConfig.value.automation
       })
       const component = defineComponent({
         template: `
@@ -673,10 +723,10 @@ export default (plugin) => {
         submitText: '保存',
         cancelText: '取消',
         onOk: async () => {
-          automationConfig.value = {
+          subConfig.value.automation = {
             ...draft.value
           }
-          await AutomationStore.save(automationConfig.value, subscription.id)
+          await SubConfigStore.save(subConfig.value, subscription.id)
           Plugins.message.success('已保存')
           return true
         },
@@ -688,14 +738,13 @@ export default (plugin) => {
       modal.open()
     }
     const openCleanUI = () => {
-      const threshold = ref(settings.value.cleanThreshold)
       const component = defineComponent({
         template: `
         <div class="w-full h-full p-8">
           <div class="form-item">
             <div class="mr-8">清理阈值(ms)</div>
             <div class="max-w-[75%]">
-              <Input type="number" v-model="threshold" :min="0" class="w-full" editable />
+              <Input type="number" v-model="subConfig.automation.cleanThreshold" :min="0" class="w-full" editable />
             </div>
           </div>
         </div>
@@ -714,7 +763,7 @@ export default (plugin) => {
             }
           })
           return {
-            threshold
+            subConfig
           }
         }
       })
@@ -723,7 +772,10 @@ export default (plugin) => {
         width: '35',
         submitText: '清理',
         cancelText: '取消',
-        onOk: () => cleanNodes(threshold.value),
+        onOk: async () => {
+          await SubConfigStore.save(subConfig.value, subscription.id)
+          return cleanNodes(subConfig.value.automation.cleanThreshold)
+        },
         afterClose: () => {
           modal.destroy()
         }
@@ -772,17 +824,25 @@ export default (plugin) => {
                 resolveComponent('Button'),
                 {
                   type: 'text',
-                  onClick: openAutomationUI
+                  onClick: openSettingsUI
                 },
-                () => '自动处理'
+                () => '插件配置'
               ),
               h(
                 resolveComponent('Button'),
                 {
                   type: 'text',
-                  onClick: openSettingsUI
+                  onClick: openScriptUI
                 },
-                () => '插件配置'
+                () => '脚本操作'
+              ),
+              h(
+                resolveComponent('Button'),
+                {
+                  type: 'text',
+                  onClick: openAutomationUI
+                },
+                () => '自动处理'
               ),
               h(
                 resolveComponent('Button'),
@@ -798,9 +858,31 @@ export default (plugin) => {
                   type: 'text',
                   icon: 'speedTest',
                   loading: allTesting.value,
-                  onClick: () => {
+                  onClick: async () => {
                     if (allTesting.value) return
-                    void testAllNodes()
+                    try {
+                      await testAllNodes()
+                      const pendingProxies = uiProxiesList.value.map((p) => ({
+                        ...p.raw,
+                        _delay_: p.delay,
+                        _ipv6_: p.ipv6
+                      }))
+                      const results = await executeScript(subConfig.value.script, pendingProxies)
+                      uiProxiesList.value = results.map((r) => {
+                        const { _delay_, _ipv6_, ...rest } = r
+                        return {
+                          ...normalizeProxy(rest),
+                          delay: _delay_,
+                          ipv6: _ipv6_,
+                          testing: false
+                        }
+                      })
+                      Plugins.message.success('脚本执行完成')
+                    } catch (err) {
+                      Plugins.message.error(`脚本执行失败: ${String(err)}`)
+                    } finally {
+                      allTesting.value = false
+                    }
                   }
                 },
                 () => '测试全部'
@@ -878,12 +960,13 @@ export default (plugin) => {
     await testDelay(selectedSub)
   }
   const onSubscribe = async (rawProxies, subscription) => {
-    const automation = await AutomationStore.load(subscription.id)
-    if (!automation.enabled) return rawProxies
     if (isSubUIActive(subscription.id)) {
-      Plugins.message.warn('当前订阅界面已开启，跳过更新时的自动处理')
+      console.warn(`[${plugin.name}] 当前订阅界面已开启，跳过更新时的自动处理`)
       return rawProxies
     }
+    const subConfig = await SubConfigStore.load(subscription.id)
+    const { automation, script } = subConfig
+    if (!automation.enabled) return rawProxies
     runtimeState.automationSubIds.add(subscription.id)
     try {
       const settings = await SettingsStore.load()
@@ -892,20 +975,40 @@ export default (plugin) => {
       const { results } = await testAllProxies(ctx, normalizedProxies, settings, {
         silent: true
       })
-      const delayMap = new Map(results.map((r) => [getProxyKey(r), r.delay]))
-      const ipv6Map = new Map(results.map((r) => [getProxyKey(r), r.ipv6]))
-      const nextDelayData = normalizedProxies.map((p) => {
-        const key = getProxyKey(p)
+      const resultMap = new Map(results.map((r) => [getProxyKey(r), r]))
+      const pendingProxies = normalizedProxies.map((p) => {
+        const res = resultMap.get(getProxyKey(p))
         return {
-          tag: p.tag,
-          type: p.type,
-          delay: delayMap.get(key) ?? 0,
-          ipv6: ipv6Map.get(key) ?? false
+          ...p.raw,
+          _delay_: res?.delay ?? 0,
+          _ipv6_: res?.ipv6 ?? false
         }
       })
-      let processed = normalizedProxies
+      let scriptProcessedProxies = pendingProxies
+      try {
+        scriptProcessedProxies = await executeScript(script, pendingProxies)
+      } catch (err) {
+        console.error(`[${plugin.name}] 脚本执行失败，跳过脚本处理`, err)
+      }
+      const nextNormalizedProxies = []
+      const nextDelayData = []
+      scriptProcessedProxies.forEach((p) => {
+        const { _delay_, _ipv6_, ...rest } = p
+        const normalized = normalizeProxy(rest)
+        nextNormalizedProxies.push(normalized)
+        nextDelayData.push({
+          tag: normalized.tag,
+          type: p.type,
+          delay: _delay_,
+          ipv6: _ipv6_
+        })
+      })
+      let processed = nextNormalizedProxies
       if (automation.clean) {
-        processed = processed.filter((p) => isValidNode(delayMap.get(getProxyKey(p)) ?? 0, automation.cleanThreshold))
+        processed = processed.filter((p) => {
+          const res = resultMap.get(getProxyKey(p))
+          return isValidNode(res?.delay ?? 0, automation.cleanThreshold)
+        })
       }
       if (automation.sort) {
         processed = sortProxiesByDelayData(processed, nextDelayData)
