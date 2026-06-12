@@ -182,7 +182,7 @@ const createUIModal = () => {
           { name: '插件3', version: 'v3.0.0', downloads: '99+' }
         ],
         onResourceSubmit(ids, list) {
-          Plugins.message.info('选中项目：' + list.map(v => v.name).join('、'))
+          Plugins.message.info('选中项目：' + list.map((v) => v.name).join('、'))
         }
       }
     }

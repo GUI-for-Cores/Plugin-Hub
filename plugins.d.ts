@@ -182,6 +182,9 @@ interface Plugins {
   ): Promise<number>
 
   GetRequestProxy(mode?: 'system' | 'kernel' | 'custom', customProxy?: string): Promise<string>
+  TcpPing(address: string, options?: {Timeout?:number}): Promise<number>
+  TcpRequest(address: string, data?: string, options?: {Timeout?:number}): Promise<any>
+  UdpRequest(address: string, data?: string, options?: {Timeout?:number}): Promise<any>
   HttpGet(
     url: string,
     headers?: Record<string, string>,
@@ -216,7 +219,7 @@ interface Plugins {
       Insecure?: boolean
       Redirect?: boolean
     }
-  }): Promise<{ status: number; body: any }>
+  }): Promise<{ status: number; headers: Recordable, body: any }>
   Download(
     url: string,
     path: string,

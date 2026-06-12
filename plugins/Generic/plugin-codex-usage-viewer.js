@@ -199,13 +199,11 @@ function stopAutoRefresh(Plugin) {
 }
 
 function getPluginState(Plugin) {
-  window[Plugin.id] =
-    window[Plugin.id] ||
-    {
-      timer: null,
-      accounts: Vue.ref([]),
-      loading: Vue.ref(false)
-    }
+  window[Plugin.id] = window[Plugin.id] || {
+    timer: null,
+    accounts: Vue.ref([]),
+    loading: Vue.ref(false)
+  }
   return window[Plugin.id]
 }
 
