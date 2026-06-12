@@ -17,7 +17,7 @@ export default (Plugin) => {
           const content = ref('')
           const refreshIP = async () => {
             content.value = 'IP: Loading'
-            const { body } = await Plugins.HttpGet('https://ipapi.co/json')
+            const { body } = await Plugins.HttpGet('https://ipwho.is/')
             const country = flags.get(body.country) || '❓'
             const ip = body.ip
             content.value = `IP: ${country} ${ip}`
@@ -45,12 +45,12 @@ export default (Plugin) => {
 
   return {
     onRun: async () => {
-      const url = 'https://ipapi.co/json'
+      const url = 'https://ipwho.is/'
       const { body } = await Plugins.HttpGet(url)
-      const emoji = flags.get(body.country) || '❓'
+      const emoji = flags.get(body.country_code) || '❓'
       const text1 = `${emoji} ${body.region} ${body.city}`
       const text2 = `🌐 IP: ${body.ip}`
-      const text3 = `🕗 时区: ${body.timezone}`
+      const text3 = `🕗 时区: ${body.timezone.id}`
       const message = `${text1}\n${text2}\n${text3}`
       Plugins.alert('IP 信息', message)
     },
