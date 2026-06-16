@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>静态资源服务器</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; }
+  .header { background: #fff; padding: 16px 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 16px; }
+  .header h1 { font-size: 20px; font-weight: 600; }
+  .breadcrumb { display: flex; align-items: center; gap: 4px; font-size: 14px; color: #666; }
+  .breadcrumb a { color: #1a73e8; text-decoration: none; cursor: pointer; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .breadcrumb span { color: #999; }
+  .container { max-width: 1000px; margin: 24px auto; padding: 0 16px; }
+  .toolbar { display: flex; gap: 8px; margin-bottom: 16px; }
+  .toolbar button { padding: 8px 16px; border: 1px solid #ddd; border-radius: 4px; background: #fff; cursor: pointer; font-size: 13px; }
+  .toolbar button:hover { background: #f0f0f0; }
+  .file-list { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
+  .file-row { display: flex; align-items: center; padding: 12px 20px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background 0.15s; }
+  .file-row:hover { background: #f8f9ff; }
+  .file-row:last-child { border-bottom: none; }
+  .file-icon { width: 32px; height: 32px; margin-right: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .file-info { flex: 1; min-width: 0; }
+  .file-name { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .file-meta { font-size: 12px; color: #999; margin-top: 2px; }
+  .file-action { flex-shrink: 0; }
+  .file-action { display: flex; gap: 6px; align-items: center; }
+  .file-action button { padding: 4px 10px; border: 1px solid #ddd; border-radius: 4px; background: #fff; cursor: pointer; font-size: 12px; color: #666; }
+  .file-action button:hover { background: #f0f0f0; }
+  .file-action a { display: inline-block; padding: 4px 12px; background: #1a73e8; color: #fff; border-radius: 4px; text-decoration: none; font-size: 12px; }
+  .file-action a:hover { background: #1557b0; }
+  .toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.75); color: #fff; padding: 8px 20px; border-radius: 4px; font-size: 13px; z-index: 999; animation: fadeInOut 1.5s ease; pointer-events: none; }
+  @keyframes fadeInOut { 0% { opacity: 0; transform: translateX(-50%) translateY(-8px); } 10% { opacity: 1; transform: translateX(-50%) translateY(0); } 80% { opacity: 1; } 100% { opacity: 0; } }
+  .loading { text-align: center; padding: 48px; color: #999; }
+  .empty { text-align: center; padding: 48px; color: #999; }
+  .error { text-align: center; padding: 48px; color: #e53935; }
+  .back-btn { cursor: pointer; color: #1a73e8; font-size: 14px; }
+  .back-btn:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>文件预览服务</h1>
+  <div class="breadcrumb" id="breadcrumb"></div>
+</div>
+
+<div class="container">
+  <div class="toolbar">
+    <button onclick="goBack()">⬅ 返回上级</button>
+    <button onclick="refresh()">刷新</button>
+  </div>
+  <div class="file-list" id="fileList">
+    <div class="loading">加载中...</div>
+  </div>
+</div>
+
+<script>
+const BASE = '';
+let currentPath = [];
+
+function getPath() {
+  return '/' + currentPath.join('/');
+}
+
+function buildBreadcrumb() {
+  const bc = document.getElementById('breadcrumb');
+  let html = '<a onclick="navigateTo([])">根目录</a>';
+  let accumulated = [];
+  currentPath.forEach((seg, i) => {
+    accumulated.push(seg);
+    html += ` <span>/</span> <a onclick="navigateTo(${JSON.stringify([...accumulated])})">${escapeHtml(seg)}</a>`;
+  });
+  bc.innerHTML = html;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function formatSize(bytes) {
+  if (bytes === 0) return '-';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let i = 0;
+  let size = bytes;
+  while (size >= 1024 && i < units.length - 1) { size /= 1024; i++; }
+  return size.toFixed(i === 0 ? 0 : 1) + ' ' + units[i];
+}
+
+function getFileIcon(name, isDir) {
+  if (isDir) return '📁';
+  const ext = name.split('.').pop().toLowerCase();
+  const icons = {
+    txt: '📄', pdf: '📕', jpg: '🖼', jpeg: '🖼', png: '🖼', gif: '🖼', svg: '🖼',
+    mp4: '🎬', mp3: '🎵', zip: '📦', rar: '📦', '7z': '📦', tar: '📦', gz: '📦',
+    js: '📜', ts: '📜', html: '🌐', css: '🎨', json: '📋', xml: '📋',
+    doc: '📝', docx: '📝', xls: '📊', xlsx: '📊', ppt: '📽', pptx: '📽',
+  };
+  return icons[ext] || '📄';
+}
+
+async function loadDir() {
+  const container = document.getElementById('fileList');
+  container.innerHTML = '<div class="loading">加载中...</div>';
+
+  try {
+    const res = await fetch(`${BASE}/dir?path=${encodeURIComponent(getPath())}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    if (!Array.isArray(data) || data.length === 0) {
+      container.innerHTML = '<div class="empty">此目录为空</div>';
+      return;
+    }
+
+    const dirs = data.filter(f => f.isDir);
+    const files = data.filter(f => !f.isDir);
+    const sorted = [...dirs, ...files];
+
+    container.innerHTML = sorted.map(f => {
+      const fullPath = getPath() === '/' ? `/${f.name}` : `${getPath()}/${f.name}`;
+      const icon = getFileIcon(f.name, f.isDir);
+      const meta = f.isDir ? '文件夹' : formatSize(f.size);
+      const url = `${BASE}/static${encodeURI(fullPath)}`;
+      const action = f.isDir
+        ? ''
+        : `<button onclick="event.stopPropagation();copyUrl('${window.location.origin + url}')">复制</button>
+           <a href="${url}" target="_blank" download onclick="event.stopPropagation()">下载</a>`;
+      return `<div class="file-row" onclick="${f.isDir ? `enterDir('${escapeHtml(f.name)}')` : ''}" style="${f.isDir ? '' : 'cursor:default'}">
+        <div class="file-icon">${icon}</div>
+        <div class="file-info">
+          <div class="file-name">${escapeHtml(f.name)}</div>
+          <div class="file-meta">${meta}</div>
+        </div>
+        <div class="file-action">${action}</div>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    container.innerHTML = `<div class="error">加载失败: ${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function copyUrl(url) {
+  const input = document.createElement('input');
+  input.value = url;
+  document.body.appendChild(input);
+  input.select();
+  document.execCommand('copy');
+  document.body.removeChild(input);
+  toast('已复制到剪贴板');
+}
+
+function toast(msg) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => document.body.removeChild(el), 1500);
+}
+
+function enterDir(name) {
+  currentPath.push(name);
+  buildBreadcrumb();
+  loadDir();
+}
+
+function navigateTo(pathArr) {
+  currentPath = pathArr;
+  buildBreadcrumb();
+  loadDir();
+}
+
+function goBack() {
+  if (currentPath.length > 0) {
+    currentPath.pop();
+    buildBreadcrumb();
+    loadDir();
+  }
+}
+
+function refresh() {
+  loadDir();
+}
+
+buildBreadcrumb();
+loadDir();
+</script>
+
+</body>
+</html>

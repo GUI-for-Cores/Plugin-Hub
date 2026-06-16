@@ -1161,6 +1161,68 @@
     "installed": false
   },
   {
+    "id": "plugin-file-server",
+    "version": "v1.0.0",
+    "name": "静态资源服务器",
+    "description": "用于局域网共享文件",
+    "group": "Tools",
+    "status": 1,
+    "tags": ["实用工具", "功能扩展"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-file-server.js",
+    "path": "data/plugins/plugin-file-server.js",
+    "triggers": [
+        "on::manual",
+        "on::ready",
+        "on::shutdown"
+    ],
+    "hasUI": false,
+    "menus": {
+        "本地": "OpenFiles",
+        "预览": "OpenURL",
+        "复制链接": "CopyURL"
+    },
+    "context": {
+        "profiles": {},
+        "subscriptions": {},
+        "rulesets": {},
+        "plugins": {},
+        "scheduledtasks": {}
+    },
+    "configuration": [
+        {
+            "id": "ID_973jkyoj",
+            "title": "监听地址",
+            "description": "",
+            "key": "Address",
+            "component": "Input",
+            "value": ":8080",
+            "options": []
+        },
+        {
+            "id": "ID_i3smpb6j",
+            "title": "静态资源路径",
+            "description": "",
+            "key": "StaticPath",
+            "component": "Input",
+            "value": "data/third/file-server/static",
+            "options": []
+        },
+        {
+            "id": "ID_shsllfqb",
+            "title": "局域网IP地址",
+            "description": "用于生成复制、下载链接",
+            "key": "LanIP",
+            "component": "Input",
+            "value": "127.0.0.1",
+            "options": []
+        }
+    ],
+    "disabled": false,
+    "install": true,
+    "installed": false
+},
+  {
     "id": "plugin-gitea",
     "name": "Gitea",
     "version": "v1.0.1",
