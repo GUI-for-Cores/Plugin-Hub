@@ -40,8 +40,10 @@ export default (Plugin) => {
   }
 
   const onUninstall = async () => {
-    await Plugins.confirm('提示', '要删除此插件目录吗？\n\n' + PATH)
-    await Plugins.RemoveFile(PATH)
+    const ok = await Plugins.confirm('提示', '要删除此插件目录吗？\n\n' + PATH).catch(() => false)
+    if (ok) {
+      await Plugins.RemoveFile(PATH)
+    }
   }
 
   const StopServer = async () => {
@@ -50,6 +52,7 @@ export default (Plugin) => {
   }
 
   const startService = async () => {
+    await Plugins.MakeDir(Plugin.StaticPath)
     await Plugins.StartServer(
       Plugin.Address,
       Plugin.id,

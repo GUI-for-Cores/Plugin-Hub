@@ -1162,7 +1162,7 @@
   },
   {
     "id": "plugin-file-server",
-    "version": "v1.0.0",
+    "version": "v1.0.1",
     "name": "静态资源服务器",
     "description": "用于局域网共享文件",
     "group": "Tools",
