@@ -25,6 +25,10 @@ export default (plugin) => {
     }
   }
   const openDashboardUI = () => {
+    if (!isAlphaCore()) {
+      Plugins.message.warn('此 Web 面板仅支持内测版核心')
+      return
+    }
     const form = getFormData()
     const modal = Plugins.modal(
       {
@@ -91,9 +95,6 @@ export default (plugin) => {
     modal.open()
   }
   const onRun = () => {
-    if (!isAlphaCore()) {
-      throw '请先切换为内测版核心'
-    }
     if (!kernelApiStore.running) {
       throw '请先启动核心'
     }
