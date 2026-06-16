@@ -224,6 +224,49 @@
     "installed": false
   },
   {
+    "id": "plugin-sing-box-dashboard",
+    "version": "v1.0.1",
+    "name": "sing-box 仪表板",
+    "description": "全新的 Web 面板，提供与原版图形客户端几乎一致的体验。Supported by: 泡泡茶壶",
+    "tags": ["功能扩展", "提升体验"],
+    "group": "Extensions",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-sing-box-dashboard.js",
+    "path": "data/plugins/plugin-sing-box-dashboard.js",
+    "status": 0,
+    "triggers": ["on::manual", "on::before::core::start", "on::core::started", "on::core::stopped"],
+    "hasUI": true,
+    "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "configuration": [
+      {
+        "id": "ID_nde1m8zg",
+        "title": "API 监听地址",
+        "description": "",
+        "key": "listen_address",
+        "component": "Input",
+        "value": "127.0.0.1:20190",
+        "options": []
+      },
+      {
+        "id": "ID_0i03pojc",
+        "title": "API 密钥",
+        "description": "",
+        "key": "secret",
+        "component": "Input",
+        "value": "sing-box_api_secret",
+        "options": []
+      }
+    ],
+    "disabled": false
+  },
+  {
     "id": "plugin-share-profile-to-openwrt",
     "name": "共享配置到 OpenWrt",
     "version": "v1.0.0",
