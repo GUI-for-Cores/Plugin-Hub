@@ -110,11 +110,12 @@ export default (plugin) => {
     }
     return config
   }
-  const removeCustomAction = () => {
+  const del_ui = () => {
     appStore.removeCustomActions('core_state', plugin.id)
   }
-  const onCoreStarted = () => {
-    removeCustomAction()
+
+  const add_ui = () => {
+    del_ui()
     appStore.addCustomActions('core_state', {
       id: plugin.id,
       component: 'div',
@@ -144,13 +145,24 @@ export default (plugin) => {
       }
     })
   }
+  const onCoreStarted = () => {
+    add_ui()
+  }
   const onCoreStopped = () => {
-    removeCustomAction()
+    del_ui()
+  }
+  const onDispose = () => {
+    del_ui()
+  }
+  const onReady = () => {
+    add_ui()
   }
   return {
     onRun,
     onBeforeCoreStart,
     onCoreStarted,
-    onCoreStopped
+    onCoreStopped,
+    onDispose,
+    onReady
   }
 }

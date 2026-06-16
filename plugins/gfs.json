@@ -225,7 +225,7 @@
   },
   {
     "id": "plugin-sing-box-dashboard",
-    "version": "v1.0.1",
+    "version": "v2.0.0",
     "name": "sing-box 仪表板",
     "description": "全新的 Web 面板，提供与原版图形客户端几乎一致的体验。Supported by: 泡泡茶壶",
     "tags": ["功能扩展", "提升体验"],
@@ -234,7 +234,7 @@
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-sing-box-dashboard.js",
     "path": "data/plugins/plugin-sing-box-dashboard.js",
     "status": 0,
-    "triggers": ["on::manual", "on::before::core::start", "on::core::started", "on::core::stopped"],
+    "triggers": ["on::ready", "on::manual", "on::before::core::start", "on::core::started", "on::core::stopped"],
     "hasUI": true,
     "menus": {},
     "context": {
