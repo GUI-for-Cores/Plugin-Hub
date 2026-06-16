@@ -18,7 +18,7 @@ export default (Plugin) => {
           const refreshIP = async () => {
             content.value = 'IP: Loading'
             const { body } = await Plugins.HttpGet('https://ipwho.is/')
-            const country = flags.get(body.country) || '❓'
+            const country = flags.get(body.country_code) || '❓'
             const ip = body.ip
             content.value = `IP: ${country} ${ip}`
           }
