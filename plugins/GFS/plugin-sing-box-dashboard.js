@@ -1,5 +1,3 @@
-const DASHBOARD_URL = 'http://sing-box-dashboard.sagernet.org'
-const FAVICON_URL = `${DASHBOARD_URL}/favicon.svg`
 /** @type {EsmPlugin} */
 export default (plugin) => {
   const appStore = Plugins.useAppStore()
@@ -12,7 +10,9 @@ export default (plugin) => {
       type: 'api',
       listen: host,
       listen_port: Number(port),
-      secret: plugin.secret
+      secret: plugin.secret,
+      access_control_allow_private_network: true,
+      dashboard: true
     }
   }
   const getFormData = () => {
@@ -29,7 +29,8 @@ export default (plugin) => {
       Plugins.message.warn('此 Web 面板仅支持内测版核心')
       return
     }
-    const form = getFormData()
+    const { url, secret } = getFormData()
+    const dashboardUrl = `http://${url}/dashboard`
     const modal = Plugins.modal(
       {
         title: 'sing-box Dashboard',
@@ -48,7 +49,7 @@ export default (plugin) => {
             {
               type: 'text',
               onClick: () => {
-                void Plugins.ClipboardSetText(form.url)
+                void Plugins.ClipboardSetText(url)
               }
             },
             () => '复制 URL'
@@ -58,7 +59,7 @@ export default (plugin) => {
             {
               type: 'text',
               onClick: () => {
-                void Plugins.ClipboardSetText(form.secret)
+                void Plugins.ClipboardSetText(secret)
               }
             },
             () => '复制密钥'
@@ -68,7 +69,7 @@ export default (plugin) => {
             {
               type: 'text',
               onClick: () => {
-                Plugins.BrowserOpenURL(DASHBOARD_URL)
+                Plugins.BrowserOpenURL(dashboardUrl)
               }
             },
             () => '浏览器中打开'
@@ -83,7 +84,7 @@ export default (plugin) => {
         ],
         default: () =>
           Vue.h('iframe', {
-            src: DASHBOARD_URL,
+            src: dashboardUrl,
             allow: 'clipboard-read; clipboard-write',
             class: 'w-full h-full border-0',
             style: {
@@ -93,6 +94,42 @@ export default (plugin) => {
       }
     )
     modal.open()
+  }
+  const del_ui = () => {
+    appStore.removeCustomActions('core_state', plugin.id)
+  }
+  const add_ui = () => {
+    del_ui()
+    const { url } = getFormData()
+    const faviconUrl = `http://${url}/dashboard/favicon.svg`
+    appStore.addCustomActions('core_state', {
+      id: plugin.id,
+      component: 'div',
+      componentSlots: {
+        default: ({ h }) => {
+          return h(
+            'Button',
+            {
+              type: 'link',
+              size: 'small',
+              onClick: openDashboardUI
+            },
+            () => [
+              h('img', {
+                src: faviconUrl,
+                width: '16px',
+                height: '16px',
+                style: {
+                  borderRadius: '4px',
+                  marginRight: '4px'
+                }
+              }),
+              'Dashboard'
+            ]
+          )
+        }
+      }
+    })
   }
   const onRun = () => {
     if (!kernelApiStore.running) {
@@ -109,41 +146,6 @@ export default (plugin) => {
       })
     }
     return config
-  }
-  const del_ui = () => {
-    appStore.removeCustomActions('core_state', plugin.id)
-  }
-
-  const add_ui = () => {
-    del_ui()
-    appStore.addCustomActions('core_state', {
-      id: plugin.id,
-      component: 'div',
-      componentSlots: {
-        default: ({ h }) => {
-          return h(
-            'Button',
-            {
-              type: 'link',
-              size: 'small',
-              onClick: openDashboardUI
-            },
-            () => [
-              h('img', {
-                src: FAVICON_URL,
-                width: '16px',
-                height: '16px',
-                style: {
-                  borderRadius: '4px',
-                  marginRight: '4px'
-                }
-              }),
-              'Dashboard'
-            ]
-          )
-        }
-      }
-    })
   }
   const onCoreStarted = () => {
     add_ui()

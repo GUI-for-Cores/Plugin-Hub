@@ -225,7 +225,7 @@
   },
   {
     "id": "plugin-sing-box-dashboard",
-    "version": "v2.0.0",
+    "version": "v2.1.0",
     "name": "sing-box 仪表板",
     "description": "全新的 Web 面板，提供与原版图形客户端几乎一致的体验。Supported by: 泡泡茶壶",
     "tags": ["功能扩展", "提升体验"],
