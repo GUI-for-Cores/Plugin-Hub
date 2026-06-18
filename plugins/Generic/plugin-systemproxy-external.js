@@ -28,6 +28,9 @@ export default (Plugin) => {
 
   const onRun = async () => {
     await checkOS()
+    await Plugins.confirm('提示', '新版GUI已支持指定【代理网络服务名称】，请前往设置页查看', {
+      cancelText: '不用了'
+    })
     const action = await Plugins.picker.single(Plugin.name, [
       { label: '设置代理', value: 'Set' },
       { label: '清除代理', value: 'Clear' }
