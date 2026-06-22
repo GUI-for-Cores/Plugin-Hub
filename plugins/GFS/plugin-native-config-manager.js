@@ -5,7 +5,10 @@ export default (Plugin) => {
   const managerPath = `${basePath}/${Plugin.id}.json`
   const appStore = Plugins.useAppStore()
   const profilesStore = Plugins.useProfilesStore()
-  const manager = new NativeConfigManager({ cacheDir, managerPath })
+  const manager = new NativeConfigManager({
+    cacheDir,
+    managerPath
+  })
   /* 触发器 手动触发 */
   const onRun = async () => {
     await manager.init()
@@ -183,7 +186,10 @@ export default (Plugin) => {
         <li>请勿直接修改此插件创建的 GUI 配置，因为这将不会生效。如果你需要修改或删除配置，请在此插件内进行操作。</li>
       </ul>
       <div class="flex gap-8 mt-8">
-        <Button class="flex-1" type="primary" @click="handleLocal">添加本地配置</Button>
+        <Button class="flex-1" type="primary" @click="triggerFileInput">
+          添加本地配置
+          <input type="file" ref="fileInput" accept=".json,application/json" style="display: none;" @click.stop @change="handleLocal" />
+        </Button>
         <Button class="flex-1" type="primary" @click="showUrlInput = !showUrlInput; enableCache = false">添加远程配置</Button>
       </div>
       <div v-if="showUrlInput" class="flex flex-col mt-4">
@@ -199,15 +205,31 @@ export default (Plugin) => {
     </div>
     `,
       setup() {
-        const handleLocal = async () => {
-          const success = await manager.handleAddLocal()
+        const fileInput = ref(null)
+        const triggerFileInput = () => {
+          fileInput.value?.click()
+        }
+        const handleLocal = async (event) => {
+          const target = event.target
+          const file = target.files?.[0]
+          if (!file) return
+          const success = await manager.handleAddLocal(file)
           if (success) modal.close()
+          target.value = ''
         }
         const handleRemote = async () => {
           const success = await manager.handleAddRemote(remoteUrl.value.trim(), enableCache.value)
           if (success) modal.close()
         }
-        return { showUrlInput, remoteUrl, enableCache, handleLocal, handleRemote }
+        return {
+          showUrlInput,
+          remoteUrl,
+          enableCache,
+          fileInput,
+          triggerFileInput,
+          handleLocal,
+          handleRemote
+        }
       }
     })
     const modal = Plugins.modal({
@@ -245,7 +267,13 @@ export default (Plugin) => {
         const isRemote = cfg.type === 'remote'
         const label = isRemote ? '配置链接' : '配置路径'
         const placeholder = isRemote ? 'http(s)://...' : '/PATH/TO/FILE.json'
-        return { inputValue, label, placeholder, isRemote, cacheOptions }
+        return {
+          inputValue,
+          label,
+          placeholder,
+          isRemote,
+          cacheOptions
+        }
       }
     })
     const modal = Plugins.modal({
@@ -276,7 +304,13 @@ export default (Plugin) => {
     modal.setContent(component)
     modal.open()
   }
-  return { onRun, onReady, onGenerate, onInstall, onUninstall }
+  return {
+    onRun,
+    onReady,
+    onGenerate,
+    onInstall,
+    onUninstall
+  }
 }
 class NativeConfigManager {
   configs = Vue.ref([])
@@ -297,9 +331,7 @@ class NativeConfigManager {
       this.configs.value = []
     }
   }
-  async handleAddLocal() {
-    const file = await selectLocalJsonFile()
-    if (!file) return false
+  async handleAddLocal(file) {
     const content = await file.text()
     const isValid = await this.validateConfig(content)
     if (!isValid) return false
@@ -340,11 +372,17 @@ class NativeConfigManager {
       if (!isValid) return false
       const id = Plugins.sampleID()
       const handleCache = async () => {
-        if (!cache) return { enable: false }
+        if (!cache)
+          return {
+            enable: false
+          }
         const cachePath = `${this.cacheDir}/${id}.json`
         await Plugins.WriteFile(cachePath, content)
         Plugins.message.info(`配置已缓存至 ${cachePath}，请在远程配置发生变化时，手动更新`)
-        return { enable: true, path: cachePath }
+        return {
+          enable: true,
+          path: cachePath
+        }
       }
       const sourceConfig = JSON.parse(content)
       const profileName = extractProfileNameFromUrl(url)
@@ -398,7 +436,7 @@ class NativeConfigManager {
       Plugins.message.error('配置不存在')
       return
     }
-    this.configs.value?.splice(idx, 1)
+    this.configs.value.splice(idx, 1)
     await this.saveConfigs()
     await Plugins.useProfilesStore().deleteProfile(cfg.profileId)
     await Plugins.RemoveFile(`${this.cacheDir}/${cfg.id}.json`).catch(() => {
@@ -423,8 +461,7 @@ class NativeConfigManager {
     Plugins.message.success('配置保存成功')
   }
   async updateCache() {
-    const configs = this.configs.value ?? []
-    for (const cfg of configs) {
+    for (const cfg of this.configs.value) {
       const profileName = Plugins.useProfilesStore().getProfileById(cfg.profileId)?.name ?? 'Not Found'
       if (cfg.type !== 'remote' || !cfg.cache?.enable) continue
       try {
@@ -452,38 +489,12 @@ const fetchRemoteFile = async (url) => {
   const { body } = await Plugins.Requests({
     method: 'GET',
     url,
-    headers: { 'User-Agent': 'sing-box' },
+    headers: {
+      'User-Agent': 'sing-box'
+    },
     autoTransformBody: false
   })
   return body
-}
-const selectLocalJsonFile = () => {
-  return new Promise((resolve) => {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.style.display = 'none'
-    input.multiple = false
-    input.accept = '.json, application/json'
-    const cleanup = () => {
-      window.removeEventListener('focus', onFocus)
-      document.body.removeChild(input)
-    }
-    const onFocus = () => {
-      setTimeout(() => {
-        if (input.files?.length === 0) {
-          resolve(null)
-          cleanup()
-        }
-      }, 200)
-    }
-    input.addEventListener('change', () => {
-      resolve(input.files?.[0] ?? null)
-      cleanup()
-    })
-    window.addEventListener('focus', onFocus, { once: true })
-    document.body.appendChild(input)
-    input.click()
-  })
 }
 const extractProfileNameFromUrl = (url) => {
   const id = Plugins.sampleID()
