@@ -2,11 +2,11 @@
 export default (Plugin) => {
   const appStore = Plugins.useAppStore()
   /* 触发器 手动触发 */
-  const onRun = async () => {
+  const onRun = () => {
     openUI()
   }
   /* 触发器 APP就绪后 */
-  const onReady = async () => {
+  const onReady = () => {
     appStore.addCustomActions('profiles_header', {
       id: Plugin.id,
       component: 'Button',
@@ -20,7 +20,7 @@ export default (Plugin) => {
     })
   }
   const openUI = () => {
-    const { h, defineComponent } = Vue
+    const { ref, h, defineComponent } = Vue
     const component = defineComponent({
       template: `
     <div class="flex flex-col gap-4">
@@ -58,8 +58,9 @@ export default (Plugin) => {
       </Card>
 
       <div class="flex gap-12 mt-2">
-        <Button type="primary" @click="importLocalConfig" icon="file" class="flex-1">
+        <Button type="primary" @click="triggerFileInput" icon="file" class="flex-1">
           从文件导入
+          <input type="file" ref="fileInput" accept=".json,application/json" multiple style="display: none;" @click.stop @change="handleFileChange" />
         </Button>
         <Button type="primary" @click="importRemoteConfig" icon="link" class="flex-1">
           从链接导入
@@ -68,8 +69,24 @@ export default (Plugin) => {
     </div>
     `,
       setup() {
+        const fileInput = ref(null)
+        const triggerFileInput = () => {
+          fileInput.value?.click()
+        }
+        const handleFileChange = async (event) => {
+          const target = event.target
+          const files = target.files
+          if (!files?.length) {
+            Plugins.message.warn('未选择任何文件')
+            return
+          }
+          await importLocalConfig(files)
+          target.value = ''
+        }
         return {
-          importLocalConfig,
+          fileInput,
+          triggerFileInput,
+          handleFileChange,
           importRemoteConfig
         }
       }
@@ -87,33 +104,31 @@ export default (Plugin) => {
       },
       {
         default: () => h(component),
-        action: () => h('div', { class: 'mr-auto text-12 opacity-60' }, '注：如果看不懂以上说明，建议使用快速开始。')
+        action: () =>
+          h(
+            'div',
+            {
+              class: 'mr-auto text-12 opacity-60'
+            },
+            '注：如果看不懂以上说明，建议使用快速开始。'
+          )
       }
     )
     modal.open()
   }
   /* 导入本地配置 */
-  const importLocalConfig = async () => {
-    const files = await selectFile({ multiple: true, accept: '.json, application/json' })
-    if (!files) {
-      Plugins.message.warn('未选择任何文件')
-      return
-    }
+  const importLocalConfig = async (files) => {
     Plugins.message.info(`开始解析 ${files.length} 个文件...`)
-    const fileList = Array.from(files)
-    const results = await Promise.allSettled(fileList.map(readJson))
-    for (const [i, result] of results.entries()) {
-      const fileName = fileList[i].name
-      if (result.status === 'fulfilled') {
-        try {
-          const importer = new ConfigImporter(result.value, fileName)
-          await importer.process()
-          Plugins.message.info(`文件 "${fileName}" 导入成功`)
-        } catch (err) {
-          Plugins.message.error(`文件 "${fileName}" 导入失败: ${err.message ?? String(err)}`)
-        }
-      } else {
-        Plugins.message.error(result.reason.message ?? result.reason)
+    for (const file of Array.from(files)) {
+      const fileName = file.name
+      try {
+        const content = await file.text()
+        const parsed = JSON.parse(content)
+        const importer = new ConfigImporter(parsed, fileName)
+        await importer.process()
+        Plugins.message.info(`文件 "${fileName}" 导入成功`)
+      } catch (err) {
+        Plugins.message.error(`文件 "${fileName}" 导入失败: ${String(err)}`)
       }
     }
   }
@@ -189,21 +204,26 @@ export default (Plugin) => {
       },
       {
         default: () => h(component),
-        action: () => h('div', { class: 'mr-auto text-12 opacity-60' }, '注：请确保导入来源可信')
+        action: () =>
+          h(
+            'div',
+            {
+              class: 'mr-auto text-12 opacity-60'
+            },
+            '注：请确保导入来源可信'
+          )
       }
     )
     modal.open()
   }
-  return { onRun, onReady }
+  return {
+    onRun,
+    onReady
+  }
 }
-const FilterMode = { Include: 'include', Exclude: 'exclude' }
-const RequestMethod = {
-  Get: 'GET',
-  Post: 'POST',
-  Delete: 'DELETE',
-  Put: 'PUT',
-  Head: 'HEAD',
-  Patch: 'PATCH'
+const FilterMode = {
+  Include: 'include',
+  Exclude: 'exclude'
 }
 const LogLevel = {
   Trace: 'trace',
@@ -314,7 +334,6 @@ const SubscribeType = {
 const DefaultTunAddress = ['172.18.0.1/30', 'fdfe:dcba:9876::1/126']
 const DefaultTestURL = 'https://www.gstatic.com/generate_204'
 const DefaultExcludeProtocols = 'direct|reject|selector|urltest|block|dns|shadowsocksr'
-const DefaultSubscribeScript = `const onSubscribe = async (proxies, subscription) => {\n  return { proxies, subscription }\n}`
 const DefaultLog = {
   disabled: false,
   level: LogLevel.Info,
@@ -492,7 +511,9 @@ const createPlaceholderInbound = (id, tag) => ({
   tag,
   type: 'mixed',
   mixed: {
-    listen: { ...DefaultInboundListen },
+    listen: {
+      ...DefaultInboundListen
+    },
     users: []
   },
   enable: true
@@ -681,7 +702,14 @@ config.outbounds = config.outbounds.filter(isNotEndpoint);
         }
       } else {
         const { users } = ib
-        const { type, tag, ...otherExtProps } = filterProps(ib, { ...DefaultInboundListen, users }, FilterMode.Exclude)
+        const { type, tag, ...otherExtProps } = filterProps(
+          ib,
+          {
+            ...DefaultInboundListen,
+            users
+          },
+          FilterMode.Exclude
+        )
         if (getKeys(otherExtProps).length > 0) inboundExtProps.set(tag, otherExtProps)
         return {
           ...inboundBase,
@@ -739,9 +767,23 @@ config.inbounds = config.inbounds.map((ib) => {
           const outId = this.getOutboundId(tag)
           const proxyId = this.getProxyId(tag)
           // 引用的是一个内置出站
-          if (outId) return [{ id: outId, tag, type: BuiltOutboundType.BuiltIn }]
+          if (outId)
+            return [
+              {
+                id: outId,
+                tag,
+                type: BuiltOutboundType.BuiltIn
+              }
+            ]
           // 引用的是订阅中的节点
-          if (proxyId) return [{ id: proxyId, tag, type: subscribeId }]
+          if (proxyId)
+            return [
+              {
+                id: proxyId,
+                tag,
+                type: subscribeId
+              }
+            ]
           return []
         })
         // 如果出站引用了订阅中的所有节点，则简化为引用整个订阅
@@ -756,12 +798,26 @@ config.inbounds = config.inbounds.map((ib) => {
             if (!referencedProxyTags.has(pTag)) return outboundGroup
           }
           const nonProxyOutbounds = outboundGroup.outbounds.filter((o) => o.type !== subscribeId)
-          outboundGroup.outbounds = [{ id: subscribeId, tag: subscribeName, type: BuiltOutboundType.Subscription }, ...nonProxyOutbounds]
+          outboundGroup.outbounds = [
+            {
+              id: subscribeId,
+              tag: subscribeName,
+              type: BuiltOutboundType.Subscription
+            },
+            ...nonProxyOutbounds
+          ]
         }
         return outboundGroup
       } else {
         if (type === Outbound.Direct) {
-          const directExtProps = filterProps(ob, { type, tag }, FilterMode.Exclude)
+          const directExtProps = filterProps(
+            ob,
+            {
+              type,
+              tag
+            },
+            FilterMode.Exclude
+          )
           if (getKeys(directExtProps).length > 0) outboundExtProps.set(tag, directExtProps)
         }
         return {
@@ -793,7 +849,10 @@ config.outbounds = config.outbounds.map((ob) => {
   parseGeneral() {
     const { log: rawLog, experimental: rawExperimental } = this.rawConfig
     if (rawLog) {
-      this.guiProfile.log = { ...DefaultLog, ...rawLog }
+      this.guiProfile.log = {
+        ...DefaultLog,
+        ...rawLog
+      }
     }
     if (!rawExperimental) return
     const { clash_api: rawClashApi, cache_file: rawCacheFile } = rawExperimental
@@ -838,7 +897,10 @@ config.experimental.cache_file.rdrc_timeout = '${rawCacheFile.rdrc_timeout}';
       }
       let dnsExtProps = filterProps(ds, DefaultDnsServer, FilterMode.Exclude)
       if (hasOwn(ds, 'domain_resolver') && typeof ds.domain_resolver === 'object' && getKeys(ds.domain_resolver).length > 1) {
-        dnsExtProps = { ...dnsExtProps, domain_resolver: ds.domain_resolver }
+        dnsExtProps = {
+          ...dnsExtProps,
+          domain_resolver: ds.domain_resolver
+        }
       }
       if (getKeys(dnsExtProps).length > 0) dnsServerExtProps.set(tag, dnsExtProps)
       return [
@@ -908,9 +970,20 @@ config.dns.servers = config.dns.servers.map((ds) => {
         server: this.getDomainResolverId(rawRoute.default_domain_resolver)
       }
     }
-    let routeExtProps = filterProps(rawRoute, { ...DefaultRouteGeneral, rules: [], rule_set: [] }, FilterMode.Exclude)
+    let routeExtProps = filterProps(
+      rawRoute,
+      {
+        ...DefaultRouteGeneral,
+        rules: [],
+        rule_set: []
+      },
+      FilterMode.Exclude
+    )
     if (typeof rawRoute.default_domain_resolver === 'object' && getKeys(rawRoute.default_domain_resolver).length > 1) {
-      routeExtProps = { ...routeExtProps, default_domain_resolver: rawRoute.default_domain_resolver }
+      routeExtProps = {
+        ...routeExtProps,
+        default_domain_resolver: rawRoute.default_domain_resolver
+      }
     }
     if (!getKeys(routeExtProps).length) return
     const routeProcessing = `
@@ -932,7 +1005,15 @@ config.route = {
       ...filterProps(rawDns, DefaultDnsGeneral, FilterMode.Include),
       final: this.getDnsServerId(rawDns.final)
     }
-    const dnsExtProps = filterProps(rawDns, { ...DefaultDnsGeneral, servers: [], rules: [] }, FilterMode.Exclude)
+    const dnsExtProps = filterProps(
+      rawDns,
+      {
+        ...DefaultDnsGeneral,
+        servers: [],
+        rules: []
+      },
+      FilterMode.Exclude
+    )
     if (!getKeys(dnsExtProps).length) return
     const dnsProcessing = `
 const dnsExtProps = ${stringifyJson(dnsExtProps)};
@@ -1059,7 +1140,11 @@ config.experimental.v2ray_api = ${stringifyJson(experimental.v2ray_api)};
             ...this.parseMatchRule(rest),
             disable_cache: disable_cache ?? false,
             client_subnet: client_subnet ?? '',
-            server: rewrite_ttl ? stringifyJson({ rewrite_ttl }) : '{}'
+            server: rewrite_ttl
+              ? stringifyJson({
+                  rewrite_ttl
+                })
+              : '{}'
           }
         }
         case RuleAction.Reject: {
@@ -1118,7 +1203,9 @@ config.experimental.v2ray_api = ${stringifyJson(experimental.v2ray_api)};
           if (inboundList.length > 1) {
             return {
               type: RuleType.Inline,
-              payload: stringifyJson({ inbound: inboundList })
+              payload: stringifyJson({
+                inbound: inboundList
+              })
             }
           }
           payload = this.getInboundId(inboundList[0])
@@ -1128,7 +1215,9 @@ config.experimental.v2ray_api = ${stringifyJson(experimental.v2ray_api)};
           if (!getValues(ClashMode).includes(baseRules.clash_mode)) {
             return {
               type: RuleType.Inline,
-              payload: stringifyJson({ clash_mode: baseRules.clash_mode })
+              payload: stringifyJson({
+                clash_mode: baseRules.clash_mode
+              })
             }
           }
           break
@@ -1138,7 +1227,10 @@ config.experimental.v2ray_api = ${stringifyJson(experimental.v2ray_api)};
             payload = payload.join(',')
           }
       }
-      return { type, payload: typeof payload !== 'string' ? String(payload) : payload }
+      return {
+        type,
+        payload: typeof payload !== 'string' ? String(payload) : payload
+      }
     }
     // 其他所有情况（0个或多个类型，或不支持的类型）都视为内联规则
     return {
@@ -1204,29 +1296,17 @@ class ConfigImporter {
     this.states.subscribeName = name
     await Plugins.WriteFile(path, stringifyJson(proxies))
     await subscribesStore.addSubscribe({
+      ...subscribesStore.getSubscribeTemplate(name, {
+        url: ''
+      }),
       id,
-      name,
       path,
       type: SubscribeType.Manual,
-      updateTime: 0,
-      upload: 0,
-      download: 0,
-      total: 0,
-      expire: 0,
-      url: '',
-      website: '',
-      include: '',
-      exclude: '',
-      includeProtocol: '',
-      excludeProtocol: DefaultExcludeProtocols,
-      proxyPrefix: '',
-      disabled: false,
-      inSecure: false,
-      requestMethod: RequestMethod.Get,
-      requestTimeout: 15,
-      header: { request: {}, response: {} },
-      proxies: proxies.map((p) => ({ id: this.states.proxyTagToId.get(p.tag), tag: p.tag, type: p.type })),
-      script: DefaultSubscribeScript
+      proxies: proxies.map((p) => ({
+        id: this.states.proxyTagToId.get(p.tag),
+        tag: p.tag,
+        type: p.type
+      }))
     })
   }
   /* 创建 GUI 配置 */
@@ -1253,86 +1333,31 @@ class ConfigImporter {
     return proxies
   }
 }
-/* 打开文件选择器 */
-const selectFile = (options = {}) => {
-  return new Promise((resolve) => {
-    const fileInput = document.createElement('input')
-    fileInput.type = 'file'
-    fileInput.style.display = 'none'
-    fileInput.multiple = options.multiple ?? false
-    fileInput.accept = options.accept ?? ''
-    const cleanup = () => {
-      window.removeEventListener('focus', onFocus)
-      document.body.removeChild(fileInput)
-    }
-    const onFocus = () => {
-      setTimeout(() => {
-        if (fileInput.files?.length === 0) {
-          resolve(null)
-          cleanup()
-        }
-      }, 200)
-    }
-    fileInput.addEventListener('change', () => {
-      resolve(fileInput.files && fileInput.files.length > 0 ? fileInput.files : null)
-      cleanup()
-    })
-    window.addEventListener('focus', onFocus, { once: true })
-    document.body.appendChild(fileInput)
-    fileInput.click()
-  })
-}
-/* 读取单个文件并解析 */
-const readJson = (file) => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      try {
-        const data = event.target?.result
-        resolve(JSON.parse(data))
-      } catch (err) {
-        reject(`文件 "${file.name}" 解析失败: ${err.message ?? String(err)}`)
-      }
-    }
-    reader.onerror = () => {
-      reject(`无法读取文件 "${file.name}"`)
-    }
-    reader.readAsText(file)
-  })
-}
 /* 获取并解析远程文件 */
 const fetchJson = async (url) => {
-  try {
-    const { body } = await Plugins.Requests({
-      method: 'GET',
-      url,
-      headers: { 'User-Agent': 'sing-box' },
-      autoTransformBody: false
-    })
-    return JSON.parse(body)
-  } catch (err) {
-    throw `链接 "${url}" 解析失败: ${err.message ?? String(err)}`
-  }
+  const { body } = await Plugins.Requests({
+    method: 'GET',
+    url,
+    headers: {
+      'User-Agent': 'sing-box'
+    },
+    autoTransformBody: false
+  })
+  return JSON.parse(body)
 }
 const processRemoteImport = async (urls) => {
   Plugins.message.info(`开始解析 ${urls.length} 个链接...`)
-  const results = await Promise.allSettled(urls.map(fetchJson))
   let failCount = 0
-  for (const [i, result] of results.entries()) {
-    const url = urls[i]
-    if (result.status === 'fulfilled') {
-      try {
-        const host = new URL(url).hostname
-        const importer = new ConfigImporter(result.value, host)
-        await importer.process()
-        Plugins.message.info(`链接 "${url}" 导入成功`)
-      } catch (err) {
-        failCount++
-        Plugins.message.error(`链接 "${url}" 导入失败: ${err.message ?? String(err)}`)
-      }
-    } else {
+  for (const url of urls) {
+    try {
+      const result = await fetchJson(url)
+      const host = new URL(url).hostname
+      const importer = new ConfigImporter(result, host)
+      await importer.process()
+      Plugins.message.info(`链接 "${url}" 导入成功`)
+    } catch (err) {
       failCount++
-      Plugins.message.error(result.reason.message ?? result.reason)
+      Plugins.message.error(`链接 "${url}" 导入失败: ${String(err)}`)
     }
   }
   return failCount
