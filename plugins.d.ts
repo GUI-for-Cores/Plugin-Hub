@@ -134,6 +134,7 @@ interface Plugins {
   MakeDir(path: string): Promise<void>
   ReadDir(path: string): Promise<Array<{ name: string; isDir: boolean; size: number }>>
   FileExists(path: string): Promise<boolean>
+  FileSHA256(path:string):Promise<string>
   RemoveFile(path: string): Promise<void>
   MoveFile(src: string, dest: string): Promise<void>
   ReadFile(path: string, options?: { Mode?: 'Binary' | 'Text'; Range?: string }): Promise<string>
@@ -182,9 +183,9 @@ interface Plugins {
   ): Promise<number>
 
   GetRequestProxy(mode?: 'system' | 'kernel' | 'custom', customProxy?: string): Promise<string>
-  TcpPing(address: string, options?: {Timeout?:number}): Promise<number>
-  TcpRequest(address: string, data?: string, options?: {Timeout?:number}): Promise<any>
-  UdpRequest(address: string, data?: string, options?: {Timeout?:number}): Promise<any>
+  TcpPing(address: string, options?: {Timeout?:number, Mode: 'Binary'}): Promise<number>
+  TcpRequest(address: string, data?: string, options?: {Timeout?:number, Mode: 'Binary'}): Promise<any>
+  UdpRequest(address: string, data?: string, options?: {Timeout?:number, Mode: 'Binary'}): Promise<any>
   HttpGet(
     url: string,
     headers?: Record<string, string>,
@@ -212,7 +213,7 @@ interface Plugins {
     method: string
     url: string
     headers?: Record<string, string>
-    body?: string
+    body?: any
     autoTransformBody?: boolean
     options?: {
       Timeout?: number
@@ -229,6 +230,7 @@ interface Plugins {
       Method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
     }
   ): Promise<void>
+  HttpCancel(id:string):Promise<void>
 
   GetInterfaces(): Promise<string[]>
   CheckPermissions(): Promise<boolean>
@@ -249,6 +251,8 @@ interface Plugins {
   QueryMMDB(path: string, ip: string, type?: 'ASN' | 'AnonymousIP' | 'City' | 'ConnectionType' | 'Country' | 'Domain' | 'Enterprise'): Promise<any>
 
   useAppStore(): {
+    checkForUpdates(showTops:boolean):Promise<void>
+    downloadApp():Promise<void>
     showAbout: boolean
     addCustomActions: (
       target: 'core_state' | 'title_bar' | 'profiles_header' | 'subscriptions_header',
@@ -280,11 +284,14 @@ interface Plugins {
     editPlugin(id: string, plugin: Recordable): Promise<void>
     deletePlugin(id: string): Promise<void>
     updatePlugin(id: string): Promise<void>
+    updatePlugins():Promise<void>
+    updatePluginHub():Promise<void>
   }
   useRulesetsStore(): {
     rulesets: Recordable[]
     updateRuleset(id: string): Promise<void>
     updateRulesets(): Promise<void>
+    updateRulesetHub():Promise<void>
     addRuleset(ruleset: Recordable): Promise<void>
     getRulesetById(id: string): Recordable
     editRuleset(id: string, ruleset: Recordable): Promise<void>
@@ -292,8 +299,9 @@ interface Plugins {
   }
   useSubscribesStore(): {
     subscribes: Recordable[]
-    updateSubscribe(id: string): Promise<void>
+    updateSubscribe(id: string, options?: Recordable): Promise<void>
     updateSubscribes(): Promise<void>
+    importSubscribe(name: string, url: string): Promise<void>
     getSubscribeById(id: string): Recordable
     addSubscribe(subscription: Recordable): Promise<void>
     editSubscribe(id: string, subscription: Recordable): Promise<void>
@@ -308,6 +316,7 @@ interface Plugins {
       appPath: string
       os: string
       arch: string
+      isPrivileged: boolean
     }
     systemProxy: boolean
     setSystemProxy(): Promise<void>

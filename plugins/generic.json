@@ -323,6 +323,60 @@
     "installed": false
   },
   {
+    "id": "plugin-gui-agent",
+    "name": "GUI.for.Cores Agent",
+    "version": "v0.0.1",
+    "group": "Tools",
+    "description": "GUI.for.Cores 专属 AI Agent。",
+    "tags": [],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-gui-agent.js",
+    "path": "data/plugins/plugin-gui-agent.js",
+    "triggers": ["on::manual"],
+    "hasUI": true,
+    "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_gui_agent_base_url",
+        "title": "接口地址",
+        "description": "请使用 OpenAI 兼容接口",
+        "key": "BaseUrl",
+        "component": "Input",
+        "value": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+        "options": []
+      },
+      {
+        "id": "ID_gui_agent_model",
+        "title": "模型名称",
+        "description": "例如: gemini-3.1-flash-lite",
+        "key": "Model",
+        "component": "Input",
+        "value": "gemini-3.1-flash-lite",
+        "options": []
+      },
+      {
+        "id": "ID_gui_agent_api_key",
+        "title": "API Key",
+        "description": "",
+        "key": "ApiKey",
+        "component": "Input",
+        "value": "",
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-codex-usage-viewer",
     "name": "Codex 用量查看",
     "version": "v2.0.0",
@@ -1171,57 +1225,53 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-file-server.js",
     "path": "data/plugins/plugin-file-server.js",
-    "triggers": [
-        "on::manual",
-        "on::ready",
-        "on::shutdown"
-    ],
+    "triggers": ["on::manual", "on::ready", "on::shutdown"],
     "hasUI": false,
     "menus": {
-        "本地": "OpenFiles",
-        "预览": "OpenURL",
-        "复制链接": "CopyURL"
+      "本地": "OpenFiles",
+      "预览": "OpenURL",
+      "复制链接": "CopyURL"
     },
     "context": {
-        "profiles": {},
-        "subscriptions": {},
-        "rulesets": {},
-        "plugins": {},
-        "scheduledtasks": {}
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
     },
     "configuration": [
-        {
-            "id": "ID_973jkyoj",
-            "title": "监听地址",
-            "description": "",
-            "key": "Address",
-            "component": "Input",
-            "value": ":8080",
-            "options": []
-        },
-        {
-            "id": "ID_i3smpb6j",
-            "title": "静态资源路径",
-            "description": "",
-            "key": "StaticPath",
-            "component": "Input",
-            "value": "data/third/file-server/static",
-            "options": []
-        },
-        {
-            "id": "ID_shsllfqb",
-            "title": "局域网IP地址",
-            "description": "用于生成复制、下载链接",
-            "key": "LanIP",
-            "component": "Input",
-            "value": "127.0.0.1",
-            "options": []
-        }
+      {
+        "id": "ID_973jkyoj",
+        "title": "监听地址",
+        "description": "",
+        "key": "Address",
+        "component": "Input",
+        "value": ":8080",
+        "options": []
+      },
+      {
+        "id": "ID_i3smpb6j",
+        "title": "静态资源路径",
+        "description": "",
+        "key": "StaticPath",
+        "component": "Input",
+        "value": "data/third/file-server/static",
+        "options": []
+      },
+      {
+        "id": "ID_shsllfqb",
+        "title": "局域网IP地址",
+        "description": "用于生成复制、下载链接",
+        "key": "LanIP",
+        "component": "Input",
+        "value": "127.0.0.1",
+        "options": []
+      }
     ],
     "disabled": false,
     "install": true,
     "installed": false
-},
+  },
   {
     "id": "plugin-gitea",
     "name": "Gitea",
