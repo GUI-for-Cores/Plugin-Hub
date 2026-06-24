@@ -51,7 +51,7 @@ export default (Plugin) => {
         <div v-for="(item, index) in chatHistory" :key="index" class="">
           <Card v-if="item.role == 'assistant' || item.role == 'user'">
             <div class="flex items-center text-14" :class="{'justify-end': item.role == 'user'}">
-              {{ item.content }}
+              <MarkdownViewer :content="item.content" />
               <Button v-if="item.role == 'user'" @click="onResend(index)" size="small">重新发送</Button>
             </div>
             <div v-for="tool in item.tool_calls || []" :title="tool.function.name" :key="tool.id">
