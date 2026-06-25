@@ -340,7 +340,10 @@ const Utils = {
   },
   scrollToBottom(container) {
     requestAnimationFrame(() => {
-      container.scrollTop = container.scrollHeight
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: 'smooth'
+      })
     })
   }
 }
