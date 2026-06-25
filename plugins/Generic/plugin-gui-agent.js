@@ -31,10 +31,6 @@ const system_prompt = `
 
 /** @type { EsmPlugin } */
 export default (Plugin) => {
-  const Model = Plugin.Model
-  const BaseURL = Plugin.BaseUrl
-  const Token = Plugin.ApiKey
-
   const onRun = async () => {
     /** @type ReturnType<typeof Plugins.modal> */
     let modal
@@ -42,24 +38,36 @@ export default (Plugin) => {
     const component = {
       template: /* html */ `
     <div class="flex flex-col h-full pb-8">
-      <div class="flex items-center">
-        <Tag color="cyan">${Model}</Tag>
-        <Button @click="onDeleteSession" icon="delete" size="small" class="ml-auto">清空会话</Button>
-      </div>
-      <div class="overflow-y-auto flex flex-col gap-8 flex-1 pb-8 pr-8">
+      <div ref="chatBox" class="overflow-y-auto flex flex-col gap-8 flex-1 pb-8 pr-8">
         <Empty v-if="chatHistory.length == 0" icon="sparkle" description="开始新的会话" />
-        <div v-for="(item, index) in chatHistory" :key="index" class="">
-          <Card v-if="item.role == 'assistant' || item.role == 'user'">
-            <div class="flex items-center text-14" :class="{'justify-end': item.role == 'user'}">
-              <MarkdownViewer :content="item.content" />
-              <Button v-if="item.role == 'user'" @click="onResend(index)" size="small">重新发送</Button>
-            </div>
-            <div v-for="tool in item.tool_calls || []" :title="tool.function.name" :key="tool.id">
-              <div>
-                工具调用: {{ tool.function.name }} {{ tool.function.arguments }}
-              </div>
-            </div>
-          </Card>
+        <div v-for="(item, index) in chatHistory" :key="index" class="text-14">
+          <div v-if="item.role == 'user'" class="flex items-center justify-end">
+            {{ item.content }}
+            <Dropdown placement="bottom">
+              <Button icon="more" type="text" />
+              <template #overlay="{ close }">
+                <div class="flex flex-col gap-4 min-w-64 p-4">
+                  <Button v-if="item.role == 'user'" @click="onResend(index)" icon="refresh" type="text" size="small">重新生成</Button>
+                  <Button v-if="item.role == 'user'" @click="onDelete(index)" icon="delete" type="text" size="small">删除</Button>
+                </div>
+              </template>
+            </Dropdown>
+          </div>
+          <div v-else-if="item.role == 'assistant'">
+            <MarkdownViewer :content="item.content || ''" />
+          </div>
+          <div v-for="tool in item.tool_calls || []" :title="tool.function.name" :key="tool.id">
+            <details class="text-12" style="color: var(--card-color)">
+              <summary class="flex items-center">
+                <div class="inline-flex items-center gap-8">
+                  <Icon icon="sparkle" color="currentColor" /> 工具调用: {{ tool.function.name }} {{ tool.function.arguments }}
+                </div>
+              </summary>
+              <Card class="mt-8">
+                {{ toolResultMapping[tool.id] }}
+              </Card>
+            </details>
+          </div>
         </div>
       </div>
       <div>
@@ -71,18 +79,18 @@ export default (Plugin) => {
             </div>
           </Card>
         </div>
-        <div v-else class="flex gap-8">
-          <Input v-model="input" placeholder="请输入..." @keydown.enter="onSend" class="flex-1">
+        <div v-else class="flex gap-8 pt-8">
+          <Input ref="inputComp" v-model="input" autofocus placeholder="请输入..." @keydown.enter="onSend" class="flex-1">
             <template #prefix>
               <Dropdown placement="top">
-                <Tag :color="{none: 'green', normal: 'default', full: 'red'}[permission]">
-                  {{ {none: '无权限', normal: '只读权限', full: '完整权限'}[permission] }}
+                <Tag :color="{none: 'green', normal: 'default', full: 'red'}[settings.permission]">
+                  {{ {none: '无权限', normal: '只读权限', full: '完整权限'}[settings.permission] }}
                 </Tag>
                 <template #overlay="{ close }">
                   <div class="flex flex-col gap-4 min-w-64 p-4">
-                    <Button :type="permission == 'none' ? 'link' : 'text'" @click="onChangePermission('none', close)">无权限</Button>
-                    <Button :type="permission == 'normal' ? 'link' : 'text'" @click="onChangePermission('normal', close)">只读权限</Button>
-                    <Button :type="permission == 'full' ? 'link' : 'text'" @click="onChangePermission('full', close)">完整权限</Button>
+                    <Button :type="settings.permission == 'none' ? 'link' : 'text'" @click="onChangePermission('none', close)">无权限</Button>
+                    <Button :type="settings.permission == 'normal' ? 'link' : 'text'" @click="onChangePermission('normal', close)">只读权限</Button>
+                    <Button :type="settings.permission == 'full' ? 'link' : 'text'" @click="onChangePermission('full', close)">完整权限</Button>
                   </div>
                 </template>
               </Dropdown>
@@ -90,18 +98,19 @@ export default (Plugin) => {
             </template>
           </Input>
           <Button @click="onSend" type="primary" :disabled="!input">发送</Button>
-          <Button @click="onClose">关闭</Button>
         </div>
       </div>
     </div>
     `,
-      setup() {
-        const { ref, computed, onMounted, onBeforeUnmount } = Vue
+      setup(_, { expose }) {
+        const { ref, h, computed, onMounted, onBeforeUnmount, nextTick } = Vue
 
+        const chatBox = ref()
+        const inputComp = ref()
         const loading = ref(false)
         const input = ref('')
-        /** @type { {value: 'none' | 'normal' | 'full'} } */
-        const permission = ref('normal')
+        /** @type { {value: { permission: 'none' | 'normal' | 'full' }} } */
+        const settings = ref({ permission: 'normal' })
 
         /** @type { {value: Promise<boolean> | undefined} } */
         const requestOperation = ref()
@@ -131,6 +140,9 @@ export default (Plugin) => {
 
         onMounted(() => {
           loadSession()
+          setTimeout(() => {
+            Utils.scrollToBottom(chatBox.value)
+          }, 200)
         })
 
         onBeforeUnmount(() => {
@@ -139,7 +151,6 @@ export default (Plugin) => {
 
         const onDeleteSession = () => {
           chatHistory.value = []
-          saveSession()
         }
 
         const onClose = () => {
@@ -151,21 +162,21 @@ export default (Plugin) => {
         }
 
         const onChangePermission = (s, close) => {
-          permission.value = s
+          settings.value.permission = s
           close()
         }
 
         const askAI = async () => {
           loading.value = true
           const res = await Plugins.Requests({
-            url: BaseURL,
+            url: Plugin.BaseUrl,
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${Token}`
+              Authorization: `Bearer ${Plugin.ApiKey}`
             },
             body: {
-              model: Model,
+              model: Plugin.Model,
               messages: chatHistory.value,
               temperature: 0.2,
               tools
@@ -175,15 +186,22 @@ export default (Plugin) => {
           return res
         }
 
+        const appendMessage = (msg) => {
+          chatHistory.value.push(msg)
+          if (Utils.isNearBottom(chatBox.value)) {
+            Utils.scrollToBottom(chatBox.value)
+          }
+        }
+
         const handleTool = async (toolCall) => {
           const fnName = toolCall.function.name
           let result = ''
           try {
             const fnArgs = JSON.parse(toolCall.function.arguments || '{}')
-            if (permission.value === 'none') {
+            if (settings.value.permission === 'none') {
               throw new Error('用户未给任何权限，执行失败')
             }
-            if (permission.value === 'normal') {
+            if (settings.value.permission === 'normal') {
               const allowList = ['ReadFile', 'ReadDir']
               if (!allowList.includes(fnName)) {
                 throw new Error('只读权限下只能使用：' + allowList.join(''))
@@ -208,18 +226,18 @@ export default (Plugin) => {
           } catch (error) {
             result = error.message || error
           }
-          chatHistory.value.push({ role: 'tool', tool_call_id: toolCall.id, name: fnName, content: result })
+          appendMessage({ role: 'tool', tool_call_id: toolCall.id, name: fnName, content: result })
         }
 
         const handleMessage = async (res) => {
           const message = res.body.choices[0].message
 
           if (!message.tool_calls || message.tool_calls.length === 0) {
-            chatHistory.value.push({ role: 'assistant', content: message.content })
+            appendMessage({ role: 'assistant', content: message.content })
             return
           }
 
-          chatHistory.value.push(message)
+          appendMessage(message)
 
           for (const toolCall of message.tool_calls) {
             await handleTool(toolCall)
@@ -232,10 +250,12 @@ export default (Plugin) => {
 
         const onSend = async () => {
           if (chatHistory.value.length === 0) {
-            chatHistory.value.push({ role: 'system', content: system_prompt })
+            appendMessage({ role: 'system', content: system_prompt })
           }
-          chatHistory.value.push({ role: 'user', content: input.value })
+          appendMessage({ role: 'user', content: input.value })
           input.value = ''
+          inputComp.value.focus()
+          Utils.scrollToBottom(chatBox.value)
 
           const res = await askAI()
 
@@ -248,43 +268,78 @@ export default (Plugin) => {
           onSend()
         }
 
+        const onDelete = (index) => {
+          chatHistory.value.splice(index, 1)
+        }
+
+        expose({
+          modalSlots: {
+            title: () => [
+              h({
+                template: `
+                <div class="flex items-center">
+                  <div class="font-bold">${Plugin.name}</div>
+                  <Tag color="purple">${Plugin.Model.toUpperCase()}</Tag>
+                </div>
+                `,
+                setup() {
+                  return { onDeleteSession }
+                }
+              })
+            ],
+            toolbar: () => [
+              Vue.h(Vue.resolveComponent('Button'), { type: 'text', icon: 'delete', onClick: () => onDeleteSession() }, () => '清空会话'),
+              Vue.h(Vue.resolveComponent('Button'), { type: 'text', icon: 'close', onClick: () => modal.close() })
+            ]
+          }
+        })
+
         return {
+          chatBox,
+          inputComp,
           input,
           loading,
           chatHistory,
           toolResultMapping,
-          permission,
+          settings,
           requestOperation,
           onDeleteSession,
           onChangePermission,
           onUserOperate,
           onSend,
+          onDelete,
           onResend,
           onClose
         }
       }
     }
 
-    modal = Plugins.modal(
-      {
-        title: Plugin.name,
-        width: '90',
-        height: '90',
-        maskClosable: true,
-        footer: false,
-        afterClose() {
-          modal.destroy()
-        }
-      },
-      {
-        default: () => Vue.h(component)
+    modal = Plugins.modal({
+      title: Plugin.name,
+      width: '90',
+      height: '90',
+      maskClosable: true,
+      footer: false,
+      afterClose() {
+        modal.destroy()
       }
-    )
-
+    })
+    modal.setContent(component)
     modal.open()
   }
 
   return { onRun }
+}
+
+const Utils = {
+  isNearBottom(container, threshold = 60) {
+    return container.scrollHeight - container.scrollTop - container.clientHeight < threshold
+  },
+  scrollToBottom(container) {
+    requestAnimationFrame(() => {
+      container.scrollTop = container.scrollHeight
+    })
+  }
 }
 
 const appStoreTools = {
