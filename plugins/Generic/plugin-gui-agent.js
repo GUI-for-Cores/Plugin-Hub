@@ -38,32 +38,50 @@ export default (Plugin) => {
     const component = {
       template: /* html */ `
     <div class="flex flex-col h-full pb-8">
-      <div ref="chatBox" class="overflow-y-auto flex flex-col gap-8 flex-1 pb-8 pr-8">
+      <div ref="chatBox" class="overflow-y-auto select-text flex flex-col gap-8 flex-1 pb-8 pr-8">
         <Empty v-if="chatHistory.length == 0" icon="sparkle" description="开始新的会话" />
-        <div v-for="(item, index) in chatHistory" :key="index" class="text-14">
+        <div v-for="(item, index) in chatHistory" :key="index" class="text-14 break-all">
           <div v-if="item.role == 'user'" class="flex items-center justify-end">
-            {{ item.content }}
+            <div class="ml-24 rounded-8 p-8" style="background: var(--card-bg)">{{ item.content }}</div>
             <Dropdown placement="bottom">
               <Button icon="more" type="text" />
               <template #overlay="{ close }">
                 <div class="flex flex-col gap-4 min-w-64 p-4">
-                  <Button v-if="item.role == 'user'" @click="onResend(index)" icon="refresh" type="text" size="small">重新生成</Button>
-                  <Button v-if="item.role == 'user'" @click="onDelete(index)" icon="delete" type="text" size="small">删除</Button>
+                  <Button @click="onResend(index, close)" icon="refresh" type="text" size="small">重新生成</Button>
+                  <Button @click="onDelete(index, close)" icon="delete" type="text" size="small">删除</Button>
                 </div>
               </template>
             </Dropdown>
           </div>
-          <div v-else-if="item.role == 'assistant'">
-            <MarkdownViewer :content="item.content || ''" />
+          <div v-else-if="item.role == 'assistant' && item.content" class="flex items-center mr-24">
+            <MarkdownViewer :content="item.content" class="flex-1" />
+            <Dropdown placement="bottom">
+              <Button icon="more" type="text" />
+              <template #overlay="{ close }">
+                <div class="flex flex-col gap-4 min-w-64 p-4">
+                  <Button @click="onDelete(index, close)" icon="delete" type="text" size="small">删除</Button>
+                </div>
+              </template>
+            </Dropdown>
           </div>
           <div v-for="tool in item.tool_calls || []" :title="tool.function.name" :key="tool.id">
-            <details class="text-12" style="color: var(--card-color)">
+            <details class="text-12 mr-24" style="color: var(--card-color)">
               <summary class="flex items-center">
                 <div class="inline-flex items-center gap-8">
-                  <Icon icon="sparkle" color="currentColor" /> 工具调用: {{ tool.function.name }} {{ tool.function.arguments }}
+                  <Icon icon="sparkle" color="currentColor" />
+                  <div class="line-clamp-1">工具调用: {{ tool.function.name }} {{ tool.function.arguments }}</div>
+                  <Dropdown placement="bottom">
+                    <Button icon="more" type="text" />
+                    <template #overlay="{ close }">
+                      <div class="flex flex-col gap-4 min-w-64 p-4">
+                        <Button @click="onDelete(index, close)" icon="delete" type="text" size="small">删除</Button>
+                      </div>
+                    </template>
+                  </Dropdown>
                 </div>
               </summary>
               <Card class="mt-8">
+                <Empty v-if="!toolResultMapping[tool.id]" description="工具未返回任何数据" />
                 {{ toolResultMapping[tool.id] }}
               </Card>
             </details>
@@ -233,6 +251,10 @@ export default (Plugin) => {
         }
 
         const handleMessage = async (res) => {
+          if (res.status !== 200) {
+            Plugins.alert('错误', JSON.stringify(res.body, null, 2))
+            return
+          }
           const message = res.body.choices[0].message
 
           if (!message.tool_calls || message.tool_calls.length === 0) {
@@ -265,14 +287,16 @@ export default (Plugin) => {
           await handleMessage(res)
         }
 
-        const onResend = (index) => {
+        const onResend = (index, close) => {
           input.value = chatHistory.value[index].content
           chatHistory.value.splice(index)
           onSend()
+          close()
         }
 
-        const onDelete = (index) => {
+        const onDelete = (index, close) => {
           chatHistory.value.splice(index, 1)
+          close()
         }
 
         expose({
@@ -291,7 +315,7 @@ export default (Plugin) => {
               })
             ],
             toolbar: () => [
-              Vue.h(Vue.resolveComponent('Button'), { type: 'text', icon: 'delete', onClick: () => onDeleteSession() }, () => '清空会话'),
+              Vue.h(Vue.resolveComponent('Button'), { type: 'text', icon: 'add', onClick: () => onDeleteSession() }, () => '新会话'),
               Vue.h(Vue.resolveComponent('Button'), { type: 'text', icon: 'close', onClick: () => modal.close() })
             ]
           }
