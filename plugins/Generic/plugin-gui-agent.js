@@ -180,6 +180,9 @@ export default (Plugin) => {
               messages: chatHistory.value,
               temperature: 0.2,
               tools
+            },
+            options: {
+              Timeout: 60 * 20
             }
           })
           loading.value = false
