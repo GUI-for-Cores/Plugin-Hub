@@ -39,7 +39,104 @@ export default (Plugin) => {
       template: /* html */ `
     <div class="flex flex-col h-full pb-8">
       <div ref="chatBox" class="overflow-y-auto select-text flex flex-col gap-8 flex-1 pb-8 pr-8">
-        <Empty v-if="chatHistory.length == 0" icon="sparkle" description="开始新的会话" />
+        <div v-if="chatHistory.length < 2" class="h-full flex flex-col items-center justify-center">
+          <svg width="128" height="128" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img">
+            <defs>
+              <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#e2e8f0" />
+                <stop offset="55%" stop-color="#94a3b8" />
+                <stop offset="100%" stop-color="#cbd5e1" />
+              </linearGradient>
+
+              <linearGradient id="screen" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#020617" />
+                <stop offset="100%" stop-color="#111827" />
+              </linearGradient>
+
+              <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="4" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+
+              <filter id="shadow" x="-25%" y="-25%" width="150%" height="150%">
+                <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.35" />
+              </filter>
+            </defs>
+
+            <!-- 天线 -->
+            <line x1="232" y1="92" x2="232" y2="142" stroke="#cbd5e1" stroke-width="10" stroke-linecap="round" />
+            <circle cx="232" cy="78" r="18" fill="#38bdf8" filter="url(#glow)">
+              <animate attributeName="opacity" values="1;0.55;1" dur="1.8s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="232" cy="78" r="7" fill="#ecfeff" />
+
+            <!-- 耳朵 -->
+            <rect x="92" y="220" width="42" height="90" rx="18" fill="#475569" />
+            <rect x="378" y="220" width="42" height="90" rx="18" fill="#475569" />
+            <rect x="102" y="236" width="7" height="58" rx="3.5" fill="#38bdf8" filter="url(#glow)" />
+            <rect x="403" y="236" width="7" height="58" rx="3.5" fill="#38bdf8" filter="url(#glow)" />
+
+            <!-- 头部 -->
+            <g filter="url(#shadow)">
+              <rect x="128" y="140" width="256" height="252" rx="58" fill="url(#metal)" />
+              <rect x="152" y="174" width="208" height="172" rx="38" fill="url(#screen)" stroke="#38bdf8"
+                stroke-opacity="0.45" stroke-width="2" />
+            </g>
+
+            <!-- 顶部和底部灯条 -->
+            <g filter="url(#glow)">
+              <rect x="232" y="158" width="48" height="6" rx="3" fill="#38bdf8" />
+              <rect x="232" y="360" width="48" height="6" rx="3" fill="#38bdf8" />
+            </g>
+
+            <!-- 左眼：科技镜头 -->
+            <g transform="translate(202 244)">
+              <circle r="30" fill="#071226" stroke="#38bdf8" stroke-width="3" />
+              <circle r="18" fill="none" stroke="#67e8f9" stroke-width="4" filter="url(#glow)" />
+              <circle r="8" fill="#67e8f9" filter="url(#glow)" />
+              <circle cx="3" cy="-3" r="3" fill="#ecfeff" />
+            </g>
+
+            <!-- 右眼：平滑眨眼，从睁开压缩到闭眼 -->
+            <g transform="translate(310 244)">
+              <g>
+                <animateTransform
+                  attributeName="transform"
+                  type="scale"
+                  values="1 1; 1 1; 1 0.12; 1 1; 1 1"
+                  keyTimes="0; 0.68; 0.76; 0.86; 1"
+                  dur="3s"
+                  repeatCount="indefinite" />
+
+                <circle r="24" fill="#071226" stroke="#38bdf8" stroke-width="3" />
+                <circle r="13" fill="none" stroke="#67e8f9" stroke-width="4" filter="url(#glow)" />
+                <circle r="6" fill="#67e8f9" filter="url(#glow)" />
+                <circle cx="3" cy="-3" r="2.5" fill="#ecfeff" />
+              </g>
+            </g>
+
+            <!-- 嘴巴：简洁 LED 微笑 -->
+            <path d="M214 320 Q256 348 298 320"
+              fill="none"
+              stroke="#67e8f9"
+              stroke-width="8"
+              stroke-linecap="round"
+              filter="url(#glow)" />
+
+            <!-- 脖子 -->
+            <rect x="226" y="392" width="60" height="40" rx="14" fill="#475569" />
+            <rect x="176" y="422" width="160" height="34" rx="17" fill="#64748b" />
+
+            <!-- 胸口灯 -->
+            <circle cx="256" cy="438" r="8" fill="#67e8f9" filter="url(#glow)">
+              <animate attributeName="opacity" values="1;0.55;1" dur="2s" repeatCount="indefinite" />
+            </circle>
+          </svg>
+          <div class="text-14">开始新会话</div>
+        </div>
         <div v-for="(item, index) in chatHistory" :key="index" class="text-14 break-all">
           <div v-if="item.role == 'user'" class="flex items-center justify-end">
             <div class="ml-24 rounded-8 p-8" style="background: var(--card-bg)">{{ item.content }}</div>
@@ -87,35 +184,51 @@ export default (Plugin) => {
             </details>
           </div>
         </div>
+        <div v-if="loading" class="flex items-center gap-8"  style="color: var(--card-color)"><Icon icon="sparkle" /> Thinking... </div>
       </div>
-      <div>
-        <div v-if="requestOperation">
-          <Card title="Agent想要执行一个危险命令，是否允许？">
-            <div class="flex items-center justify-end">
-              <Button @click="onUserOperate(false)">拒绝</Button>
-              <Button @click="onUserOperate(true)" type="primary">允许一次</Button>
-            </div>
-          </Card>
-        </div>
-        <div v-else class="flex gap-8 pt-8">
-          <Input ref="inputComp" v-model="input" autofocus placeholder="请输入..." @keydown.enter="onSend" class="flex-1">
-            <template #prefix>
-              <Dropdown placement="top">
-                <Tag :color="{none: 'green', normal: 'default', full: 'red'}[settings.permission]">
-                  {{ {none: '无权限', normal: '只读权限', full: '完整权限'}[settings.permission] }}
-                </Tag>
-                <template #overlay="{ close }">
-                  <div class="flex flex-col gap-4 min-w-64 p-4">
-                    <Button :type="settings.permission == 'none' ? 'link' : 'text'" @click="onChangePermission('none', close)">无权限</Button>
-                    <Button :type="settings.permission == 'normal' ? 'link' : 'text'" @click="onChangePermission('normal', close)">只读权限</Button>
-                    <Button :type="settings.permission == 'full' ? 'link' : 'text'" @click="onChangePermission('full', close)">完整权限</Button>
-                  </div>
-                </template>
-              </Dropdown>
-              <Button loading v-show="loading" size="small" type="text">Thinking......</Button>
+      <div v-if="requestOperation">
+        <Card title="Agent想要执行一个危险命令，是否允许？">
+          <div class="flex items-center justify-end">
+            <Button @click="onUserOperate(false)">拒绝</Button>
+            <Button @click="onUserOperate(true)" type="primary">允许一次</Button>
+          </div>
+        </Card>
+      </div>
+      <div v-else class="flex flex-col gap-8 p-8 rounded-16" :style="permission.inputStyle">
+        <textarea
+          ref="textareaRef"
+          v-model="input"
+          placeholder="请输入..."
+          @keydown.shift.tab.prevent="onChangePermission()"
+          @keydown.enter.exact.prevent="onSend"
+          @keydown.ctrl.enter.prevent="onInsertNewline"
+          @keydown.shift.enter.prevent="onInsertNewline"
+          @keydown.meta.enter.prevent="onInsertNewline"
+          @input="onAutoResize"
+          class="border-0 p-0 outline-none bg-transparent"
+          style="resize: none; font-family: inherit; max-height: 200px; color: var(--color)"
+        />
+        <div class="flex items-center">
+          <Dropdown placement="top">
+            <Tag :color="permission.tagColor">
+              {{ permission.text }}
+            </Tag>
+            <template #overlay="{ close }">
+              <div class="flex flex-col gap-4 min-w-64 p-4">
+                <Button :type="settings.permission == 'none' ? 'link' : 'text'" @click="onChangePermission('none', close)">
+                  无权限<span class="text-10">（无任何权限，仅聊天）</span>
+                </Button>
+                <Button :type="settings.permission == 'normal' ? 'link' : 'text'" @click="onChangePermission('normal', close)">
+                  只读权限<span class="text-10">（只可读取文件、目录）</span>
+                </Button>
+                <Button :type="settings.permission == 'full' ? 'link' : 'text'" @click="onChangePermission('full', close)">
+                  完整权限<span class="text-10">（任意命令执行）</span>
+                </Button>
+              </div>
             </template>
-          </Input>
-          <Button @click="onSend" type="primary" :disabled="!input">发送</Button>
+          </Dropdown>
+          <div class="text-10">Shift+Tab切换权限、Ctrl+Enter换行</div>
+          <Button @click="onSend" type="primary" size="small" class="ml-auto">发送</Button>
         </div>
       </div>
     </div>
@@ -124,11 +237,32 @@ export default (Plugin) => {
         const { ref, h, computed, onMounted, onBeforeUnmount, nextTick } = Vue
 
         const chatBox = ref()
-        const inputComp = ref()
+        const textareaRef = ref()
         const loading = ref(false)
         const input = ref('')
         /** @type { {value: { permission: 'none' | 'normal' | 'full' }} } */
         const settings = ref({ permission: 'normal' })
+
+        const permission = computed(
+          () =>
+            ({
+              none: {
+                text: '无权限',
+                tagColor: 'green',
+                inputStyle: { border: '1px solid #389e0d' }
+              },
+              normal: {
+                text: '只读权限',
+                tagColor: 'default',
+                inputStyle: { border: '1px solid #898989' }
+              },
+              full: {
+                text: '完整权限',
+                tagColor: 'red',
+                inputStyle: { border: '1px solid #d52e3b' }
+              }
+            })[settings.value.permission]
+        )
 
         /** @type { {value: Promise<boolean> | undefined} } */
         const requestOperation = ref()
@@ -158,6 +292,7 @@ export default (Plugin) => {
 
         onMounted(() => {
           loadSession()
+          Utils.focus(textareaRef.value)
           setTimeout(() => {
             Utils.scrollToBottom(chatBox.value)
           }, 200)
@@ -180,8 +315,15 @@ export default (Plugin) => {
         }
 
         const onChangePermission = (s, close) => {
-          settings.value.permission = s
-          close()
+          if (s) {
+            settings.value.permission = s
+          } else {
+            /** @type typeof settings.value.permission[] */
+            const l = ['none', 'normal', 'full']
+            const idx = (l.indexOf(settings.value.permission) + 1) % l.length
+            settings.value.permission = l[idx]
+          }
+          close?.()
         }
 
         const askAI = async () => {
@@ -273,13 +415,25 @@ export default (Plugin) => {
           await handleMessage(toolSummary)
         }
 
+        const onInsertNewline = () => {
+          Utils.insertNewline(textareaRef.value, input, nextTick)
+        }
+
+        const onAutoResize = () => {
+          Utils.autoResize(textareaRef.value)
+        }
+
         const onSend = async () => {
+          if (input.value.trim().length == 0) {
+            return
+          }
           if (chatHistory.value.length === 0) {
             appendMessage({ role: 'system', content: system_prompt })
           }
           appendMessage({ role: 'user', content: input.value })
           input.value = ''
-          inputComp.value.focus()
+          Utils.focus(textareaRef.value)
+          Utils.autoResize(textareaRef.value)
           Utils.scrollToBottom(chatBox.value)
 
           const res = await askAI()
@@ -323,16 +477,19 @@ export default (Plugin) => {
 
         return {
           chatBox,
-          inputComp,
+          textareaRef,
           input,
           loading,
           chatHistory,
           toolResultMapping,
           settings,
+          permission,
           requestOperation,
           onDeleteSession,
           onChangePermission,
           onUserOperate,
+          onInsertNewline,
+          onAutoResize,
           onSend,
           onDelete,
           onResend,
@@ -369,6 +526,23 @@ const Utils = {
         behavior: 'smooth'
       })
     })
+  },
+  focus(el) {
+    el.focus()
+  },
+  async insertNewline(el, targetRef, nextTick) {
+    const start = el.selectionStart
+    const end = el.selectionEnd
+    targetRef.value = targetRef.value.slice(0, start) + '\n' + targetRef.value.slice(end)
+    requestAnimationFrame(() => {
+      el.selectionStart = el.selectionEnd = start + 1
+    })
+    await nextTick()
+    Utils.autoResize(el)
+  },
+  autoResize(el) {
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight}px`
   }
 }
 
