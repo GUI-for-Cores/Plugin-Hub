@@ -52,6 +52,27 @@ type CustomActionFn = ((api: CustomActionApi) => CustomAction) & {
   id?: string
 }
 
+type StreamEvent =
+  | {
+      type: 'response'
+      status: number
+      headers: Record<string, string | string[]>
+    }
+  | {
+      type: 'message'
+      event: string
+      data: string
+      id?: string
+      retry?: number
+    }
+  | {
+      type: 'done'
+    }
+  | {
+      type: 'error'
+      error: string
+    }
+
 interface Plugins {
   APP_TITLE: string
   APP_VERSION: string
@@ -215,6 +236,7 @@ interface Plugins {
     headers?: Record<string, string>
     body?: any
     autoTransformBody?: boolean
+    onStream?:(event: StreamEvent) => void
     options?: {
       Timeout?: number
       Insecure?: boolean

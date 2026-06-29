@@ -234,7 +234,7 @@ export default (Plugin) => {
     </div>
     `,
       setup(_, { expose }) {
-        const { ref, h, computed, onMounted, onBeforeUnmount, nextTick } = Vue
+        const { ref, reactive, h, computed, onMounted, onBeforeUnmount, nextTick } = Vue
 
         const chatBox = ref()
         const textareaRef = ref()
@@ -328,31 +328,111 @@ export default (Plugin) => {
 
         const askAI = async () => {
           loading.value = true
-          const res = await Plugins.Requests({
-            url: Plugin.BaseUrl,
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${Plugin.ApiKey}`
-            },
-            body: {
-              model: Plugin.Model,
-              messages: chatHistory.value,
-              temperature: 0.2,
-              tools
-            },
-            options: {
-              Timeout: 60 * 20
+          /** @type {{ role: string, content: string, tool_calls?: any[] }} */
+          const streamMessage = reactive({ role: 'assistant', content: '' })
+          try {
+            const res = await Plugins.Requests({
+              url: Plugin.BaseUrl,
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${Plugin.ApiKey}`
+              },
+              body: {
+                model: Plugin.Model,
+                messages: chatHistory.value,
+                temperature: 0.2,
+                tools,
+                stream: true
+              },
+              options: {
+                Timeout: 60 * 20
+              },
+              async onStream(e) {
+                console.log(e)
+
+                if (e.type === 'response') {
+                  appendMessage(streamMessage)
+                  return
+                }
+
+                if (e.type === 'message' && e.event === 'message' && e.data !== '[DONE]') {
+                  const body = JSON.parse(e.data || '')
+                  const choice = body.choices?.[0]
+                  if (!choice?.delta) return
+                  const message = choice.delta
+
+                  if (message.content) {
+                    await appendStreamMessage(streamMessage, message.content)
+                  }
+
+                  mergeAssistantMessage(streamMessage, message)
+                }
+              }
+            })
+            if (res.status !== 200) {
+              Plugins.alert('错误', JSON.stringify(res.body, null, 2))
+              return res
             }
-          })
-          loading.value = false
-          return res
+
+            const finalToolCalls = streamMessage.tool_calls?.filter(Boolean) || []
+            if (finalToolCalls.length) {
+              streamMessage.tool_calls = finalToolCalls
+
+              for (const toolCall of finalToolCalls) {
+                await handleTool(toolCall)
+              }
+
+              return await askAI()
+            }
+
+            return res
+          } finally {
+            loading.value = false
+          }
         }
 
         const appendMessage = (msg) => {
           chatHistory.value.push(msg)
           if (Utils.isNearBottom(chatBox.value)) {
             Utils.scrollToBottom(chatBox.value)
+          }
+        }
+
+        const appendStreamMessage = async (msg, chunk) => {
+          msg.content += chunk
+          await nextTick()
+          if (Utils.isNearBottom(chatBox.value)) {
+            Utils.scrollToBottom(chatBox.value)
+          }
+        }
+
+        const mergeAssistantMessage = (target, delta) => {
+          for (const [key, value] of Object.entries(delta)) {
+            if (value === undefined || key === 'content' || key === 'tool_calls') continue
+            target[key] = value
+          }
+
+          for (const chunk of delta.tool_calls || []) {
+            const index = chunk.index ?? target.tool_calls?.length ?? 0
+            target.tool_calls ||= []
+
+            const toolCall = target.tool_calls[index] || (target.tool_calls[index] = {})
+            const fn = toolCall.function || {}
+
+            Object.assign(toolCall, chunk)
+
+            if (chunk.function) {
+              toolCall.function = {
+                ...fn,
+                ...chunk.function,
+                name: (fn.name || '') + (chunk.function.name || ''),
+                arguments: (fn.arguments || '') + (chunk.function.arguments || '')
+              }
+            }
+
+            toolCall.type ||= 'function'
+            toolCall.function ||= { name: '', arguments: '' }
           }
         }
 
@@ -392,29 +472,6 @@ export default (Plugin) => {
           appendMessage({ role: 'tool', tool_call_id: toolCall.id, name: fnName, content: result })
         }
 
-        const handleMessage = async (res) => {
-          if (res.status !== 200) {
-            Plugins.alert('错误', JSON.stringify(res.body, null, 2))
-            return
-          }
-          const message = res.body.choices[0].message
-
-          if (!message.tool_calls || message.tool_calls.length === 0) {
-            appendMessage({ role: 'assistant', content: message.content })
-            return
-          }
-
-          appendMessage(message)
-
-          for (const toolCall of message.tool_calls) {
-            await handleTool(toolCall)
-          }
-
-          const toolSummary = await askAI()
-
-          await handleMessage(toolSummary)
-        }
-
         const onInsertNewline = () => {
           Utils.insertNewline(textareaRef.value, input, nextTick)
         }
@@ -436,9 +493,7 @@ export default (Plugin) => {
           Utils.autoResize(textareaRef.value)
           Utils.scrollToBottom(chatBox.value)
 
-          const res = await askAI()
-
-          await handleMessage(res)
+          await askAI()
         }
 
         const onResend = (index, close) => {
