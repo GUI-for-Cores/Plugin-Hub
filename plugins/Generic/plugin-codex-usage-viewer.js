@@ -1,4 +1,5 @@
 const CODEX_USAGE_API = 'https://chatgpt.com/backend-api/wham/usage'
+const CODEX_RESET_CREDITS_API = 'https://chatgpt.com/backend-api/wham/rate-limit-reset-credits'
 const REFRESH_INTERVAL = 5 * 60 * 1000
 
 /** @type {EsmPlugin} */
@@ -48,7 +49,7 @@ function openUsageUI(Plugin) {
           <div class="flex items-center justify-between gap-8">
             <div class="flex flex-col gap-4">
               <div class="text-20 font-bold">Codex 额度</div>
-              <div class="text-12">5小时额度 / 周额度剩余与重置时间</div>
+              <div class="text-12">5小时额度 / 周额度 / 重置额度剩余与重置时间</div>
             </div>
             <div class="flex items-center gap-8">
               <Tag>{{ accounts.length }} 个账号</Tag>
@@ -89,6 +90,19 @@ function openUsageUI(Plugin) {
               </div>
               <Progress :percent="account.secondary.remaining" />
               <div class="text-12">重置倒计时 {{ account.secondary.left }}，本地时间 {{ account.secondary.resetAt }}</div>
+            </div>
+
+            <div class="flex flex-col gap-4">
+              <div class="flex items-center justify-between">
+                <span class="font-bold">重置额度</span>
+                <span class="text-12">可用 {{ account.resetCreditCount || 0 }} 次</span>
+              </div>
+              <div v-if="account.resetCreditDetails && account.resetCreditDetails.length" class="flex flex-col gap-4">
+                <div v-for="credit in account.resetCreditDetails" :key="credit.key" class="text-12">
+                  第 {{ credit.index }} 次：过期 {{ credit.expiresAt }}
+                </div>
+              </div>
+              <Tag v-if="account.resetCreditError" color="red">{{ account.resetCreditError }}</Tag>
             </div>
           </div>
 
@@ -231,10 +245,14 @@ function removeCoreStateUI(Plugin) {
 
 function getCoreStateText(Plugin) {
   const state = getPluginState(Plugin)
-  if (state.loading.value) return 'Codex 刷新中'
-  const okAccounts = state.accounts.value.filter((item) => item.success)
+  return getAccountStateText(state.accounts.value, state.loading.value)
+}
+
+function getAccountStateText(accounts, loading = false) {
+  if (loading) return 'Codex 刷新中'
+  const okAccounts = (Array.isArray(accounts) ? accounts : []).filter((item) => item.success)
   if (okAccounts.length === 0) return 'Codex --'
-  return `Codex ${okAccounts[0].primary.remaining}%`
+  return `Codex ${okAccounts[0].primary.remaining}% R${okAccounts[0].resetCreditCount || 0}`
 }
 
 async function updateTrayTooltip(accounts) {
@@ -244,9 +262,7 @@ async function updateTrayTooltip(accounts) {
 }
 
 function getTrayTooltip(accounts) {
-  const okAccounts = accounts.filter((item) => item.success)
-  const value = okAccounts.length > 0 ? `${okAccounts[0].primary.remaining}%` : 'error'
-  return Plugins.APP_TITLE + ' ' + Plugins.APP_VERSION + '\n' + 'codex: ' + value
+  return Plugins.APP_TITLE + ' ' + Plugins.APP_VERSION + '\n' + getAccountStateText(accounts)
 }
 
 async function getConfiguredAccounts(Plugin) {
@@ -316,8 +332,19 @@ function splitAccountEntry(text) {
 
 async function loadAccountUsage(account) {
   try {
-    const usage = await fetchCodexUsage(account)
+    const [usageResult, resetCreditsResult] = await Promise.allSettled([fetchCodexUsage(account), fetchCodexResetCredits(account)])
+    const resetCreditsData = resetCreditsResult.status === 'fulfilled' ? resetCreditsResult.value : null
+    const usage = usageResult.status === 'fulfilled' ? usageResult.value : resetCreditsData
+
+    if (!usage?.rate_limit) {
+      throw usageResult.status === 'rejected' ? usageResult.reason : new Error('返回数据缺少 rate_limit 字段')
+    }
+
     const rateLimit = usage.rate_limit || {}
+    const resetCreditCount = getResetCreditCount(resetCreditsData || usage)
+    const resetCreditDetails = getResetCreditDetails(resetCreditsData || usage)
+    const resetCreditError = resetCreditsResult.status === 'rejected' ? formatError(resetCreditsResult.reason) : ''
+
     return {
       ...account,
       success: true,
@@ -326,6 +353,9 @@ async function loadAccountUsage(account) {
       allowed: !!rateLimit.allowed && !rateLimit.limit_reached,
       primary: getWindowSummary(rateLimit.primary_window),
       secondary: getWindowSummary(rateLimit.secondary_window),
+      resetCreditCount,
+      resetCreditDetails,
+      resetCreditError,
       updatedAt: new Date().toLocaleString()
     }
   } catch (e) {
@@ -335,6 +365,9 @@ async function loadAccountUsage(account) {
       error: formatError(e),
       primary: getWindowSummary(),
       secondary: getWindowSummary(),
+      resetCreditCount: 0,
+      resetCreditDetails: [],
+      resetCreditError: '',
       updatedAt: new Date().toLocaleString()
     }
   }
@@ -350,6 +383,17 @@ async function fetchCodexUsage(account) {
   }
   if (!data?.rate_limit) {
     throw new Error('返回数据缺少 rate_limit 字段')
+  }
+  return data
+}
+
+async function fetchCodexResetCredits(account) {
+  const headers = await getAuthHeaders(account)
+  const { status, body } = await Plugins.HttpGet(CODEX_RESET_CREDITS_API, headers)
+  const data = typeof body === 'string' ? JSON.parse(body) : body
+
+  if (status && (status < 200 || status >= 300)) {
+    throw new Error(`HTTP ${status}`)
   }
   return data
 }
@@ -435,7 +479,47 @@ function formatResetAt(unixSeconds) {
   if (!unixSeconds) return '--'
   const date = new Date(Number(unixSeconds) * 1000)
   if (Number.isNaN(date.getTime())) return '--'
-  return date.toLocaleString()
+  return formatDateWithRelative(date)
+}
+
+function getResetCreditCount(data) {
+  const count = Number(
+    data?.resetCreditCount ??
+      data?.rate_limit_reset_credits?.available_count ??
+      data?.rateLimitResetCredits?.availableCount ??
+      data?.available_count ??
+      0
+  )
+  return Number.isFinite(count) ? Math.max(0, Math.floor(count)) : 0
+}
+
+function getResetCreditDetails(data) {
+  const payload = data?.rate_limit_reset_credits || data?.rateLimitResetCredits || data
+  const credits = Array.isArray(payload?.credits) ? payload.credits : Array.isArray(payload?.items) ? payload.items : []
+  return credits
+    .map((credit, index) => {
+      const expiresAt = formatCreditExpiresAt(credit?.expires_at || credit?.expiresAt || credit?.expires)
+      return expiresAt === '--' ? null : { key: `${index}-${expiresAt}`, index: index + 1, expiresAt }
+    })
+    .filter(Boolean)
+}
+
+function formatCreditExpiresAt(value) {
+  if (!value) return '--'
+  const text = String(value)
+  const numeric = Number(text)
+  const date = Number.isFinite(numeric) && /^\d+(\.\d+)?$/.test(text) ? new Date(numeric > 1000000000000 ? numeric : numeric * 1000) : new Date(text)
+  if (Number.isNaN(date.getTime())) return '--'
+  return formatDateWithRelative(date)
+}
+
+function formatDateWithRelative(date) {
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hour = String(date.getHours()).padStart(2, '0')
+  const minute = String(date.getMinutes()).padStart(2, '0')
+  const second = String(date.getSeconds()).padStart(2, '0')
+  return `${date.getFullYear()}-${month}-${day} ${hour}:${minute}:${second} ${Plugins.formatRelativeTime(date)}`
 }
 
 function formatError(error) {

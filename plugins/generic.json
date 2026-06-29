@@ -379,9 +379,9 @@
   {
     "id": "plugin-codex-usage-viewer",
     "name": "Codex 用量查看",
-    "version": "v2.0.0",
+    "version": "v2.1.0",
     "group": "Tools",
-    "description": "查看 Codex 当前账号的 primary/secondary 用量窗口、剩余额度与重置时间。Supported by: Codex",
+    "description": "查看 Codex 当前账号的 primary/secondary 用量窗口、剩余额度、重置时间与重置额度。Supported by: Codex",
     "tags": ["实用工具", "开发工具"],
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-codex-usage-viewer.js",
