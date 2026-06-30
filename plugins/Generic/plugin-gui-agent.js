@@ -330,6 +330,23 @@ export default (Plugin) => {
           loading.value = true
           /** @type {{ role: string, content: string, tool_calls?: any[] }} */
           const streamMessage = reactive({ role: 'assistant', content: '' })
+          let pendingContent = ''
+          const flushStreamContent = async () => {
+            if (!pendingContent) return
+            const shouldScrollToBottom = Utils.isNearBottom(chatBox.value)
+            streamMessage.content += pendingContent
+            pendingContent = ''
+            await nextTick()
+            if (shouldScrollToBottom) {
+              Utils.scrollToBottom(chatBox.value, 'auto')
+            }
+          }
+          const throttledFlushStreamContent = Plugins.throttle(flushStreamContent, 50)
+          const appendStreamContent = (chunk) => {
+            pendingContent += chunk
+            throttledFlushStreamContent()
+          }
+
           try {
             const res = await Plugins.Requests({
               url: Plugin.BaseUrl,
@@ -363,13 +380,14 @@ export default (Plugin) => {
                   const message = choice.delta
 
                   if (message.content) {
-                    await appendStreamMessage(streamMessage, message.content)
+                    appendStreamContent(message.content)
                   }
 
                   mergeAssistantMessage(streamMessage, message)
                 }
               }
             })
+            await flushStreamContent()
             if (res.status !== 200) {
               Plugins.alert('错误', JSON.stringify(res.body, null, 2))
               return res
@@ -388,20 +406,13 @@ export default (Plugin) => {
 
             return res
           } finally {
+            await flushStreamContent()
             loading.value = false
           }
         }
 
         const appendMessage = (msg) => {
           chatHistory.value.push(msg)
-          if (Utils.isNearBottom(chatBox.value)) {
-            Utils.scrollToBottom(chatBox.value)
-          }
-        }
-
-        const appendStreamMessage = async (msg, chunk) => {
-          msg.content += chunk
-          await nextTick()
           if (Utils.isNearBottom(chatBox.value)) {
             Utils.scrollToBottom(chatBox.value)
           }
@@ -574,11 +585,11 @@ const Utils = {
   isNearBottom(container, threshold = 60) {
     return container.scrollHeight - container.scrollTop - container.clientHeight < threshold
   },
-  scrollToBottom(container) {
+  scrollToBottom(container, behavior = 'smooth') {
     requestAnimationFrame(() => {
       container.scrollTo({
         top: container.scrollHeight,
-        behavior: 'smooth'
+        behavior
       })
     })
   },

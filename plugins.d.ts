@@ -402,6 +402,7 @@ interface Plugins {
   handleUseProxy(group: any, proxy: Recordable): Promise<void>
   handleChangeMode(mode: 'direct' | 'global' | 'rule'): Promise<void>
   debounce(fn: (...args: any[]) => void, delay: number): (...args: any[]) => void
+  throttle<T extends (...args: any[]) => void>(fn: T, delay: number): (...args: Parameters<T>) => void
   getKernelFileName(isAlpha: boolean): Promise<string>
   getUserAgent(): Promise<string>
   GetSystemProxy(): Promise<string>
