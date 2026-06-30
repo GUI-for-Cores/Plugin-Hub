@@ -161,7 +161,7 @@ const onRun = async () => {
           </div>
           <Input v-model="item.request.url" placeholder="http(s)://" />
           <KeyValueEditor v-model="item.request.headers" />
-          <CodeViewer v-model="item.request.body" editable placeholder="请输入请求体" />
+          <CodeEditor v-model="item.request.body" editable placeholder="请输入请求体" />
         </div>
       </Card>
 

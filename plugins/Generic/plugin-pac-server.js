@@ -29,7 +29,7 @@ const onRun = async () => {
           </Button>
           -->
         </div>
-        <CodeViewer v-model="pacScript" @change="handlePacChange" editable lang="javascript" />
+        <CodeEditor v-model="pacScript" @change="handlePacChange" editable lang="javascript" />
       </Card>
       <Card title="查询历史" class="mt-8">
         <template #extra>

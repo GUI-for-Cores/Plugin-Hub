@@ -64,7 +64,7 @@ export default (Plugin) => {
     const component = {
       template: `
       <div>
-        <CodeViewer v-model="rules" lang="yaml" editable placeholder="<URL_Regex> -> <Action> [key:value key:value ...] -> <Action> ..." />
+        <CodeEditor v-model="rules" lang="yaml" editable placeholder="<URL_Regex> -> <Action> [key:value key:value ...] -> <Action> ..." />
       </div>`,
       setup() {
         const initRules = async () => {

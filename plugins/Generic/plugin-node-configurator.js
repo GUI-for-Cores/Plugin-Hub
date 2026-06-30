@@ -315,7 +315,7 @@ function openProxyConfigurator(Plugin) {
               <template #extra>
                 <Button v-if="!syncRawWithForm" type="link" @click="useFormJson">重新跟随表单</Button>
               </template>
-              <CodeViewer v-model="rawJson" @change="markRawEdited" lang="json" editable style="min-height: 260px; border-radius: 8px; overflow: hidden" />
+              <CodeEditor v-model="rawJson" @change="markRawEdited" lang="json" editable style="min-height: 260px; border-radius: 8px; overflow: hidden" />
               <div class="tip-box mt-12">
                 支持单个节点对象、节点数组，或 <code>{ "proxies": [...] }</code>。手动编辑后会立刻驱动下方 produce 预览。
               </div>
@@ -330,7 +330,7 @@ function openProxyConfigurator(Plugin) {
                 </div>
               </template>
 
-              <CodeViewer :model-value="producePreview" :lang="produceLang" style="min-height: 320px; border-radius: 8px; overflow: hidden" />
+              <CodeEditor :model-value="producePreview" :lang="produceLang" style="min-height: 320px; border-radius: 8px; overflow: hidden" />
             </Card>
           </div>
         </div>

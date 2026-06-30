@@ -193,7 +193,7 @@ export default (Plugin) => {
                   </Button>
                 </div>
               </div>
-              <CodeViewer
+              <CodeEditor
                 v-model="code"
                 lang="javascript"
                 style="min-height:320px; width:100%; border-radius:6px; overflow:hidden;"

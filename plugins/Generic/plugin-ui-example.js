@@ -75,7 +75,7 @@ const createUIModal = () => {
           <InputList v-model="val4" placeholder="请输入" />
         </div>
         长文本输入：
-        <CodeViewer
+        <CodeEditor
           v-model="val5"
           lang="javascript"
           editable

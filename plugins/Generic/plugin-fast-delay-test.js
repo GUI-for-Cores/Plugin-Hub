@@ -655,7 +655,7 @@ export default (plugin) => {
       const component = defineComponent({
         template: `
         <div>
-          <CodeViewer v-model="code" lang="javascript" editable />
+          <CodeEditor v-model="code" lang="javascript" editable />
         </div>
         `,
         setup() {
