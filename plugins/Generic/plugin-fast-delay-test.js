@@ -244,7 +244,7 @@ export default (plugin) => {
   const SettingsStore = createStorage(() => settingsPath, DEFAULT_PLUGIN_SETTINGS)
   const DelayDataStore = createStorage(getDelayDataPath, [])
   const SubConfigStore = createStorage(getSubConfigPath, DEFAULT_SUBSCRIPTION_CONFIG)
-  const adapter = createClientAdapter(envStore.env.appName)
+  const adapter = createClientAdapter(Plugins.APP_TITLE)
   const sortProxiesByDelayData = (proxies, delayDataList) => {
     const delayMap = new Map(delayDataList.map((d) => [getProxyKey(d), d.delay]))
     return [...proxies].sort((a, b) => {
@@ -790,7 +790,7 @@ export default (plugin) => {
           <Empty />
         </div>
         <div v-else class="grid grid-cols-4 gap-8 overflow-y-auto">
-          <Card v-for="proxy in sortedProxies" :key="proxy.tag" :title="proxy.tag" class="w-full">
+          <Card v-for="proxy in sortedProxies" :key="proxy.tag" :title="proxy.tag" @contextmenu="testSingleNode(proxy)" class="w-full">
             <template #extra>
               <Button size="small" type="text" icon="delete" @click.stop="deleteNode(proxy)" />
             </template>
@@ -894,10 +894,6 @@ export default (plugin) => {
                 {
                   type: 'text',
                   onClick: async () => {
-                    if (allTesting.value) {
-                      Plugins.message.warn('请等待测试完成...')
-                      return
-                    }
                     try {
                       await persistUIStateOnClose(subscription, uiProxiesList.value)
                     } finally {
