@@ -265,7 +265,7 @@
   {
     "id": "plugin-node-convert",
     "name": "节点转换",
-    "version": "v3.0.0",
+    "version": "v3.0.1",
     "group": "Recommended",
     "description": "节点格式转换插件，支持v2Ray格式转clash、clash格式转sing-box。",
     "tags": ["节点处理"],

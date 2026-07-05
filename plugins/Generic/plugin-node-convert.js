@@ -21,9 +21,7 @@ export default async () => {
     }
   }
 
-  await loadModule().catch(() => {
-    Plugins.message.warn('请右键更新依赖')
-  })
+  await loadModule().catch(() => {})
 
   /**
    * 插件右键菜单 - 更新依赖
