@@ -402,14 +402,19 @@ const system_prompt = `
 
 /** @type { EsmPlugin } */
 export default (Plugin) => {
+  /** @type ReturnType<typeof Plugins.modal> | undefined */
+  let modal
+
   const onRun = async () => {
-    /** @type ReturnType<typeof Plugins.modal> */
-    let modal
+    if (modal) {
+      modal.open()
+      return
+    }
 
     const component = {
       template: /* html */ `
     <div class="flex flex-col h-full pb-8">
-      <div ref="chatBox" class="overflow-y-auto select-text flex flex-col gap-8 flex-1 pb-8 pr-8">
+      <div ref="chatBox" class="overflow-y-auto select-text flex flex-col flex-1 pb-8 pr-8">
         <div v-if="chatHistory.length < 2" class="h-full flex flex-col items-center justify-center">
           <svg width="128" height="128" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img">
             <defs>
@@ -508,7 +513,7 @@ export default (Plugin) => {
           </svg>
           <div class="text-14">开始新会话</div>
         </div>
-        <div v-for="(item, index) in chatHistory" :key="index" class="text-14 break-all">
+        <div v-for="(item, index) in chatHistory" :key="index" class="text-14 break-all mb-8px">
           <div v-if="item.role == 'user'" class="flex items-center justify-end">
             <div class="ml-24 rounded-8 p-8" style="background: var(--card-bg)">{{ item.content }}</div>
             <Dropdown placement="bottom">
@@ -673,15 +678,12 @@ export default (Plugin) => {
         })
 
         onBeforeUnmount(() => {
+          modal = undefined
           saveSession()
         })
 
         const onDeleteSession = () => {
           chatHistory.value = []
-        }
-
-        const onClose = () => {
-          modal.destroy()
         }
 
         const onUserOperate = (ok) => {
@@ -943,7 +945,13 @@ export default (Plugin) => {
             ],
             toolbar: () => [
               Vue.h(Vue.resolveComponent('Button'), { type: 'text', icon: 'add', onClick: () => onDeleteSession() }, () => '新会话'),
-              Vue.h(Vue.resolveComponent('Button'), { type: 'text', icon: 'close', onClick: () => modal.close() })
+              Vue.h(Vue.resolveComponent('Button'), {
+                type: 'text',
+                icon: 'close',
+                onClick: () => {
+                  modal?.destroy()
+                }
+              })
             ]
           }
         })
@@ -966,8 +974,7 @@ export default (Plugin) => {
           onAutoResize,
           onSend,
           onDelete,
-          onResend,
-          onClose
+          onResend
         }
       }
     }
@@ -977,16 +984,18 @@ export default (Plugin) => {
       width: '90',
       height: '90',
       maskClosable: true,
-      footer: false,
-      afterClose() {
-        modal.destroy()
-      }
+      footer: false
     })
     modal.setContent(component)
     modal.open()
   }
 
-  return { onRun }
+  const onDispose = () => {
+    modal?.destroy()
+    modal = undefined
+  }
+
+  return { onRun, onDispose }
 }
 
 const Utils = {
@@ -1121,6 +1130,7 @@ const scheduledTasksStoreTools = {
 }
 
 const bridgeTools = {
+  getAppDts: () => Plugins.getAppDts(),
   Exec: (args) => Plugins.Exec(args.path, args.args, args.options),
   WriteFile: (args) => Plugins.WriteFile(args.path, args.content, args.options),
   ReadFile: (args) => Plugins.ReadFile(args.path, args.options),
@@ -1185,6 +1195,18 @@ const readOnlyTools = new Set([
 ])
 
 const tools = [
+  {
+    type: 'function',
+    function: {
+      name: 'getAppDts',
+      description: 'Get current GUI application TypeScript definitions for available data structures and Plugin APIs.',
+      parameters: {
+        type: 'object',
+        properties: {},
+        required: []
+      }
+    }
+  },
   {
     type: 'function',
     function: {
