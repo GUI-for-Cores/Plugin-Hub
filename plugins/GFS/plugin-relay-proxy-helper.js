@@ -148,9 +148,6 @@ export default (Plugin) => {
         submit: false,
         width: '90',
         cancelText: '关闭',
-        afterClose: () => {
-          modal.destroy()
-        }
       },
       {
         default: () => h(component)
@@ -228,9 +225,6 @@ export default (Plugin) => {
         title: '配置脚本预览',
         submit: false,
         cancelText: '关闭',
-        afterClose: () => {
-          modal.destroy()
-        }
       },
       {
         default: () => h(previewComponent)

@@ -140,9 +140,6 @@ const createUIModal = () => {
       submit: false,
       cancelText: '关闭',
       maskClosable: false,
-      afterClose: () => {
-        modal.destroy()
-      }
     },
     {
       default: () => Vue.h(component)

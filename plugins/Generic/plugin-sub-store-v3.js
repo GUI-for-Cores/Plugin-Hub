@@ -21,9 +21,6 @@ export default (Plugin) => {
         height: '90',
         footer: false,
         maskClosable: true,
-        afterClose() {
-          modal.destroy()
-        }
       },
       {
         toolbar: () => [

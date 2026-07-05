@@ -152,7 +152,6 @@ function openUsageUI(Plugin) {
       submit: false,
       maskClosable: true,
       cancelText: '关闭',
-      afterClose: () => modal.destroy()
     },
     {
       toolbar: () =>

@@ -208,9 +208,6 @@ export default (Plugin) => {
         width: '90',
         height: '90',
         cancelText: 'common.close',
-        afterClose() {
-          modal.destroy()
-        }
       },
       {
         default: () => Vue.h(component)

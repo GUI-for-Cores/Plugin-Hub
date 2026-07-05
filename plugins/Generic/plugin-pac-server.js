@@ -96,9 +96,6 @@ const onRun = async () => {
       maskClosable: true,
       width: '80',
       height: '80',
-      afterClose() {
-        modal.destroy()
-      }
     },
     {
       default: () => Vue.h(component),

@@ -325,9 +325,6 @@ const showUI = async (profile) => {
         await Plugins.WriteFile(filePath, JSON.stringify(result, null, 2))
         Plugins.message.success('common.success')
       },
-      afterClose() {
-        modal.destroy()
-      }
     },
     {
       default: () => h(component)

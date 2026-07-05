@@ -53,9 +53,6 @@ const onRun = async () => {
       width: '80',
       cancelText: 'common.close',
       maskClosable: true,
-      afterClose() {
-        modal.destroy()
-      }
     },
     {
       action: () => Vue.h('div', { class: 'mr-auto text-12', style: { color: 'var(--card-color)' } }, '注：重载界面后，需要重启服务才能记录解锁日志。')

@@ -45,9 +45,6 @@ export default (Plugin) => {
         title: Plugin.name,
         width: '90',
         height: '90',
-        afterClose() {
-          modal.close()
-        }
       },
       {
         default: () => Vue.h(component)
@@ -85,9 +82,6 @@ export default (Plugin) => {
           await stopService()
           await startService()
         },
-        afterClose() {
-          modal.close()
-        }
       },
       {
         default: () => Vue.h(component)

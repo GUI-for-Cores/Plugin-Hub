@@ -387,7 +387,6 @@ function openProxyConfigurator(Plugin) {
       height: '88',
       submit: false,
       cancelText: '关闭',
-      afterClose: () => modal.destroy()
     },
     {
       default: () => h(component)

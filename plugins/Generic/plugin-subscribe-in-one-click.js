@@ -75,9 +75,6 @@ const openUI = () => {
       submit: false,
       cancel: false,
       maskClosable: true,
-      afterClose() {
-        modal.destroy()
-      }
     },
     {
       default: () => Vue.h(content),

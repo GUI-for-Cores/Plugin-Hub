@@ -262,9 +262,6 @@ const showUI = async (profile) => {
         await writeSettings(settings)
         Plugins.message.success('保存成功，重启核心后生效')
       },
-      afterClose() {
-        modal.destroy()
-      }
     },
     {
       default: () => Vue.h(component)

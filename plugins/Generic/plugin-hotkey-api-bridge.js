@@ -494,9 +494,6 @@ const onRun = async () => {
         }
         await Plugins.WriteFile(HOTKEY_FILE, JSON.stringify(hotkeyList.value, null, 4))
       },
-      afterClose() {
-        modal.destroy()
-      }
     },
     {
       default: () => Vue.h(component)

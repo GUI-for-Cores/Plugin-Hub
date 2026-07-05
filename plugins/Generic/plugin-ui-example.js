@@ -193,9 +193,7 @@ const createUIModal = () => {
     {
       title: '自定义UI使用示例',
       afterClose: () => {
-        // 通常需要在关闭时销毁弹窗，否则会有残留。
-        // 如果需要缓存到全局变量，避免每次都重新创建，则不需要销毁
-        modal.destroy()
+        // 关闭回调
       }
     },
     // 第二个参数是modal的插槽：title左上角、toolbar右上角、action底部、cancel右下角取消按钮、submit右下角提交按钮、default默认插槽

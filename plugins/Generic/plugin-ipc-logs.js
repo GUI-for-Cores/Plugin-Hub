@@ -272,9 +272,6 @@ const openUI = () => {
     width: '90',
     height: '90',
     maskClosable: true,
-    afterClose() {
-      modal.destroy()
-    }
   })
 
   modal.setContent(component)

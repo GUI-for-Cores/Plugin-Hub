@@ -643,9 +643,6 @@ export default (plugin) => {
           Plugins.message.success('已保存')
           return true
         },
-        afterClose: () => {
-          modal.destroy()
-        }
       })
       modal.setContent(component)
       modal.open()
@@ -676,9 +673,6 @@ export default (plugin) => {
           Plugins.message.success('已保存')
           return true
         },
-        afterClose: () => {
-          modal.destroy()
-        }
       })
       modal.setContent(component)
       modal.open()
@@ -730,9 +724,6 @@ export default (plugin) => {
           Plugins.message.success('已保存')
           return true
         },
-        afterClose: () => {
-          modal.destroy()
-        }
       })
       modal.setContent(component)
       modal.open()
@@ -776,9 +767,6 @@ export default (plugin) => {
           await SubConfigStore.save(subConfig.value, subscription.id)
           return cleanNodes(subConfig.value.automation.cleanThreshold)
         },
-        afterClose: () => {
-          modal.destroy()
-        }
       })
       modal.setContent(component)
       modal.open()

@@ -98,9 +98,6 @@ export default (Plugin) => {
         submit: false,
         cancelText: '关闭',
         maskClosable: true,
-        afterClose: () => {
-          modal.destroy()
-        }
       },
       {
         default: () => h(component),
@@ -198,9 +195,6 @@ export default (Plugin) => {
         submit: false,
         cancelText: '关闭',
         maskClosable: false,
-        afterClose: () => {
-          modal.destroy()
-        }
       },
       {
         default: () => h(component),

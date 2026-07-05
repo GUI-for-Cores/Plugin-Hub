@@ -151,9 +151,6 @@ const onRun = async () => {
       cancelText: 'common.close',
       width: '90',
       height: '90',
-      afterClose() {
-        modal.destroy()
-      }
     },
     {
       default: () => Vue.h(component)

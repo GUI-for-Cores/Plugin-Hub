@@ -420,9 +420,6 @@ const showUI = async (profile) => {
                   height: '520px',
                   maskClosable: true,
                   footer: false,
-                  afterClose() {
-                    pickerModal.destroy()
-                  }
                 },
                 {
                   default: () => h(pickerComponent)
@@ -465,9 +462,6 @@ const showUI = async (profile) => {
                 rules.value.push(normalized)
               }
             },
-            afterClose() {
-              editorModal.destroy()
-            }
           },
           {
             default: () => h(editorComponent)
@@ -554,9 +548,6 @@ const showUI = async (profile) => {
         })
         Plugins.message.success('保存成功，重启核心后生效')
       },
-      afterClose() {
-        modal.destroy()
-      }
     },
     {
       default: () => h(component)

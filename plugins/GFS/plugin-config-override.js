@@ -410,11 +410,8 @@ const openMainUI = (manager) => {
     title: '配置覆盖管理',
     submit: false,
     cancelText: '关闭',
-    width: '82',
+    width: '80',
     height: '80',
-    afterClose: () => {
-      modal.destroy()
-    }
   })
 
   modal.setContent(component)
@@ -450,9 +447,6 @@ const openAppendPathsModal = () => {
       Plugins.message.success('数组追加路径已保存')
       return true
     },
-    afterClose: () => {
-      modal.destroy()
-    }
   })
 
   modal.setContent(component)
@@ -548,9 +542,6 @@ const openGuideModal = (manager) => {
     submit: false,
     cancelText: '关闭',
     width: '64',
-    afterClose: () => {
-      modal.destroy()
-    }
   })
 
   modal.setContent(component)
@@ -631,9 +622,6 @@ const openEditModal = (cfg, manager) => {
         return false
       }
     },
-    afterClose: () => {
-      modal.destroy()
-    }
   })
 
   modal.setContent(component)

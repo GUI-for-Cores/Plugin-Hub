@@ -306,9 +306,6 @@ export default (plugin) => {
           Plugins.message.success('插件配置保存成功')
           return true
         },
-        afterClose: () => {
-          modal.destroy()
-        }
       })
       modal.setContent(component)
       modal.open()
@@ -355,9 +352,6 @@ export default (plugin) => {
           Plugins.message.success('自动化配置保存成功')
           return true
         },
-        afterClose: () => {
-          modal.destroy()
-        }
       })
       modal.setContent(component)
       modal.open()
@@ -389,9 +383,6 @@ export default (plugin) => {
         onOk: () => {
           return cleanNodes(threshold.value)
         },
-        afterClose: () => {
-          modal.destroy()
-        }
       })
       modal.setContent(component)
       modal.open()

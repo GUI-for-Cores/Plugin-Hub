@@ -165,9 +165,6 @@ export default (Plugin) => {
       cancelText: '关闭',
       width: '80',
       height: '80',
-      afterClose: () => {
-        modal.destroy()
-      }
     })
     modal.setContent(component)
     modal.open()
@@ -237,9 +234,6 @@ export default (Plugin) => {
       submit: false,
       cancelText: '关闭',
       width: '60',
-      afterClose: () => {
-        modal.destroy()
-      }
     })
     modal.setContent(component)
     modal.open()
@@ -297,9 +291,6 @@ export default (Plugin) => {
           return false
         }
       },
-      afterClose: () => {
-        modal.destroy()
-      }
     })
     modal.setContent(component)
     modal.open()

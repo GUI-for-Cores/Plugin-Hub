@@ -500,9 +500,6 @@ const openUI = () => {
       title: Plugin.name,
       submit: false,
       maskClosable: true,
-      afterClose() {
-        modal.destroy()
-      }
     },
     {
       default: () => Vue.h(component)

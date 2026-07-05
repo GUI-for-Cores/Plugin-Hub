@@ -120,7 +120,7 @@
   {
     "id": "plugin-relay-proxy-helper",
     "name": "链式代理助手",
-    "version": "v2.3.1",
+    "version": "v2.3.2",
     "group": "Extensions",
     "description": "帮助用户快速生成用于添加代理链的配置脚本。Supported by: 泡泡茶壶",
     "tags": ["实用工具", "功能扩展", "提升体验"],
@@ -146,7 +146,7 @@
   {
     "id": "plugin-outbound-chain-manager",
     "name": "出站分组批量链式代理",
-    "version": "v1.0.0",
+    "version": "v1.0.1",
     "group": "Extensions",
     "description": "按出站分组或出站批量配置链式代理，基于当前生成配置的成员自动写入 detour。Supported by: qqqasdwx",
     "tags": ["实用工具", "功能扩展", "提升体验"],
@@ -174,7 +174,7 @@
   {
     "id": "plugin-import-configuration-to-gui",
     "name": "导入 sing-box 配置",
-    "version": "v3.1.2",
+    "version": "v3.1.3",
     "group": "Recommended",
     "description": "将完整的 sing-box 配置导入到 GUI 中。Supported by: 泡泡茶壶",
     "tags": ["实用工具", "功能扩展", "提升体验"],
@@ -200,7 +200,7 @@
   {
     "id": "plugin-native-config-manager",
     "name": "原生配置管理",
-    "version": "v1.3.1",
+    "version": "v1.3.2",
     "group": "Extensions",
     "description": "允许在 GUI 中直接运行和管理未经修改的 sing-box 原始配置，跳过 GUI 的默认配置覆盖，完美保留你的自定义规则，专为需要高度定制化配置的用户设计。Supported by: 泡泡茶壶",
     "tags": ["实用工具", "功能扩展", "提升体验"],
@@ -225,7 +225,7 @@
   },
   {
     "id": "plugin-sing-box-dashboard",
-    "version": "v2.1.0",
+    "version": "v2.1.1",
     "name": "sing-box 仪表板",
     "description": "全新的 Web 面板，提供与原版图形客户端几乎一致的体验。Supported by: 泡泡茶壶",
     "tags": ["功能扩展", "提升体验"],
@@ -315,7 +315,7 @@
   },
   {
     "id": "plugin-singbox-builder",
-    "version": "v1.2.0",
+    "version": "v1.2.1",
     "name": "从零编译sing-box核心",
     "group": "Development",
     "description": "从编译环境到源码下载，再到核心定制，从0开始编译sing-box核心。",
@@ -341,7 +341,7 @@
   },
   {
     "id": "plugin-config-override",
-    "version": "v1.0.0",
+    "version": "v1.0.1",
     "name": "配置覆盖",
     "group": "Extensions",
     "description": "在 sing-box 启动前，将本地或远程 JSON 作为 override 合并进 GUI 生成的 config.json，支持远程缓存与数组路径追加策略。 Supported by: CorneliaMo",

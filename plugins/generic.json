@@ -139,7 +139,7 @@
   {
     "id": "plugin-ui-example",
     "name": "插件UI示例",
-    "version": "v1.2.0",
+    "version": "v1.2.1",
     "group": "Examples",
     "description": "插件创建UI示例",
     "tags": ["插件示例"],
@@ -165,7 +165,7 @@
   {
     "id": "plugin-quick-start-guide",
     "name": "快速配置向导",
-    "version": "v1.3.1",
+    "version": "v1.3.2",
     "group": "Recommended",
     "description": "快速配置，但是多一点自定义。",
     "tags": ["提升体验", "功能扩展"],
@@ -190,7 +190,7 @@
   },
   {
     "id": "plugin-mitm-core",
-    "version": "v0.0.1",
+    "version": "v0.0.2",
     "name": "MITM-Core",
     "description": "MITM-Core 是一个使用 Go 编写的 HTTP/HTTPS 中间人代理核心。它可以作为本地代理服务器接收客户端请求，按规则匹配 URL，并在请求转发前或响应返回前执行拦截动作，例如修改请求头、替换请求体、改写响应体、执行 JavaScript 钩子、执行 JQ JSON 变换、重定向、拒绝连接或丢弃连接。",
     "tags": [],
@@ -229,7 +229,7 @@
   {
     "id": "plugin-ui-dev-helper",
     "name": "插件UI开发助手",
-    "version": "v1.2.0",
+    "version": "v1.2.1",
     "group": "Development",
     "description": "可热更新代码，实时预览插件UI改动。",
     "tags": ["插件开发"],
@@ -297,7 +297,7 @@
   {
     "id": "plugin-node-configurator",
     "name": "节点配置器",
-    "version": "v1.0.0",
+    "version": "v1.0.1",
     "group": "Tools",
     "description": "基于 JSON Schema 的代理协议配置器，支持协议/传输/TLS/插件字段联动，并将输入 JSON 实时 produce 为目标客户端格式。Supported by: Codex",
     "tags": ["实用工具", "节点处理"],
@@ -379,7 +379,7 @@
   {
     "id": "plugin-codex-usage-viewer",
     "name": "Codex 用量查看",
-    "version": "v2.1.0",
+    "version": "v2.1.1",
     "group": "Tools",
     "description": "查看 Codex 当前账号的 primary/secondary 用量窗口、剩余额度、重置时间与重置额度。Supported by: Codex",
     "tags": ["实用工具", "开发工具"],
@@ -415,7 +415,7 @@
   {
     "id": "plugin-ipc-logs",
     "name": "日志系统",
-    "version": "v2.4.0",
+    "version": "v2.4.1",
     "group": "Extensions",
     "description": "GUI日志系统，包含敏感信息，用于debug。",
     "tags": ["功能扩展"],
@@ -483,7 +483,7 @@
   {
     "id": "plugin-subscribe-in-one-click",
     "name": "一键导入订阅助手",
-    "version": "v1.1.0",
+    "version": "v1.1.1",
     "group": "Extensions",
     "description": "运行此插件，帮助你使用机场的一键导入订阅功能。",
     "tags": ["提升体验", "功能扩展"],
@@ -508,7 +508,7 @@
   },
   {
     "id": "plugin-smart-proxy-switcher",
-    "version": "v5.2.0",
+    "version": "v5.2.1",
     "name": "节点智能切换",
     "group": "Extensions",
     "description": "实现动态代理选择机制，包含故障转移、断路器、EWMA 延迟跟踪、基于分数调度与滞后控制。",
@@ -678,7 +678,7 @@
   },
   {
     "id": "plugin-music-player",
-    "version": "v1.2.0",
+    "version": "v1.2.1",
     "name": "简单音乐播放器",
     "group": "Fun",
     "description": "一个简单的本地音乐播放器",
@@ -823,7 +823,7 @@
   },
   {
     "id": "plugin-pac-server",
-    "version": "v1.0.0",
+    "version": "v1.0.1",
     "name": "PAC 服务器",
     "group": "Tools",
     "description": "适用于使用代理自动配置的用户。",
@@ -1158,7 +1158,7 @@
   {
     "id": "plugin-file-transfer-assistant",
     "name": "文件互传助手",
-    "version": "v1.4.0",
+    "version": "v1.4.1",
     "group": "Tools",
     "description": "文件互传助手，支持Siri快捷指令。",
     "tags": ["实用工具", "功能扩展"],
@@ -1470,7 +1470,7 @@
   {
     "id": "plugin-sub-store-v3",
     "name": "Sub-Store 纯净版",
-    "version": "v1.5.0",
+    "version": "v1.5.1",
     "group": "Tools",
     "description": "高级订阅管理工具。无Node.js、无MITM，优雅。（Advanced Subscription Manager for QX, Loon, Surge, Stash and Shadowrocket!）",
     "tags": ["实用工具"],
@@ -1519,7 +1519,7 @@
   {
     "id": "plugin-sub-store-v2",
     "name": "Sub-Store Nodejs版",
-    "version": "v1.3.3",
+    "version": "v1.3.4",
     "group": "Tools",
     "description": "高级订阅管理工具，Node.js版，无需编译。（Advanced Subscription Manager for QX, Loon, Surge, Stash and Shadowrocket!）",
     "tags": ["实用工具"],
@@ -1688,7 +1688,7 @@
   {
     "id": "plugin-github-commit-history",
     "name": "GitHub提交记录",
-    "version": "v1.0.1",
+    "version": "v1.0.2",
     "group": "Tools",
     "description": "添加目标仓库，查看其历史提交记录",
     "tags": ["实用工具"],
@@ -1733,7 +1733,7 @@
   {
     "id": "plugin-github-workflows",
     "name": "GitHub工作流管理",
-    "version": "v2.0.0",
+    "version": "v2.0.1",
     "group": "Tools",
     "description": "添加目标仓库，管理其工作流、Runs、Artifacts、Release 和 Tag，支持按需加载与批量删除",
     "tags": ["实用工具"],
@@ -2031,7 +2031,7 @@
   {
     "id": "plugin-unblockneteasemusic",
     "name": "解锁网易云音乐",
-    "version": "v8.1.0",
+    "version": "v8.1.1",
     "group": "Fun",
     "description": "解锁网易云音乐插件，需要安装CA证书。请在音乐客户端内开启：使用IE代理设置。（Revive unavailable songs for Netease Cloud Music (Refactored & Enhanced version)）",
     "tags": ["实用工具", "功能扩展"],
@@ -2175,7 +2175,7 @@
   {
     "id": "plugin-hotkey-api-bridge",
     "name": "全局热键",
-    "version": "v1.0.3",
+    "version": "v1.0.4",
     "group": "Extensions",
     "description": "请配合【RESTful-Api v1】插件使用。",
     "tags": ["功能扩展", "提升体验"],
@@ -2561,7 +2561,7 @@
   },
   {
     "id": "plugin-media-unlock-checker",
-    "version": "v2.2.0",
+    "version": "v2.2.1",
     "name": "流媒体解锁检测",
     "group": "Tools",
     "description": "检测当前网络环境下的流媒体解锁情况。",
@@ -3044,7 +3044,7 @@
   {
     "id": "plugin-clash-api-dashboard",
     "name": "Clash API 仪表板",
-    "version": "v4.0.0",
+    "version": "v4.0.1",
     "group": "Extensions",
     "description": "方便的切换和访问 Clash 面板。Supported by: 泡泡茶壶",
     "tags": ["提升体验", "功能扩展"],
@@ -3151,7 +3151,7 @@
   {
     "id": "plugin-subscribe-collection",
     "name": "聚合订阅",
-    "version": "v2.1.1",
+    "version": "v2.1.2",
     "group": "Extensions",
     "description": "将现有的多个订阅组合为一个新订阅。Supported by: 泡泡茶壶",
     "tags": ["提升体验", "功能扩展"],
@@ -3176,7 +3176,7 @@
   },
   {
     "id": "plugin-fast-delay-test",
-    "version": "v2.3.1",
+    "version": "v2.3.2",
     "name": "快速延迟测试",
     "description": "快速测试订阅内节点延迟，支持按延迟排序与一键清理失败/高延迟节点，并可在订阅更新时自动处理。Supported by: 泡泡茶壶",
     "tags": ["功能扩展", "提升体验"],

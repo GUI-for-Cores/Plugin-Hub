@@ -204,9 +204,6 @@ export default (Plugin) => {
         height: '90',
         maskClosable: true,
         submitText: '完成',
-        afterClose() {
-          modal.destroy()
-        },
         async onOk() {
           const profilesStore = Plugins.useProfilesStore()
           const subscribeStore = Plugins.useSubscribesStore()

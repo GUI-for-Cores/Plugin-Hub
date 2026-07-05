@@ -8,9 +8,6 @@ const onRun = async () => {
     title: Plugin.name,
     cancelText: 'common.close',
     submit: false,
-    afterClose: () => {
-      modal.destroy()
-    }
   })
 
   const content = {
