@@ -36,6 +36,8 @@ const system_prompt = `
 * 程序版本：\`${envStore.env.appVersion}\`
 * 操作系统：\`${envStore.env.os}\`
 * 系统架构：\`${envStore.env.arch}\`
+* 程序项目主页: \`${Plugins.PROJECT_URL}\`
+* 程序交流群: \`${Plugins.TG_GROUP}\`
 
 执行任务时，应结合当前程序版本、操作系统和架构判断配置路径、参数格式及功能兼容性。
 
@@ -513,9 +515,9 @@ export default (Plugin) => {
           </svg>
           <div class="text-14">开始新会话</div>
         </div>
-        <div v-for="(item, index) in chatHistory" :key="index" class="text-14 break-all mb-8px">
+        <div v-for="(item, index) in chatHistory" :key="index" class="text-14 break-all mb-8px leading-relaxed">
           <div v-if="item.role == 'user'" class="flex items-center justify-end">
-            <div class="ml-24 rounded-8 p-8" style="background: var(--card-bg)">{{ item.content }}</div>
+            <div class="ml-24 rounded-8 px-8 py-4" style="background: var(--card-bg)">{{ item.content }}</div>
             <Dropdown placement="bottom">
               <Button icon="more" type="text" />
               <template #overlay="{ close }">
@@ -526,16 +528,23 @@ export default (Plugin) => {
               </template>
             </Dropdown>
           </div>
-          <div v-else-if="item.role == 'assistant' && item.content" class="flex items-center mr-24">
-            <MarkdownViewer :content="item.content" class="flex-1" />
-            <Dropdown placement="bottom">
-              <Button icon="more" type="text" />
-              <template #overlay="{ close }">
-                <div class="flex flex-col gap-4 min-w-64 p-4">
-                  <Button @click="onDelete(index, close)" icon="delete" type="text" size="small">删除</Button>
-                </div>
-              </template>
-            </Dropdown>
+          <div v-else-if="item.role == 'assistant' && item.content">
+            <MarkdownViewer :content="item.content" />
+            <div class="flex items-center">
+              <Tag v-if="item.model" size="small">{{ item.model }}</Tag>
+              <Tag v-if="item.usage" size="small">
+                tokens: {{ item.usage.completion_tokens }}
+              </Tag>
+              <Tag v-if="item.created" size="small">{{ formatDate(item.created) }}</Tag>
+              <Dropdown placement="bottom">
+                <Button icon="more" type="text" />
+                <template #overlay="{ close }">
+                  <div class="flex flex-col gap-4 min-w-64 p-4">
+                    <Button @click="onDelete(index, close)" icon="delete" type="text" size="small">删除</Button>
+                  </div>
+                </template>
+              </Dropdown>
+            </div>
           </div>
           <div v-for="tool in item.tool_calls || []" :title="tool.function.name" :key="tool.id">
             <details class="text-12 mr-24" style="color: var(--card-color)">
@@ -576,8 +585,8 @@ export default (Plugin) => {
           v-model="input"
           placeholder="请输入..."
           @keydown.shift.tab.prevent="onChangePermission()"
-          @keydown.enter.exact.prevent="onSend"
-          @keydown.ctrl.enter.prevent="onInsertNewline"
+          @keydown.enter.exact.prevent="onSend()"
+          @keydown.ctrl.enter.prevent="onSend(true)"
           @keydown.shift.enter.prevent="onInsertNewline"
           @keydown.meta.enter.prevent="onInsertNewline"
           @input="onAutoResize"
@@ -603,9 +612,9 @@ export default (Plugin) => {
               </div>
             </template>
           </Dropdown>
-          <div class="text-10">Shift+Tab切换权限、Ctrl+Enter换行</div>
+          <div class="text-10">Shift+Tab切换权限、Shift+Enter换行、Ctrl+Enter新对话发送</div>
           <Button v-if="loading" @click="onStopAI" type="primary" size="small" class="ml-auto">停止</Button>
-          <Button v-else @click="onSend" type="primary" size="small" class="ml-auto">发送</Button>
+          <Button v-else @click="onSend(false)" type="primary" size="small" class="ml-auto">发送</Button>
         </div>
       </div>
     </div>
@@ -648,7 +657,7 @@ export default (Plugin) => {
         /** @type (v: boolean) => void */
         let userAuthorized
 
-        /** @type { {value: {role: 'system' | 'user' | 'assistant' | 'tool', content: string, tool_calls?: any, tool_call_id?: string, name?: string}[]} } */
+        /** @type { {value: {role: 'system' | 'user' | 'assistant' | 'tool', content: string, tool_calls?: any, tool_call_id?: string, name?: string, id?: string, model?: string, usage?: any, created?: number}[]} } */
         const chatHistory = ref([])
         const toolResultMapping = computed(() =>
           chatHistory.value
@@ -660,6 +669,14 @@ export default (Plugin) => {
               return p
             }, {})
         )
+
+        const tokenUsage = computed(() => {
+          for (let i = chatHistory.value.length - 1; i >= 0; i--) {
+            const message = chatHistory.value[i]
+            if (message.role === 'assistant' && message.usage) return message.usage
+          }
+          return undefined
+        })
 
         const loadSession = async () => {
           chatHistory.value = JSON.parse(await Plugins.ReadFile(PATH + '/session.json').catch(() => '[]'))
@@ -708,7 +725,7 @@ export default (Plugin) => {
           loading.value = true
           const cancelId = Plugin.id + Plugins.sampleID()
           activeRequestCancelId.value = cancelId
-          /** @type {{ role: string, content: string, tool_calls?: any[] }} */
+          /** @type {{ role: string, content: string, tool_calls?: any[], id?: string, model?: string, usage?: any, created?: number }} */
           const streamMessage = reactive({ role: 'assistant', content: '' })
           let pendingContent = ''
           const flushStreamContent = async () => {
@@ -737,7 +754,7 @@ export default (Plugin) => {
               },
               body: {
                 model: Plugin.Model,
-                messages: chatHistory.value,
+                messages: chatHistory.value.map(({ id, model, usage, created, ...message }) => message),
                 temperature: 0.2,
                 tools,
                 stream: true
@@ -748,7 +765,7 @@ export default (Plugin) => {
               },
               async onStream(e) {
                 if (stopRequested.value) return
-                console.log(e)
+                // console.log(e)
 
                 if (e.type === 'response') {
                   appendMessage(streamMessage)
@@ -757,6 +774,11 @@ export default (Plugin) => {
 
                 if (e.type === 'message' && e.event === 'message' && e.data !== '[DONE]') {
                   const body = JSON.parse(e.data || '')
+                  if (body.id !== undefined) streamMessage.id = body.id
+                  if (body.model !== undefined) streamMessage.model = body.model
+                  if (body.created !== undefined) streamMessage.created = body.created
+                  if (body.usage !== undefined) streamMessage.usage = body.usage
+
                   const choice = body.choices?.[0]
                   if (!choice?.delta) return
                   const message = choice.delta
@@ -810,7 +832,7 @@ export default (Plugin) => {
           if (!cancelId) return
 
           activeRequestCancelId.value = ''
-          await Plugins.HttpCancel(cancelId).catch(() => {})
+          await Plugins.HttpCancel(cancelId)
         }
 
         const appendMessage = (msg) => {
@@ -892,14 +914,16 @@ export default (Plugin) => {
           Utils.autoResize(textareaRef.value)
         }
 
-        const onSend = async () => {
+        const onSend = async (clearHistory = false) => {
           if (loading.value) {
-            await onStopAI()
+            Plugins.message.info('请等待AI输出完成')
             return
           }
-
           if (input.value.trim().length == 0) {
             return
+          }
+          if (clearHistory) {
+            chatHistory.value.splice(0)
           }
           stopRequested.value = false
           if (chatHistory.value.length === 0) {
@@ -934,12 +958,13 @@ export default (Plugin) => {
               h({
                 template: `
                 <div class="flex items-center">
-                  <div class="font-bold">${Plugin.name}</div>
+                  <div class="font-bold mr-8">${Plugin.name}</div>
                   <Tag color="purple">${Plugin.Model.toUpperCase()}</Tag>
+                  <Tag v-if="tokenUsage">Tokens: {{ tokenUsage.total_tokens }}, Cached: {{ tokenUsage.prompt_tokens_details.cached_tokens }}</Tag>
                 </div>
                 `,
                 setup() {
-                  return { onDeleteSession }
+                  return { onDeleteSession, tokenUsage }
                 }
               })
             ],
@@ -974,7 +999,10 @@ export default (Plugin) => {
           onAutoResize,
           onSend,
           onDelete,
-          onResend
+          onResend,
+          formatDate(t) {
+            return Plugins.formatDate(t*1000, 'YYYY-MM-DD HH:mm:ss')
+          }
         }
       }
     }

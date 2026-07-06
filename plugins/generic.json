@@ -325,7 +325,7 @@
   {
     "id": "plugin-gui-agent",
     "name": "GUI.for.Cores Agent",
-    "version": "v0.0.8",
+    "version": "v0.0.9",
     "group": "Tools",
     "description": "GUI.for.Cores 专属 AI Agent。",
     "tags": [],
