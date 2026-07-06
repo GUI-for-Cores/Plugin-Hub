@@ -346,6 +346,7 @@ const system_prompt = `
 * 避免无关背景说明
 * 避免暴露内部思维过程
 * 不向用户展示不必要的原始工具参数或内部实现细节
+* 减少标题、列表、表情符号的使用
 
 建议使用以下结果格式：
 
@@ -536,6 +537,7 @@ export default (Plugin) => {
                 tokens: {{ item.usage.completion_tokens }}
               </Tag>
               <Tag v-if="item.created" size="small">{{ formatDate(item.created) }}</Tag>
+              <Tag v-if="item.tool_calls" size="small" @click="toggleToolVisibility(item.id)">工具调用: {{ item.tool_calls.length }} 次 </Tag>
               <Dropdown placement="bottom">
                 <Button icon="more" type="text" />
                 <template #overlay="{ close }">
@@ -546,30 +548,51 @@ export default (Plugin) => {
               </Dropdown>
             </div>
           </div>
-          <div v-for="tool in item.tool_calls || []" :title="tool.function.name" :key="tool.id">
-            <details class="text-12 mr-24" style="color: var(--card-color)">
-              <summary class="flex items-center">
-                <div class="inline-flex items-center gap-8">
-                  <Icon icon="sparkle" color="currentColor" />
-                  <div class="line-clamp-1">工具调用: {{ tool.function.name }} {{ tool.function.arguments }}</div>
-                  <Dropdown placement="bottom">
-                    <Button icon="more" type="text" />
-                    <template #overlay="{ close }">
-                      <div class="flex flex-col gap-4 min-w-64 p-4">
-                        <Button @click="onDelete(index, close)" icon="delete" type="text" size="small">删除</Button>
-                      </div>
-                    </template>
-                  </Dropdown>
-                </div>
-              </summary>
-              <Card class="mt-8">
-                <Empty v-if="!toolResultMapping[tool.id]" description="工具未返回任何数据" />
-                {{ toolResultMapping[tool.id] }}
-              </Card>
-            </details>
-          </div>
+          <Transition
+            v-if="item.tool_calls"
+            :css="false"
+            @enter="(el, done) => {
+              const animation = el.animate(
+                [{ opacity: 0 }, { opacity: 1 }],
+                { duration: 200 }
+              )
+              animation.onfinish = done
+            }"
+            @leave="(el, done) => {
+              const animation = el.animate(
+                [{ opacity: 1 }, { opacity: 0 }],
+                { duration: 200 }
+              )
+              animation.onfinish = done
+            }"
+          >
+            <template v-if="toolVisibility.has(item.id)">
+              <div v-for="tool in item.tool_calls || []" :title="tool.function.name" :key="tool.id">
+                <details class="text-12" style="color: var(--card-color)">
+                  <summary class="flex items-center">
+                    <div class="inline-flex items-center gap-8">
+                      <Icon icon="sparkle" color="currentColor" />
+                      <div class="line-clamp-1">{{ tool.function.name }} {{ tool.function.arguments }}</div>
+                      <Dropdown placement="bottom">
+                        <Button icon="more" type="text" />
+                        <template #overlay="{ close }">
+                          <div class="flex flex-col gap-4 min-w-64 p-4">
+                            <Button @click="onDelete(index, close)" icon="delete" type="text" size="small">删除</Button>
+                          </div>
+                        </template>
+                      </Dropdown>
+                    </div>
+                  </summary>
+                  <Card class="mt-8">
+                    <Empty v-if="!toolResultMapping[tool.id]" description="工具未返回任何数据" />
+                    {{ toolResultMapping[tool.id] }}
+                  </Card>
+                </details>
+              </div>
+            </template>
+          </Transition>
         </div>
-        <div v-if="loading" class="flex items-center gap-8"  style="color: var(--card-color)"><Icon icon="sparkle" /> Thinking... </div>
+        <div v-if="loading" class="flex items-center gap-8 text-12"  style="color: var(--card-color)"><Icon icon="sparkle" color="currentColor" /> {{ loadingText }} </div>
       </div>
       <div v-if="requestOperation">
         <Card title="Agent想要执行一个危险命令，是否允许？">
@@ -620,7 +643,7 @@ export default (Plugin) => {
     </div>
     `,
       setup(_, { expose }) {
-        const { ref, reactive, h, computed, onMounted, onBeforeUnmount, nextTick } = Vue
+        const { ref, reactive, watch, h, computed, onMounted, onBeforeUnmount, nextTick } = Vue
 
         const chatBox = ref()
         const textareaRef = ref()
@@ -678,6 +701,28 @@ export default (Plugin) => {
           return undefined
         })
 
+        let thinkingTimer = 0
+        let dotCount = 1
+        const loadingText = ref('Thinking')
+        watch(loading, (v) => {
+          clearInterval(thinkingTimer)
+          if (v) {
+            thinkingTimer = setInterval(() => {
+              loadingText.value = `Thinking${'.'.repeat(dotCount)}`
+              dotCount = dotCount === 3 ? 1 : dotCount + 1
+            }, 500)
+          }
+        })
+
+        const toolVisibility = ref(new Set())
+        const toggleToolVisibility = (id) => {
+          if (toolVisibility.value.has(id)) {
+            toolVisibility.value.delete(id)
+          } else {
+            toolVisibility.value.add(id)
+          }
+        }
+
         const loadSession = async () => {
           chatHistory.value = JSON.parse(await Plugins.ReadFile(PATH + '/session.json').catch(() => '[]'))
         }
@@ -696,6 +741,7 @@ export default (Plugin) => {
 
         onBeforeUnmount(() => {
           modal = undefined
+          clearInterval(thinkingTimer)
           saveSession()
         })
 
@@ -769,6 +815,7 @@ export default (Plugin) => {
 
                 if (e.type === 'response') {
                   appendMessage(streamMessage)
+                  loading.value = false
                   return
                 }
 
@@ -805,10 +852,14 @@ export default (Plugin) => {
             if (finalToolCalls.length) {
               streamMessage.tool_calls = finalToolCalls
 
+              toolVisibility.value.add(streamMessage.id)
               for (const toolCall of finalToolCalls) {
                 if (stopRequested.value) return res
                 await handleTool(toolCall)
               }
+              setTimeout(() => {
+                toolVisibility.value.delete(streamMessage.id)
+              }, 3000)
 
               if (stopRequested.value) return res
               return await askAI()
@@ -822,7 +873,6 @@ export default (Plugin) => {
             if (activeRequestCancelId.value === cancelId) {
               activeRequestCancelId.value = ''
             }
-            loading.value = false
           }
         }
 
@@ -986,11 +1036,14 @@ export default (Plugin) => {
           textareaRef,
           input,
           loading,
+          loadingText,
           chatHistory,
           toolResultMapping,
           settings,
           permission,
           requestOperation,
+          toolVisibility,
+          toggleToolVisibility,
           onDeleteSession,
           onChangePermission,
           onUserOperate,
@@ -1001,7 +1054,7 @@ export default (Plugin) => {
           onDelete,
           onResend,
           formatDate(t) {
-            return Plugins.formatDate(t*1000, 'YYYY-MM-DD HH:mm:ss')
+            return Plugins.formatDate(t * 1000, 'YYYY-MM-DD HH:mm:ss')
           }
         }
       }
