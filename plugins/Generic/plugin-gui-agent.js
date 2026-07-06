@@ -548,7 +548,7 @@ export default (Plugin) => {
               </Dropdown>
             </div>
           </div>
-          <Transition
+          <TransitionGroup
             v-if="item.tool_calls"
             :css="false"
             @enter="(el, done) => {
@@ -585,12 +585,12 @@ export default (Plugin) => {
                   </summary>
                   <Card class="mt-8">
                     <Empty v-if="!toolResultMapping[tool.id]" description="工具未返回任何数据" />
-                    {{ toolResultMapping[tool.id] }}
+                    <CodeViewer v-else :modelValue="toolResultMapping[tool.id]" />
                   </Card>
                 </details>
               </div>
             </template>
-          </Transition>
+          </TransitionGroup>
         </div>
         <div v-if="loading" class="flex items-center gap-8 text-12"  style="color: var(--card-color)"><Icon icon="sparkle" color="currentColor" /> {{ loadingText }} </div>
       </div>
