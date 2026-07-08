@@ -83,7 +83,34 @@ export default (Plugin) => {
       return
     }
 
+    const LoadingDots = {
+      props: {
+        text: {
+          type: String,
+          default: 'Loading'
+        }
+      },
+      template: `<span>{{ text }}{{ dots }}</span>`,
+      setup() {
+        const { ref, onMounted, onBeforeUnmount } = Vue
+        const dots = ref('.')
+        let dotCount = 1
+        let timer = 0
+        onMounted(() => {
+          timer = setInterval(() => {
+            dotCount = dotCount === 3 ? 1 : dotCount + 1
+            dots.value = '.'.repeat(dotCount)
+          }, 500)
+        })
+        onBeforeUnmount(() => {
+          clearInterval(timer)
+        })
+        return { dots }
+      }
+    }
+
     const component = {
+      components: { LoadingDots },
       template: /* html */ `
     <div class="flex flex-col h-full pb-8">
       <div ref="chatBox" class="overflow-y-auto select-text flex flex-col flex-1 pb-8 pr-8" @scroll="onChatScroll" @wheel.passive="onChatWheel">
@@ -198,18 +225,18 @@ export default (Plugin) => {
               </template>
             </Dropdown>
           </div>
-          <div v-else-if="item.role == 'assistant' && item.content">
-            <MarkdownViewer :content="item.content" />
+          <div v-else-if="item.role == 'assistant' && (item.content || item.tool_calls)">
+            <MarkdownViewer v-if="item.content" :content="item.content" />
             <div class="flex items-center">
               <Tag v-if="item.model" size="small">{{ item.model }}</Tag>
+              <Tag v-if="item.tool_calls" size="small" @click="toggleToolVisibility(item.id)">
+                tools: {{ item.tool_calls.length }}
+              </Tag>
               <Tag v-if="item.usage" size="small">
                 tokens: {{ item.usage.completion_tokens }}
               </Tag>
               <Tag v-if="item.duration !== undefined" size="small">
                 duration: {{ item.duration < 1000 ? item.duration + 'ms' : (item.duration / 1000).toFixed(item.duration < 10000 ? 1 : 0) + 's' }}
-              </Tag>
-              <Tag v-if="item.tool_calls" size="small" @click="toggleToolVisibility(item.id)">
-                tools: {{ item.tool_calls.length }}
               </Tag>
               <!-- <Tag v-if="item.created" size="small">{{ formatDate(item.created) }}</Tag> -->
               <Dropdown placement="bottom">
@@ -242,10 +269,11 @@ export default (Plugin) => {
           >
             <template v-if="toolVisibility.has(item.id)">
               <div v-for="tool in item.tool_calls || []" :title="tool.function.name" :key="tool.id">
-                <details class="text-12" style="color: var(--card-color)">
+                <details class="text-12" style="color: var(--card-color)" @toggle="$event.target.open && toolVisibility.add(item.id + ':manual')">
                   <summary class="flex items-center">
                     <div class="inline-flex items-center gap-8">
-                      <Icon icon="sparkle" color="currentColor" />
+                      <Icon v-if="requesting && !toolResultMapping[tool.id]" icon="loading" class="rotation" />
+                      <Icon v-else icon="sparkle" color="currentColor" />
                       <div class="line-clamp-1">{{ tool.function.name }} {{ tool.function.arguments }}</div>
                       <Dropdown placement="bottom">
                         <Button icon="more" type="text" />
@@ -258,7 +286,11 @@ export default (Plugin) => {
                     </div>
                   </summary>
                   <Card class="mt-8">
-                    <Empty v-if="!toolResultMapping[tool.id]" description="工具未返回任何数据" />
+                    <template v-if="!(tool.id in toolResultMapping)">
+                      <div class="my-8">正在准备或执行工具，参数接收中...</div>
+                      <CodeViewer :modelValue="tool.function.arguments || '{}'" />
+                    </template>
+                    <Empty v-else-if="!toolResultMapping[tool.id]" description="工具执行完成，未返回任何数据" />
                     <CodeViewer v-else :modelValue="toolResultMapping[tool.id]" />
                   </Card>
                 </details>
@@ -266,7 +298,9 @@ export default (Plugin) => {
             </template>
           </TransitionGroup>
         </div>
-        <div v-if="loading" class="flex items-center gap-8 text-12"  style="color: var(--card-color)"><Icon icon="sparkle" color="currentColor" /> {{ loadingText }} </div>
+        <div v-if="loading" class="flex items-center gap-8 text-12"  style="color: var(--card-color)"><Icon icon="sparkle" color="currentColor" />
+          <LoadingDots text="Thinking" />
+        </div>
       </div>
       <div v-if="requestOperation">
         <Card title="Agent想要执行一个危险命令，是否允许？">
@@ -309,7 +343,7 @@ export default (Plugin) => {
               </div>
             </template>
           </Dropdown>
-          <div class="text-10">Shift+Tab切换权限、Shift+Enter换行、Ctrl+Enter新对话发送</div>
+          <div class="text-10">Shift+Tab切换权限、Shift+Enter换行、Ctrl+Enter新会话发送</div>
           <Button v-if="requesting" @click="onStopAI" type="primary" size="small" class="ml-auto">停止</Button>
           <Button v-else @click="onSend(false)" type="primary" size="small" class="ml-auto">发送</Button>
         </div>
@@ -317,7 +351,7 @@ export default (Plugin) => {
     </div>
     `,
       setup(_, { expose }) {
-        const { ref, reactive, watch, h, computed, onMounted, onBeforeUnmount, nextTick } = Vue
+        const { ref, reactive, h, computed, onMounted, onBeforeUnmount, nextTick } = Vue
 
         const chatBox = ref()
         const textareaRef = ref()
@@ -377,19 +411,6 @@ export default (Plugin) => {
           return undefined
         })
 
-        let thinkingTimer = 0
-        let dotCount = 1
-        const loadingText = ref('Thinking')
-        watch(loading, (v) => {
-          clearInterval(thinkingTimer)
-          if (v) {
-            thinkingTimer = setInterval(() => {
-              loadingText.value = `Thinking${'.'.repeat(dotCount)}`
-              dotCount = dotCount === 3 ? 1 : dotCount + 1
-            }, 500)
-          }
-        })
-
         const toolVisibility = ref(new Set())
         const toggleToolVisibility = (id) => {
           if (toolVisibility.value.has(id)) {
@@ -419,7 +440,6 @@ export default (Plugin) => {
 
         onBeforeUnmount(() => {
           modal = undefined
-          clearInterval(thinkingTimer)
           saveSession()
         })
 
@@ -465,10 +485,6 @@ export default (Plugin) => {
             }
           }
           const throttledFlushStreamContent = Plugins.throttle(flushStreamContent, 50)
-          const appendStreamContent = (chunk) => {
-            pendingContent += chunk
-            throttledFlushStreamContent()
-          }
 
           try {
             const res = await Plugins.Requests({
@@ -491,11 +507,9 @@ export default (Plugin) => {
               },
               async onStream(e) {
                 if (stopRequested.value) return
-                console.log(e)
 
                 if (e.type === 'response') {
                   appendMessage(streamMessage)
-                  loading.value = false
                   return
                 }
 
@@ -511,10 +525,20 @@ export default (Plugin) => {
                   const message = choice.delta
 
                   if (message.content) {
-                    appendStreamContent(message.content)
+                    pendingContent += message.content
+                    if (loading.value) {
+                      await flushStreamContent()
+                      loading.value = false
+                    } else {
+                      throttledFlushStreamContent()
+                    }
                   }
 
                   mergeAssistantMessage(streamMessage, message)
+                  if (loading.value && streamMessage.tool_calls?.some(Boolean)) {
+                    await nextTick()
+                    loading.value = false
+                  }
                 }
               }
             })
@@ -527,7 +551,6 @@ export default (Plugin) => {
             }
             if (stopRequested.value) return res
             if (res.status !== 200) {
-              loading.value = false
               Plugins.alert('错误', JSON.stringify(res.body, null, 2))
               return res
             }
@@ -536,7 +559,6 @@ export default (Plugin) => {
             if (finalToolCalls.length) {
               streamMessage.tool_calls = finalToolCalls
 
-              toolVisibility.value.add(streamMessage.id)
               for (const toolCall of finalToolCalls) {
                 if (stopRequested.value) return res
                 await handleTool(toolCall)
@@ -556,6 +578,7 @@ export default (Plugin) => {
             if (!stopRequested.value) throw error
           } finally {
             await flushStreamContent()
+            loading.value = false
             if (streamMessage.duration === undefined) {
               streamMessage.duration = Date.now() - startTime
             }
@@ -602,6 +625,8 @@ export default (Plugin) => {
         }
 
         const mergeAssistantMessage = (target, delta) => {
+          const hadToolCalls = Boolean(target.tool_calls?.some(Boolean))
+
           for (const [key, value] of Object.entries(delta)) {
             if (value === undefined || key === 'content' || key === 'tool_calls') continue
             target[key] = value
@@ -627,6 +652,16 @@ export default (Plugin) => {
 
             toolCall.type ||= 'function'
             toolCall.function ||= { name: '', arguments: '' }
+          }
+
+          if (!hadToolCalls && target.tool_calls?.some(Boolean) && target.id) {
+            const shouldScrollToBottom = autoScrollToBottom.value
+            toolVisibility.value.add(target.id)
+            if (shouldScrollToBottom) {
+              nextTick(() => {
+                Utils.scrollToBottom(chatBox.value, 'auto', () => autoScrollToBottom.value)
+              })
+            }
           }
         }
 
@@ -715,7 +750,24 @@ export default (Plugin) => {
         }
 
         const onDelete = (index, close) => {
+          const message = chatHistory.value[index]
+          const toolCallIds = new Set((message.tool_calls || []).map((toolCall) => toolCall?.id).filter(Boolean))
+
           chatHistory.value.splice(index, 1)
+          if (message.id) {
+            toolVisibility.value.delete(message.id)
+            toolVisibility.value.delete(message.id + ':manual')
+          }
+          if (toolCallIds.size) {
+            for (let i = index; i < chatHistory.value.length; i++) {
+              const item = chatHistory.value[i]
+              if (item.role !== 'tool') break
+              if (item.role === 'tool' && toolCallIds.has(item.tool_call_id)) {
+                chatHistory.value.splice(i, 1)
+                i--
+              }
+            }
+          }
           close()
         }
 
@@ -754,7 +806,6 @@ export default (Plugin) => {
           input,
           loading,
           requesting,
-          loadingText,
           chatHistory,
           toolResultMapping,
           settings,
