@@ -642,6 +642,12 @@ export default (Plugin) => {
               if (!readOnlyTools.has(fnName)) {
                 throw new Error('限制权限下只能使用：' + Array.from(readOnlyTools).join('、'))
               }
+              if (fnName === 'Requests') {
+                const method = String(fnArgs.method || 'GET').toUpperCase()
+                if (!['GET', 'HEAD'].includes(method)) {
+                  throw new Error('限制权限下 Requests 只能使用 GET 或 HEAD 方法')
+                }
+              }
             }
 
             const dangerousList = ['RemoveFile']
@@ -822,6 +828,116 @@ const Utils = {
   autoResize(el) {
     el.style.height = 'auto'
     el.style.height = `${el.scrollHeight}px`
+  },
+  cleanHtmlToText(html, includeSelector = [], excludeSelector = []) {
+    if (html === undefined || html === null) return ''
+
+    const normalizeSelectorList = (selectors) => {
+      if (!selectors) return []
+      return (Array.isArray(selectors) ? selectors : [selectors]).map((selector) => String(selector).trim()).filter(Boolean)
+    }
+    const normalizeText = (text) =>
+      text
+        .replace(/\u00a0/g, ' ')
+        .replace(/[ \t\r\f\v]+/g, ' ')
+        .replace(/ *\n */g, '\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim()
+
+    const doc = new DOMParser().parseFromString(String(html), 'text/html')
+    const defaultExcludeSelector = ['script', 'style', 'noscript', 'template', 'svg', 'canvas', 'iframe', 'object', 'embed']
+    const includeSelectors = normalizeSelectorList(includeSelector)
+    const excludeSelectors = [...defaultExcludeSelector, ...normalizeSelectorList(excludeSelector)]
+
+    doc.querySelectorAll(excludeSelectors.join(',')).forEach((node) => node.remove())
+
+    const root = doc.createElement('div')
+    if (includeSelectors.length) {
+      doc.querySelectorAll(includeSelectors.join(',')).forEach((node) => {
+        root.appendChild(node.cloneNode(true))
+        root.appendChild(doc.createElement('br'))
+      })
+    } else {
+      root.append(...Array.from(doc.body?.childNodes || doc.childNodes).map((node) => node.cloneNode(true)))
+    }
+
+    root.querySelectorAll('a[href]').forEach((a) => {
+      const text = (a.textContent || '').replace(/\s+/g, ' ').trim()
+      const rawHref = a.getAttribute('href')?.trim()
+      if (!rawHref) {
+        a.replaceWith(doc.createTextNode(text))
+        return
+      }
+      const output = text ? `[${text}](${rawHref})` : rawHref
+      a.replaceWith(doc.createTextNode(output))
+    })
+    root.querySelectorAll('img').forEach((img) => {
+      const alt = (img.getAttribute('alt') || img.getAttribute('title') || '').replace(/\s+/g, ' ').trim()
+      const src = img.getAttribute('src')?.trim() || ''
+      const output = alt && src ? `[image: ${alt}](${src})` : alt || src
+      img.replaceWith(doc.createTextNode(output))
+    })
+
+    const blockTags = new Set([
+      'address',
+      'article',
+      'aside',
+      'blockquote',
+      'br',
+      'caption',
+      'dd',
+      'details',
+      'dialog',
+      'div',
+      'dl',
+      'dt',
+      'fieldset',
+      'figcaption',
+      'figure',
+      'footer',
+      'form',
+      'h1',
+      'h2',
+      'h3',
+      'h4',
+      'h5',
+      'h6',
+      'header',
+      'hr',
+      'li',
+      'main',
+      'nav',
+      'ol',
+      'p',
+      'pre',
+      'section',
+      'table',
+      'tbody',
+      'tfoot',
+      'thead',
+      'tr',
+      'ul'
+    ])
+
+    const walk = (node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        return node.nodeValue || ''
+      }
+      if (node.nodeType !== Node.ELEMENT_NODE && node.nodeType !== Node.DOCUMENT_FRAGMENT_NODE) {
+        return ''
+      }
+
+      const tag = node.nodeType === Node.ELEMENT_NODE ? node.tagName.toLowerCase() : ''
+      if (tag === 'br') return '\n'
+
+      const content = Array.from(node.childNodes).map(walk).join('')
+      if (tag === 'li') return `\n- ${normalizeText(content)}\n`
+      if (tag === 'td' || tag === 'th') return `${normalizeText(content)}\t`
+      if (blockTags.has(tag)) return `\n${normalizeText(content)}\n`
+      return content
+    }
+
+    return normalizeText(walk(root))
   }
 }
 
@@ -938,7 +1054,30 @@ const bridgeTools = {
   AbsolutePath: (args) => Plugins.AbsolutePath(args.path),
   MakeDir: (args) => Plugins.MakeDir(args.path),
   ReadDir: (args) => Plugins.ReadDir(args.path),
-  Requests: (args) => Plugins.Requests(args),
+  Requests: async (args) => {
+    const { cleanHtmlToText = true, includeSelector, excludeSelector, maxBodyLength = 60000, ...requestOptions } = args
+    const { status, headers, body } = await Plugins.Requests(requestOptions)
+    let responseBody = body
+    const cleaned = Boolean(cleanHtmlToText && (headers['Content-Type'].includes('text/html') || headers['Content-Type'].includes('application/xhtml+xml')))
+    if (cleaned) {
+      if (typeof responseBody !== 'string') {
+        responseBody = JSON.stringify(responseBody)
+      }
+      responseBody = Utils.cleanHtmlToText(responseBody, includeSelector, excludeSelector)
+    }
+    const originalBodyLength = typeof responseBody === 'string' ? responseBody.length : undefined
+    const shouldTruncate = typeof responseBody === 'string' && maxBodyLength > 0 && responseBody.length > maxBodyLength
+    if (shouldTruncate) {
+      responseBody = responseBody.slice(0, maxBodyLength)
+    }
+    return {
+      status,
+      headers,
+      body: responseBody,
+      cleaned,
+      ...(shouldTruncate ? { truncated: true, originalBodyLength } : {})
+    }
+  },
   Download: (args) => Plugins.Download(args.url, args.path, args.headers, undefined, args.options),
   HttpCancel: (args) => Plugins.HttpCancel(args.cancelId),
   TcpPing: (args) => Plugins.TcpPing(args.address, args.options),
@@ -966,6 +1105,7 @@ const readOnlyTools = new Set([
   'FileExists',
   'FileSHA256',
   'AbsolutePath',
+  'Requests',
   'TcpPing',
   'getAppSettings',
   'getSystemProxyStatus',
@@ -1264,15 +1404,18 @@ const tools = [
     type: 'function',
     function: {
       name: 'Requests',
-      description: 'Send an HTTP request.',
+      description: 'Send an HTTP request and optionally convert an HTML response body to readable text.',
       parameters: {
         type: 'object',
         properties: {
           method: {
-            type: 'string'
+            type: 'string',
+            enum: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD'],
+            default: 'GET'
           },
           url: {
-            type: 'string'
+            type: 'string',
+            description: 'Request URL.'
           },
           headers: {
             type: 'object',
@@ -1306,6 +1449,9 @@ const tools = [
               },
               Sha256: {
                 type: 'string'
+              },
+              Stream: {
+                type: 'string'
               }
             },
             additionalProperties: false
@@ -1313,9 +1459,35 @@ const tools = [
           autoTransformBody: {
             type: 'boolean',
             default: true
+          },
+          cleanHtmlToText: {
+            type: 'boolean',
+            description:
+              'When true, automatically convert the response body to compact readable text only when response Content-Type is text/html or application/xhtml+xml. Set false to always return the raw body.',
+            default: true
+          },
+          includeSelector: {
+            type: 'array',
+            description: 'CSS selectors to include when the HTML response body is cleaned. Empty means include the whole document body.',
+            items: {
+              type: 'string'
+            }
+          },
+          excludeSelector: {
+            type: 'array',
+            description: 'CSS selectors to remove before text extraction when the HTML response body is cleaned.',
+            items: {
+              type: 'string'
+            }
+          },
+          maxBodyLength: {
+            type: 'number',
+            description: 'Maximum returned string body length. Use 0 to disable truncation.',
+            default: 60000
           }
         },
-        required: ['url']
+        required: ['url'],
+        additionalProperties: false
       }
     }
   },
