@@ -5,6 +5,7 @@ const onRun = async () => {
   const action = await Plugins.picker.single(
     '请选择操作',
     [
+      { label: '测试连接', value: 'Test' },
       { label: '立即备份', value: 'Backup' },
       { label: '同步至本地', value: 'Sync' },
       { label: '查看备份列表', value: 'List' },
@@ -13,8 +14,26 @@ const onRun = async () => {
     ['List']
   )
 
-  const handler = { Backup, Sync, List, Remove }
+  const handler = { Test, Backup, Sync, List, Remove }
   await handler[action]()
+}
+
+/**
+ * 插件钩子：右键 - 测试连接
+ */
+const Test = async () => {
+  await checkConfiguration()
+
+  const { destroy, success, error } = Plugins.message.info('正在测试 WebDAV 连接...', 60 * 1000)
+  try {
+    const dav = new WebDAV(Plugin.Address, Plugin.Username, Plugin.Password)
+    await dav.propfind(Plugin.DataPath)
+    success('WebDAV 连接成功，保存路径可访问')
+  } catch (e) {
+    error('WebDAV 连接失败：' + formatWebDAVError(e))
+  } finally {
+    await Plugins.sleep(3000).then(() => destroy())
+  }
 }
 
 /**
@@ -122,7 +141,7 @@ const Backup = async () => {
     if (Object.keys(filesMap).length === 0) throw '缺少备份文件'
     Plugins.message.update(id, '正在备份...', 'info')
     const dav = new WebDAV(Plugin.Address, Plugin.Username, Plugin.Password)
-    await dav.put(Plugin.DataPath + '/' + backupFilename, JSON.stringify(filesMap))
+    await dav.put(Plugin.DataPath.replace(/\/+$/, '') + '/' + backupFilename, JSON.stringify(filesMap))
     Plugins.message.update(id, '备份完成', 'success')
   } catch (error) {
     Plugins.message.update(id, `备份失败:` + (error.message || error), 'error')
@@ -220,6 +239,15 @@ function decrypt(data) {
   }
 }
 
+const formatWebDAVError = (error) => {
+  const message = String(error?.message || error || '未知错误')
+  if (message.includes('401') || message.includes('403')) return '账号、密码或权限错误'
+  if (message.includes('404')) return '保存路径不存在，请检查保存路径或开启自动创建目录'
+  if (message.includes('405')) return '请求方法不被允许，请检查 WebDAV 路径层级是否正确'
+  if (/<!doctype html|<html/i.test(message)) return '服务器返回了 HTML 页面，请检查 WebDAV 地址和保存路径是否正确'
+  return message
+}
+
 class WebDAV {
   constructor(address, username, password) {
     this.address = address
@@ -230,20 +258,26 @@ class WebDAV {
   }
 
   async propfind(url) {
+    if (!url.endsWith('/')) url += '/'
     const { body, status } = await Plugins.Requests({
       method: 'PROPFIND',
       url: this.address + url,
       headers: { ...this.headers, Depth: '1' }
     })
-    if (status !== 207) throw body
+    if (status !== 207) throw `WebDAV PROPFIND failed: ${status} ${body}`
     const list = []
     const parser = new DOMParser()
     const xmlDoc = parser.parseFromString(body, 'application/xml')
-    const responses = Array.from(xmlDoc.getElementsByTagName('*')).filter((node) => node.tagName.toLowerCase() === 'd:response')
+    const localName = (node) => (node.localName || node.tagName.split(':').pop()).toLowerCase()
+
+    const responses = Array.from(xmlDoc.getElementsByTagName('*'))
+      .filter((node) => localName(node) === 'response')
+
     const getTextContent = (element, tagName) => {
+      tagName = tagName.split(':').pop().toLowerCase()
       const nodes = element.getElementsByTagName('*')
       for (let node of nodes) {
-        if (node.tagName.toLowerCase() === tagName.toLowerCase()) {
+        if (localName(node) === tagName) {
           return node.textContent
         }
       }
@@ -251,8 +285,13 @@ class WebDAV {
     for (let i = 0; i < responses.length; i++) {
       const isCollection = responses[i].getElementsByTagNameNS('DAV:', 'resourcetype')[0]?.getElementsByTagNameNS('DAV:', 'collection').length > 0
       if (isCollection) continue
-      const href = getTextContent(responses[i], 'D:href')
-      const displayname = getTextContent(responses[i], 'D:displayname') || href.replace(Plugin.DataPath + '/', '')
+      const href = getTextContent(responses[i], 'href')
+      if (!href) continue
+
+      const decodedHref = decodeURIComponent(href).replace(/\/+$/, '')
+      const displayname =
+        getTextContent(responses[i], 'displayname') ||
+        decodedHref.substring(decodedHref.lastIndexOf('/') + 1)
       list.push({
         href: href,
         displayname: displayname,
