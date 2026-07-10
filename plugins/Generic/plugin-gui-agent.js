@@ -72,6 +72,8 @@ const system_prompt = `
 停止后必须给出准确当前状态，不得为了表现“完成任务”而虚构结果。
 `.trim()
 
+const assistant_prompt = 'You are a helpful assistant.'
+
 /** @type { EsmPlugin } */
 export default (Plugin) => {
   /** @type ReturnType<typeof Plugins.modal> | undefined */
@@ -210,7 +212,14 @@ export default (Plugin) => {
               <animate attributeName="opacity" values="1;0.55;1" dur="2s" repeatCount="indefinite" />
             </circle>
           </svg>
-          <div class="text-14">开始新会话</div>
+          <div class="flex items-center gap-16">
+            <Card title="通用模式" :selected="settings.sessionMode === 'assistant'" @click="onChangeMode('assistant')">
+              <div class="text-12 pt-8 pb-12 pr-16">通用助手，允许文件与网络访问</div>
+            </Card>
+            <Card title="专属模式" :selected="settings.sessionMode === 'agent'" @click="onChangeMode('agent')">
+              <div class="text-12 pt-8 pb-12 pr-16">帮助你操作GUI，包含专属工具</div>
+            </Card>
+          </div>
         </div>
         <div v-for="(item, index) in chatHistory" :key="index" class="text-14 break-all mb-8px leading-relaxed">
           <div v-if="item.role == 'user'" class="flex items-center justify-end">
@@ -361,8 +370,8 @@ export default (Plugin) => {
         const stopRequested = ref(false)
         const activeRequestCancelId = ref('')
         const input = ref('')
-        /** @type { {value: { permission: 'none' | 'normal' | 'full' }} } */
-        const settings = ref({ permission: 'normal' })
+        /** @type { {value: { sessionMode: 'assistant' | 'agent', permission: 'none' | 'normal' | 'full' | 'common' }} } */
+        const settings = ref({ sessionMode: 'assistant', permission: 'common' })
 
         const permission = computed(
           () =>
@@ -381,6 +390,11 @@ export default (Plugin) => {
                 text: '完整权限',
                 tagColor: 'red',
                 inputStyle: { border: '1px solid #d52e3b' }
+              },
+              common: {
+                text: '文件与网络',
+                tagColor: 'default',
+                inputStyle: { border: '1px solid #898989' }
               }
             })[settings.value.permission]
         )
@@ -424,6 +438,9 @@ export default (Plugin) => {
 
         const loadSession = async () => {
           chatHistory.value = JSON.parse(await Plugins.ReadFile(PATH + '/session.json').catch(() => '[]'))
+          if (chatHistory.value[0]) {
+            chatHistory.value[0].content === assistant_prompt ? 'assistant' : 'agent'
+          }
         }
 
         const saveSession = async () => {
@@ -447,11 +464,24 @@ export default (Plugin) => {
           chatHistory.value = []
         }
 
+        const onChangeMode = (mode) => {
+          settings.value.sessionMode = mode
+          if (mode === 'assistant') {
+            settings.value.permission = 'common'
+          }else {
+            settings.value.permission = 'normal'
+          }
+        }
+
         const onUserOperate = (ok) => {
           userAuthorized?.(ok)
         }
 
         const onChangePermission = (s, close) => {
+          if (settings.value.sessionMode === 'assistant') {
+            Plugins.message.info('通用模式无法切换权限')
+            return
+          }
           if (s) {
             settings.value.permission = s
           } else {
@@ -498,7 +528,7 @@ export default (Plugin) => {
                 model: Plugin.Model,
                 messages: chatHistory.value.map(({ id, model, usage, created, duration, ...message }) => message),
                 temperature: 0.2,
-                tools,
+                tools: settings.value.sessionMode === 'agent' ? tools : assistantTools,
                 stream: true
               },
               options: {
@@ -670,6 +700,9 @@ export default (Plugin) => {
           let result = ''
           try {
             const fnArgs = JSON.parse(toolCall.function.arguments || '{}')
+            if (settings.value.sessionMode === 'assistant' && !assistantToolNames.has(fnName)) {
+              throw new Error('通用模式仅允许使用文件和网络工具')
+            }
             if (settings.value.permission === 'none') {
               throw new Error('用户未给任何权限，执行失败')
             }
@@ -727,7 +760,7 @@ export default (Plugin) => {
           }
           stopRequested.value = false
           if (chatHistory.value.length === 0) {
-            appendMessage({ role: 'system', content: system_prompt })
+            appendMessage({ role: 'system', content: settings.value.sessionMode === 'agent' ? system_prompt : assistant_prompt })
           }
           autoScrollToBottom.value = true
           appendMessage({ role: 'user', content: input.value })
@@ -814,6 +847,7 @@ export default (Plugin) => {
           toolVisibility,
           toggleToolVisibility,
           onDeleteSession,
+          onChangeMode,
           onChangePermission,
           onUserOperate,
           onChatScroll,
@@ -1180,6 +1214,8 @@ const readOnlyTools = new Set([
   'listScheduledTasks',
   'getScheduledTaskById'
 ])
+
+const assistantToolNames = new Set(['ReadFile', 'WriteFile', 'Requests'])
 
 const tools = [
   {
@@ -2625,3 +2661,5 @@ const tools = [
     }
   }
 ]
+
+const assistantTools = tools.filter((tool) => assistantToolNames.has(tool.function.name))
