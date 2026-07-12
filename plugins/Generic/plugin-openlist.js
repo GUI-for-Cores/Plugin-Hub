@@ -197,9 +197,15 @@ const installOpenList = async () => {
     const url = asset.browser_download_url
     Plugins.message.update(id, '下载OpenList压缩包')
     await Plugins.MakeDir(PATH)
-    await Plugins.Download(url, tmp_file, {}, (progress, total) => {
-      Plugins.message.update(id, '下载OpenList压缩包：' + ((progress / total) * 100).toFixed(2) + '%')
-    })
+    await Plugins.Download(
+      url,
+      tmp_file,
+      {},
+      (progress, total) => {
+        Plugins.message.update(id, '下载OpenList压缩包：' + ((progress / total) * 100).toFixed(2) + '%')
+      },
+      { Sha256: asset.digest?.startsWith('sha256:') ? asset.digest.slice(7) : undefined }
+    )
     if (env.os === 'windows') {
       await Plugins.UnzipZIPFile(tmp_file, PATH)
     } else {

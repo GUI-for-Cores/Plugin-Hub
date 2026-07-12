@@ -44,7 +44,7 @@ export default (Plugin) => {
       {
         title: Plugin.name,
         width: '90',
-        height: '90',
+        height: '90'
       },
       {
         default: () => Vue.h(component)
@@ -81,7 +81,7 @@ export default (Plugin) => {
           await Plugins.WriteFile(GUI_RULES_PATH, rules.value)
           await stopService()
           await startService()
-        },
+        }
       },
       {
         default: () => Vue.h(component)

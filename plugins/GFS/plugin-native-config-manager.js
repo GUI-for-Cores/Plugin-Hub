@@ -164,7 +164,7 @@ export default (Plugin) => {
       submit: false,
       cancelText: '关闭',
       width: '80',
-      height: '80',
+      height: '80'
     })
     modal.setContent(component)
     modal.open()
@@ -233,7 +233,7 @@ export default (Plugin) => {
       title: '原生配置添加向导',
       submit: false,
       cancelText: '关闭',
-      width: '60',
+      width: '60'
     })
     modal.setContent(component)
     modal.open()
@@ -290,7 +290,7 @@ export default (Plugin) => {
           Plugins.message.error(`保存失败：${error instanceof Error ? error.message : String(error)}`)
           return false
         }
-      },
+      }
     })
     modal.setContent(component)
     modal.open()

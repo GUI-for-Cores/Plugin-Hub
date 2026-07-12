@@ -270,8 +270,7 @@ class WebDAV {
     const xmlDoc = parser.parseFromString(body, 'application/xml')
     const localName = (node) => (node.localName || node.tagName.split(':').pop()).toLowerCase()
 
-    const responses = Array.from(xmlDoc.getElementsByTagName('*'))
-      .filter((node) => localName(node) === 'response')
+    const responses = Array.from(xmlDoc.getElementsByTagName('*')).filter((node) => localName(node) === 'response')
 
     const getTextContent = (element, tagName) => {
       tagName = tagName.split(':').pop().toLowerCase()
@@ -289,9 +288,7 @@ class WebDAV {
       if (!href) continue
 
       const decodedHref = decodeURIComponent(href).replace(/\/+$/, '')
-      const displayname =
-        getTextContent(responses[i], 'displayname') ||
-        decodedHref.substring(decodedHref.lastIndexOf('/') + 1)
+      const displayname = getTextContent(responses[i], 'displayname') || decodedHref.substring(decodedHref.lastIndexOf('/') + 1)
       list.push({
         href: href,
         displayname: displayname,

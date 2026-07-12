@@ -468,7 +468,7 @@ export default (Plugin) => {
           settings.value.sessionMode = mode
           if (mode === 'assistant') {
             settings.value.permission = 'common'
-          }else {
+          } else {
             settings.value.permission = 'normal'
           }
         }

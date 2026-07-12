@@ -419,7 +419,7 @@ const showUI = async (profile) => {
                   width: '580px',
                   height: '520px',
                   maskClosable: true,
-                  footer: false,
+                  footer: false
                 },
                 {
                   default: () => h(pickerComponent)
@@ -461,7 +461,7 @@ const showUI = async (profile) => {
               } else {
                 rules.value.push(normalized)
               }
-            },
+            }
           },
           {
             default: () => h(editorComponent)
@@ -547,7 +547,7 @@ const showUI = async (profile) => {
           rules: normalizedRules.map(serializeRule)
         })
         Plugins.message.success('保存成功，重启核心后生效')
-      },
+      }
     },
     {
       default: () => h(component)

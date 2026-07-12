@@ -28,12 +28,14 @@ export default async () => {
    */
   const Update = async () => {
     const { body } = await Plugins.HttpGet('https://api.github.com/repos/sub-store-org/Sub-Store/releases/latest')
-    const url = body.assets.find((v) => v.uploader.login === 'github-actions[bot]' && v.name === 'proxy-utils.esm.mjs')?.browser_download_url
-    if (!url) {
+    const asset = body.assets.find((v) => v.uploader.login === 'github-actions[bot]' && v.name === 'proxy-utils.esm.mjs')
+    if (!asset) {
       Plugins.message.error('未找到依赖: proxy-utils.esm.mjs')
       return
     }
-    await Plugins.Download(url, ProxyUtilsFile)
+    await Plugins.Download(asset.browser_download_url, ProxyUtilsFile, {}, undefined, {
+      Sha256: asset.digest?.startsWith('sha256:') ? asset.digest.slice(7) : undefined
+    })
     await loadModule()
     Plugins.message.success('更新成功')
   }

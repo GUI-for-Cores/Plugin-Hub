@@ -74,7 +74,7 @@ const openUI = () => {
       title: Plugin.name,
       submit: false,
       cancel: false,
-      maskClosable: true,
+      maskClosable: true
     },
     {
       default: () => Vue.h(content),

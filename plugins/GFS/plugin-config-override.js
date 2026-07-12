@@ -411,7 +411,7 @@ const openMainUI = (manager) => {
     submit: false,
     cancelText: '关闭',
     width: '80',
-    height: '80',
+    height: '80'
   })
 
   modal.setContent(component)
@@ -446,7 +446,7 @@ const openAppendPathsModal = () => {
       setAppendPaths(items.value)
       Plugins.message.success('数组追加路径已保存')
       return true
-    },
+    }
   })
 
   modal.setContent(component)
@@ -541,7 +541,7 @@ const openGuideModal = (manager) => {
     title: '添加配置覆盖',
     submit: false,
     cancelText: '关闭',
-    width: '64',
+    width: '64'
   })
 
   modal.setContent(component)
@@ -621,7 +621,7 @@ const openEditModal = (cfg, manager) => {
         Plugins.message.error(`保存失败：${error instanceof Error ? error.message : String(error)}`)
         return false
       }
-    },
+    }
   })
 
   modal.setContent(component)

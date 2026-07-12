@@ -305,7 +305,7 @@ export default (plugin) => {
           await SettingsStore.save(settings.value)
           Plugins.message.success('插件配置保存成功')
           return true
-        },
+        }
       })
       modal.setContent(component)
       modal.open()
@@ -351,7 +351,7 @@ export default (plugin) => {
           await AutomationStore.save(automationConfig.value, subscription.id)
           Plugins.message.success('自动化配置保存成功')
           return true
-        },
+        }
       })
       modal.setContent(component)
       modal.open()
@@ -382,7 +382,7 @@ export default (plugin) => {
         cancelText: '取消',
         onOk: () => {
           return cleanNodes(threshold.value)
-        },
+        }
       })
       modal.setContent(component)
       modal.open()

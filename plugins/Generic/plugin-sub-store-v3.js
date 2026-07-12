@@ -20,7 +20,7 @@ export default (Plugin) => {
         width: '90',
         height: '90',
         footer: false,
-        maskClosable: true,
+        maskClosable: true
       },
       {
         toolbar: () => [

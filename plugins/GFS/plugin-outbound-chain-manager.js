@@ -418,7 +418,7 @@ export default (Plugin) => {
                     width: '580px',
                     height: '520px',
                     maskClosable: true,
-                    footer: false,
+                    footer: false
                   },
                   {
                     default: () => h(pickerComponent)
@@ -460,7 +460,7 @@ export default (Plugin) => {
                 } else {
                   rules.value.push(normalized)
                 }
-              },
+              }
             },
             {
               default: () => h(editorComponent)
@@ -548,7 +548,7 @@ export default (Plugin) => {
             rules: normalizedRules.map(serializeRule)
           })
           Plugins.message.success('保存成功，重启核心后生效')
-        },
+        }
       },
       {
         default: () => h(component)

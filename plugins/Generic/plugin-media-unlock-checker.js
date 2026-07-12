@@ -7,7 +7,7 @@ const onRun = async () => {
   const modal = Plugins.modal({
     title: Plugin.name,
     cancelText: 'common.close',
-    submit: false,
+    submit: false
   })
 
   const content = {

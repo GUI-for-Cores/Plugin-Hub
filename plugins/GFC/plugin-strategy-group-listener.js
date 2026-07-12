@@ -261,7 +261,7 @@ const showUI = async (profile) => {
         settings[profile.id] = { listeners }
         await writeSettings(settings)
         Plugins.message.success('保存成功，重启核心后生效')
-      },
+      }
     },
     {
       default: () => Vue.h(component)

@@ -642,7 +642,7 @@ export default (plugin) => {
           await SettingsStore.save(settings.value)
           Plugins.message.success('已保存')
           return true
-        },
+        }
       })
       modal.setContent(component)
       modal.open()
@@ -672,7 +672,7 @@ export default (plugin) => {
           await SubConfigStore.save(subConfig.value, subscription.id)
           Plugins.message.success('已保存')
           return true
-        },
+        }
       })
       modal.setContent(component)
       modal.open()
@@ -723,7 +723,7 @@ export default (plugin) => {
           await SubConfigStore.save(subConfig.value, subscription.id)
           Plugins.message.success('已保存')
           return true
-        },
+        }
       })
       modal.setContent(component)
       modal.open()
@@ -766,7 +766,7 @@ export default (plugin) => {
         onOk: async () => {
           await SubConfigStore.save(subConfig.value, subscription.id)
           return cleanNodes(subConfig.value.automation.cleanThreshold)
-        },
+        }
       })
       modal.setContent(component)
       modal.open()

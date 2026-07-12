@@ -29,9 +29,15 @@ const onInstall = async () => {
   if (!asset) throw 'Asset Not Found:' + assetName
   const tmp = PATH + `/core${suffix}`
   const { id } = Plugins.message.info('Downloading...', 10 * 60 * 1_000)
-  await Plugins.Download(asset.browser_download_url, tmp, {}, (progress, total) => {
-    Plugins.message.update(id, 'Downloading...' + ((progress / total) * 100).toFixed(2) + '%')
-  }).catch((err) => {
+  await Plugins.Download(
+    asset.browser_download_url,
+    tmp,
+    {},
+    (progress, total) => {
+      Plugins.message.update(id, 'Downloading...' + ((progress / total) * 100).toFixed(2) + '%')
+    },
+    { Sha256: asset.digest?.startsWith('sha256:') ? asset.digest.slice(7) : undefined }
+  ).catch((err) => {
     Plugins.message.destroy(id)
     throw err
   })

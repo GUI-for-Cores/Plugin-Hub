@@ -105,9 +105,15 @@ const Rolling = async (confirm = true, autoReload = false) => {
 
   const { update, destroy: destroy2, error } = Plugins.message.info('正在更新...')
   try {
-    await Plugins.Download(ZipUrl, ZipFile, {}, (progress, total) => {
-      update('正在更新...' + ((progress / total) * 100).toFixed(2) + '%')
-    })
+    await Plugins.Download(
+      ZipUrl,
+      ZipFile,
+      {},
+      (progress, total) => {
+        update('正在更新...' + ((progress / total) * 100).toFixed(2) + '%')
+      },
+      { Sha256: rollingReleaseAsset.digest?.startsWith('sha256:') ? rollingReleaseAsset.digest.slice(7) : undefined }
+    )
     await Plugins.UnzipZIPFile(ZipFile, 'data')
     await Plugins.RemoveFile(ZipFile)
     await Plugins.WriteFile(`${RollingReleasePath}/updated_at.txt`, Plugins.formatDate(rollingReleaseAsset.updated_at, 'YYYY.MM.DD'))

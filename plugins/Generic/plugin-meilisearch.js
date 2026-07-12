@@ -181,9 +181,15 @@ const installMeilisearch = async () => {
     const url = asset.browser_download_url
     Plugins.message.update(id, '下载 Meilisearch')
     await Plugins.MakeDir(PATH)
-    await Plugins.Download(url, tmp_file, {}, (progress, total) => {
-      Plugins.message.update(id, '下载 Meilisearch：' + ((progress / total) * 100).toFixed(2) + '%')
-    })
+    await Plugins.Download(
+      url,
+      tmp_file,
+      {},
+      (progress, total) => {
+        Plugins.message.update(id, '下载 Meilisearch：' + ((progress / total) * 100).toFixed(2) + '%')
+      },
+      { Sha256: asset.digest?.startsWith('sha256:') ? asset.digest.slice(7) : undefined }
+    )
 
     await Plugins.MoveFile(tmp_file, BIN_FILE)
 

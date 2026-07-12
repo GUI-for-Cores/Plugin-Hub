@@ -493,7 +493,7 @@ const onRun = async () => {
           }
         }
         await Plugins.WriteFile(HOTKEY_FILE, JSON.stringify(hotkeyList.value, null, 4))
-      },
+      }
     },
     {
       default: () => Vue.h(component)

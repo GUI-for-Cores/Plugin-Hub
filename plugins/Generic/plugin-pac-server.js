@@ -95,7 +95,7 @@ const onRun = async () => {
       cancelText: 'common.close',
       maskClosable: true,
       width: '80',
-      height: '80',
+      height: '80'
     },
     {
       default: () => Vue.h(component),

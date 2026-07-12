@@ -147,7 +147,7 @@ export default (Plugin) => {
         title: '链式代理列表',
         submit: false,
         width: '90',
-        cancelText: '关闭',
+        cancelText: '关闭'
       },
       {
         default: () => h(component)
@@ -224,7 +224,7 @@ export default (Plugin) => {
       {
         title: '配置脚本预览',
         submit: false,
-        cancelText: '关闭',
+        cancelText: '关闭'
       },
       {
         default: () => h(previewComponent)

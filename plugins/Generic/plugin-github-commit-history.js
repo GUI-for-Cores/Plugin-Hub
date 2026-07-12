@@ -150,7 +150,7 @@ const onRun = async () => {
       submit: false,
       cancelText: 'common.close',
       width: '90',
-      height: '90',
+      height: '90'
     },
     {
       default: () => Vue.h(component)

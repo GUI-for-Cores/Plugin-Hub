@@ -97,7 +97,7 @@ export default (Plugin) => {
         width: '420px',
         submit: false,
         cancelText: '关闭',
-        maskClosable: true,
+        maskClosable: true
       },
       {
         default: () => h(component),
@@ -194,7 +194,7 @@ export default (Plugin) => {
         width: '420px',
         submit: false,
         cancelText: '关闭',
-        maskClosable: false,
+        maskClosable: false
       },
       {
         default: () => h(component),

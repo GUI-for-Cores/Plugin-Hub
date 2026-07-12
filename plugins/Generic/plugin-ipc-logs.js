@@ -271,7 +271,7 @@ const openUI = () => {
     cancelText: 'common.close',
     width: '90',
     height: '90',
-    maskClosable: true,
+    maskClosable: true
   })
 
   modal.setContent(component)

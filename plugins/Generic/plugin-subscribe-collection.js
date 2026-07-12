@@ -130,7 +130,7 @@ export default (Plugin) => {
       submit: false,
       cancelText: '关闭',
       width: '80',
-      height: '80',
+      height: '80'
     })
     modal.setContent(component)
     modal.open()
@@ -225,7 +225,7 @@ export default (Plugin) => {
           Plugins.message.error(`创建失败：${error instanceof Error ? error.message : String(error)}`)
           return false
         }
-      },
+      }
     })
     modal.setContent(component)
     modal.open()
@@ -304,7 +304,7 @@ export default (Plugin) => {
           Plugins.message.error(`保存失败：${error instanceof Error ? error.message : String(error)}`)
           return false
         }
-      },
+      }
     })
     modal.setContent(component)
     modal.open()

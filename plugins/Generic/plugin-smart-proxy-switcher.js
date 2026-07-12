@@ -207,7 +207,7 @@ export default (Plugin) => {
         submit: false,
         width: '90',
         height: '90',
-        cancelText: 'common.close',
+        cancelText: 'common.close'
       },
       {
         default: () => Vue.h(component)

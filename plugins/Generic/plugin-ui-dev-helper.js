@@ -139,7 +139,7 @@ const createUIModal = () => {
       title: Plugin.name,
       submit: false,
       cancelText: '关闭',
-      maskClosable: false,
+      maskClosable: false
     },
     {
       default: () => Vue.h(component)
