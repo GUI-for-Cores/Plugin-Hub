@@ -823,10 +823,10 @@
   },
   {
     "id": "plugin-pac-server",
-    "version": "v1.0.1",
+    "version": "v1.1.0",
     "name": "PAC 服务器",
     "group": "Tools",
-    "description": "适用于使用代理自动配置的用户。",
+    "description": "提供本地 PAC 文件编辑与 HTTP 服务，支持请求统计、自动保存和服务状态管理。",
     "tags": ["提升体验", "功能扩展"],
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-pac-server.js",
