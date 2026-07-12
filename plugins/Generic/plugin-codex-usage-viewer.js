@@ -41,82 +41,106 @@ function openUsageUI(Plugin) {
   const { h, defineComponent, ref, computed, onMounted, resolveComponent } = Vue
   const state = getPluginState(Plugin)
   const showEmail = ref(false)
+  injectUsageStyle()
 
   const component = defineComponent({
     template: /* html */ `
-      <div class="flex flex-col gap-8 pr-8 pb-8">
-        <Card>
-          <div class="flex items-center justify-between gap-8">
-            <div class="flex flex-col gap-4">
-              <div class="text-20 font-bold">Codex 额度</div>
-              <div class="text-12">5小时额度 / 周额度 / 重置额度剩余与重置时间</div>
-            </div>
-            <div class="flex items-center gap-8">
-              <Tag>{{ accounts.length }} 个账号</Tag>
-              <Button icon="refresh" type="primary" :loading="loading" @click="refreshUsage">刷新</Button>
-            </div>
+      <div class="codex-usage-viewer">
+        <section class="usage-hero">
+          <div>
+            <div class="usage-eyebrow">CODEX USAGE</div>
+            <div class="usage-title">额度仪表盘</div>
+            <div class="usage-subtitle">集中查看每个账号的短期、每周及重置额度</div>
           </div>
-        </Card>
+          <Button class="hero-refresh" icon="refresh" type="primary" :loading="loading" @click="refreshUsage">刷新数据</Button>
+        </section>
 
-        <Empty v-if="!loading && accounts.length === 0" description="未找到可用账号" />
-        <Button v-if="loading && accounts.length === 0" loading>加载中</Button>
+        <section class="summary-grid">
+          <div class="summary-item">
+            <span class="summary-icon blue">◎</span>
+            <div><div class="summary-value">{{ accounts.length }}</div><div class="summary-label">账号总数</div></div>
+          </div>
+          <div class="summary-item">
+            <span class="summary-icon green">✓</span>
+            <div><div class="summary-value">{{ availableCount }}</div><div class="summary-label">当前可用</div></div>
+          </div>
+          <div class="summary-item">
+            <span class="summary-icon violet">↻</span>
+            <div><div class="summary-value">{{ totalResetCredits }}</div><div class="summary-label">重置额度</div></div>
+          </div>
+        </section>
 
-        <Card v-for="account in accounts" :key="account.id" :title="account.name">
-          <template #extra>
-            <Tag :color="account.success ? 'green' : 'red'">{{ account.success ? '可用' : '失败' }}</Tag>
-          </template>
+        <div v-if="loading && accounts.length === 0" class="state-panel">
+          <Button loading type="text">正在读取额度数据…</Button>
+        </div>
+        <div v-else-if="accounts.length === 0" class="state-panel">
+          <div class="state-symbol">⌁</div>
+          <div class="state-title">尚未找到可用账号</div>
+          <div class="state-description">请检查账号配置或默认的 .codex/auth.json</div>
+        </div>
 
-          <div v-if="account.success" class="flex flex-col gap-8">
-            <div class="flex items-center justify-between gap-8">
-              <div class="text-12">
-                {{ formatAccount(account) }}
-              </div>
-              <Tag :color="account.allowed ? 'green' : 'red'">{{ account.allowed ? 'Available' : 'Rate limited' }}</Tag>
-            </div>
-
-            <div class="flex flex-col gap-4">
-              <div class="flex items-center justify-between">
-                <span class="font-bold">5小时额度</span>
-                <span class="text-12">剩余 {{ account.primary.remaining }}%，已用 {{ account.primary.used }}%</span>
-              </div>
-              <Progress :percent="account.primary.remaining" />
-              <div class="text-12">重置倒计时 {{ account.primary.left }}，本地时间 {{ account.primary.resetAt }}</div>
-            </div>
-
-            <div class="flex flex-col gap-4">
-              <div class="flex items-center justify-between">
-                <span class="font-bold">周额度</span>
-                <span class="text-12">剩余 {{ account.secondary.remaining }}%，已用 {{ account.secondary.used }}%</span>
-              </div>
-              <Progress :percent="account.secondary.remaining" />
-              <div class="text-12">重置倒计时 {{ account.secondary.left }}，本地时间 {{ account.secondary.resetAt }}</div>
-            </div>
-
-            <div class="flex flex-col gap-4">
-              <div class="flex items-center justify-between">
-                <span class="font-bold">重置额度</span>
-                <span class="text-12">可用 {{ account.resetCreditCount || 0 }} 次</span>
-              </div>
-              <div v-if="account.resetCreditDetails && account.resetCreditDetails.length" class="flex flex-col gap-4">
-                <div v-for="credit in account.resetCreditDetails" :key="credit.key" class="text-12">
-                  第 {{ credit.index }} 次：过期 {{ credit.expiresAt }}
+        <section v-else class="account-list">
+          <article v-for="account in accounts" :key="account.id" class="account-card" :class="{ failed: !account.success }">
+            <header class="account-header">
+              <div class="account-identity">
+                <div class="account-avatar">{{ account.name.slice(0, 1).toUpperCase() }}</div>
+                <div>
+                  <div class="account-name">{{ account.name }}</div>
+                  <div class="account-meta">{{ formatAccount(account) }}</div>
                 </div>
               </div>
-              <Tag v-if="account.resetCreditError" color="red">{{ account.resetCreditError }}</Tag>
+              <Tag :color="account.success && account.allowed ? 'green' : 'red'">
+                {{ !account.success ? '读取失败' : account.allowed ? '使用正常' : '额度受限' }}
+              </Tag>
+            </header>
+
+            <div v-if="account.success" class="account-content">
+              <div class="quota-grid">
+                <div class="quota-panel">
+                  <div class="quota-heading">
+                    <div><span class="quota-dot primary"></span><span class="quota-name">5 小时额度</span></div>
+                    <span class="quota-percent">{{ account.primary.remaining }}<small>%</small></span>
+                  </div>
+                  <Progress :percent="account.primary.remaining" :show-text="false" :stroke-width="10" />
+                  <div class="quota-footer">
+                    <span>已使用 {{ account.primary.used }}%</span><span>⏱ {{ account.primary.left }} 后重置</span>
+                  </div>
+                  <div class="reset-time">{{ account.primary.resetAt }}</div>
+                </div>
+
+                <div class="quota-panel">
+                  <div class="quota-heading">
+                    <div><span class="quota-dot secondary"></span><span class="quota-name">每周额度</span></div>
+                    <span class="quota-percent">{{ account.secondary.remaining }}<small>%</small></span>
+                  </div>
+                  <Progress :percent="account.secondary.remaining" :show-text="false" :stroke-width="10" />
+                  <div class="quota-footer">
+                    <span>已使用 {{ account.secondary.used }}%</span><span>⏱ {{ account.secondary.left }} 后重置</span>
+                  </div>
+                  <div class="reset-time">{{ account.secondary.resetAt }}</div>
+                </div>
+              </div>
+
+              <div class="credit-strip">
+                <div class="credit-count"><span>↻</span><strong>{{ account.resetCreditCount || 0 }}</strong><small>次重置额度</small></div>
+                <div v-if="account.resetCreditDetails && account.resetCreditDetails.length" class="credit-details">
+                  <div v-for="credit in account.resetCreditDetails" :key="credit.key">
+                    第 {{ credit.index }} 次 · {{ credit.expiresAt }} 过期
+                  </div>
+                </div>
+                <div v-else class="credit-details">暂无额度过期记录</div>
+                <Tag v-if="account.resetCreditError" color="red">{{ account.resetCreditError }}</Tag>
+              </div>
             </div>
-          </div>
 
-          <div v-else class="flex flex-col gap-8">
-            <div class="text-12">{{ account.source }}</div>
-            <Tag color="red">{{ account.error }}</Tag>
-          </div>
-        </Card>
+            <div v-else class="error-panel"><strong>无法读取此账号</strong><span>{{ account.error }}</span><small>{{ account.source }}</small></div>
+          </article>
+        </section>
 
-        <Card title="提示">
-          <div class="text-12 leading-relaxed">
-            账号列表为空时，会尝试读取用户目录下的 .codex/auth.json。配置多账号时，每行填写：名称|auth.json完整路径，或 名称|Bearer token/access_token，或 名称|Cookie字符串。
-          </div>
-        </Card>
+        <footer class="usage-tip">
+          <span class="tip-icon">i</span>
+          <span>未配置账号时会读取 <code>.codex/auth.json</code>。多账号可按“名称 | auth.json 路径、Bearer token 或 Cookie”逐行填写。</span>
+        </footer>
       </div>
     `,
     setup() {
@@ -133,7 +157,8 @@ function openUsageUI(Plugin) {
       return {
         accounts: state.accounts,
         loading: state.loading,
-        hasAnyError: computed(() => state.accounts.value.some((item) => !item.success)),
+        availableCount: computed(() => state.accounts.value.filter((item) => item.success && item.allowed).length),
+        totalResetCredits: computed(() => state.accounts.value.reduce((total, item) => total + (item.success ? item.resetCreditCount || 0 : 0), 0)),
         refreshUsage,
         formatAccount(account) {
           const email = showEmail.value ? account.email || 'Unknown email' : '邮箱已隐藏'
@@ -151,7 +176,7 @@ function openUsageUI(Plugin) {
       height: '90',
       submit: false,
       maskClosable: true,
-      cancelText: '关闭',
+      cancelText: '关闭'
     },
     {
       toolbar: () =>
@@ -169,6 +194,52 @@ function openUsageUI(Plugin) {
     }
   )
   modal.open()
+}
+
+function injectUsageStyle() {
+  if (document.getElementById('codex-usage-viewer-style')) return
+  const style = document.createElement('style')
+  style.id = 'codex-usage-viewer-style'
+  style.textContent = `
+.codex-usage-viewer { display: flex; flex-direction: column; gap: 14px; padding: 0 10px 16px 0; color: var(--color-text-1, #172033); }
+.codex-usage-viewer .usage-hero { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 112px; padding: 24px 28px; border: 1px solid rgba(99, 102, 241, 0.16); border-radius: 20px; background: linear-gradient(125deg, rgba(238, 242, 255, 0.98), rgba(240, 253, 250, 0.94)); box-shadow: 0 14px 36px rgba(51, 65, 85, 0.08); }
+.codex-usage-viewer .usage-hero::after { content: ''; position: absolute; top: -70px; right: 9%; width: 190px; height: 190px; border-radius: 50%; background: radial-gradient(circle, rgba(129, 140, 248, 0.2), transparent 68%); pointer-events: none; }
+.codex-usage-viewer .usage-eyebrow { color: #6366f1; font-size: 11px; font-weight: 800; letter-spacing: 0.18em; }
+.codex-usage-viewer .usage-title { margin-top: 4px; color: #1e293b; font-size: 26px; font-weight: 850; letter-spacing: -0.03em; }
+.codex-usage-viewer .usage-subtitle { margin-top: 5px; color: #64748b; font-size: 13px; }
+.codex-usage-viewer .hero-refresh { z-index: 1; border-radius: 10px; box-shadow: 0 7px 18px rgba(79, 70, 229, 0.22); }
+.codex-usage-viewer .summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.codex-usage-viewer .summary-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 1px solid var(--color-border-2, #e5e7eb); border-radius: 14px; background: var(--color-bg-2, #fff); }
+.codex-usage-viewer .summary-icon { display: grid; place-items: center; width: 36px; height: 36px; flex: 0 0 36px; border-radius: 11px; font-size: 18px; font-weight: 800; }
+.codex-usage-viewer .summary-icon.blue { color: #4f46e5; background: #eef2ff; } .codex-usage-viewer .summary-icon.green { color: #059669; background: #ecfdf5; } .codex-usage-viewer .summary-icon.violet { color: #9333ea; background: #faf5ff; }
+.codex-usage-viewer .summary-value { font-size: 20px; line-height: 1.1; font-weight: 800; } .codex-usage-viewer .summary-label { margin-top: 3px; color: var(--color-text-3, #64748b); font-size: 11px; }
+.codex-usage-viewer .account-list { display: flex; flex-direction: column; gap: 12px; }
+.codex-usage-viewer .account-card { overflow: hidden; border: 1px solid var(--color-border-2, #e2e8f0); border-radius: 17px; background: var(--color-bg-2, #fff); box-shadow: 0 8px 24px rgba(15, 23, 42, 0.045); }
+.codex-usage-viewer .account-card.failed { border-color: rgba(239, 68, 68, 0.28); }
+.codex-usage-viewer .account-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 18px; border-bottom: 1px solid var(--color-border-1, #f1f5f9); }
+.codex-usage-viewer .account-identity { display: flex; align-items: center; min-width: 0; gap: 11px; }
+.codex-usage-viewer .account-avatar { display: grid; place-items: center; width: 38px; height: 38px; flex: 0 0 38px; border-radius: 12px; color: #4338ca; background: linear-gradient(145deg, #e0e7ff, #ccfbf1); font-size: 16px; font-weight: 800; }
+.codex-usage-viewer .account-name { font-size: 15px; font-weight: 750; } .codex-usage-viewer .account-meta { overflow: hidden; max-width: 68vw; margin-top: 3px; color: var(--color-text-3, #64748b); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.codex-usage-viewer .account-content { padding: 14px 18px 16px; }
+.codex-usage-viewer .quota-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.codex-usage-viewer .quota-panel { padding: 14px; border: 1px solid var(--color-border-1, #edf0f4); border-radius: 13px; background: var(--color-fill-1, #f8fafc); }
+.codex-usage-viewer .quota-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 11px; }
+.codex-usage-viewer .quota-dot { display: inline-block; width: 7px; height: 7px; margin-right: 7px; border-radius: 50%; } .codex-usage-viewer .quota-dot.primary { background: #6366f1; } .codex-usage-viewer .quota-dot.secondary { background: #14b8a6; }
+.codex-usage-viewer .quota-name { font-size: 12px; font-weight: 700; } .codex-usage-viewer .quota-percent { font-size: 21px; font-weight: 850; letter-spacing: -0.04em; } .codex-usage-viewer .quota-percent small { margin-left: 1px; font-size: 11px; font-weight: 600; color: var(--color-text-3, #64748b); }
+.codex-usage-viewer .quota-footer { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; color: var(--color-text-3, #64748b); font-size: 10px; }
+.codex-usage-viewer .reset-time { margin-top: 5px; color: var(--color-text-4, #94a3b8); font-size: 10px; }
+.codex-usage-viewer .credit-strip { display: flex; align-items: center; gap: 16px; margin-top: 12px; padding: 11px 14px; border-radius: 12px; color: var(--color-text-2, #334155); background: linear-gradient(100deg, rgba(245, 243, 255, 0.9), rgba(239, 246, 255, 0.72)); }
+.codex-usage-viewer .credit-count { display: flex; align-items: baseline; gap: 5px; white-space: nowrap; } .codex-usage-viewer .credit-count > span { color: #7c3aed; font-size: 16px; } .codex-usage-viewer .credit-count strong { font-size: 18px; } .codex-usage-viewer .credit-count small { color: var(--color-text-3, #64748b); }
+.codex-usage-viewer .credit-details { flex: 1; color: var(--color-text-3, #64748b); font-size: 10px; line-height: 1.55; }
+.codex-usage-viewer .error-panel { display: flex; flex-direction: column; gap: 6px; margin: 14px 18px 16px; padding: 14px; border-radius: 12px; color: #b42318; background: #fff4f2; } .codex-usage-viewer .error-panel small { color: #9f6c66; word-break: break-all; }
+.codex-usage-viewer .state-panel { display: flex; min-height: 180px; flex-direction: column; align-items: center; justify-content: center; padding: 24px; border: 1px dashed var(--color-border-3, #cbd5e1); border-radius: 16px; background: var(--color-fill-1, #f8fafc); text-align: center; }
+.codex-usage-viewer .state-symbol { color: #818cf8; font-size: 34px; } .codex-usage-viewer .state-title { margin-top: 7px; font-weight: 750; } .codex-usage-viewer .state-description { margin-top: 5px; color: var(--color-text-3, #64748b); font-size: 12px; }
+.codex-usage-viewer .usage-tip { display: flex; align-items: flex-start; gap: 9px; padding: 11px 14px; border: 1px dashed var(--color-border-3, #cbd5e1); border-radius: 12px; color: var(--color-text-3, #64748b); font-size: 11px; line-height: 1.65; }
+.codex-usage-viewer .tip-icon { display: grid; place-items: center; width: 17px; height: 17px; flex: 0 0 17px; margin-top: 1px; border-radius: 50%; color: #fff; background: #94a3b8; font-size: 10px; font-weight: 800; } .codex-usage-viewer code { padding: 1px 4px; border-radius: 4px; background: var(--color-fill-2, rgba(148, 163, 184, 0.15)); }
+@media (prefers-color-scheme: dark) { .codex-usage-viewer .usage-hero { background: linear-gradient(125deg, rgba(49, 46, 129, 0.35), rgba(17, 94, 89, 0.25)); } .codex-usage-viewer .usage-title { color: var(--color-text-1, #f1f5f9); } .codex-usage-viewer .summary-icon.blue, .codex-usage-viewer .summary-icon.green, .codex-usage-viewer .summary-icon.violet { background: rgba(99, 102, 241, 0.13); } .codex-usage-viewer .credit-strip { background: linear-gradient(100deg, rgba(76, 29, 149, 0.18), rgba(30, 64, 175, 0.14)); } .codex-usage-viewer .error-panel { background: rgba(127, 29, 29, 0.22); } }
+@media (max-width: 720px) { .codex-usage-viewer .usage-hero { align-items: flex-start; flex-direction: column; padding: 20px; } .codex-usage-viewer .summary-grid { grid-template-columns: 1fr; } .codex-usage-viewer .quota-grid { grid-template-columns: 1fr; } .codex-usage-viewer .credit-strip { align-items: flex-start; flex-direction: column; gap: 7px; } }
+`
+  document.head.appendChild(style)
 }
 
 async function loadAccountResults(Plugin) {
@@ -483,11 +554,7 @@ function formatResetAt(unixSeconds) {
 
 function getResetCreditCount(data) {
   const count = Number(
-    data?.resetCreditCount ??
-      data?.rate_limit_reset_credits?.available_count ??
-      data?.rateLimitResetCredits?.availableCount ??
-      data?.available_count ??
-      0
+    data?.resetCreditCount ?? data?.rate_limit_reset_credits?.available_count ?? data?.rateLimitResetCredits?.availableCount ?? data?.available_count ?? 0
   )
   return Number.isFinite(count) ? Math.max(0, Math.floor(count)) : 0
 }

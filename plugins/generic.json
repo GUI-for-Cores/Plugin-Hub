@@ -325,7 +325,7 @@
   {
     "id": "plugin-gui-agent",
     "name": "GUI.for.Cores Agent",
-    "version": "v0.0.15",
+    "version": "v0.0.16",
     "group": "Tools",
     "description": "GUI.for.Cores 专属 AI Agent。",
     "tags": [],
@@ -379,7 +379,7 @@
   {
     "id": "plugin-codex-usage-viewer",
     "name": "Codex 用量查看",
-    "version": "v2.1.1",
+    "version": "v2.1.2",
     "group": "Tools",
     "description": "查看 Codex 当前账号的 primary/secondary 用量窗口、剩余额度、重置时间与重置额度。Supported by: Codex",
     "tags": ["实用工具", "开发工具"],

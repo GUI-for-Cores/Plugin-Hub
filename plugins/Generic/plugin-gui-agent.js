@@ -214,10 +214,10 @@ export default (Plugin) => {
           </svg>
           <div class="flex items-center gap-16">
             <Card title="通用模式" :selected="settings.sessionMode === 'assistant'" @click="onChangeMode('assistant')">
-              <div class="text-12 pt-8 pb-12 pr-16">通用助手，允许文件与网络访问</div>
+              <div class="text-12 pt-8 pb-8 pr-16">通用助手，允许文件、网络与命令访问</div>
             </Card>
             <Card title="专属模式" :selected="settings.sessionMode === 'agent'" @click="onChangeMode('agent')">
-              <div class="text-12 pt-8 pb-12 pr-16">帮助你操作GUI，包含专属工具</div>
+              <div class="text-12 pt-8 pb-8 pr-16">帮助你操作GUI，包含专属工具</div>
             </Card>
           </div>
         </div>
@@ -383,8 +383,8 @@ export default (Plugin) => {
               },
               normal: {
                 text: '限制权限',
-                tagColor: 'default',
-                inputStyle: { border: '1px solid #898989' }
+                tagColor: 'purple',
+                inputStyle: { border: '1px solid purple' }
               },
               full: {
                 text: '完整权限',
@@ -392,9 +392,9 @@ export default (Plugin) => {
                 inputStyle: { border: '1px solid #d52e3b' }
               },
               common: {
-                text: '文件与网络',
-                tagColor: 'default',
-                inputStyle: { border: '1px solid #898989' }
+                text: '文件、网络与命令',
+                tagColor: 'purple',
+                inputStyle: { border: '1px solid purple' }
               }
             })[settings.value.permission]
         )
@@ -701,7 +701,7 @@ export default (Plugin) => {
           try {
             const fnArgs = JSON.parse(toolCall.function.arguments || '{}')
             if (settings.value.sessionMode === 'assistant' && !assistantToolNames.has(fnName)) {
-              throw new Error('通用模式仅允许使用文件和网络工具')
+              throw new Error('通用模式仅允许使用文件、网络和命令工具')
             }
             if (settings.value.permission === 'none') {
               throw new Error('用户未给任何权限，执行失败')
@@ -1215,7 +1215,7 @@ const readOnlyTools = new Set([
   'getScheduledTaskById'
 ])
 
-const assistantToolNames = new Set(['ReadFile', 'WriteFile', 'Requests'])
+const assistantToolNames = new Set(['Exec', 'ReadFile', 'WriteFile', 'Requests'])
 
 const tools = [
   {
