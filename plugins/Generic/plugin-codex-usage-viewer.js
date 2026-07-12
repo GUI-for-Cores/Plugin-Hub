@@ -46,15 +46,6 @@ function openUsageUI(Plugin) {
   const component = defineComponent({
     template: /* html */ `
       <div class="codex-usage-viewer">
-        <section class="usage-hero">
-          <div>
-            <div class="usage-eyebrow">CODEX USAGE</div>
-            <div class="usage-title">额度仪表盘</div>
-            <div class="usage-subtitle">集中查看每个账号的短期、每周及重置额度</div>
-          </div>
-          <Button class="hero-refresh" icon="refresh" type="primary" :loading="loading" @click="refreshUsage">刷新数据</Button>
-        </section>
-
         <section class="summary-grid">
           <div class="summary-item">
             <span class="summary-icon blue">◎</span>
@@ -179,7 +170,7 @@ function openUsageUI(Plugin) {
       cancelText: '关闭'
     },
     {
-      toolbar: () =>
+      toolbar: () => [
         h(
           resolveComponent('Button'),
           {
@@ -190,6 +181,17 @@ function openUsageUI(Plugin) {
           },
           () => (showEmail.value ? '隐藏邮箱' : '显示邮箱')
         ),
+        h(
+          resolveComponent('Button'),
+          {
+            icon: 'refresh',
+            type: 'text',
+            loading: state.loading.value,
+            onClick: () => refreshAndUpdateTray(Plugin)
+          },
+          () => '刷新'
+        )
+      ],
       default: () => h(component)
     }
   )
@@ -202,12 +204,6 @@ function injectUsageStyle() {
   style.id = 'codex-usage-viewer-style'
   style.textContent = `
 .codex-usage-viewer { display: flex; flex-direction: column; gap: 14px; padding: 0 10px 16px 0; color: var(--color-text-1, #172033); }
-.codex-usage-viewer .usage-hero { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 112px; padding: 24px 28px; border: 1px solid rgba(99, 102, 241, 0.16); border-radius: 20px; background: linear-gradient(125deg, rgba(238, 242, 255, 0.98), rgba(240, 253, 250, 0.94)); box-shadow: 0 14px 36px rgba(51, 65, 85, 0.08); }
-.codex-usage-viewer .usage-hero::after { content: ''; position: absolute; top: -70px; right: 9%; width: 190px; height: 190px; border-radius: 50%; background: radial-gradient(circle, rgba(129, 140, 248, 0.2), transparent 68%); pointer-events: none; }
-.codex-usage-viewer .usage-eyebrow { color: #6366f1; font-size: 11px; font-weight: 800; letter-spacing: 0.18em; }
-.codex-usage-viewer .usage-title { margin-top: 4px; color: #1e293b; font-size: 26px; font-weight: 850; letter-spacing: -0.03em; }
-.codex-usage-viewer .usage-subtitle { margin-top: 5px; color: #64748b; font-size: 13px; }
-.codex-usage-viewer .hero-refresh { z-index: 1; border-radius: 10px; box-shadow: 0 7px 18px rgba(79, 70, 229, 0.22); }
 .codex-usage-viewer .summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .codex-usage-viewer .summary-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 1px solid var(--color-border-2, #e5e7eb); border-radius: 14px; background: var(--color-bg-2, #fff); }
 .codex-usage-viewer .summary-icon { display: grid; place-items: center; width: 36px; height: 36px; flex: 0 0 36px; border-radius: 11px; font-size: 18px; font-weight: 800; }
@@ -236,8 +232,8 @@ function injectUsageStyle() {
 .codex-usage-viewer .state-symbol { color: #818cf8; font-size: 34px; } .codex-usage-viewer .state-title { margin-top: 7px; font-weight: 750; } .codex-usage-viewer .state-description { margin-top: 5px; color: var(--color-text-3, #64748b); font-size: 12px; }
 .codex-usage-viewer .usage-tip { display: flex; align-items: flex-start; gap: 9px; padding: 11px 14px; border: 1px dashed var(--color-border-3, #cbd5e1); border-radius: 12px; color: var(--color-text-3, #64748b); font-size: 11px; line-height: 1.65; }
 .codex-usage-viewer .tip-icon { display: grid; place-items: center; width: 17px; height: 17px; flex: 0 0 17px; margin-top: 1px; border-radius: 50%; color: #fff; background: #94a3b8; font-size: 10px; font-weight: 800; } .codex-usage-viewer code { padding: 1px 4px; border-radius: 4px; background: var(--color-fill-2, rgba(148, 163, 184, 0.15)); }
-@media (prefers-color-scheme: dark) { .codex-usage-viewer .usage-hero { background: linear-gradient(125deg, rgba(49, 46, 129, 0.35), rgba(17, 94, 89, 0.25)); } .codex-usage-viewer .usage-title { color: var(--color-text-1, #f1f5f9); } .codex-usage-viewer .summary-icon.blue, .codex-usage-viewer .summary-icon.green, .codex-usage-viewer .summary-icon.violet { background: rgba(99, 102, 241, 0.13); } .codex-usage-viewer .credit-strip { background: linear-gradient(100deg, rgba(76, 29, 149, 0.18), rgba(30, 64, 175, 0.14)); } .codex-usage-viewer .error-panel { background: rgba(127, 29, 29, 0.22); } }
-@media (max-width: 720px) { .codex-usage-viewer .usage-hero { align-items: flex-start; flex-direction: column; padding: 20px; } .codex-usage-viewer .summary-grid { grid-template-columns: 1fr; } .codex-usage-viewer .quota-grid { grid-template-columns: 1fr; } .codex-usage-viewer .credit-strip { align-items: flex-start; flex-direction: column; gap: 7px; } }
+@media (prefers-color-scheme: dark) { .codex-usage-viewer .summary-icon.blue, .codex-usage-viewer .summary-icon.green, .codex-usage-viewer .summary-icon.violet { background: rgba(99, 102, 241, 0.13); } .codex-usage-viewer .credit-strip { background: linear-gradient(100deg, rgba(76, 29, 149, 0.18), rgba(30, 64, 175, 0.14)); } .codex-usage-viewer .error-panel { background: rgba(127, 29, 29, 0.22); } }
+@media (max-width: 720px) { .codex-usage-viewer .summary-grid { grid-template-columns: 1fr; } .codex-usage-viewer .quota-grid { grid-template-columns: 1fr; } .codex-usage-viewer .credit-strip { align-items: flex-start; flex-direction: column; gap: 7px; } }
 `
   document.head.appendChild(style)
 }
