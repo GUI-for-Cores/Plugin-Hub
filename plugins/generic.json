@@ -1353,6 +1353,59 @@
     "installed": false
   },
   {
+    "id": "plugin-cliproxyapi",
+    "name": "CLIProxyAPI",
+    "version": "v1.0.0",
+    "group": "Tools",
+    "description": "Wrap Antigravity, ChatGPT Codex, Claude Code, Grok Build as an OpenAI/Gemini/Claude/Codex compatible API service, allowing you to enjoy the free Gemini 3.1 Pro, GPT 5.5, Grok 4.3, Claude model through API",
+    "tags": [],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-cliproxyapi.js",
+    "path": "data/plugins/plugin-cliproxyapi.js",
+    "triggers": ["on::manual", "on::startup", "on::shutdown"],
+    "hasUI": false,
+    "menus": {
+      "运行服务": "Start",
+      "停止服务": "Stop",
+      "打开管理面板": "OpenPanel",
+      "复制 API 信息": "CopyAPIInfo",
+      "配置文件": "Config",
+      "打开目录": "OpenDir",
+      "更新程序": "Update"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_cliprx_listen_address",
+        "title": "服务监听地址",
+        "description": "格式为“主机:端口”，例如 127.0.0.1:8317；使用 :8317 可监听所有网络接口。",
+        "key": "ListenAddress",
+        "component": "Input",
+        "value": "127.0.0.1:8317",
+        "options": []
+      },
+      {
+        "id": "ID_cliprx_auto_start_or_stop",
+        "title": "跟随 GUI 启动或停止",
+        "description": "启用后，CLIProxyAPI 将随 GUI 自动启动和停止。",
+        "key": "AutoStartOrStop",
+        "component": "Switch",
+        "value": false,
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": true,
+    "installed": false
+  },
+  {
     "id": "plugin-meilisearch",
     "name": "Meilisearch",
     "version": "v1.0.0",
