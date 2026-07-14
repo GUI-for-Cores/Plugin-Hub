@@ -324,10 +324,10 @@
   },
   {
     "id": "plugin-gui-agent",
-    "name": "GUI.for.Cores Agent",
-    "version": "v0.0.16",
+    "name": "GUI Agent",
+    "version": "v1.0.0",
     "group": "Tools",
-    "description": "GUI.for.Cores 专属 AI Agent。",
+    "description": "支持通用 AI 对话及 GUI.for.Cores 专属操作，可调用文件、网络、命令与 GUI 管理工具。",
     "tags": [],
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-gui-agent.js",
@@ -356,7 +356,7 @@
       {
         "id": "ID_gui_agent_model",
         "title": "模型名称",
-        "description": "例如: gemini-3.1-flash-lite",
+        "description": "例如: gemini-3.1-flash-lite。请勿使用低智模型，避免删库跑路风险！",
         "key": "Model",
         "component": "Input",
         "value": "gemini-3.1-flash-lite",
