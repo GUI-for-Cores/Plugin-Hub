@@ -1,0 +1,4 @@
+interface:
+  display_name: 'Skin Manager Theme Contributor'
+  short_description: 'Create and contribute portable skin themes'
+  default_prompt: 'Use $create-skin-manager-theme to turn my visual reference into a portable theme and prepare its pull request.'

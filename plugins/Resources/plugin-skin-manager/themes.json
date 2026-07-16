@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "themes": [
+    {
+      "id": "miku",
+      "manifest": "miku/miku.json",
+      "featured": true,
+      "order": 10
+    }
+  ]
+}

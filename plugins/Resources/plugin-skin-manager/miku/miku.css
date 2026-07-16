@@ -1,0 +1,556 @@
+body[data-gui-skin='miku'] {
+  position: relative;
+  isolation: isolate;
+  background-color: #dffbff !important;
+  background-image:
+    linear-gradient(115deg, rgba(204, 252, 255, 0.06) 0%, rgba(185, 248, 245, 0.1) 46%, rgba(255, 112, 190, 0.08) 100%), var(--skin-manager-background) !important;
+  background-position: center, center !important;
+  background-repeat: no-repeat, no-repeat !important;
+  background-size: cover, cover !important;
+  background-attachment: fixed, fixed !important;
+}
+
+body[data-gui-skin='miku'][theme-mode='dark'] {
+  background-color: #071f2b !important;
+  background-image:
+    linear-gradient(115deg, rgba(3, 27, 38, 0.58) 0%, rgba(4, 38, 48, 0.48) 48%, rgba(48, 15, 64, 0.5) 100%), var(--skin-manager-background) !important;
+}
+
+body[data-gui-skin='miku'] > #app {
+  background-image:
+    radial-gradient(circle at 12% 8%, rgba(127, 245, 239, 0.32), transparent 28%), radial-gradient(circle at 86% 22%, rgba(255, 83, 171, 0.18), transparent 24%);
+}
+
+body[data-gui-skin='miku'] > #app > :first-child {
+  background: linear-gradient(90deg, rgba(239, 255, 255, 0.78), rgba(184, 249, 244, 0.64), rgba(255, 187, 225, 0.62));
+  background-size: 220% 100%;
+  box-shadow:
+    inset 0 -1px rgba(0, 194, 188, 0.3),
+    0 5px 20px rgba(0, 137, 155, 0.12);
+  -webkit-backdrop-filter: blur(18px) saturate(128%);
+  backdrop-filter: blur(18px) saturate(128%);
+  animation: miku-glass-shimmer 8s ease-in-out infinite;
+}
+
+body[data-gui-skin='miku'][theme-mode='dark'] > #app > :first-child {
+  background: linear-gradient(90deg, rgba(6, 36, 48, 0.82), rgba(8, 51, 61, 0.68), rgba(50, 28, 58, 0.68));
+  box-shadow:
+    inset 0 -1px rgba(102, 226, 220, 0.18),
+    0 5px 22px rgba(0, 13, 22, 0.22);
+}
+
+body[data-gui-skin='miku'] > #app > :nth-child(2) > :first-child {
+  background: linear-gradient(90deg, rgba(250, 255, 255, 0.66), rgba(181, 249, 242, 0.68), rgba(255, 183, 222, 0.58));
+  background-size: 220% 100%;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.58),
+    0 8px 26px rgba(0, 145, 157, 0.12);
+  -webkit-backdrop-filter: blur(16px) saturate(126%);
+  backdrop-filter: blur(16px) saturate(126%);
+  animation: miku-glass-shimmer 6.4s ease-in-out infinite reverse;
+}
+
+body[data-gui-skin='miku'][theme-mode='dark'] > #app > :nth-child(2) > :first-child {
+  background: linear-gradient(90deg, rgba(8, 44, 56, 0.72), rgba(9, 57, 67, 0.7), rgba(48, 26, 56, 0.62));
+  box-shadow:
+    inset 0 0 0 1px rgba(110, 229, 224, 0.16),
+    0 8px 28px rgba(0, 13, 22, 0.2);
+}
+
+body[data-gui-skin='miku'] > #app > :first-child > img {
+  transform-origin: center;
+  animation: miku-logo-pulse 3.6s ease-in-out infinite;
+}
+
+body[data-gui-skin='miku'] > #app > :nth-child(2) > :first-child > * {
+  transition:
+    transform 180ms ease,
+    filter 180ms ease;
+}
+
+body[data-gui-skin='miku'] > #app > :nth-child(2) > :first-child > *:hover {
+  transform: translateY(-1px) scale(1.025);
+  filter: drop-shadow(0 4px 8px rgba(20, 167, 169, 0.24));
+}
+
+body[data-gui-skin='miku'] > #app > :nth-child(2) > :first-child > *:nth-child(odd) svg {
+  animation: miku-nav-bob 3.2s ease-in-out infinite;
+}
+
+body[data-gui-skin='miku'] > #app > :nth-child(2) > :first-child > *:nth-child(even) svg {
+  animation: miku-nav-bob 3.2s 0.5s ease-in-out infinite reverse;
+}
+
+body[data-gui-skin='miku'] :is(input, textarea, select, [contenteditable='true']) {
+  caret-color: #00a99f;
+  text-shadow: 0 1px rgba(255, 255, 255, 0.35);
+}
+
+body[data-gui-skin='miku'][theme-mode='dark'] :is(input, textarea, select, [contenteditable='true']) {
+  caret-color: #76eee8;
+  text-shadow: none;
+}
+
+body[data-gui-skin='miku'] :is([role='dialog'], [aria-modal='true'], [role='menu'], [role='listbox']) {
+  box-shadow:
+    0 18px 54px rgba(24, 103, 121, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.42);
+  -webkit-backdrop-filter: blur(22px) saturate(132%);
+  backdrop-filter: blur(22px) saturate(132%);
+}
+
+body[data-gui-skin='miku'] :is(table, textarea, select):focus-visible,
+body[data-gui-skin='miku'] [tabindex]:focus-visible {
+  outline: 2px solid rgba(0, 197, 190, 0.82);
+  outline-offset: 2px;
+}
+
+body[data-gui-skin='miku'] .gui-input input:focus-visible {
+  outline: none;
+}
+
+body[data-gui-skin='miku'] svg {
+  filter: drop-shadow(0 1px 2px rgba(23, 138, 147, 0.14));
+}
+
+body[data-gui-skin='miku'] ::-webkit-scrollbar-thumb {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.28),
+    0 0 8px rgba(31, 187, 181, 0.18);
+}
+
+body[data-gui-skin='miku'] ::selection {
+  color: #123d49;
+  background: rgba(78, 235, 222, 0.62);
+}
+
+body[data-gui-skin='miku'] :is(.gui-card, .gui-button) {
+  transition:
+    transform 180ms ease,
+    box-shadow 220ms ease,
+    filter 220ms ease,
+    background-color 220ms ease;
+}
+
+body[data-gui-skin='miku'] :is(.gui-input, .gui-select, .gui-radio, .gui-switch) {
+  transition:
+    box-shadow 220ms ease,
+    background-color 220ms ease;
+}
+
+body[data-gui-skin='miku'] .gui-card {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.46),
+    0 6px 18px rgba(0, 139, 153, 0.1);
+}
+
+body[data-gui-skin='miku'] .gui-card:hover {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.54),
+    0 12px 26px rgba(0, 179, 178, 0.2),
+    0 0 18px rgba(255, 70, 164, 0.14);
+}
+
+body[data-gui-skin='miku'] .gui-card:active {
+  box-shadow:
+    inset 0 0 0 1px rgba(67, 218, 211, 0.5),
+    0 5px 14px rgba(22, 159, 163, 0.12);
+}
+
+body[data-gui-skin='miku'] .gui-card:hover svg {
+  filter: drop-shadow(0 0 5px rgba(38, 202, 198, 0.42));
+  transform: rotate(2deg);
+}
+
+body[data-gui-skin='miku'] .gui-button:hover {
+  transform: translateY(-1px) scale(1.018);
+  box-shadow: 0 5px 13px rgba(18, 151, 158, 0.13);
+}
+
+body[data-gui-skin='miku'] .gui-button:active {
+  transform: translateY(0) scale(0.975);
+}
+
+body[data-gui-skin='miku'] .gui-button:hover svg {
+  filter: drop-shadow(0 0 4px rgba(241, 119, 178, 0.42));
+}
+
+body[data-gui-skin='miku'] .gui-input:hover {
+  box-shadow: inset 0 0 0 1px rgba(0, 207, 196, 0.42);
+}
+
+body[data-gui-skin='miku'] .gui-input:focus-within {
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 190, 184, 0.82),
+    0 0 0 2px rgba(0, 222, 207, 0.2),
+    0 5px 14px rgba(21, 143, 151, 0.09);
+}
+
+body[data-gui-skin='miku'] .gui-select:hover {
+  box-shadow:
+    inset 0 0 0 1px rgba(70, 218, 211, 0.34),
+    0 5px 14px rgba(21, 143, 151, 0.09);
+}
+
+body[data-gui-skin='miku'] .gui-radio:hover {
+  box-shadow: 0 0 13px rgba(37, 202, 196, 0.2);
+}
+
+body[data-gui-skin='miku'] .gui-switch.on {
+  animation: miku-switch-glow 2.6s ease-in-out infinite;
+}
+
+body[data-gui-skin='miku'] :is(.gui-dropdown-overlay, .gui-menu) {
+  -webkit-backdrop-filter: blur(22px) saturate(132%);
+  backdrop-filter: blur(22px) saturate(132%);
+  box-shadow:
+    0 18px 54px rgba(24, 103, 121, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.42);
+}
+
+body[data-gui-skin='miku'] [data-skin-motion-layer] {
+  --skin-pointer-x: 50vw;
+  --skin-pointer-y: 50vh;
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  contain: layout paint style;
+}
+
+body[data-gui-skin='miku'] [data-skin-motion-layer]::before {
+  content: '';
+  position: absolute;
+  top: -18%;
+  left: -34%;
+  width: 28%;
+  height: 138%;
+  opacity: 0.52;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), rgba(73, 227, 221, 0.18), rgba(249, 147, 195, 0.12), transparent);
+  transform: rotate(16deg);
+  filter: blur(10px);
+  animation: miku-light-sweep 9s ease-in-out infinite;
+}
+
+body[data-gui-skin='miku'] [data-skin-motion-layer]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.86;
+  background: radial-gradient(
+    170px circle at var(--skin-pointer-x) var(--skin-pointer-y),
+    rgba(81, 238, 226, 0.2),
+    rgba(244, 139, 190, 0.07) 42%,
+    transparent 72%
+  );
+}
+
+body[data-gui-skin='miku'][theme-mode='dark'] [data-skin-motion-layer] {
+  opacity: 0.84;
+  filter: saturate(118%);
+}
+
+body[data-gui-skin='miku'] [data-skin-particle='sparkle'] {
+  position: absolute;
+  left: var(--skin-x);
+  top: var(--skin-y);
+  width: var(--skin-size);
+  height: var(--skin-size);
+  opacity: 0.18;
+  background: linear-gradient(135deg, #ffffff 12%, #8bf7ef 48%, #f7a4cf 88%);
+  clip-path: polygon(50% 0, 61% 38%, 100% 50%, 61% 62%, 50% 100%, 39% 62%, 0 50%, 39% 38%);
+  filter: drop-shadow(0 0 5px rgba(84, 230, 221, 0.82));
+  animation: miku-sparkle-dance var(--skin-duration) var(--skin-delay) ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+body[data-gui-skin='miku'] [data-skin-particle='note'] {
+  position: absolute;
+  left: var(--skin-x);
+  bottom: -10%;
+  color: rgba(20, 172, 176, 0.62);
+  font-size: var(--skin-size);
+  line-height: 1;
+  text-shadow:
+    0 0 7px rgba(255, 255, 255, 0.92),
+    0 0 12px rgba(246, 137, 190, 0.46);
+  animation: miku-note-float var(--skin-duration) var(--skin-delay) linear infinite;
+  will-change: transform, opacity;
+}
+
+body[data-gui-skin='miku'] [data-skin-particle='note']:nth-of-type(3n) {
+  color: rgba(232, 91, 159, 0.58);
+}
+
+body[data-gui-skin='miku'] [data-skin-particle='bubble'] {
+  position: absolute;
+  left: var(--skin-x);
+  bottom: -12%;
+  width: var(--skin-size);
+  height: var(--skin-size);
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  border-radius: 50%;
+  opacity: 0;
+  background: radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.74), rgba(114, 232, 229, 0.1) 46%, rgba(245, 142, 191, 0.18));
+  box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.42);
+  animation: miku-bubble-rise var(--skin-duration) var(--skin-delay) linear infinite;
+  will-change: transform, opacity;
+}
+
+body[data-gui-skin='miku'] [data-skin-equalizer] {
+  position: absolute;
+  right: 38%;
+  bottom: 5px;
+  left: 2%;
+  height: 58px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 3px;
+  opacity: 0.34;
+  filter: drop-shadow(0 0 7px rgba(38, 204, 201, 0.24));
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+
+body[data-gui-skin='miku'] [data-skin-equalizer]::before {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 12px;
+  left: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(20, 185, 183, 0.72), rgba(242, 122, 180, 0.58), transparent);
+  box-shadow: 0 0 8px rgba(68, 220, 214, 0.46);
+  animation: miku-wave-breathe 2.4s ease-in-out infinite;
+}
+
+body[data-gui-skin='miku'] [data-skin-equalizer-bar] {
+  width: 3px;
+  height: var(--skin-height);
+  border-radius: 999px 999px 2px 2px;
+  background: linear-gradient(180deg, rgba(246, 139, 191, 0.9), rgba(84, 229, 222, 0.94) 46%, rgba(26, 152, 171, 0.28));
+  transform: scaleY(0.22);
+  transform-origin: bottom;
+  animation: miku-equalizer-beat var(--skin-duration) var(--skin-delay) cubic-bezier(0.33, 0.01, 0.3, 1) infinite alternate;
+  will-change: transform, opacity;
+}
+
+body[data-gui-skin='miku'] [data-skin-burst] {
+  position: absolute;
+  color: #ffffff;
+  font-size: 12px;
+  line-height: 1;
+  opacity: 0;
+  text-shadow:
+    0 0 6px #ffffff,
+    0 0 11px rgba(28, 205, 197, 0.92),
+    0 0 16px rgba(241, 107, 173, 0.74);
+  transform: translate(-50%, -50%) scale(0.45);
+  animation: miku-click-burst 680ms var(--skin-delay) cubic-bezier(0.16, 0.76, 0.31, 1) forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes miku-glass-shimmer {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes miku-logo-pulse {
+  0%,
+  100% {
+    transform: scale(1) rotate(-1deg);
+    filter: drop-shadow(0 0 0 rgba(35, 194, 189, 0));
+  }
+  50% {
+    transform: scale(1.08) rotate(2deg);
+    filter: drop-shadow(0 0 6px rgba(35, 194, 189, 0.42));
+  }
+}
+
+@keyframes miku-switch-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(33, 196, 190, 0);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(33, 196, 190, 0.34);
+  }
+}
+
+@keyframes miku-nav-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+  50% {
+    transform: translateY(-1px) rotate(3deg);
+  }
+}
+
+@keyframes miku-light-sweep {
+  0%,
+  12% {
+    transform: translateX(0) rotate(16deg);
+    opacity: 0;
+  }
+  35%,
+  68% {
+    opacity: 0.52;
+  }
+  88%,
+  100% {
+    transform: translateX(520%) rotate(16deg);
+    opacity: 0;
+  }
+}
+
+@keyframes miku-sparkle-dance {
+  0%,
+  100% {
+    opacity: 0.12;
+    transform: scale(0.62) rotate(0deg);
+  }
+  48% {
+    opacity: 0.9;
+    transform: scale(1.55) rotate(45deg);
+  }
+  70% {
+    opacity: 0.34;
+    transform: scale(0.9) rotate(70deg);
+  }
+}
+
+@keyframes miku-note-float {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0) rotate(-10deg);
+  }
+  12% {
+    opacity: 0.62;
+  }
+  72% {
+    opacity: 0.42;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--skin-drift), -112vh, 0) rotate(16deg);
+  }
+}
+
+@keyframes miku-bubble-rise {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0) scale(0.7);
+  }
+  14% {
+    opacity: 0.46;
+  }
+  74% {
+    opacity: 0.24;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--skin-drift), -110vh, 0) scale(1.12);
+  }
+}
+
+@keyframes miku-equalizer-beat {
+  0% {
+    opacity: 0.46;
+    transform: scaleY(0.18);
+  }
+  42% {
+    opacity: 0.92;
+    transform: scaleY(0.88);
+  }
+  72% {
+    opacity: 0.7;
+    transform: scaleY(0.42);
+  }
+  100% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+@keyframes miku-wave-breathe {
+  0%,
+  100% {
+    transform: scaleX(0.86);
+    opacity: 0.44;
+  }
+  50% {
+    transform: scaleX(1);
+    opacity: 0.9;
+  }
+}
+
+@keyframes miku-click-burst {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.4) rotate(-18deg);
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--skin-dx)), calc(-50% + var(--skin-dy))) scale(1.12) rotate(20deg);
+  }
+}
+
+@media (max-width: 720px) {
+  body[data-gui-skin='miku'] {
+    background-position:
+      center,
+      66% center !important;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  body[data-gui-skin='miku'] > #app > :first-child,
+  body[data-gui-skin='miku'] > #app > :nth-child(2) > :first-child {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-gui-skin='miku'] > #app > :first-child,
+  body[data-gui-skin='miku'] > #app > :first-child > img,
+  body[data-gui-skin='miku'] > #app > :nth-child(2) > :first-child,
+  body[data-gui-skin='miku'] > #app > :nth-child(2) > :first-child svg,
+  body[data-gui-skin='miku'] .gui-switch.on,
+  body[data-gui-skin='miku'] [data-skin-particle='sparkle'],
+  body[data-gui-skin='miku'] [data-skin-motion-layer]::before,
+  body[data-gui-skin='miku'] [data-skin-motion-layer]::after {
+    animation: none !important;
+  }
+
+  body[data-gui-skin='miku'] :is([data-skin-particle='note'], [data-skin-particle='bubble'], [data-skin-equalizer], [data-skin-burst]) {
+    display: none !important;
+  }
+}
+
+body[data-gui-skin='miku'][feature-no-animation='true'] > #app > :first-child,
+body[data-gui-skin='miku'][feature-no-animation='true'] > #app > :first-child > img,
+body[data-gui-skin='miku'][feature-no-animation='true'] > #app > :nth-child(2) > :first-child,
+body[data-gui-skin='miku'][feature-no-animation='true'] > #app > :nth-child(2) > :first-child svg,
+body[data-gui-skin='miku'][feature-no-animation='true'] .gui-switch.on,
+body[data-gui-skin='miku'][feature-no-animation='true'] [data-skin-particle='sparkle'],
+body[data-gui-skin='miku'][feature-no-animation='true'] [data-skin-motion-layer]::before,
+body[data-gui-skin='miku'][feature-no-animation='true'] [data-skin-motion-layer]::after {
+  animation: none !important;
+}
+
+body[data-gui-skin='miku'][feature-no-animation='true']
+  :is([data-skin-particle='note'], [data-skin-particle='bubble'], [data-skin-equalizer], [data-skin-burst]) {
+  display: none !important;
+}

@@ -2797,6 +2797,36 @@
     "installed": false
   },
   {
+    "id": "plugin-skin-manager",
+    "name": "皮肤中心",
+    "version": "v1.0.0",
+    "group": "Extensions",
+    "description": "通用换肤管理器，可在图形界面中预览和切换多个皮肤。",
+    "tags": ["UI美化", "主题皮肤", "功能扩展"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-skin-manager.js",
+    "path": "data/plugins/plugin-skin-manager.js",
+    "triggers": ["on::manual", "on::ready"],
+    "hasUI": true,
+    "menus": {
+      "应用皮肤": "ApplySelected",
+      "关闭皮肤": "Clear",
+      "更新皮肤资源": "Update"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-global-click-ripple-effect",
     "name": "点击波纹效果",
     "version": "v1.1.0",
