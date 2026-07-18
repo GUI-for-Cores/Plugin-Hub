@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 2,
+  "revision": 3,
   "themes": [
     {
       "id": "miku",
@@ -13,6 +13,12 @@
       "manifest": "doraemon/doraemon.json",
       "featured": true,
       "order": 20
+    },
+    {
+      "id": "nangong-wan",
+      "manifest": "nangong-wan/nangong-wan.json",
+      "featured": true,
+      "order": 30
     }
   ]
 }

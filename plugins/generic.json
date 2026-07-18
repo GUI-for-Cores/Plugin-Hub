@@ -2799,7 +2799,7 @@
   {
     "id": "plugin-skin-manager",
     "name": "皮肤中心",
-    "version": "v1.2.0",
+    "version": "v1.3.0",
     "group": "Extensions",
     "description": "通用换肤管理器，可在图形界面中预览和切换多个皮肤。",
     "tags": ["UI美化", "主题皮肤", "功能扩展"],

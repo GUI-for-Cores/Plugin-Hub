@@ -1,6 +1,6 @@
 const DATA_PATH = 'data/third/plugin-skin-manager'
 const CATALOG_FILE = 'themes.json'
-const CATALOG_REVISION = 2
+const CATALOG_REVISION = 3
 const STATE_FILE = 'state.json'
 const FALLBACK_REMOTE_PATH = 'https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Resources/plugin-skin-manager'
 const ATTRIBUTE_NAME = 'data-gui-skin'

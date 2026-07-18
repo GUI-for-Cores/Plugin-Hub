@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 2,
+  "id": "nangong-wan",
+  "name": "南宫婉 · 月下仙途",
+  "description": "黛蓝月夜、银紫古纹与云山仙宫交织，点缀法阵、流光和静谧灵雾。",
+  "author": "Codex & Ya",
+  "tags": ["修仙", "国风", "动态"],
+  "ui": {
+    "accent": "#9a91dc",
+    "accentSecondary": "#d8b8ca",
+    "previewPosition": "center bottom"
+  },
+  "files": {
+    "stylesheet": "nangong-wan.css",
+    "background": "nangong-wan-moon.webp",
+    "backgroundMime": "image/webp"
+  },
+  "motion": {
+    "particles": [
+      {
+        "type": "sparkle",
+        "count": 26,
+        "xOffset": 7,
+        "xStep": 37,
+        "yOffset": 5,
+        "yStep": 53,
+        "sizeBase": 2,
+        "sizeStep": 1.5,
+        "sizeCycle": 4,
+        "delayStep": 0.67,
+        "delayCycle": 11,
+        "durationBase": 4.6,
+        "durationStep": 0.72,
+        "durationCycle": 6
+      },
+      {
+        "type": "mist",
+        "count": 10,
+        "xOffset": 5,
+        "xStep": 29,
+        "yOffset": 62,
+        "yStep": 7,
+        "sizeBase": 42,
+        "sizeStep": 12,
+        "sizeCycle": 5,
+        "driftBase": 24,
+        "driftStep": 12,
+        "driftCycle": 4,
+        "delayStep": 1.1,
+        "delayCycle": 8,
+        "durationBase": 9,
+        "durationStep": 1.2,
+        "durationCycle": 5
+      },
+      {
+        "type": "ornament-left",
+        "count": 1,
+        "symbols": ["◇"]
+      },
+      {
+        "type": "ornament-right",
+        "count": 1,
+        "symbols": ["☾"]
+      }
+    ],
+    "interactiveGlow": true,
+    "clickBursts": true,
+    "clickBurstCount": 8,
+    "clickBurstSymbols": ["✦", "◇", "·"]
+  },
+  "decorations": [
+    {
+      "name": "stats",
+      "selector": ".home-stat-card",
+      "items": [
+        { "name": "star-a", "text": "✦" },
+        { "name": "star-b", "text": "·" },
+        { "name": "star-c", "text": "◇" },
+        { "name": "note", "text": "⌁" },
+        { "name": "heart", "text": "✧" },
+        { "name": "orbit", "text": "" }
+      ]
+    }
+  ],
+  "variables": {
+    "--primary-color": "#9a91dc",
+    "--secondary-color": "#d8b8ca",
+    "--color-light": "#eee4e8",
+    "--color-dark": "#f4eaf0",
+    "--bg-color-light": "rgba(7, 18, 43, 0.74)",
+    "--bg-color-dark": "rgba(4, 12, 31, 0.82)",
+    "--card-bg-light": "rgba(29, 40, 83, 0.66)",
+    "--card-bg-dark": "rgba(22, 31, 70, 0.74)",
+    "--input-bg-light": "rgba(30, 40, 80, 0.80)",
+    "--input-bg-dark": "rgba(19, 29, 65, 0.86)",
+    "--dropdown-bg-light": "rgba(15, 25, 58, 0.96)",
+    "--dropdown-bg-dark": "rgba(10, 19, 47, 0.97)",
+    "--modal-bg-light": "rgba(16, 27, 61, 0.96)",
+    "--modal-bg-dark": "rgba(9, 18, 45, 0.97)"
+  }
+}

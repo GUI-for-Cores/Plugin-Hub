@@ -846,6 +846,78 @@ body[data-gui-skin='doraemon'] .gui-card__state--selected {
   filter: drop-shadow(0 0 5px rgba(91, 152, 231, 0.32));
 }
 
+/* Doraemon gadget illustrations */
+body[data-gui-skin='doraemon'] .home-stat-card {
+  --dora-stat-icon: none;
+  --dora-stat-art: none;
+}
+
+body[data-gui-skin='doraemon'] .home-stat-card .gui-card__header::before {
+  flex-basis: 21px;
+  width: 21px;
+  height: 21px;
+  margin-right: 5px;
+  background: var(--dora-stat-icon) center / contain no-repeat;
+  -webkit-mask: none;
+  mask: none;
+  filter: drop-shadow(0 2px 2px rgba(0, 90, 166, 0.2));
+}
+
+body[data-gui-skin='doraemon'] .home-stat-card::after {
+  content: '' !important;
+  top: 8px;
+  right: 9px;
+  bottom: auto;
+  width: 42px;
+  height: 42px;
+  background: var(--dora-stat-art) center / contain no-repeat;
+  filter: drop-shadow(0 5px 4px rgba(0, 103, 183, 0.18));
+  text-shadow: none;
+}
+
+body[data-gui-skin='doraemon'] .home-stat-card--realtime {
+  --dora-stat-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2.8l4 8.1 9 1.3-6.5 6.3 1.5 8.9-8-4.2-8 4.2 1.5-8.9L3 12.2l9-1.3z' fill='%23ffd64d' stroke='%23f29a00' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpath d='M11.2 13.2c2.4-4.2 5.8-5.1 8.5-2.8-3.8.1-6.6 1.3-8.5 2.8z' fill='%23fff7bd'/%3E%3C/svg%3E");
+  --dora-stat-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 76'%3E%3Cdefs%3E%3ClinearGradient id='c' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop stop-color='%23fff'/%3E%3Cstop offset='1' stop-color='%23d7efff'/%3E%3C/linearGradient%3E%3ClinearGradient id='a' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop stop-color='%2338c8ff'/%3E%3Cstop offset='1' stop-color='%230075e6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M17 60h58c10 0 16-6 16-14 0-7-6-13-14-14C74 20 65 13 53 13c-12 0-22 8-25 19-11 0-20 6-20 15 0 8 5 13 9 13z' fill='url(%23c)' stroke='%23b8dcf7' stroke-width='1.8'/%3E%3Cpath d='M48 14L65 34H55v27H40V34H31z' fill='url(%23a)' stroke='%23005fc1' stroke-width='1.7' stroke-linejoin='round'/%3E%3Cpath d='M43 31l6-9 6 9' fill='none' stroke='%237ee0ff' stroke-width='2.4' stroke-linecap='round'/%3E%3Cpath d='M18 47c4-6 10-8 17-7' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' opacity='.85'/%3E%3Cpath d='M14 25h8M18 21v8' stroke='%2326bdf2' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+body[data-gui-skin='doraemon'] .home-stat-card--total {
+  --dora-stat-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M8 22h16c-2.7-2.7-3.3-5.6-3.3-9a4.7 4.7 0 0 0-9.4 0c0 3.4-.6 6.3-3.3 9z' fill='%23ffc43d' stroke='%23d77d00' stroke-width='1.4'/%3E%3Cellipse cx='16' cy='22.3' rx='9.5' ry='2.5' fill='%23ffe47d' stroke='%23d77d00' stroke-width='1.4'/%3E%3Ccircle cx='16' cy='26' r='2.5' fill='%23d98200'/%3E%3Cpath d='M13 11c1-2.4 3-3.2 5-2.1' fill='none' stroke='%23fff4b4' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  --dora-stat-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 92 80'%3E%3Cdefs%3E%3ClinearGradient id='b' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23fff189'/%3E%3Cstop offset='.45' stop-color='%23ffc533'/%3E%3Cstop offset='1' stop-color='%23f28a00'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='46' cy='12' r='6' fill='%23ffc13b' stroke='%23cf7600' stroke-width='1.5'/%3E%3Cpath d='M26 59h40c-6-7-8-14-8-28 0-8-5-14-12-14S34 23 34 31c0 14-2 21-8 28z' fill='url(%23b)' stroke='%23d97a00' stroke-width='2'/%3E%3Cellipse cx='46' cy='59' rx='24' ry='6' fill='%23ffe06b' stroke='%23cc7200' stroke-width='2'/%3E%3Cpath d='M34 28c2-6 6-8 10-8' fill='none' stroke='%23fff7b5' stroke-width='4' stroke-linecap='round'/%3E%3Cellipse cx='46' cy='66' rx='6' ry='5' fill='%23da7a00'/%3E%3Cpath d='M31 57c9 4 22 4 31 0' fill='none' stroke='%23fff0a0' stroke-width='2' opacity='.8'/%3E%3C/svg%3E");
+}
+
+body[data-gui-skin='doraemon'] .home-stat-card--connections {
+  --dora-stat-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cellipse cx='16' cy='7' rx='12' ry='3' fill='%23fff8e8' stroke='%23896a4a' stroke-width='1.2' transform='rotate(-12 16 7)'/%3E%3Ccircle cx='16' cy='8' r='2.2' fill='%23f2a400'/%3E%3Cpath d='M16 10v8' stroke='%23c57b00' stroke-width='2'/%3E%3Cellipse cx='16' cy='23' rx='9' ry='5' fill='%230d9bea' stroke='%23005fae' stroke-width='1.4'/%3E%3Cellipse cx='16' cy='21' rx='5' ry='2.5' fill='%23f45b95'/%3E%3C/svg%3E");
+  --dora-stat-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 78'%3E%3Cdefs%3E%3ClinearGradient id='p' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop stop-color='%233ed8ff'/%3E%3Cstop offset='1' stop-color='%230073dc'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cellipse cx='50' cy='13' rx='35' ry='6' fill='%23fff9ee' stroke='%238c6e55' stroke-width='1.8' transform='rotate(-13 50 13)'/%3E%3Cpath d='M20 17L77 4M48 10l7 7' stroke='%23c0a488' stroke-width='1.5'/%3E%3Ccircle cx='51' cy='15' r='4' fill='%23ffc328' stroke='%23c87700' stroke-width='1.4'/%3E%3Cpath d='M51 19v22' stroke='%23c17800' stroke-width='3'/%3E%3Cellipse cx='51' cy='59' rx='27' ry='12' fill='url(%23p)' stroke='%230058b5' stroke-width='2'/%3E%3Cellipse cx='51' cy='53' rx='18' ry='7' fill='%23fff4d4' stroke='%23056bbd' stroke-width='1.5'/%3E%3Cpath d='M43 54c2-7 7-12 13-12 4 0 7 3 8 7l-7 8z' fill='%23f64f92' stroke='%23b62c68' stroke-width='1.4'/%3E%3Cellipse cx='51' cy='62' rx='19' ry='5' fill='none' stroke='%2349d5ff' stroke-width='2'/%3E%3C/svg%3E");
+}
+
+body[data-gui-skin='doraemon'] .home-stat-card--memory {
+  --dora-stat-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='7' y='7' width='18' height='19' rx='3' fill='%230b91df' stroke='%230050a8' stroke-width='1.5'/%3E%3Cpath d='M8 10c5 2 11 2 16 0V6H8z' fill='%23ffd64a' stroke='%23cb7b00' stroke-width='1.3'/%3E%3Crect x='11' y='14' width='10' height='7' rx='1.5' fill='%23d8f5ff'/%3E%3Ccircle cx='16' cy='18' r='2' fill='%23ffc431'/%3E%3C/svg%3E");
+  --dora-stat-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 80'%3E%3Cdefs%3E%3ClinearGradient id='m' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%2339c9ff'/%3E%3Cstop offset='1' stop-color='%230069ce'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M21 17h52v43c0 8-8 13-26 13S21 68 21 60z' fill='url(%23m)' stroke='%230052ae' stroke-width='2'/%3E%3Cellipse cx='47' cy='17' rx='27' ry='8' fill='%23ffe264' stroke='%23c97800' stroke-width='2'/%3E%3Cellipse cx='47' cy='16' rx='18' ry='4' fill='%23f5a800'/%3E%3Cpath d='M28 26v30c0 5 3 8 8 10' fill='none' stroke='%238be5ff' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M73 39h8c4 0 6 3 6 7v13c0 4-3 7-7 7h-7z' fill='%23149fe8' stroke='%230052ae' stroke-width='2'/%3E%3Ccircle cx='49' cy='46' r='10' fill='%23ffd345' stroke='%23c77600' stroke-width='1.8'/%3E%3Cpath d='M42 44h14l-2 8H44z' fill='%23ef9a00'/%3E%3Ccircle cx='49' cy='53' r='2.3' fill='%23865300'/%3E%3C/svg%3E");
+}
+
+body[data-gui-skin='doraemon'] .home-mode-card .gui-card__header::before {
+  flex-basis: 25px;
+  width: 25px;
+  height: 25px;
+  margin-right: 6px;
+  background: var(--dora-mode-art) center / contain no-repeat;
+  -webkit-mask: none;
+  mask: none;
+  filter: drop-shadow(0 4px 3px rgba(0, 91, 166, 0.2));
+}
+
+body[data-gui-skin='doraemon'] .home-mode-card--global {
+  --dora-mode-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'%3E%3Cg transform='rotate(-6 36 36)'%3E%3Crect x='12' y='7' width='48' height='58' rx='10' fill='%23f8fdff' stroke='%23005eb5' stroke-width='2'/%3E%3Crect x='18' y='13' width='36' height='16' rx='4' fill='%238ce5ff' stroke='%230875c7' stroke-width='1.5'/%3E%3Cpath d='M22 18h8l3 6 5-8 4 7h8' fill='none' stroke='%23fff' stroke-width='2'/%3E%3Ccircle cx='36' cy='45' r='13' fill='%23eefaff' stroke='%230070cf' stroke-width='2'/%3E%3Ccircle cx='36' cy='45' r='4' fill='%23ffd13d' stroke='%23c97700' stroke-width='1.2'/%3E%3Cpath d='M36 32v6M36 52v6M23 45h6M43 45h6' stroke='%230d9fea' stroke-width='1.7' stroke-linecap='round'/%3E%3Cpath d='M36 41l8-5-4 9z' fill='%23f2558d'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+body[data-gui-skin='doraemon'] .home-mode-card--rule {
+  --dora-mode-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'%3E%3Cpath d='M16 14h40v42c0 7-7 11-20 11s-20-4-20-11z' fill='%230987dc' stroke='%23004fa9' stroke-width='2'/%3E%3Cellipse cx='36' cy='14' rx='21' ry='7' fill='%23ffdb4e' stroke='%23c77800' stroke-width='2'/%3E%3Cellipse cx='36' cy='13' rx='13' ry='3' fill='%23f69d00'/%3E%3Cpath d='M21 23v28c0 5 3 8 7 9' fill='none' stroke='%237bdcff' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M55 31h7c3 0 5 2 5 5v13c0 4-2 6-6 6h-6z' fill='%2325adf0' stroke='%23004fa9' stroke-width='2'/%3E%3Cpath d='M39 27l-10 17h8l-4 14 12-20h-8z' fill='%23ffde48' stroke='%23c47700' stroke-width='1.4'/%3E%3C/svg%3E");
+}
+
+body[data-gui-skin='doraemon'] .home-mode-card--direct {
+  --dora-mode-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'%3E%3Cellipse cx='36' cy='10' rx='25' ry='5' fill='%23fff9ea' stroke='%238b6b4f' stroke-width='1.6' transform='rotate(-10 36 10)'/%3E%3Ccircle cx='36' cy='12' r='3.5' fill='%23ffc72d' stroke='%23bd7000'/%3E%3Cpath d='M36 15v20' stroke='%23c27600' stroke-width='2.5'/%3E%3Cellipse cx='36' cy='50' rx='24' ry='11' fill='%23ffd33f' stroke='%23c67500' stroke-width='2'/%3E%3Cellipse cx='36' cy='45' rx='15' ry='7' fill='%23eefbff' stroke='%230875c7' stroke-width='1.8'/%3E%3Cpath d='M31 46c1-7 5-11 10-11 4 0 6 2 8 6l-8 8z' fill='%23f25a91' stroke='%23af2e67' stroke-width='1.3'/%3E%3Cellipse cx='36' cy='55' rx='16' ry='4' fill='none' stroke='%23fff39b' stroke-width='2'/%3E%3C/svg%3E");
+}
+
 body[data-gui-skin='doraemon'] .controller-trigger {
   position: absolute;
   left: 50%;
