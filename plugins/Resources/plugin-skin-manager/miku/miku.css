@@ -541,7 +541,8 @@ body[data-gui-skin='miku'] .home-stat-card__value {
   position: relative;
   z-index: 1;
   color: #427a9b;
-  font-size: 16px !important;
+  padding: 12px 0px 2px 8px;
+  font-size: 12px !important;
 }
 
 body[data-gui-skin='miku'] .metric--upload {
@@ -1112,7 +1113,7 @@ body[data-gui-skin='miku'] [data-skin-equalizer-bar] {
     gap: 7px !important;
   }
   body[data-gui-skin='miku'] .home-stat-card__value {
-    font-size: 13px !important;
+    font-size: 12px !important;
   }
 }
 

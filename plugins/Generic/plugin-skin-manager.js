@@ -1,5 +1,6 @@
 const DATA_PATH = 'data/third/plugin-skin-manager'
 const CATALOG_FILE = 'themes.json'
+const CATALOG_REVISION = 2
 const STATE_FILE = 'state.json'
 const FALLBACK_REMOTE_PATH = 'https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Resources/plugin-skin-manager'
 const ATTRIBUTE_NAME = 'data-gui-skin'
@@ -45,7 +46,7 @@ export default (Plugin) => {
   const readJson = async (relativePath) => JSON.parse(await Plugins.ReadFile(localPath(relativePath)))
 
   const validateCatalog = (catalog) => {
-    if (catalog?.schemaVersion !== 1 || !Array.isArray(catalog.themes) || catalog.themes.length === 0) {
+    if (catalog?.schemaVersion !== 1 || catalog.revision !== CATALOG_REVISION || !Array.isArray(catalog.themes) || catalog.themes.length === 0) {
       throw new Error('皮肤目录格式无效')
     }
     const ids = new Set()
@@ -164,14 +165,18 @@ export default (Plugin) => {
 
   const ensureAssets = async () => {
     if (!(await Plugins.FileExists(localPath(CATALOG_FILE)))) return downloadAssets()
-    const catalog = await readCatalog()
-    for (const entry of catalog.themes) {
-      if (!(await Plugins.FileExists(localPath(entry.manifest)))) return downloadAssets()
-      const theme = await readTheme(entry)
-      const checks = await Promise.all([Plugins.FileExists(localPath(theme.stylesheetPath)), Plugins.FileExists(localPath(theme.backgroundPath))])
-      if (checks.some((exists) => !exists)) return downloadAssets()
+    try {
+      const catalog = await readCatalog()
+      for (const entry of catalog.themes) {
+        if (!(await Plugins.FileExists(localPath(entry.manifest)))) return downloadAssets()
+        const theme = await readTheme(entry)
+        const checks = await Promise.all([Plugins.FileExists(localPath(theme.stylesheetPath)), Plugins.FileExists(localPath(theme.backgroundPath))])
+        if (checks.some((exists) => !exists)) return downloadAssets()
+      }
+      return catalog
+    } catch {
+      return downloadAssets()
     }
-    return catalog
   }
 
   const isReducedMotion = () =>

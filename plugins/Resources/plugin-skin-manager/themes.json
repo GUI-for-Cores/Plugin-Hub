@@ -1,11 +1,18 @@
 {
   "schemaVersion": 1,
+  "revision": 2,
   "themes": [
     {
       "id": "miku",
       "manifest": "miku/miku.json",
       "featured": true,
       "order": 10
+    },
+    {
+      "id": "doraemon",
+      "manifest": "doraemon/doraemon.json",
+      "featured": true,
+      "order": 20
     }
   ]
 }
