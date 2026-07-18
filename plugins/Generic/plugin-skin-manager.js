@@ -11,6 +11,7 @@ export default (Plugin) => {
   const layerId = Plugin.id + '-motion-layer'
   const uiStyleId = Plugin.id + '-ui-style'
   let cleanupMotion
+  let cleanupDecorations
 
   const getRemotePath = () => {
     try {
@@ -74,6 +75,29 @@ export default (Plugin) => {
     }
     for (const [property, value] of Object.entries(theme.variables)) {
       if (!/^--[a-z0-9-]+$/.test(property) || typeof value !== 'string') throw new Error(`皮肤变量无效: ${entry.id}/${property}`)
+    }
+    if (theme.decorations !== undefined) {
+      if (!Array.isArray(theme.decorations) || theme.decorations.length > 16) throw new Error(`皮肤装饰配置无效: ${entry.id}`)
+      const decorationNames = new Set()
+      for (const decoration of theme.decorations) {
+        if (
+          !/^[a-z0-9][a-z0-9-]*$/.test(decoration?.name || '') ||
+          decorationNames.has(decoration.name) ||
+          !/^\.[a-z][a-z0-9_-]*$/i.test(decoration?.selector || '') ||
+          !Array.isArray(decoration.items) ||
+          decoration.items.length > 32
+        ) {
+          throw new Error(`皮肤装饰配置无效: ${entry.id}/${decoration?.name || 'unknown'}`)
+        }
+        const itemNames = new Set()
+        for (const item of decoration.items) {
+          if (!/^[a-z0-9][a-z0-9-]*$/.test(item?.name || '') || itemNames.has(item.name) || typeof item.text !== 'string' || item.text.length > 8) {
+            throw new Error(`皮肤装饰项无效: ${entry.id}/${decoration.name}`)
+          }
+          itemNames.add(item.name)
+        }
+        decorationNames.add(decoration.name)
+      }
     }
     return theme
   }
@@ -256,7 +280,51 @@ export default (Plugin) => {
     }
   }
 
+  const createDecorations = (theme) => {
+    if (!Array.isArray(theme.decorations) || theme.decorations.length === 0) return undefined
+
+    const created = new Set()
+    let queued = false
+    const decorate = () => {
+      queued = false
+      for (const decoration of theme.decorations) {
+        document.querySelectorAll(decoration.selector).forEach((target) => {
+          const existing = target.querySelector(`:scope > [data-skin-decoration='${decoration.name}'][data-skin-theme='${theme.id}']`)
+          if (existing) return
+          const container = document.createElement('div')
+          container.setAttribute('data-skin-decoration', decoration.name)
+          container.setAttribute('data-skin-theme', theme.id)
+          container.setAttribute('aria-hidden', 'true')
+          container.inert = true
+          for (const item of decoration.items) {
+            const element = document.createElement('span')
+            element.setAttribute('data-skin-decoration-item', item.name)
+            element.textContent = item.text
+            container.appendChild(element)
+          }
+          target.appendChild(container)
+          created.add(container)
+        })
+      }
+    }
+    const queueDecorate = () => {
+      if (queued) return
+      queued = true
+      queueMicrotask(decorate)
+    }
+    decorate()
+    const observer = new MutationObserver(queueDecorate)
+    observer.observe(document.getElementById('app') || document.body, { childList: true, subtree: true })
+    return () => {
+      observer.disconnect()
+      created.forEach((element) => element.remove())
+      created.clear()
+    }
+  }
+
   const removeAppliedTheme = () => {
+    cleanupDecorations?.()
+    cleanupDecorations = undefined
     cleanupMotion?.()
     cleanupMotion = undefined
     document.getElementById(layerId)?.remove()
@@ -300,6 +368,7 @@ export default (Plugin) => {
     document.head.appendChild(style)
     document.body.setAttribute(ATTRIBUTE_NAME, theme.id)
     cleanupMotion = createMotionLayer(theme)
+    cleanupDecorations = createDecorations(theme)
     const nextState = { selectedThemeId: theme.id, enabled: true }
     await writeState(nextState)
     syncRuntimeState(nextState)

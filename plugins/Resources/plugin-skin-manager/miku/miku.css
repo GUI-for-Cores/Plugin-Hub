@@ -1,254 +1,971 @@
 body[data-gui-skin='miku'] {
+  --dreamy-cyan: #22c8de;
+  --dreamy-blue: #4b88ec;
+  --dreamy-purple: #9869df;
+  --dreamy-pink: #ea78bd;
+  --dreamy-ink: #405188;
+  --dreamy-muted: #7777a5;
+  --dreamy-glass: rgba(255, 255, 255, 0.54);
+  --dreamy-glass-strong: rgba(255, 255, 255, 0.72);
+  --dreamy-border: rgba(170, 147, 241, 0.46);
+  --dreamy-shadow: 0 8px 24px rgba(106, 139, 218, 0.16);
+  --primary-color: #487fe4 !important;
+  --secondary-color: #8561d5 !important;
+  --color-light: #405188 !important;
+  --bg-color-light: rgba(244, 249, 255, 0.26) !important;
+  --scrollbar-track-bg-light: rgba(226, 236, 255, 0.34) !important;
+  --scrollbar-thumb-bg-light: #7f9be7 !important;
+  --btn-normal-color-light: #4b568d !important;
+  --btn-normal-bg-light: rgba(255, 255, 255, 0.58) !important;
+  --btn-normal-hover-color-light: #587ce0 !important;
+  --btn-normal-hover-border-color-light: rgba(111, 150, 238, 0.72) !important;
+  --btn-normal-active-color-light: #805acb !important;
+  --btn-normal-active-border-color-light: #805acb !important;
+  --btn-primary-color-light: #ffffff !important;
+  --btn-primary-bg-light: #718de9 !important;
+  --btn-primary-hover-bg-light: #837fe3 !important;
+  --btn-primary-active-bg-light: #7c70d9 !important;
+  --btn-link-color-light: #4d79df !important;
+  --btn-link-bg-light: rgba(255, 255, 255, 0.25) !important;
+  --btn-link-hover-color-light: #d05fa6 !important;
+  --btn-link-active-color-light: #8b5bd0 !important;
+  --btn-text-color-light: #4d588d !important;
+  --btn-text-bg-light: transparent !important;
+  --btn-text-hover-bg-light: rgba(223, 238, 255, 0.62) !important;
+  --btn-text-active-bg-light: rgba(216, 205, 252, 0.58) !important;
+  --card-color-light: #4b568a !important;
+  --card-bg-light: rgba(255, 255, 255, 0.48) !important;
+  --card-hover-bg-light: rgba(255, 255, 255, 0.66) !important;
+  --card-active-bg-light: rgba(231, 224, 255, 0.62) !important;
+  --switch-on-bg-light: #788fe2 !important;
+  --switch-on-hover-bg-light: #a67fd6 !important;
+  --switch-on-dot-bg-light: #ffffff !important;
+  --switch-off-bg-light: rgba(196, 209, 242, 0.44) !important;
+  --switch-off-hover-bg-light: rgba(188, 194, 235, 0.58) !important;
+  --switch-off-dot-bg-light: rgba(255, 255, 255, 0.94) !important;
+  --input-color-light: #465284 !important;
+  --input-bg-light: rgba(255, 255, 255, 0.66) !important;
+  --dropdown-bg-light: rgba(248, 249, 255, 0.9) !important;
+  --modal-bg-light: rgba(247, 249, 255, 0.92) !important;
+  --modal-mask-bg-light: rgba(184, 204, 240, 0.26) !important;
+  --divider-color-light: rgba(135, 146, 220, 0.34) !important;
+  --select-bg-light: rgba(255, 255, 255, 0.66) !important;
+  --toast-bg-light: rgba(248, 250, 255, 0.92) !important;
+  --menu-bg-light: rgba(248, 250, 255, 0.9) !important;
   position: relative;
   isolation: isolate;
-  background-color: #dffbff !important;
-  background-image:
-    linear-gradient(115deg, rgba(204, 252, 255, 0.06) 0%, rgba(185, 248, 245, 0.1) 46%, rgba(255, 112, 190, 0.08) 100%), var(--skin-manager-background) !important;
-  background-position: center, center !important;
-  background-repeat: no-repeat, no-repeat !important;
-  background-size: cover, cover !important;
-  background-attachment: fixed, fixed !important;
+  overflow: hidden;
+  color: var(--dreamy-ink);
+  background: #e7f6ff !important;
 }
 
-body[data-gui-skin='miku'][theme-mode='dark'] {
-  background-color: #071f2b !important;
-  background-image:
-    linear-gradient(115deg, rgba(3, 27, 38, 0.58) 0%, rgba(4, 38, 48, 0.48) 48%, rgba(48, 15, 64, 0.5) 100%), var(--skin-manager-background) !important;
+body[data-gui-skin='miku']::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  opacity: 1;
+  background:
+    radial-gradient(circle at 14% 18%, rgba(255, 255, 255, 0.78), transparent 31%),
+    radial-gradient(circle at 78% 30%, rgba(221, 235, 255, 0.62), transparent 37%),
+    linear-gradient(125deg, rgba(217, 246, 255, 0.95), rgba(237, 228, 255, 0.92) 52%, rgba(255, 226, 244, 0.9));
 }
 
-body[data-gui-skin='miku'] > #app {
-  background-image:
-    radial-gradient(circle at 12% 8%, rgba(127, 245, 239, 0.32), transparent 28%), radial-gradient(circle at 86% 22%, rgba(255, 83, 171, 0.18), transparent 24%);
-}
-
-body[data-gui-skin='miku'] > #app > :first-child {
-  background: linear-gradient(90deg, rgba(239, 255, 255, 0.78), rgba(184, 249, 244, 0.64), rgba(255, 187, 225, 0.62));
-  background-size: 220% 100%;
-  box-shadow:
-    inset 0 -1px rgba(0, 194, 188, 0.3),
-    0 5px 20px rgba(0, 137, 155, 0.12);
-  -webkit-backdrop-filter: blur(18px) saturate(128%);
-  backdrop-filter: blur(18px) saturate(128%);
-  animation: miku-glass-shimmer 8s ease-in-out infinite;
-}
-
-body[data-gui-skin='miku'][theme-mode='dark'] > #app > :first-child {
-  background: linear-gradient(90deg, rgba(6, 36, 48, 0.82), rgba(8, 51, 61, 0.68), rgba(50, 28, 58, 0.68));
-  box-shadow:
-    inset 0 -1px rgba(102, 226, 220, 0.18),
-    0 5px 22px rgba(0, 13, 22, 0.22);
-}
-
-body[data-gui-skin='miku'] > #app > :nth-child(2) > :first-child {
-  background: linear-gradient(90deg, rgba(250, 255, 255, 0.66), rgba(181, 249, 242, 0.68), rgba(255, 183, 222, 0.58));
-  background-size: 220% 100%;
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.58),
-    0 8px 26px rgba(0, 145, 157, 0.12);
-  -webkit-backdrop-filter: blur(16px) saturate(126%);
-  backdrop-filter: blur(16px) saturate(126%);
-  animation: miku-glass-shimmer 6.4s ease-in-out infinite reverse;
-}
-
-body[data-gui-skin='miku'][theme-mode='dark'] > #app > :nth-child(2) > :first-child {
-  background: linear-gradient(90deg, rgba(8, 44, 56, 0.72), rgba(9, 57, 67, 0.7), rgba(48, 26, 56, 0.62));
-  box-shadow:
-    inset 0 0 0 1px rgba(110, 229, 224, 0.16),
-    0 8px 28px rgba(0, 13, 22, 0.2);
-}
-
-body[data-gui-skin='miku'] > #app > :first-child > img {
-  transform-origin: center;
-  animation: miku-logo-pulse 3.6s ease-in-out infinite;
-}
-
-body[data-gui-skin='miku'] > #app > :nth-child(2) > :first-child > * {
-  transition:
-    transform 180ms ease,
-    filter 180ms ease;
-}
-
-body[data-gui-skin='miku'] > #app > :nth-child(2) > :first-child > *:hover {
-  transform: translateY(-1px) scale(1.025);
-  filter: drop-shadow(0 4px 8px rgba(20, 167, 169, 0.24));
-}
-
-body[data-gui-skin='miku'] > #app > :nth-child(2) > :first-child > *:nth-child(odd) svg {
-  animation: miku-nav-bob 3.2s ease-in-out infinite;
-}
-
-body[data-gui-skin='miku'] > #app > :nth-child(2) > :first-child > *:nth-child(even) svg {
-  animation: miku-nav-bob 3.2s 0.5s ease-in-out infinite reverse;
-}
-
-body[data-gui-skin='miku'] :is(input, textarea, select, [contenteditable='true']) {
-  caret-color: #00a99f;
-  text-shadow: 0 1px rgba(255, 255, 255, 0.35);
-}
-
-body[data-gui-skin='miku'][theme-mode='dark'] :is(input, textarea, select, [contenteditable='true']) {
-  caret-color: #76eee8;
-  text-shadow: none;
-}
-
-body[data-gui-skin='miku'] :is([role='dialog'], [aria-modal='true'], [role='menu'], [role='listbox']) {
-  box-shadow:
-    0 18px 54px rgba(24, 103, 121, 0.2),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.42);
-  -webkit-backdrop-filter: blur(22px) saturate(132%);
-  backdrop-filter: blur(22px) saturate(132%);
-}
-
-body[data-gui-skin='miku'] :is(table, textarea, select):focus-visible,
-body[data-gui-skin='miku'] [tabindex]:focus-visible {
-  outline: 2px solid rgba(0, 197, 190, 0.82);
-  outline-offset: 2px;
-}
-
-body[data-gui-skin='miku'] .gui-input input:focus-visible {
-  outline: none;
-}
-
-body[data-gui-skin='miku'] svg {
-  filter: drop-shadow(0 1px 2px rgba(23, 138, 147, 0.14));
-}
-
-body[data-gui-skin='miku'] ::-webkit-scrollbar-thumb {
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.28),
-    0 0 8px rgba(31, 187, 181, 0.18);
-}
-
-body[data-gui-skin='miku'] ::selection {
-  color: #123d49;
-  background: rgba(78, 235, 222, 0.62);
-}
-
-body[data-gui-skin='miku'] :is(.gui-card, .gui-button) {
-  transition:
-    transform 180ms ease,
-    box-shadow 220ms ease,
-    filter 220ms ease,
-    background-color 220ms ease;
-}
-
-body[data-gui-skin='miku'] :is(.gui-input, .gui-select, .gui-radio, .gui-switch) {
-  transition:
-    box-shadow 220ms ease,
-    background-color 220ms ease;
-}
-
-body[data-gui-skin='miku'] .gui-card {
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.46),
-    0 6px 18px rgba(0, 139, 153, 0.1);
-}
-
-body[data-gui-skin='miku'] .gui-card:hover {
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.54),
-    0 12px 26px rgba(0, 179, 178, 0.2),
-    0 0 18px rgba(255, 70, 164, 0.14);
-}
-
-body[data-gui-skin='miku'] .gui-card:active {
-  box-shadow:
-    inset 0 0 0 1px rgba(67, 218, 211, 0.5),
-    0 5px 14px rgba(22, 159, 163, 0.12);
-}
-
-body[data-gui-skin='miku'] .gui-card:hover svg {
-  filter: drop-shadow(0 0 5px rgba(38, 202, 198, 0.42));
-  transform: rotate(2deg);
-}
-
-body[data-gui-skin='miku'] .gui-button:hover {
-  transform: translateY(-1px) scale(1.018);
-  box-shadow: 0 5px 13px rgba(18, 151, 158, 0.13);
-}
-
-body[data-gui-skin='miku'] .gui-button:active {
-  transform: translateY(0) scale(0.975);
-}
-
-body[data-gui-skin='miku'] .gui-button:hover svg {
-  filter: drop-shadow(0 0 4px rgba(241, 119, 178, 0.42));
-}
-
-body[data-gui-skin='miku'] .gui-input:hover {
-  box-shadow: inset 0 0 0 1px rgba(0, 207, 196, 0.42);
-}
-
-body[data-gui-skin='miku'] .gui-input:focus-within {
-  box-shadow:
-    inset 0 0 0 1px rgba(0, 190, 184, 0.82),
-    0 0 0 2px rgba(0, 222, 207, 0.2),
-    0 5px 14px rgba(21, 143, 151, 0.09);
-}
-
-body[data-gui-skin='miku'] .gui-select:hover {
-  box-shadow:
-    inset 0 0 0 1px rgba(70, 218, 211, 0.34),
-    0 5px 14px rgba(21, 143, 151, 0.09);
-}
-
-body[data-gui-skin='miku'] .gui-radio:hover {
-  box-shadow: 0 0 13px rgba(37, 202, 196, 0.2);
-}
-
-body[data-gui-skin='miku'] .gui-switch.on {
-  animation: miku-switch-glow 2.6s ease-in-out infinite;
-}
-
-body[data-gui-skin='miku'] :is(.gui-dropdown-overlay, .gui-menu) {
-  -webkit-backdrop-filter: blur(22px) saturate(132%);
-  backdrop-filter: blur(22px) saturate(132%);
-  box-shadow:
-    0 18px 54px rgba(24, 103, 121, 0.2),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.42);
-}
-
-body[data-gui-skin='miku'] [data-skin-motion-layer] {
-  --skin-pointer-x: 50vw;
-  --skin-pointer-y: 50vh;
+body[data-gui-skin='miku']::after {
+  content: '';
   position: fixed;
   inset: 0;
   z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.62), transparent 32%),
+    linear-gradient(115deg, rgba(229, 247, 255, 0.22), rgba(239, 226, 255, 0.1) 52%, rgba(255, 224, 244, 0.18));
+}
+
+body[data-gui-skin='miku'][theme-mode='dark'] {
+  --dreamy-ink: #e7edff;
+  --dreamy-muted: #c6c8e8;
+  --dreamy-glass: rgba(30, 39, 75, 0.56);
+  --dreamy-glass-strong: rgba(29, 38, 72, 0.74);
+  --dreamy-border: rgba(154, 148, 234, 0.38);
+  --color-dark: #e7edff !important;
+  --bg-color-dark: rgba(21, 29, 58, 0.34) !important;
+  --card-color-dark: #e7edff !important;
+  --card-bg-dark: rgba(30, 39, 75, 0.54) !important;
+  --card-hover-bg-dark: rgba(42, 52, 91, 0.7) !important;
+  --card-active-bg-dark: rgba(66, 60, 111, 0.66) !important;
+  --btn-text-color-dark: #e7edff !important;
+  --btn-text-bg-dark: transparent !important;
+  --btn-text-hover-bg-dark: rgba(136, 158, 232, 0.2) !important;
+  --btn-text-active-bg-dark: rgba(169, 125, 211, 0.28) !important;
+  --btn-link-color-dark: #9fc7ff !important;
+  --btn-link-bg-dark: rgba(45, 53, 93, 0.26) !important;
+  --btn-link-hover-color-dark: #ffb1da !important;
+  --btn-link-active-color-dark: #c3a9ff !important;
+  --switch-on-bg-dark: #737dcc !important;
+  --switch-on-hover-bg-dark: #9d6cb6 !important;
+  --switch-off-bg-dark: rgba(202, 216, 255, 0.16) !important;
+  --input-color-dark: #edf2ff !important;
+  --input-bg-dark: rgba(26, 37, 73, 0.68) !important;
+  --dropdown-bg-dark: rgba(25, 34, 67, 0.92) !important;
+  --modal-bg-dark: rgba(24, 33, 65, 0.94) !important;
+  --modal-mask-bg-dark: rgba(7, 10, 27, 0.58) !important;
+  --divider-color-dark: rgba(170, 174, 238, 0.28) !important;
+  --select-bg-dark: rgba(26, 37, 73, 0.68) !important;
+  --toast-bg-dark: rgba(25, 34, 67, 0.94) !important;
+  --menu-bg-dark: rgba(25, 34, 67, 0.92) !important;
+  background: #121a38 !important;
+}
+
+body[data-gui-skin='miku'][theme-mode='dark']::before {
+  opacity: 0.54;
+  filter: saturate(0.82) brightness(0.52) contrast(1.08);
+}
+
+body[data-gui-skin='miku'] #app {
+  position: relative;
+  z-index: 2;
+  box-sizing: border-box;
+  padding: 6px;
+  background-image:
+    linear-gradient(rgba(139, 159, 226, 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(139, 159, 226, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(211, 239, 255, 0.18), rgba(243, 224, 255, 0.12), rgba(255, 226, 244, 0.14));
+  background-size:
+    24px 24px,
+    24px 24px,
+    auto;
+}
+
+body[data-gui-skin='miku'] #app::before {
+  content: '';
+  position: fixed;
+  inset: 5px;
+  z-index: 1000;
+  border: 2px solid rgba(185, 153, 240, 0.48);
+  border-radius: 20px;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.8),
+    inset 0 0 20px rgba(122, 198, 246, 0.14),
+    0 0 16px rgba(143, 131, 232, 0.2);
+  pointer-events: none;
+}
+
+body[data-gui-skin='miku'] .app-titlebar {
+  position: relative;
+  z-index: 3;
+  height: 40px;
+  min-height: 40px;
+  padding: 4px 18px !important;
+  border-radius: 15px 15px 8px 8px;
+  color: var(--dreamy-ink);
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.54), rgba(222, 231, 255, 0.46), rgba(244, 218, 255, 0.42));
+  box-shadow: inset 0 -1px rgba(151, 159, 227, 0.18);
+  backdrop-filter: blur(var(--dreamy-blur, 18px)) saturate(1.2);
+}
+
+body[data-gui-skin='miku'] .app-titlebar__logo {
+  width: 30px !important;
+  height: 30px !important;
+  filter: drop-shadow(0 3px 6px rgba(123, 105, 218, 0.28));
+  animation: dreamy-logo-float 4s ease-in-out infinite;
+}
+
+body[data-gui-skin='miku'] .app-titlebar__brand {
+  gap: 7px;
+  color: var(--dreamy-blue) !important;
+  text-shadow: 0 1px rgba(255, 255, 255, 0.86);
+}
+
+body[data-gui-skin='miku'] .app-titlebar__name {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+body[data-gui-skin='miku'] .app-titlebar__version {
+  color: var(--dreamy-purple);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+body[data-gui-skin='miku'] .app-titlebar__custom-actions {
+  color: #7660cb;
+  font-size: 12px;
+}
+
+body[data-gui-skin='miku'] .window-control {
+  color: #8266c9;
+  border-radius: 9px;
+}
+
+body[data-gui-skin='miku'] .window-control:hover {
+  color: #506ed0;
+  background: rgba(255, 255, 255, 0.58) !important;
+  box-shadow: 0 3px 10px rgba(104, 120, 205, 0.16);
+}
+
+body[data-gui-skin='miku'] .window-control--close:hover {
+  color: white;
+  background: linear-gradient(110deg, #e178ba, #9b74da) !important;
+}
+
+body[data-gui-skin='miku'] .app-content {
+  position: relative;
+  z-index: auto;
+  padding: 2px 14px 8px !important;
+  background: transparent;
+}
+
+body[data-gui-skin='miku'] .main-nav {
+  min-height: 36px;
+  gap: clamp(1px, 0.8vw, 12px);
+  padding: 0 8px;
+  border: 0;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+body[data-gui-skin='miku'] .main-nav__item {
+  position: relative;
+}
+
+body[data-gui-skin='miku'] .main-nav__button {
+  position: relative;
+  padding: 4px 9px;
+  border-radius: 0;
+  color: #4a5384;
+  background: transparent !important;
+  font-weight: 680;
+  transition:
+    transform 180ms ease,
+    color 180ms ease,
+    filter 180ms ease;
+}
+
+body[data-gui-skin='miku'] .main-nav__button svg {
+  display: none;
+}
+
+body[data-gui-skin='miku'] .main-nav__button::before {
+  content: '';
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  margin-right: 6px;
+  background-image: var(--dreamy-nav-icon);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  filter: drop-shadow(0 2px 3px rgba(95, 102, 190, 0.2));
+  animation: dreamy-nav-bob 3.8s ease-in-out infinite;
+}
+
+body[data-gui-skin='miku'] .main-nav__button:hover {
+  color: #7166cf;
+  transform: translateY(-2px);
+  filter: drop-shadow(0 4px 5px rgba(110, 129, 217, 0.22));
+}
+
+body[data-gui-skin='miku'] .main-nav__button.is-active {
+  color: #3c73db;
+  background: transparent !important;
+  text-shadow: 0 1px rgba(255, 255, 255, 0.9);
+}
+
+body[data-gui-skin='miku'] .main-nav__button.is-active::after {
+  content: '';
+  position: absolute;
+  right: 8px;
+  bottom: -1px;
+  left: 8px;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, #58d5e6 12%, #6c8bea 58%, #ec83c2 88%, transparent);
+  box-shadow: 0 0 8px rgba(102, 145, 232, 0.62);
+}
+
+body[data-gui-skin='miku'] .main-nav__item--overview {
+  --dreamy-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3.2l3.8 7.7 8.5 1.2-6.2 6 1.5 8.4-7.6-4-7.6 4 1.5-8.4-6.2-6 8.5-1.2z' fill='%23e9fdff' stroke='%2339cfe1' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M16 6.4l2.7 5.5 6.1.9-4.4 4.3 1 6-5.4-2.9-5.4 2.9 1-6-4.4-4.3 6.1-.9z' fill='%23dff5ff' stroke='%23926cdd' stroke-width='1' opacity='.72'/%3E%3Ccircle cx='27' cy='6' r='1.6' fill='%23f29bc9'/%3E%3Cpath d='M4 21h4M6 19v4' stroke='%23f08ac2' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+body[data-gui-skin='miku'] .main-nav__item--profiles {
+  --dreamy-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M4 10l12-6 12 6-12 6z' fill='%23fce9f7' stroke='%23a36bd8' stroke-width='1.7' stroke-linejoin='round'/%3E%3Cpath d='M4 16l12 6 12-6' fill='none' stroke='%235ccfe0' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M4 21l12 6 12-6' fill='none' stroke='%238266d3' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M9 9l7-3.5L23 9l-7 3.5z' fill='%23dff9ff' stroke='%23ef91c6' stroke-width='1'/%3E%3C/svg%3E");
+}
+
+body[data-gui-skin='miku'] .main-nav__item--subscriptions {
+  --dreamy-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='7' y='4' width='18' height='24' rx='4' fill='%23f2fbff' stroke='%23776bd4' stroke-width='1.8'/%3E%3Cpath d='M11 4h10v5l-5-2-5 2z' fill='%23d6f7ff' stroke='%2359cbdc' stroke-width='1.2'/%3E%3Cpath d='M16 13l1.5 3 3.4.5-2.5 2.4.6 3.4-3-1.6-3 1.6.6-3.4-2.5-2.4 3.4-.5z' fill='%23f9d9ef' stroke='%23df78bc' stroke-width='1.1'/%3E%3C/svg%3E");
+}
+
+body[data-gui-skin='miku'] .main-nav__item--rulesets {
+  --dreamy-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='4.5' y='7' width='23' height='21' rx='4' fill='%23f2fbff' stroke='%238067d4' stroke-width='1.8'/%3E%3Cpath d='M5 12h22' stroke='%23ee8dc3' stroke-width='2'/%3E%3Cpath d='M10 4v6M22 4v6' stroke='%2358cddb' stroke-width='2.2' stroke-linecap='round'/%3E%3Cpath d='M16 16v8M12 20h8' stroke='%237469d8' stroke-width='1.8' stroke-linecap='round'/%3E%3Ccircle cx='25.5' cy='9.5' r='2' fill='%23ffd3eb'/%3E%3C/svg%3E");
+}
+
+body[data-gui-skin='miku'] .main-nav__item--plugins {
+  --dreamy-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3l11 6.3v13.4L16 29 5 22.7V9.3z' fill='%23f3f6ff' stroke='%23816bd6' stroke-width='1.7' stroke-linejoin='round'/%3E%3Cpath d='M5 9.3l11 6.4 11-6.4M16 15.7V29' fill='none' stroke='%235bcddd' stroke-width='1.7'/%3E%3Cpath d='M8.5 9.4L16 5l7.5 4.4-7.5 4.3z' fill='%23f9d9ee' stroke='%23e987be' stroke-width='1'/%3E%3Cpath d='M7 12l8 4.7v9.5l-8-4.6z' fill='%23def8ff' opacity='.72'/%3E%3C/svg%3E");
+}
+
+body[data-gui-skin='miku'] .main-nav__item--scheduledtasks {
+  --dreamy-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M10 6L7 9M22 6l3 3' stroke='%23ec88bf' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='17' r='10' fill='%23f6f3ff' stroke='%23806bd6' stroke-width='1.8'/%3E%3Cpath d='M16 11v6l4 2' fill='none' stroke='%2358cbdc' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='17' r='2' fill='%23f093c7'/%3E%3Cpath d='M10 27l-2 2M22 27l2 2' stroke='%23746bd1' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M12 4h8' stroke='%2358cbdc' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+body[data-gui-skin='miku'] .main-nav__item--settings {
+  --dreamy-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M13 4h6l1 4 3.5 2 4-1 3 5-3 3v4l3 3-3 5-4-1-3.5 2-1 4h-6l-1-4-3.5-2-4 1-3-5 3-3v-4l-3-3 3-5 4 1L12 8z' transform='scale(.78) translate(4.5 4.5)' fill='%23f8effb' stroke='%23836bd5' stroke-width='2' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23ddf9ff' stroke='%2359cbdc' stroke-width='1.8'/%3E%3Ccircle cx='16' cy='16' r='2' fill='%23ee8ec4'/%3E%3C/svg%3E");
+}
+
+body[data-gui-skin='miku'] .main-nav__item--overview:has(.is-active)::before {
+  content: '✧';
+  position: absolute;
+  left: -1px;
+  top: 2px;
+  color: #ee8bc3;
+  font-size: 13px;
+  text-shadow:
+    -5px 9px #74d5e5,
+    5px 18px #9172db;
+  animation: dreamy-card-glint 3.4s ease-in-out infinite;
+}
+
+body[data-gui-skin='miku'] .app-page {
+  margin-top: 6px !important;
+  padding: 0 6px !important;
+}
+
+body[data-gui-skin='miku'] .app-page--overview {
+  overflow: hidden !important;
+}
+
+body[data-gui-skin='miku'] .home-view,
+body[data-gui-skin='miku'] .home-overview {
+  overflow: visible;
+}
+
+body[data-gui-skin='miku'] .overview-toolbar {
+  position: relative;
+  min-height: 38px;
+  padding: 5px 12px !important;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 999px !important;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.56), rgba(236, 238, 255, 0.48), rgba(245, 232, 255, 0.46)) !important;
+  box-shadow:
+    var(--dreamy-shadow),
+    inset 0 0 0 1px rgba(146, 169, 231, 0.18);
+  backdrop-filter: blur(var(--dreamy-blur, 18px)) saturate(1.2);
+}
+
+body[data-gui-skin='miku'] .overview-toolbar .gui-switch {
+  border: 1px solid rgba(115, 149, 221, 0.3);
+  box-shadow: 0 3px 10px rgba(95, 128, 205, 0.12);
+}
+
+body[data-gui-skin='miku'] .gui-switch.on {
+  background: linear-gradient(90deg, #6bd1e5, #8c7ee4) !important;
+}
+
+body[data-gui-skin='miku'] .gui-switch.on:hover {
+  background: linear-gradient(90deg, #5dc7e2, #d27bc8) !important;
+}
+
+body[data-gui-skin='miku'] .home-stats {
+  gap: 12px !important;
+  margin-top: 12px !important;
+}
+
+body[data-gui-skin='miku'] .gui-card {
+  border: 1px solid rgba(255, 255, 255, 0.74);
+  background: var(--dreamy-glass) !important;
+  box-shadow:
+    var(--dreamy-shadow),
+    inset 0 0 0 1px var(--dreamy-border);
+  backdrop-filter: none;
+  transition:
+    transform 180ms ease,
+    box-shadow 220ms ease,
+    background 220ms ease;
+}
+
+body[data-gui-skin='miku'] .gui-card:hover {
+  transform: none;
+  background: var(--dreamy-glass-strong) !important;
+  box-shadow:
+    0 12px 28px rgba(94, 126, 205, 0.2),
+    0 0 18px rgba(224, 120, 187, 0.12),
+    inset 0 0 0 1px rgba(169, 154, 235, 0.48);
+}
+
+body[data-gui-skin='miku'] .gui-card__header {
+  position: relative;
+  padding: 9px 10px 5px;
+}
+
+body[data-gui-skin='miku'] .gui-card__title {
+  color: var(--dreamy-ink) !important;
+  font-size: 15px;
+  text-shadow: 0 1px rgba(255, 255, 255, 0.72);
+}
+
+body[data-gui-skin='miku'] .home-stat-card {
+  position: relative;
+  min-height: 82px;
+  overflow: hidden;
+  border-color: rgba(157, 151, 232, 0.62);
+  border-radius: 14px !important;
+  outline: 1px solid rgba(255, 255, 255, 0.9);
+  outline-offset: -4px;
+  box-shadow:
+    0 5px 14px rgba(91, 190, 232, 0.22),
+    0 0 13px rgba(205, 124, 224, 0.13),
+    inset 0 0 0 1px rgba(136, 176, 231, 0.26),
+    inset 0 0 18px rgba(255, 255, 255, 0.34);
+}
+
+body[data-gui-skin='miku'] .home-stat-card:hover {
+  box-shadow:
+    0 7px 18px rgba(76, 185, 230, 0.3),
+    0 0 17px rgba(213, 116, 222, 0.2),
+    inset 0 0 0 1px rgba(137, 157, 226, 0.34),
+    inset 0 0 22px rgba(255, 255, 255, 0.46);
+}
+
+body[data-gui-skin='miku'] .home-stat-card > :not([data-skin-decoration='stats']) {
+  position: relative;
+  z-index: 2;
+}
+
+body[data-gui-skin='miku'] .home-stat-card .gui-card__header::before {
+  content: '';
+  flex: 0 0 21px;
+  width: 21px;
+  height: 21px;
+  margin-right: 5px;
+  color: #8c6bdd;
+  background: currentColor;
+  -webkit-mask: var(--dreamy-card-icon) center / contain no-repeat;
+  mask: var(--dreamy-card-icon) center / contain no-repeat;
+  filter: drop-shadow(0 0 7px rgba(255, 255, 255, 0.92));
+}
+
+body[data-gui-skin='miku'] .home-stat-card .gui-card__header::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  bottom: 0;
+  width: 76px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(76, 190, 220, 0.72), rgba(152, 116, 220, 0.38), transparent);
+  box-shadow: 0 1px rgba(255, 255, 255, 0.82);
+}
+
+body[data-gui-skin='miku'] .home-stat-card--realtime {
+  --dreamy-card-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M2 12h4l2-7 4 14 3-10 2 3h5' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+body[data-gui-skin='miku'] .home-stat-card--total {
+  --dreamy-card-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 3h11l3 3v15H5zM8 9h8M8 13h8M8 17h5' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+body[data-gui-skin='miku'] .home-stat-card--connections {
+  --dreamy-card-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21S3 15.6 3 8.8C3 3.8 9.2 2 12 6c2.8-4 9-2.2 9 2.8C21 15.6 12 21 12 21z' fill='none' stroke='black' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+body[data-gui-skin='miku'] .home-stat-card--memory {
+  --dreamy-card-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='5' y='5' width='14' height='14' rx='2' fill='none' stroke='black' stroke-width='2'/%3E%3Crect x='9' y='9' width='6' height='6' fill='black'/%3E%3Cpath d='M8 2v3m4-3v3m4-3v3M8 19v3m4-3v3m4-3v3M2 8h3m-3 4h3m-3 4h3m14-8h3m-3 4h3m-3 4h3' stroke='black' stroke-width='1.7'/%3E%3C/svg%3E");
+}
+
+body[data-gui-skin='miku'] .home-stat-card--realtime .gui-card__header::before {
+  color: #4baac8;
+}
+body[data-gui-skin='miku'] .home-stat-card--connections .gui-card__header::before {
+  color: #dd71b5;
+}
+body[data-gui-skin='miku'] .home-stat-card--memory .gui-card__header::before {
+  color: #9868dc;
+}
+
+body[data-gui-skin='miku'] .home-stat-card::after {
+  position: absolute;
+  right: 12px;
+  bottom: 2px;
+  z-index: 1;
+  color: rgba(133, 118, 218, 0.25);
+  font-size: 36px;
+  line-height: 1;
+  text-shadow:
+    0 0 2px rgba(255, 255, 255, 0.96),
+    0 0 10px rgba(118, 181, 238, 0.38);
+}
+
+body[data-gui-skin='miku'] .home-stat-card--realtime {
+  background:
+    radial-gradient(circle at 92% 12%, rgba(246, 154, 220, 0.3), transparent 28%),
+    radial-gradient(circle at 18% 95%, rgba(141, 224, 239, 0.24), transparent 38%),
+    linear-gradient(120deg, rgba(230, 250, 255, 0.78), rgba(247, 230, 255, 0.66)) !important;
+}
+
+body[data-gui-skin='miku'] .home-stat-card--realtime::after {
+  content: '♡';
+  color: rgba(121, 132, 226, 0.28);
+}
+body[data-gui-skin='miku'] .home-stat-card--total::after {
+  content: '♪';
+  color: rgba(76, 163, 225, 0.28);
+}
+body[data-gui-skin='miku'] .home-stat-card--connections::after {
+  content: '♡';
+  color: rgba(72, 179, 224, 0.34);
+}
+body[data-gui-skin='miku'] .home-stat-card--memory::after {
+  content: '♡';
+  color: rgba(216, 101, 186, 0.32);
+}
+
+body[data-gui-skin='miku'] .home-stat-card--total {
+  background:
+    radial-gradient(circle at 14% 15%, rgba(154, 225, 243, 0.3), transparent 34%),
+    radial-gradient(circle at 86% 80%, rgba(178, 177, 247, 0.28), transparent 35%),
+    linear-gradient(120deg, rgba(232, 249, 255, 0.76), rgba(237, 232, 255, 0.68)) !important;
+}
+
+body[data-gui-skin='miku'] .home-stat-card--connections {
+  background:
+    radial-gradient(circle at 26% 28%, rgba(255, 176, 226, 0.31), transparent 38%),
+    radial-gradient(circle at 88% 78%, rgba(145, 219, 242, 0.25), transparent 36%),
+    linear-gradient(120deg, rgba(255, 238, 251, 0.74), rgba(229, 246, 255, 0.68)) !important;
+}
+
+body[data-gui-skin='miku'] .home-stat-card--memory {
+  background:
+    radial-gradient(circle at 15% 15%, rgba(185, 169, 246, 0.31), transparent 36%),
+    radial-gradient(circle at 84% 78%, rgba(255, 171, 220, 0.34), transparent 42%), linear-gradient(120deg, rgba(239, 232, 255, 0.76), rgba(255, 238, 250, 0.7)) !important;
+}
+
+body[data-gui-skin='miku'] .home-stat-card__value {
+  position: relative;
+  z-index: 1;
+  color: #427a9b;
+  font-size: 16px !important;
+}
+
+body[data-gui-skin='miku'] .metric--upload {
+  color: #4ba994;
+}
+body[data-gui-skin='miku'] .metric--download {
+  color: #d86ba8;
+}
+
+body[data-gui-skin='miku'] [data-skin-decoration='stats'] {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+body[data-gui-skin='miku'] [data-skin-decoration-item] {
+  position: absolute;
+  display: block;
+  line-height: 1;
+  text-shadow: 0 0 7px rgba(255, 255, 255, 0.98);
+}
+
+body[data-gui-skin='miku'] [data-skin-decoration-item='star-a'] {
+  top: 7px;
+  right: 10px;
+  color: rgba(235, 104, 192, 0.58);
+  font-size: 24px;
+  animation: dreamy-card-glint 3.8s ease-in-out infinite;
+}
+
+body[data-gui-skin='miku'] [data-skin-decoration-item='star-b'] {
+  top: 27px;
+  right: 50px;
+  color: rgba(77, 197, 228, 0.6);
+  font-size: 10px;
+  animation: dreamy-card-glint 3.1s -1.2s ease-in-out infinite;
+}
+
+body[data-gui-skin='miku'] [data-skin-decoration-item='star-c'] {
+  right: 28px;
+  bottom: 8px;
+  color: rgba(139, 103, 218, 0.55);
+  font-size: 11px;
+  animation: dreamy-card-glint 4.4s -2.1s ease-in-out infinite;
+}
+
+body[data-gui-skin='miku'] [data-skin-decoration-item='note'] {
+  top: 8px;
+  right: 50px;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 17px;
+  transform: rotate(-12deg);
+}
+
+body[data-gui-skin='miku'] [data-skin-decoration-item='heart'] {
+  right: 47px;
+  bottom: 6px;
+  color: rgba(229, 95, 185, 0.5);
+  font-size: 14px;
+}
+
+body[data-gui-skin='miku'] [data-skin-decoration-item='orbit'] {
+  display: none;
+  top: 30px;
+  right: 14px;
+  width: 86px;
+  height: 28px;
+  border-top: 1px dashed rgba(116, 139, 227, 0.42);
+  border-radius: 50%;
+  transform: rotate(-30deg);
+}
+
+body[data-gui-skin='miku'] [data-skin-decoration-item='orbit']::before,
+body[data-gui-skin='miku'] [data-skin-decoration-item='orbit']::after {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #7bcfe5;
+  box-shadow: 0 0 6px rgba(103, 197, 229, 0.78);
+}
+
+body[data-gui-skin='miku'] [data-skin-decoration-item='orbit']::before {
+  left: 12px;
+  top: -3px;
+}
+body[data-gui-skin='miku'] [data-skin-decoration-item='orbit']::after {
+  right: 14px;
+  top: 0;
+  background: #e394c9;
+}
+
+body[data-gui-skin='miku'] .home-stat-card--realtime [data-skin-decoration-item='note'],
+body[data-gui-skin='miku'] .home-stat-card--realtime [data-skin-decoration-item='orbit'] {
+  display: none;
+}
+
+body[data-gui-skin='miku'] .home-stat-card--total [data-skin-decoration-item='star-a'] {
+  color: rgba(111, 121, 224, 0.55);
+}
+body[data-gui-skin='miku'] .home-stat-card--total [data-skin-decoration-item='heart'] {
+  display: none;
+}
+body[data-gui-skin='miku'] .home-stat-card--connections [data-skin-decoration-item='note'] {
+  display: none;
+}
+body[data-gui-skin='miku'] .home-stat-card--connections [data-skin-decoration-item='orbit'] {
+  display: block;
+  right: 27px;
+  border-top-style: solid;
+  border-top-color: rgba(255, 255, 255, 0.72);
+  transform: rotate(-24deg);
+}
+body[data-gui-skin='miku'] .home-stat-card--memory [data-skin-decoration-item='orbit'] {
+  display: block;
+}
+body[data-gui-skin='miku'] .home-stat-card--memory [data-skin-decoration-item='star-a'] {
+  color: rgba(94, 191, 229, 0.56);
+}
+body[data-gui-skin='miku'] .home-stat-card--memory [data-skin-decoration-item='note'] {
+  right: 13px;
+  color: rgba(239, 146, 200, 0.65);
+}
+
+body[data-gui-skin='miku'] .home-dashboard {
+  gap: 12px;
+  min-height: 0;
+}
+
+body[data-gui-skin='miku'] .traffic-panel,
+body[data-gui-skin='miku'] .mode-panel {
+  position: relative;
+  overflow: hidden;
+  margin-top: 12px;
+  padding: 0 10px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.36);
+  box-shadow:
+    var(--dreamy-shadow),
+    inset 0 0 0 1px rgba(147, 154, 226, 0.22);
+  backdrop-filter: blur(calc(var(--dreamy-blur, 18px) * 0.62)) saturate(1.08);
+}
+
+body[data-gui-skin='miku'] .traffic-panel > :not(.traffic-panel__art) {
+  position: relative;
+  z-index: 2;
+}
+
+body[data-gui-skin='miku'] .traffic-panel__art {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: min(1, calc(var(--dreamy-background-opacity, 0.78) + 0.18));
+  background-image:
+    linear-gradient(90deg, rgba(247, 249, 255, 0.82) 0%, rgba(247, 249, 255, 0.18) 38%, rgba(245, 226, 255, 0.03) 100%), var(--skin-manager-background);
+  background-position:
+    center,
+    58% bottom;
+  background-repeat: no-repeat;
+  background-size:
+    cover,
+    auto 128%;
+  filter: saturate(1.02) brightness(1.03);
+  mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.54), #000 34%, #000);
+}
+
+body[data-gui-skin='miku'] .mode-panel {
+  margin-left: 0 !important;
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.46), rgba(244, 229, 255, 0.38));
+}
+
+body[data-gui-skin='miku'] .traffic-panel__title,
+body[data-gui-skin='miku'] .mode-panel__title {
+  position: relative;
+  padding: 10px 2px 7px !important;
+  color: var(--dreamy-ink) !important;
+  font-size: 15px;
+}
+
+body[data-gui-skin='miku'] :is(.traffic-panel__title, .mode-panel__title)::before {
+  content: '☆';
+  display: inline-flex;
+  vertical-align: middle;
+  margin-right: 6px;
+  color: #df77b6;
+  font-size: 18px;
+  line-height: 1;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.86);
+}
+
+body[data-gui-skin='miku'] .gui-traffic-chart {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  z-index: 2;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.12), rgba(231, 240, 255, 0.08)) !important;
+  box-shadow: inset 0 0 22px rgba(152, 164, 232, 0.1);
+}
+
+body[data-gui-skin='miku'] .traffic-chart__grid-line {
+  stroke: rgba(103, 125, 207, 0.52) !important;
+}
+
+body[data-gui-skin='miku'] .traffic-chart__axis-label {
+  fill: #477bd2 !important;
+}
+
+body[data-gui-skin='miku'] .traffic-chart__series--upload {
+  stroke: #9d72df !important;
+  fill: rgba(173, 125, 228, 0.08) !important;
+}
+
+body[data-gui-skin='miku'] .traffic-chart__series--download {
+  stroke: #49bee3 !important;
+  fill: rgba(69, 190, 227, 0.08) !important;
+}
+
+body[data-gui-skin='miku'] .mode-panel__list {
+  gap: 10px !important;
+}
+
+body[data-gui-skin='miku'] .home-mode-card {
+  min-height: 68px;
+  overflow: hidden;
+  border-radius: 14px !important;
+}
+
+body[data-gui-skin='miku'] .home-mode-card .gui-card__header::before {
+  content: '';
+  flex: 0 0 25px;
+  width: 25px;
+  height: 25px;
+  margin-right: 6px;
+  color: #6d76dd;
+  background: currentColor;
+  -webkit-mask: var(--dreamy-mode-icon) center / contain no-repeat;
+  mask: var(--dreamy-mode-icon) center / contain no-repeat;
+}
+
+body[data-gui-skin='miku'] .home-mode-card--global {
+  --dreamy-mode-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9' fill='none' stroke='black' stroke-width='2'/%3E%3Cpath d='M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18' fill='none' stroke='black' stroke-width='1.7'/%3E%3C/svg%3E");
+}
+body[data-gui-skin='miku'] .home-mode-card--rule {
+  --dreamy-mode-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 3h11l3 3v15H5zM8 9h8M8 13h8M8 17h4' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='17.5' cy='17.5' r='2.5' fill='black'/%3E%3C/svg%3E");
+}
+body[data-gui-skin='miku'] .home-mode-card--direct {
+  --dreamy-mode-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 11L21 3l-8 18-2.3-7.7L3 11zm7.7 2.3L21 3' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+body[data-gui-skin='miku'] .home-mode-card--global .gui-card__header::before {
+  color: #38a9d1;
+}
+body[data-gui-skin='miku'] .home-mode-card--rule .gui-card__header::before {
+  color: #8b68db;
+}
+body[data-gui-skin='miku'] .home-mode-card--direct .gui-card__header::before {
+  color: #a474dc;
+}
+
+body[data-gui-skin='miku'] .home-mode-card::after {
+  position: absolute;
+  right: 16px;
+  top: 11px;
+  color: rgba(119, 127, 217, 0.18);
+  font-size: 31px;
+}
+
+body[data-gui-skin='miku'] .home-mode-card--global::after {
+  content: '♁';
+}
+body[data-gui-skin='miku'] .home-mode-card--rule::after {
+  content: '☆';
+}
+body[data-gui-skin='miku'] .home-mode-card--direct::after {
+  content: '♡';
+  color: rgba(221, 101, 175, 0.2);
+}
+
+body[data-gui-skin='miku'] .home-mode-card.is-selected {
+  background: linear-gradient(120deg, rgba(236, 249, 255, 0.72), rgba(244, 230, 255, 0.68)) !important;
+  box-shadow:
+    0 8px 22px rgba(96, 127, 207, 0.16),
+    inset 0 0 0 2px rgba(112, 151, 226, 0.34);
+}
+
+body[data-gui-skin='miku'] .gui-card__state--selected {
+  z-index: 2;
+  color: #3d7adf !important;
+  filter: drop-shadow(0 0 5px rgba(91, 152, 231, 0.32));
+}
+
+body[data-gui-skin='miku'] .controller-trigger {
+  position: absolute;
+  left: 50%;
+  bottom: 3px;
+  z-index: 8;
+  width: min(58%, 420px);
+  margin: 0;
+  transform: translateX(-50%);
+}
+
+body[data-gui-skin='miku'] .controller-trigger .gui-divider__content {
+  padding: 3px 15px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.62), rgba(238, 229, 255, 0.58));
+  box-shadow: 0 4px 14px rgba(102, 126, 209, 0.16);
+}
+
+body[data-gui-skin='miku'] .controller-trigger .gui-divider__content::before {
+  content: '✦  ୨୧';
+  margin-right: 9px;
+  color: #d976b8;
+}
+
+body[data-gui-skin='miku'] .controller-trigger .gui-divider__content::after {
+  content: '୨୧  ✦';
+  margin-left: 9px;
+  color: #6fc6e2;
+}
+
+body[data-gui-skin='miku'] .controller-panel {
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(245, 248, 255, 0.7);
+  backdrop-filter: none;
+}
+
+body[data-gui-skin='miku'] :is(.gui-input, .gui-select, .gui-dropdown-overlay, .gui-menu) {
+  border-color: rgba(140, 151, 219, 0.3);
+  box-shadow: 0 6px 18px rgba(91, 116, 194, 0.1);
+  backdrop-filter: blur(var(--dreamy-blur, 18px)) saturate(1.16);
+}
+
+body[data-gui-skin='miku'] .gui-button {
+  transition:
+    transform 160ms ease,
+    filter 180ms ease,
+    box-shadow 180ms ease;
+}
+
+body[data-gui-skin='miku'] .gui-button.primary {
+  background: linear-gradient(110deg, #62cbe4, #718de9 52%, #c07cde) !important;
+}
+
+body[data-gui-skin='miku'] .gui-button.primary:hover {
+  background: linear-gradient(110deg, #52bedb, #7d84e7 52%, #d278ce) !important;
+}
+
+body[data-gui-skin='miku'] .gui-button:hover {
+  transform: translateY(-1px);
+  filter: drop-shadow(0 4px 6px rgba(93, 118, 205, 0.18));
+}
+
+body[data-gui-skin='miku'] .gui-button:active {
+  transform: scale(0.97);
+}
+
+body[data-gui-skin='miku'] .controller-close {
+  width: 31px;
+  height: 31px;
+  padding: 5px;
+  border: 1px solid rgba(137, 132, 222, 0.46);
+  border-radius: 50%;
+  color: #7967cd;
+  background:
+    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.92), transparent 33%), linear-gradient(135deg, rgba(218, 249, 255, 0.9), rgba(249, 218, 244, 0.9)) !important;
+  box-shadow:
+    0 5px 15px rgba(94, 128, 210, 0.22),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.62),
+    0 0 11px rgba(211, 113, 198, 0.16);
+  transform: translateX(-50%) !important;
+}
+
+body[data-gui-skin='miku'] .controller-close:hover {
+  color: #d765ad;
+  filter: drop-shadow(0 4px 6px rgba(93, 118, 205, 0.18));
+  box-shadow:
+    0 6px 17px rgba(82, 164, 220, 0.28),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.76),
+    0 0 14px rgba(218, 107, 193, 0.24);
+  transform: translateX(-50%) !important;
+}
+
+body[data-gui-skin='miku'] .controller-close:active {
+  transform: translateX(-50%) scale(0.96) !important;
+}
+
+body[data-gui-skin='miku'] .controller-close svg {
+  width: 17px !important;
+  height: 17px !important;
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.92));
+}
+
+body[data-gui-skin='miku'] svg {
+  filter: drop-shadow(0 1px 2px rgba(90, 105, 188, 0.16));
+}
+body[data-gui-skin='miku'] ::selection {
+  color: #3d477c;
+  background: rgba(210, 186, 247, 0.58);
+}
+
+body[data-gui-skin='miku'] [data-skin-motion-layer] {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
   overflow: hidden;
   pointer-events: none;
   contain: layout paint style;
 }
 
-body[data-gui-skin='miku'] [data-skin-motion-layer]::before {
-  content: '';
-  position: absolute;
-  top: -18%;
-  left: -34%;
-  width: 28%;
-  height: 138%;
-  opacity: 0.52;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), rgba(73, 227, 221, 0.18), rgba(249, 147, 195, 0.12), transparent);
-  transform: rotate(16deg);
-  filter: blur(10px);
-  animation: miku-light-sweep 9s ease-in-out infinite;
-}
-
-body[data-gui-skin='miku'] [data-skin-motion-layer]::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  opacity: 0.86;
-  background: radial-gradient(
-    170px circle at var(--skin-pointer-x) var(--skin-pointer-y),
-    rgba(81, 238, 226, 0.2),
-    rgba(244, 139, 190, 0.07) 42%,
-    transparent 72%
-  );
-}
-
-body[data-gui-skin='miku'][theme-mode='dark'] [data-skin-motion-layer] {
-  opacity: 0.84;
-  filter: saturate(118%);
+body[data-gui-skin='miku'] :is(.gui-dropdown-overlay, .gui-menu) {
+  border: 1px solid rgba(255, 255, 255, 0.74);
+  background: rgba(248, 250, 255, 0.9) !important;
+  box-shadow:
+    0 14px 38px rgba(86, 107, 189, 0.2),
+    inset 0 0 0 1px rgba(159, 148, 226, 0.2);
+  backdrop-filter: blur(20px) saturate(1.2);
 }
 
 body[data-gui-skin='miku'] [data-skin-particle='sparkle'] {
@@ -257,134 +974,71 @@ body[data-gui-skin='miku'] [data-skin-particle='sparkle'] {
   top: var(--skin-y);
   width: var(--skin-size);
   height: var(--skin-size);
-  opacity: 0.18;
-  background: linear-gradient(135deg, #ffffff 12%, #8bf7ef 48%, #f7a4cf 88%);
+  opacity: 0.14;
+  background: linear-gradient(135deg, #ffffff, #86dff1 48%, #eaa0d0);
   clip-path: polygon(50% 0, 61% 38%, 100% 50%, 61% 62%, 50% 100%, 39% 62%, 0 50%, 39% 38%);
-  filter: drop-shadow(0 0 5px rgba(84, 230, 221, 0.82));
-  animation: miku-sparkle-dance var(--skin-duration) var(--skin-delay) ease-in-out infinite;
-  will-change: transform, opacity;
+  filter: drop-shadow(0 0 5px rgba(133, 177, 235, 0.62));
+  animation: dreamy-sparkle var(--skin-duration) var(--skin-delay) ease-in-out infinite;
 }
 
-body[data-gui-skin='miku'] [data-skin-particle='note'] {
+body[data-gui-skin='miku'] :is([data-skin-particle='ornament-left'], [data-skin-particle='ornament-right']) {
   position: absolute;
-  left: var(--skin-x);
-  bottom: -10%;
-  color: rgba(20, 172, 176, 0.62);
-  font-size: var(--skin-size);
+  color: rgba(133, 100, 214, 0.5);
+  font-size: 42px;
   line-height: 1;
   text-shadow:
-    0 0 7px rgba(255, 255, 255, 0.92),
-    0 0 12px rgba(246, 137, 190, 0.46);
-  animation: miku-note-float var(--skin-duration) var(--skin-delay) linear infinite;
-  will-change: transform, opacity;
+    0 0 8px rgba(255, 255, 255, 0.92),
+    0 0 14px rgba(133, 177, 235, 0.32);
+  animation: dreamy-ornament 5s ease-in-out infinite;
 }
 
-body[data-gui-skin='miku'] [data-skin-particle='note']:nth-of-type(3n) {
-  color: rgba(232, 91, 159, 0.58);
+body[data-gui-skin='miku'] [data-skin-particle='ornament-left'] {
+  left: 14px;
+  bottom: 14px;
+  color: rgba(221, 113, 183, 0.5);
 }
-
-body[data-gui-skin='miku'] [data-skin-particle='bubble'] {
-  position: absolute;
-  left: var(--skin-x);
-  bottom: -12%;
-  width: var(--skin-size);
-  height: var(--skin-size);
-  border: 1px solid rgba(255, 255, 255, 0.58);
-  border-radius: 50%;
-  opacity: 0;
-  background: radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.74), rgba(114, 232, 229, 0.1) 46%, rgba(245, 142, 191, 0.18));
-  box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.42);
-  animation: miku-bubble-rise var(--skin-duration) var(--skin-delay) linear infinite;
-  will-change: transform, opacity;
+body[data-gui-skin='miku'] [data-skin-particle='ornament-right'] {
+  right: 18px;
+  bottom: 14px;
+  font-size: 49px;
+  animation-delay: -2s;
 }
 
 body[data-gui-skin='miku'] [data-skin-equalizer] {
   position: absolute;
-  right: 38%;
-  bottom: 5px;
-  left: 2%;
-  height: 58px;
+  right: 12%;
+  bottom: 9px;
+  left: 10%;
+  height: 44px;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   gap: 3px;
-  opacity: 0.34;
-  filter: drop-shadow(0 0 7px rgba(38, 204, 201, 0.24));
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
-}
-
-body[data-gui-skin='miku'] [data-skin-equalizer]::before {
-  content: '';
-  position: absolute;
-  right: 0;
-  bottom: 12px;
-  left: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(20, 185, 183, 0.72), rgba(242, 122, 180, 0.58), transparent);
-  box-shadow: 0 0 8px rgba(68, 220, 214, 0.46);
-  animation: miku-wave-breathe 2.4s ease-in-out infinite;
+  opacity: 0.26;
+  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
 }
 
 body[data-gui-skin='miku'] [data-skin-equalizer-bar] {
   width: 3px;
   height: var(--skin-height);
   border-radius: 999px 999px 2px 2px;
-  background: linear-gradient(180deg, rgba(246, 139, 191, 0.9), rgba(84, 229, 222, 0.94) 46%, rgba(26, 152, 171, 0.28));
-  transform: scaleY(0.22);
+  background: linear-gradient(180deg, #e68fc7, #6acde6 56%, rgba(101, 118, 211, 0.28));
+  transform: scaleY(0.2);
   transform-origin: bottom;
-  animation: miku-equalizer-beat var(--skin-duration) var(--skin-delay) cubic-bezier(0.33, 0.01, 0.3, 1) infinite alternate;
-  will-change: transform, opacity;
+  animation: dreamy-equalizer var(--skin-duration) var(--skin-delay) ease-in-out infinite alternate;
 }
 
-body[data-gui-skin='miku'] [data-skin-burst] {
-  position: absolute;
-  color: #ffffff;
-  font-size: 12px;
-  line-height: 1;
-  opacity: 0;
-  text-shadow:
-    0 0 6px #ffffff,
-    0 0 11px rgba(28, 205, 197, 0.92),
-    0 0 16px rgba(241, 107, 173, 0.74);
-  transform: translate(-50%, -50%) scale(0.45);
-  animation: miku-click-burst 680ms var(--skin-delay) cubic-bezier(0.16, 0.76, 0.31, 1) forwards;
-  will-change: transform, opacity;
-}
-
-@keyframes miku-glass-shimmer {
+@keyframes dreamy-logo-float {
   0%,
   100% {
-    background-position: 0% 50%;
+    transform: translateY(0) rotate(-2deg);
   }
   50% {
-    background-position: 100% 50%;
+    transform: translateY(-2px) rotate(2deg) scale(1.05);
   }
 }
 
-@keyframes miku-logo-pulse {
-  0%,
-  100% {
-    transform: scale(1) rotate(-1deg);
-    filter: drop-shadow(0 0 0 rgba(35, 194, 189, 0));
-  }
-  50% {
-    transform: scale(1.08) rotate(2deg);
-    filter: drop-shadow(0 0 6px rgba(35, 194, 189, 0.42));
-  }
-}
-
-@keyframes miku-switch-glow {
-  0%,
-  100% {
-    box-shadow: 0 0 0 rgba(33, 196, 190, 0);
-  }
-  50% {
-    box-shadow: 0 0 12px rgba(33, 196, 190, 0.34);
-  }
-}
-
-@keyframes miku-nav-bob {
+@keyframes dreamy-nav-bob {
   0%,
   100% {
     transform: translateY(0) rotate(0);
@@ -394,163 +1048,85 @@ body[data-gui-skin='miku'] [data-skin-burst] {
   }
 }
 
-@keyframes miku-light-sweep {
+@keyframes dreamy-sparkle {
   0%,
-  12% {
-    transform: translateX(0) rotate(16deg);
-    opacity: 0;
-  }
-  35%,
-  68% {
-    opacity: 0.52;
-  }
-  88%,
   100% {
-    transform: translateX(520%) rotate(16deg);
-    opacity: 0;
+    opacity: 0.08;
+    transform: scale(0.62) rotate(0);
+  }
+  50% {
+    opacity: 0.72;
+    transform: scale(1.38) rotate(45deg);
   }
 }
 
-@keyframes miku-sparkle-dance {
+@keyframes dreamy-card-glint {
   0%,
   100% {
-    opacity: 0.12;
-    transform: scale(0.62) rotate(0deg);
+    opacity: 0.26;
+    transform: scale(0.72) rotate(-8deg);
   }
   48% {
     opacity: 0.9;
-    transform: scale(1.55) rotate(45deg);
-  }
-  70% {
-    opacity: 0.34;
-    transform: scale(0.9) rotate(70deg);
+    transform: scale(1.08) rotate(7deg);
   }
 }
 
-@keyframes miku-note-float {
-  0% {
-    opacity: 0;
-    transform: translate3d(0, 20px, 0) rotate(-10deg);
-  }
-  12% {
-    opacity: 0.62;
-  }
-  72% {
-    opacity: 0.42;
-  }
-  100% {
-    opacity: 0;
-    transform: translate3d(var(--skin-drift), -112vh, 0) rotate(16deg);
-  }
-}
-
-@keyframes miku-bubble-rise {
-  0% {
-    opacity: 0;
-    transform: translate3d(0, 24px, 0) scale(0.7);
-  }
-  14% {
-    opacity: 0.46;
-  }
-  74% {
-    opacity: 0.24;
-  }
-  100% {
-    opacity: 0;
-    transform: translate3d(var(--skin-drift), -110vh, 0) scale(1.12);
-  }
-}
-
-@keyframes miku-equalizer-beat {
-  0% {
-    opacity: 0.46;
-    transform: scaleY(0.18);
-  }
-  42% {
-    opacity: 0.92;
-    transform: scaleY(0.88);
-  }
-  72% {
-    opacity: 0.7;
-    transform: scaleY(0.42);
-  }
-  100% {
-    opacity: 1;
-    transform: scaleY(1);
-  }
-}
-
-@keyframes miku-wave-breathe {
+@keyframes dreamy-ornament {
   0%,
   100% {
-    transform: scaleX(0.86);
-    opacity: 0.44;
+    transform: translateY(0) rotate(-4deg);
   }
   50% {
-    transform: scaleX(1);
-    opacity: 0.9;
+    transform: translateY(-5px) rotate(5deg) scale(1.04);
   }
 }
 
-@keyframes miku-click-burst {
+@keyframes dreamy-equalizer {
   0% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.4) rotate(-18deg);
+    opacity: 0.4;
+    transform: scaleY(0.18);
   }
-  18% {
-    opacity: 1;
+  46% {
+    opacity: 0.92;
+    transform: scaleY(0.86);
   }
   100% {
-    opacity: 0;
-    transform: translate(calc(-50% + var(--skin-dx)), calc(-50% + var(--skin-dy))) scale(1.12) rotate(20deg);
+    opacity: 0.72;
+    transform: scaleY(0.42);
   }
 }
 
-@media (max-width: 720px) {
-  body[data-gui-skin='miku'] {
-    background-position:
-      center,
-      66% center !important;
+@media (max-width: 760px) {
+  body[data-gui-skin='miku']::before {
+    background-position: 62% center;
   }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  body[data-gui-skin='miku'] > #app > :first-child,
-  body[data-gui-skin='miku'] > #app > :nth-child(2) > :first-child {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
+  body[data-gui-skin='miku'] .main-nav {
+    gap: 0;
+    padding-inline: 4px;
+  }
+  body[data-gui-skin='miku'] .main-nav__button {
+    padding-inline: 7px;
+  }
+  body[data-gui-skin='miku'] .home-stats {
+    gap: 7px !important;
+  }
+  body[data-gui-skin='miku'] .home-stat-card__value {
+    font-size: 13px !important;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  body[data-gui-skin='miku'] > #app > :first-child,
-  body[data-gui-skin='miku'] > #app > :first-child > img,
-  body[data-gui-skin='miku'] > #app > :nth-child(2) > :first-child,
-  body[data-gui-skin='miku'] > #app > :nth-child(2) > :first-child svg,
-  body[data-gui-skin='miku'] .gui-switch.on,
-  body[data-gui-skin='miku'] [data-skin-particle='sparkle'],
-  body[data-gui-skin='miku'] [data-skin-motion-layer]::before,
-  body[data-gui-skin='miku'] [data-skin-motion-layer]::after {
+  body[data-gui-skin='miku'] *,
+  body[data-gui-skin='miku'] *::before,
+  body[data-gui-skin='miku'] *::after {
     animation: none !important;
   }
-
-  body[data-gui-skin='miku'] :is([data-skin-particle='note'], [data-skin-particle='bubble'], [data-skin-equalizer], [data-skin-burst]) {
-    display: none !important;
+  body[data-gui-skin='miku'] [data-skin-equalizer] {
+    display: none;
   }
 }
 
-body[data-gui-skin='miku'][feature-no-animation='true'] > #app > :first-child,
-body[data-gui-skin='miku'][feature-no-animation='true'] > #app > :first-child > img,
-body[data-gui-skin='miku'][feature-no-animation='true'] > #app > :nth-child(2) > :first-child,
-body[data-gui-skin='miku'][feature-no-animation='true'] > #app > :nth-child(2) > :first-child svg,
-body[data-gui-skin='miku'][feature-no-animation='true'] .gui-switch.on,
-body[data-gui-skin='miku'][feature-no-animation='true'] [data-skin-particle='sparkle'],
-body[data-gui-skin='miku'][feature-no-animation='true'] [data-skin-motion-layer]::before,
-body[data-gui-skin='miku'][feature-no-animation='true'] [data-skin-motion-layer]::after {
-  animation: none !important;
-}
-
-body[data-gui-skin='miku'][feature-no-animation='true']
-  :is([data-skin-particle='note'], [data-skin-particle='bubble'], [data-skin-equalizer], [data-skin-burst]) {
-  display: none !important;
+body[data-gui-skin='miku'][feature-no-animation='true'] [data-skin-motion-layer] {
+  display: none;
 }
