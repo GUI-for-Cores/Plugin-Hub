@@ -590,13 +590,9 @@ body.skin-theme .skin-particle--bubble {
 }
 
 body.skin-theme .skin-burst {
-  position: fixed;
-  z-index: 9999;
   color: #ffc92f;
   font-size: 14px;
-  line-height: 1;
   text-shadow: 0 0 6px #fff;
-  transform: translate(-50%, -50%);
   animation: dora-burst 620ms var(--skin-delay) ease-out both;
 }
 

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 4,
+  "revision": 5,
   "themes": [
     {
       "id": "miku",
@@ -19,6 +19,12 @@
       "manifest": "nangong-wan/nangong-wan.json",
       "featured": true,
       "order": 30
+    },
+    {
+      "id": "cream-moon",
+      "manifest": "cream-moon/cream-moon.json",
+      "featured": true,
+      "order": 40
     }
   ]
 }

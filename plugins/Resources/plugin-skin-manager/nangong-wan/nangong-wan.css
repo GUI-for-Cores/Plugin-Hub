@@ -817,13 +817,9 @@ body.skin-theme .skin-particle--mist {
 }
 
 body.skin-theme .skin-burst {
-  position: fixed;
-  z-index: 9999;
   color: #d9c8d9;
   font-size: 13px;
-  line-height: 1;
   text-shadow: 0 0 8px rgba(188, 177, 227, 0.9);
-  transform: translate(-50%, -50%);
   animation: xianxia-burst 720ms var(--skin-delay) ease-out both;
 }
 

@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 2,
+  "id": "cream-moon",
+  "name": "奶油月梦",
+  "description": "象牙奶油、鼠尾草绿与暖金星月交织的柔和界面，搭配云端雨衣小旅人和细腻树脂质感。",
+  "author": "Codex & Ya",
+  "tags": ["奶油", "星月", "动态"],
+  "ui": {
+    "accent": "#6f9d61",
+    "accentSecondary": "#e7b95f",
+    "previewPosition": "62% bottom"
+  },
+  "files": {
+    "stylesheet": "cream-moon.css",
+    "background": "cream-moon-dream.webp",
+    "backgroundMime": "image/webp"
+  },
+  "motion": {
+    "particles": [
+      {
+        "type": "sparkle",
+        "count": 22,
+        "xOffset": 9,
+        "xStep": 37,
+        "yOffset": 7,
+        "yStep": 53,
+        "sizeBase": 3,
+        "sizeStep": 2,
+        "sizeCycle": 4,
+        "delayStep": 0.63,
+        "delayCycle": 10,
+        "durationBase": 3.8,
+        "durationStep": 0.54,
+        "durationCycle": 5
+      },
+      {
+        "type": "cloud",
+        "count": 7,
+        "symbols": ["☁"],
+        "xOffset": 4,
+        "xStep": 29,
+        "yOffset": 18,
+        "yStep": 31,
+        "sizeBase": 18,
+        "sizeStep": 5,
+        "sizeCycle": 4,
+        "driftBase": 18,
+        "driftStep": 9,
+        "driftCycle": 4,
+        "delayStep": 1.1,
+        "delayCycle": 7,
+        "durationBase": 8,
+        "durationStep": 1.1,
+        "durationCycle": 4
+      },
+      {
+        "type": "ornament-left",
+        "count": 4,
+        "symbols": ["🌙", "☁️", "🌸", "✦"]
+      },
+      {
+        "type": "ornament-right",
+        "count": 4,
+        "symbols": ["🌸", "☁️", "⭐", "🦋"]
+      }
+    ],
+    "interactiveGlow": true,
+    "clickBursts": true,
+    "clickBurstCount": 8,
+    "clickBurstSymbols": ["★", "✦", "·"]
+  },
+  "decorations": [
+    {
+      "name": "stats",
+      "selector": ".home-stat-card",
+      "items": [
+        {
+          "name": "star-a",
+          "text": "★"
+        },
+        {
+          "name": "star-b",
+          "text": "✦"
+        },
+        {
+          "name": "star-c",
+          "text": "★"
+        },
+        {
+          "name": "note",
+          "text": "☁"
+        },
+        {
+          "name": "heart",
+          "text": "✿"
+        },
+        {
+          "name": "orbit",
+          "text": ""
+        }
+      ]
+    }
+  ],
+  "variables": {
+    "--primary-color": "#6f9d61",
+    "--secondary-color": "#e7b95f",
+    "--color-light": "#456b42",
+    "--color-dark": "#eef5df",
+    "--bg-color-light": "rgba(249, 247, 233, 0.34)",
+    "--bg-color-dark": "rgba(31, 39, 31, 0.5)",
+    "--scrollbar-track-bg-light": "rgba(235, 230, 205, 0.42)",
+    "--scrollbar-thumb-bg-light": "#a9bd82",
+    "--btn-normal-color-light": "#6d503c",
+    "--btn-normal-bg-light": "rgba(255, 253, 245, 0.74)",
+    "--btn-normal-hover-color-light": "#547e4d",
+    "--btn-normal-hover-border-color-light": "rgba(132, 164, 100, 0.7)",
+    "--btn-normal-active-color-light": "#3f6e3d",
+    "--btn-normal-active-border-color-light": "#6f9d61",
+    "--btn-primary-bg-light": "#75a365",
+    "--btn-primary-hover-bg-light": "#83b471",
+    "--btn-primary-active-bg-light": "#5e8b53",
+    "--btn-link-color-light": "#5d8a53",
+    "--btn-link-color-dark": "#c5dca9",
+    "--btn-link-hover-color-light": "#b27b3d",
+    "--btn-link-active-color-light": "#47733f",
+    "--btn-text-color-light": "#6d503c",
+    "--btn-text-color-dark": "#eef5df",
+    "--btn-text-hover-bg-light": "rgba(231, 239, 207, 0.7)",
+    "--btn-text-hover-bg-dark": "rgba(154, 177, 119, 0.22)",
+    "--btn-text-active-bg-light": "rgba(220, 234, 187, 0.82)",
+    "--card-color-light": "#456b42",
+    "--card-color-dark": "#eef5df",
+    "--card-bg-light": "rgba(255, 253, 245, 0.76)",
+    "--card-bg-dark": "rgba(42, 52, 41, 0.7)",
+    "--card-hover-bg-light": "rgba(255, 255, 250, 0.92)",
+    "--card-hover-bg-dark": "rgba(54, 67, 51, 0.82)",
+    "--card-active-bg-light": "rgba(239, 244, 218, 0.88)",
+    "--card-active-bg-dark": "rgba(66, 78, 57, 0.84)",
+    "--dropdown-bg-light": "rgba(255, 253, 245, 0.96)",
+    "--dropdown-bg-dark": "rgba(38, 48, 38, 0.96)",
+    "--modal-bg-light": "rgba(255, 253, 246, 0.96)",
+    "--modal-bg-dark": "rgba(34, 43, 34, 0.97)",
+    "--modal-mask-bg-light": "rgba(122, 139, 102, 0.2)",
+    "--switch-on-bg-light": "#79a66b",
+    "--switch-on-bg-dark": "#8aac73",
+    "--switch-on-hover-bg-light": "#8bb779",
+    "--input-color-light": "#526c49",
+    "--input-color-dark": "#f1f4e8",
+    "--input-bg-light": "rgba(255, 254, 248, 0.82)",
+    "--input-bg-dark": "rgba(43, 54, 42, 0.88)",
+    "--divider-color-light": "rgba(142, 160, 114, 0.34)",
+    "--divider-color-dark": "rgba(188, 202, 157, 0.32)",
+    "--select-bg-light": "rgba(255, 254, 248, 0.9)",
+    "--toast-bg-light": "rgba(255, 253, 246, 0.97)",
+    "--menu-bg-light": "rgba(255, 253, 245, 0.96)"
+  }
+}

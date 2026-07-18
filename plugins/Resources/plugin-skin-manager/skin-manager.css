@@ -319,6 +319,13 @@ body.skin-theme .skin-motion-layer {
   contain: layout paint style;
 }
 
+body.skin-theme .skin-burst {
+  position: fixed;
+  z-index: 9999;
+  line-height: 1;
+  transform: translate(-50%, -50%);
+}
+
 body.skin-theme .skin-particle--ornament-right {
   right: 18px;
   bottom: 14px;
