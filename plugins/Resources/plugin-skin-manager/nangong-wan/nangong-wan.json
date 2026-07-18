@@ -73,12 +73,30 @@
       "name": "stats",
       "selector": ".home-stat-card",
       "items": [
-        { "name": "star-a", "text": "✦" },
-        { "name": "star-b", "text": "·" },
-        { "name": "star-c", "text": "◇" },
-        { "name": "note", "text": "⌁" },
-        { "name": "heart", "text": "✧" },
-        { "name": "orbit", "text": "" }
+        {
+          "name": "star-a",
+          "text": "✦"
+        },
+        {
+          "name": "star-b",
+          "text": "·"
+        },
+        {
+          "name": "star-c",
+          "text": "◇"
+        },
+        {
+          "name": "note",
+          "text": "⌁"
+        },
+        {
+          "name": "heart",
+          "text": "✧"
+        },
+        {
+          "name": "orbit",
+          "text": ""
+        }
       ]
     }
   ],
@@ -89,13 +107,52 @@
     "--color-dark": "#f4eaf0",
     "--bg-color-light": "rgba(7, 18, 43, 0.74)",
     "--bg-color-dark": "rgba(4, 12, 31, 0.82)",
+    "--scrollbar-track-bg-light": "rgba(226, 236, 255, 0.34)",
+    "--scrollbar-thumb-bg-light": "#7f9be7",
+    "--btn-normal-color-light": "#e9dfe6",
+    "--btn-normal-color-dark": "#f2e8ef",
+    "--btn-normal-bg-light": "rgba(43, 52, 95, 0.72)",
+    "--btn-normal-bg-dark": "rgba(32, 42, 84, 0.82)",
+    "--btn-normal-hover-color-light": "#587ce0",
+    "--btn-normal-hover-border-color-light": "rgba(111, 150, 238, 0.72)",
+    "--btn-normal-active-color-light": "#805acb",
+    "--btn-normal-active-border-color-light": "#805acb",
+    "--btn-primary-bg-light": "#718de9",
+    "--btn-primary-hover-bg-light": "#837fe3",
+    "--btn-primary-active-bg-light": "#7c70d9",
+    "--btn-link-color-light": "#b9b3ee",
+    "--btn-link-color-dark": "#c9c2f2",
+    "--btn-link-hover-color-light": "#d05fa6",
+    "--btn-link-active-color-light": "#8b5bd0",
+    "--btn-text-color-light": "#eee4e8",
+    "--btn-text-color-dark": "#f4eaf0",
+    "--btn-text-hover-bg-light": "rgba(150, 139, 211, 0.18)",
+    "--btn-text-hover-bg-dark": "rgba(160, 147, 220, 0.22)",
+    "--btn-text-active-bg-light": "rgba(216, 205, 252, 0.58)",
+    "--card-color-light": "#eee4e8",
+    "--card-color-dark": "#f4eaf0",
     "--card-bg-light": "rgba(29, 40, 83, 0.66)",
     "--card-bg-dark": "rgba(22, 31, 70, 0.74)",
-    "--input-bg-light": "rgba(30, 40, 80, 0.80)",
-    "--input-bg-dark": "rgba(19, 29, 65, 0.86)",
+    "--card-hover-bg-light": "rgba(43, 55, 104, 0.76)",
+    "--card-hover-bg-dark": "rgba(38, 49, 96, 0.82)",
+    "--card-active-bg-light": "rgba(57, 55, 111, 0.78)",
+    "--card-active-bg-dark": "rgba(52, 49, 103, 0.84)",
     "--dropdown-bg-light": "rgba(15, 25, 58, 0.96)",
     "--dropdown-bg-dark": "rgba(10, 19, 47, 0.97)",
     "--modal-bg-light": "rgba(16, 27, 61, 0.96)",
-    "--modal-bg-dark": "rgba(9, 18, 45, 0.97)"
+    "--modal-bg-dark": "rgba(9, 18, 45, 0.97)",
+    "--modal-mask-bg-light": "rgba(2, 7, 22, 0.62)",
+    "--switch-on-bg-light": "#8278c4",
+    "--switch-on-bg-dark": "#8d82d0",
+    "--switch-on-hover-bg-light": "#a67fd6",
+    "--input-color-light": "#eee4e8",
+    "--input-color-dark": "#f4eaf0",
+    "--input-bg-light": "rgba(30, 40, 80, 0.8)",
+    "--input-bg-dark": "rgba(19, 29, 65, 0.86)",
+    "--divider-color-light": "rgba(191, 171, 202, 0.32)",
+    "--divider-color-dark": "rgba(200, 181, 212, 0.36)",
+    "--select-bg-light": "rgba(20, 30, 68, 0.9)",
+    "--toast-bg-light": "rgba(13, 23, 55, 0.96)",
+    "--menu-bg-light": "rgba(13, 23, 55, 0.97)"
   }
 }

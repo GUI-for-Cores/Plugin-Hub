@@ -51,12 +51,30 @@
       "name": "stats",
       "selector": ".home-stat-card",
       "items": [
-        { "name": "star-a", "text": "✧" },
-        { "name": "star-b", "text": "✦" },
-        { "name": "star-c", "text": "✧" },
-        { "name": "note", "text": "♫" },
-        { "name": "heart", "text": "♡" },
-        { "name": "orbit", "text": "" }
+        {
+          "name": "star-a",
+          "text": "✧"
+        },
+        {
+          "name": "star-b",
+          "text": "✦"
+        },
+        {
+          "name": "star-c",
+          "text": "✧"
+        },
+        {
+          "name": "note",
+          "text": "♫"
+        },
+        {
+          "name": "heart",
+          "text": "♡"
+        },
+        {
+          "name": "orbit",
+          "text": ""
+        }
       ]
     }
   ],
@@ -67,13 +85,50 @@
     "--color-dark": "#e7edff",
     "--bg-color-light": "rgba(244, 249, 255, 0.26)",
     "--bg-color-dark": "rgba(21, 29, 58, 0.34)",
+    "--scrollbar-track-bg-light": "rgba(226, 236, 255, 0.34)",
+    "--scrollbar-thumb-bg-light": "#7f9be7",
+    "--btn-normal-color-light": "#4b568d",
+    "--btn-normal-bg-light": "rgba(255, 255, 255, 0.58)",
+    "--btn-normal-hover-color-light": "#587ce0",
+    "--btn-normal-hover-border-color-light": "rgba(111, 150, 238, 0.72)",
+    "--btn-normal-active-color-light": "#805acb",
+    "--btn-normal-active-border-color-light": "#805acb",
+    "--btn-primary-bg-light": "#718de9",
+    "--btn-primary-hover-bg-light": "#837fe3",
+    "--btn-primary-active-bg-light": "#7c70d9",
+    "--btn-link-color-light": "#4d79df",
+    "--btn-link-color-dark": "#9fc7ff",
+    "--btn-link-hover-color-light": "#d05fa6",
+    "--btn-link-active-color-light": "#8b5bd0",
+    "--btn-text-color-light": "#4d588d",
+    "--btn-text-color-dark": "#e7edff",
+    "--btn-text-hover-bg-light": "rgba(223, 238, 255, 0.62)",
+    "--btn-text-hover-bg-dark": "rgba(136, 158, 232, 0.2)",
+    "--btn-text-active-bg-light": "rgba(216, 205, 252, 0.58)",
+    "--card-color-light": "#4b568a",
+    "--card-color-dark": "#e7edff",
     "--card-bg-light": "rgba(255, 255, 255, 0.48)",
     "--card-bg-dark": "rgba(30, 39, 75, 0.54)",
-    "--input-bg-light": "rgba(255, 255, 255, 0.66)",
-    "--input-bg-dark": "rgba(26, 37, 73, 0.68)",
-    "--dropdown-bg-light": "rgba(248, 249, 255, 0.90)",
+    "--card-hover-bg-light": "rgba(255, 255, 255, 0.66)",
+    "--card-hover-bg-dark": "rgba(42, 52, 91, 0.7)",
+    "--card-active-bg-light": "rgba(231, 224, 255, 0.62)",
+    "--card-active-bg-dark": "rgba(66, 60, 111, 0.66)",
+    "--dropdown-bg-light": "rgba(248, 249, 255, 0.9)",
     "--dropdown-bg-dark": "rgba(25, 34, 67, 0.92)",
     "--modal-bg-light": "rgba(247, 249, 255, 0.92)",
-    "--modal-bg-dark": "rgba(24, 33, 65, 0.94)"
+    "--modal-bg-dark": "rgba(24, 33, 65, 0.94)",
+    "--modal-mask-bg-light": "rgba(184, 204, 240, 0.26)",
+    "--switch-on-bg-light": "#788fe2",
+    "--switch-on-bg-dark": "#737dcc",
+    "--switch-on-hover-bg-light": "#a67fd6",
+    "--input-color-light": "#465284",
+    "--input-color-dark": "#edf2ff",
+    "--input-bg-light": "rgba(255, 255, 255, 0.66)",
+    "--input-bg-dark": "rgba(26, 37, 73, 0.68)",
+    "--divider-color-light": "rgba(135, 146, 220, 0.34)",
+    "--divider-color-dark": "rgba(170, 174, 238, 0.28)",
+    "--select-bg-light": "rgba(255, 255, 255, 0.66)",
+    "--toast-bg-light": "rgba(248, 250, 255, 0.92)",
+    "--menu-bg-light": "rgba(248, 250, 255, 0.9)"
   }
 }

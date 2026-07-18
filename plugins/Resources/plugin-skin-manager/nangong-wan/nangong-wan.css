@@ -1,426 +1,108 @@
-body[data-gui-skin='nangong-wan'] {
-  --xianxia-cyan: #22c8de;
-  --xianxia-blue: #4b88ec;
-  --xianxia-purple: #9869df;
-  --xianxia-pink: #ea78bd;
-  --xianxia-ink: #405188;
-  --xianxia-muted: #7777a5;
-  --xianxia-glass: rgba(255, 255, 255, 0.54);
-  --xianxia-glass-strong: rgba(255, 255, 255, 0.72);
-  --xianxia-border: rgba(170, 147, 241, 0.46);
-  --xianxia-shadow: 0 8px 24px rgba(106, 139, 218, 0.16);
-  --primary-color: #487fe4 !important;
-  --secondary-color: #8561d5 !important;
-  --color-light: #405188 !important;
-  --bg-color-light: rgba(244, 249, 255, 0.26) !important;
-  --scrollbar-track-bg-light: rgba(226, 236, 255, 0.34) !important;
-  --scrollbar-thumb-bg-light: #7f9be7 !important;
-  --btn-normal-color-light: #4b568d !important;
-  --btn-normal-bg-light: rgba(255, 255, 255, 0.58) !important;
-  --btn-normal-hover-color-light: #587ce0 !important;
-  --btn-normal-hover-border-color-light: rgba(111, 150, 238, 0.72) !important;
-  --btn-normal-active-color-light: #805acb !important;
-  --btn-normal-active-border-color-light: #805acb !important;
-  --btn-primary-color-light: #ffffff !important;
-  --btn-primary-bg-light: #718de9 !important;
-  --btn-primary-hover-bg-light: #837fe3 !important;
-  --btn-primary-active-bg-light: #7c70d9 !important;
-  --btn-link-color-light: #4d79df !important;
-  --btn-link-bg-light: rgba(255, 255, 255, 0.25) !important;
-  --btn-link-hover-color-light: #d05fa6 !important;
-  --btn-link-active-color-light: #8b5bd0 !important;
-  --btn-text-color-light: #4d588d !important;
-  --btn-text-bg-light: transparent !important;
-  --btn-text-hover-bg-light: rgba(223, 238, 255, 0.62) !important;
-  --btn-text-active-bg-light: rgba(216, 205, 252, 0.58) !important;
-  --card-color-light: #4b568a !important;
-  --card-bg-light: rgba(255, 255, 255, 0.48) !important;
-  --card-hover-bg-light: rgba(255, 255, 255, 0.66) !important;
-  --card-active-bg-light: rgba(231, 224, 255, 0.62) !important;
-  --switch-on-bg-light: #788fe2 !important;
-  --switch-on-hover-bg-light: #a67fd6 !important;
-  --switch-on-dot-bg-light: #ffffff !important;
-  --switch-off-bg-light: rgba(196, 209, 242, 0.44) !important;
-  --switch-off-hover-bg-light: rgba(188, 194, 235, 0.58) !important;
-  --switch-off-dot-bg-light: rgba(255, 255, 255, 0.94) !important;
-  --input-color-light: #465284 !important;
-  --input-bg-light: rgba(255, 255, 255, 0.66) !important;
-  --dropdown-bg-light: rgba(248, 249, 255, 0.9) !important;
-  --modal-bg-light: rgba(247, 249, 255, 0.92) !important;
-  --modal-mask-bg-light: rgba(184, 204, 240, 0.26) !important;
-  --divider-color-light: rgba(135, 146, 220, 0.34) !important;
-  --select-bg-light: rgba(255, 255, 255, 0.66) !important;
-  --toast-bg-light: rgba(248, 250, 255, 0.92) !important;
-  --menu-bg-light: rgba(248, 250, 255, 0.9) !important;
+body.skin-theme {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  color: var(--xianxia-ink);
-  background: #e7f6ff !important;
 }
 
-body[data-gui-skin='nangong-wan']::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  pointer-events: none;
-  opacity: 1;
+body.skin-theme::before {
   background:
     radial-gradient(circle at 14% 18%, rgba(255, 255, 255, 0.78), transparent 31%),
     radial-gradient(circle at 78% 30%, rgba(221, 235, 255, 0.62), transparent 37%),
     linear-gradient(125deg, rgba(217, 246, 255, 0.95), rgba(237, 228, 255, 0.92) 52%, rgba(255, 226, 244, 0.9));
 }
 
-body[data-gui-skin='nangong-wan']::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.62), transparent 32%),
-    linear-gradient(115deg, rgba(229, 247, 255, 0.22), rgba(239, 226, 255, 0.1) 52%, rgba(255, 224, 244, 0.18));
+body.skin-theme[theme-mode='dark'] {
+  --skin-border: rgba(154, 148, 234, 0.38);
 }
 
-body[data-gui-skin='nangong-wan'][theme-mode='dark'] {
-  --xianxia-ink: #e7edff;
-  --xianxia-muted: #c6c8e8;
-  --xianxia-glass: rgba(30, 39, 75, 0.56);
-  --xianxia-glass-strong: rgba(29, 38, 72, 0.74);
-  --xianxia-border: rgba(154, 148, 234, 0.38);
-  --color-dark: #e7edff !important;
-  --bg-color-dark: rgba(21, 29, 58, 0.34) !important;
-  --card-color-dark: #e7edff !important;
-  --card-bg-dark: rgba(30, 39, 75, 0.54) !important;
-  --card-hover-bg-dark: rgba(42, 52, 91, 0.7) !important;
-  --card-active-bg-dark: rgba(66, 60, 111, 0.66) !important;
-  --btn-text-color-dark: #e7edff !important;
-  --btn-text-bg-dark: transparent !important;
-  --btn-text-hover-bg-dark: rgba(136, 158, 232, 0.2) !important;
-  --btn-text-active-bg-dark: rgba(169, 125, 211, 0.28) !important;
-  --btn-link-color-dark: #9fc7ff !important;
-  --btn-link-bg-dark: rgba(45, 53, 93, 0.26) !important;
-  --btn-link-hover-color-dark: #ffb1da !important;
-  --btn-link-active-color-dark: #c3a9ff !important;
-  --switch-on-bg-dark: #737dcc !important;
-  --switch-on-hover-bg-dark: #9d6cb6 !important;
-  --switch-off-bg-dark: rgba(202, 216, 255, 0.16) !important;
-  --input-color-dark: #edf2ff !important;
-  --input-bg-dark: rgba(26, 37, 73, 0.68) !important;
-  --dropdown-bg-dark: rgba(25, 34, 67, 0.92) !important;
-  --modal-bg-dark: rgba(24, 33, 65, 0.94) !important;
-  --modal-mask-bg-dark: rgba(7, 10, 27, 0.58) !important;
-  --divider-color-dark: rgba(170, 174, 238, 0.28) !important;
-  --select-bg-dark: rgba(26, 37, 73, 0.68) !important;
-  --toast-bg-dark: rgba(25, 34, 67, 0.94) !important;
-  --menu-bg-dark: rgba(25, 34, 67, 0.92) !important;
-  background: #121a38 !important;
-}
-
-body[data-gui-skin='nangong-wan'][theme-mode='dark']::before {
-  opacity: 0.54;
-  filter: saturate(0.82) brightness(0.52) contrast(1.08);
-}
-
-body[data-gui-skin='nangong-wan'] #app {
-  position: relative;
-  z-index: 2;
-  box-sizing: border-box;
-  padding: 6px;
-  background-image:
-    linear-gradient(rgba(139, 159, 226, 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(139, 159, 226, 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(211, 239, 255, 0.18), rgba(243, 224, 255, 0.12), rgba(255, 226, 244, 0.14));
-  background-size:
-    24px 24px,
-    24px 24px,
-    auto;
-}
-
-body[data-gui-skin='nangong-wan'] #app::before {
-  content: '';
-  position: fixed;
-  inset: 5px;
-  z-index: 1000;
+body.skin-theme #app::before {
   border: 2px solid rgba(185, 153, 240, 0.48);
-  border-radius: 20px;
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.8),
-    inset 0 0 20px rgba(122, 198, 246, 0.14),
-    0 0 16px rgba(143, 131, 232, 0.2);
-  pointer-events: none;
 }
 
-body[data-gui-skin='nangong-wan'] .app-titlebar {
-  position: relative;
-  z-index: 3;
-  height: 40px;
-  min-height: 40px;
-  padding: 4px 18px !important;
-  border-radius: 15px 15px 8px 8px;
-  color: var(--xianxia-ink);
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.54), rgba(222, 231, 255, 0.46), rgba(244, 218, 255, 0.42));
-  box-shadow: inset 0 -1px rgba(151, 159, 227, 0.18);
-  backdrop-filter: blur(var(--xianxia-blur, 18px)) saturate(1.2);
-}
-
-body[data-gui-skin='nangong-wan'] .app-titlebar__logo {
-  width: 30px !important;
-  height: 30px !important;
-  filter: drop-shadow(0 3px 6px rgba(123, 105, 218, 0.28));
+body.skin-theme .app-titlebar__logo {
   animation: xianxia-logo-float 4s ease-in-out infinite;
 }
 
-body[data-gui-skin='nangong-wan'] .app-titlebar__brand {
-  gap: 7px;
-  color: var(--xianxia-blue) !important;
-  text-shadow: 0 1px rgba(255, 255, 255, 0.86);
+body.skin-theme .app-titlebar__version {
+  color: var(--skin-purple);
 }
 
-body[data-gui-skin='nangong-wan'] .app-titlebar__name {
-  font-size: 17px;
-  font-weight: 800;
-}
-
-body[data-gui-skin='nangong-wan'] .app-titlebar__version {
-  color: var(--xianxia-purple);
-  font-size: 16px;
-  font-weight: 800;
-}
-
-body[data-gui-skin='nangong-wan'] .app-titlebar__custom-actions {
+body.skin-theme .app-titlebar__custom-actions {
   color: #7660cb;
-  font-size: 12px;
 }
 
-body[data-gui-skin='nangong-wan'] .window-control {
+body.skin-theme .window-control {
   color: #8266c9;
-  border-radius: 9px;
 }
 
-body[data-gui-skin='nangong-wan'] .window-control:hover {
-  color: #506ed0;
-  background: rgba(255, 255, 255, 0.58) !important;
-  box-shadow: 0 3px 10px rgba(104, 120, 205, 0.16);
-}
-
-body[data-gui-skin='nangong-wan'] .window-control--close:hover {
-  color: white;
-  background: linear-gradient(110deg, #e178ba, #9b74da) !important;
-}
-
-body[data-gui-skin='nangong-wan'] .app-content {
-  position: relative;
-  z-index: auto;
-  padding: 2px 14px 8px !important;
-  background: transparent;
-}
-
-body[data-gui-skin='nangong-wan'] .main-nav {
-  min-height: 36px;
+body.skin-theme .main-nav {
   gap: clamp(1px, 0.8vw, 12px);
-  padding: 0 8px;
-  border: 0;
+}
+
+body.skin-theme .main-nav__button {
   border-radius: 0;
-  background: transparent !important;
-  box-shadow: none;
-  backdrop-filter: none;
 }
 
-body[data-gui-skin='nangong-wan'] .main-nav__item {
-  position: relative;
-}
-
-body[data-gui-skin='nangong-wan'] .main-nav__button {
-  position: relative;
-  padding: 4px 9px;
-  border-radius: 0;
-  color: #4a5384;
-  background: transparent !important;
-  font-weight: 680;
-  transition:
-    transform 180ms ease,
-    color 180ms ease,
-    filter 180ms ease;
-}
-
-body[data-gui-skin='nangong-wan'] .main-nav__button svg {
-  display: none;
-}
-
-body[data-gui-skin='nangong-wan'] .main-nav__button::before {
-  content: '';
-  flex: 0 0 24px;
-  width: 24px;
-  height: 24px;
-  margin-right: 6px;
-  background-image: var(--xianxia-nav-icon);
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: contain;
-  filter: drop-shadow(0 2px 3px rgba(95, 102, 190, 0.2));
+body.skin-theme .main-nav__button::before {
   animation: xianxia-nav-bob 3.8s ease-in-out infinite;
 }
 
-body[data-gui-skin='nangong-wan'] .main-nav__button:hover {
-  color: #7166cf;
-  transform: translateY(-2px);
-  filter: drop-shadow(0 4px 5px rgba(110, 129, 217, 0.22));
-}
-
-body[data-gui-skin='nangong-wan'] .main-nav__button.is-active {
-  color: #3c73db;
+body.skin-theme .main-nav__button.is-active {
   background: transparent !important;
-  text-shadow: 0 1px rgba(255, 255, 255, 0.9);
 }
 
-body[data-gui-skin='nangong-wan'] .main-nav__button.is-active::after {
-  content: '';
-  position: absolute;
+body.skin-theme .main-nav__button.is-active::after {
   right: 8px;
   bottom: -1px;
   left: 8px;
-  height: 3px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, transparent, #58d5e6 12%, #6c8bea 58%, #ec83c2 88%, transparent);
-  box-shadow: 0 0 8px rgba(102, 145, 232, 0.62);
 }
 
-body[data-gui-skin='nangong-wan'] .main-nav__item--overview {
-  --xianxia-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3.2l3.8 7.7 8.5 1.2-6.2 6 1.5 8.4-7.6-4-7.6 4 1.5-8.4-6.2-6 8.5-1.2z' fill='%23e9fdff' stroke='%2339cfe1' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M16 6.4l2.7 5.5 6.1.9-4.4 4.3 1 6-5.4-2.9-5.4 2.9 1-6-4.4-4.3 6.1-.9z' fill='%23dff5ff' stroke='%23926cdd' stroke-width='1' opacity='.72'/%3E%3Ccircle cx='27' cy='6' r='1.6' fill='%23f29bc9'/%3E%3Cpath d='M4 21h4M6 19v4' stroke='%23f08ac2' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E");
+body.skin-theme .main-nav__item--overview {
+  --skin-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3.2l3.8 7.7 8.5 1.2-6.2 6 1.5 8.4-7.6-4-7.6 4 1.5-8.4-6.2-6 8.5-1.2z' fill='%23e9fdff' stroke='%2339cfe1' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M16 6.4l2.7 5.5 6.1.9-4.4 4.3 1 6-5.4-2.9-5.4 2.9 1-6-4.4-4.3 6.1-.9z' fill='%23dff5ff' stroke='%23926cdd' stroke-width='1' opacity='.72'/%3E%3Ccircle cx='27' cy='6' r='1.6' fill='%23f29bc9'/%3E%3Cpath d='M4 21h4M6 19v4' stroke='%23f08ac2' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E");
 }
 
-body[data-gui-skin='nangong-wan'] .main-nav__item--profiles {
-  --xianxia-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M4 10l12-6 12 6-12 6z' fill='%23fce9f7' stroke='%23a36bd8' stroke-width='1.7' stroke-linejoin='round'/%3E%3Cpath d='M4 16l12 6 12-6' fill='none' stroke='%235ccfe0' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M4 21l12 6 12-6' fill='none' stroke='%238266d3' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M9 9l7-3.5L23 9l-7 3.5z' fill='%23dff9ff' stroke='%23ef91c6' stroke-width='1'/%3E%3C/svg%3E");
+body.skin-theme .main-nav__item--profiles {
+  --skin-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M4 10l12-6 12 6-12 6z' fill='%23fce9f7' stroke='%23a36bd8' stroke-width='1.7' stroke-linejoin='round'/%3E%3Cpath d='M4 16l12 6 12-6' fill='none' stroke='%235ccfe0' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M4 21l12 6 12-6' fill='none' stroke='%238266d3' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M9 9l7-3.5L23 9l-7 3.5z' fill='%23dff9ff' stroke='%23ef91c6' stroke-width='1'/%3E%3C/svg%3E");
 }
 
-body[data-gui-skin='nangong-wan'] .main-nav__item--subscriptions {
-  --xianxia-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='7' y='4' width='18' height='24' rx='4' fill='%23f2fbff' stroke='%23776bd4' stroke-width='1.8'/%3E%3Cpath d='M11 4h10v5l-5-2-5 2z' fill='%23d6f7ff' stroke='%2359cbdc' stroke-width='1.2'/%3E%3Cpath d='M16 13l1.5 3 3.4.5-2.5 2.4.6 3.4-3-1.6-3 1.6.6-3.4-2.5-2.4 3.4-.5z' fill='%23f9d9ef' stroke='%23df78bc' stroke-width='1.1'/%3E%3C/svg%3E");
+body.skin-theme .main-nav__item--subscriptions {
+  --skin-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='7' y='4' width='18' height='24' rx='4' fill='%23f2fbff' stroke='%23776bd4' stroke-width='1.8'/%3E%3Cpath d='M11 4h10v5l-5-2-5 2z' fill='%23d6f7ff' stroke='%2359cbdc' stroke-width='1.2'/%3E%3Cpath d='M16 13l1.5 3 3.4.5-2.5 2.4.6 3.4-3-1.6-3 1.6.6-3.4-2.5-2.4 3.4-.5z' fill='%23f9d9ef' stroke='%23df78bc' stroke-width='1.1'/%3E%3C/svg%3E");
 }
 
-body[data-gui-skin='nangong-wan'] .main-nav__item--rulesets {
-  --xianxia-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='4.5' y='7' width='23' height='21' rx='4' fill='%23f2fbff' stroke='%238067d4' stroke-width='1.8'/%3E%3Cpath d='M5 12h22' stroke='%23ee8dc3' stroke-width='2'/%3E%3Cpath d='M10 4v6M22 4v6' stroke='%2358cddb' stroke-width='2.2' stroke-linecap='round'/%3E%3Cpath d='M16 16v8M12 20h8' stroke='%237469d8' stroke-width='1.8' stroke-linecap='round'/%3E%3Ccircle cx='25.5' cy='9.5' r='2' fill='%23ffd3eb'/%3E%3C/svg%3E");
+body.skin-theme .main-nav__item--rulesets {
+  --skin-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='4.5' y='7' width='23' height='21' rx='4' fill='%23f2fbff' stroke='%238067d4' stroke-width='1.8'/%3E%3Cpath d='M5 12h22' stroke='%23ee8dc3' stroke-width='2'/%3E%3Cpath d='M10 4v6M22 4v6' stroke='%2358cddb' stroke-width='2.2' stroke-linecap='round'/%3E%3Cpath d='M16 16v8M12 20h8' stroke='%237469d8' stroke-width='1.8' stroke-linecap='round'/%3E%3Ccircle cx='25.5' cy='9.5' r='2' fill='%23ffd3eb'/%3E%3C/svg%3E");
 }
 
-body[data-gui-skin='nangong-wan'] .main-nav__item--plugins {
-  --xianxia-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3l11 6.3v13.4L16 29 5 22.7V9.3z' fill='%23f3f6ff' stroke='%23816bd6' stroke-width='1.7' stroke-linejoin='round'/%3E%3Cpath d='M5 9.3l11 6.4 11-6.4M16 15.7V29' fill='none' stroke='%235bcddd' stroke-width='1.7'/%3E%3Cpath d='M8.5 9.4L16 5l7.5 4.4-7.5 4.3z' fill='%23f9d9ee' stroke='%23e987be' stroke-width='1'/%3E%3Cpath d='M7 12l8 4.7v9.5l-8-4.6z' fill='%23def8ff' opacity='.72'/%3E%3C/svg%3E");
+body.skin-theme .main-nav__item--plugins {
+  --skin-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3l11 6.3v13.4L16 29 5 22.7V9.3z' fill='%23f3f6ff' stroke='%23816bd6' stroke-width='1.7' stroke-linejoin='round'/%3E%3Cpath d='M5 9.3l11 6.4 11-6.4M16 15.7V29' fill='none' stroke='%235bcddd' stroke-width='1.7'/%3E%3Cpath d='M8.5 9.4L16 5l7.5 4.4-7.5 4.3z' fill='%23f9d9ee' stroke='%23e987be' stroke-width='1'/%3E%3Cpath d='M7 12l8 4.7v9.5l-8-4.6z' fill='%23def8ff' opacity='.72'/%3E%3C/svg%3E");
 }
 
-body[data-gui-skin='nangong-wan'] .main-nav__item--scheduledtasks {
-  --xianxia-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M10 6L7 9M22 6l3 3' stroke='%23ec88bf' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='17' r='10' fill='%23f6f3ff' stroke='%23806bd6' stroke-width='1.8'/%3E%3Cpath d='M16 11v6l4 2' fill='none' stroke='%2358cbdc' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='17' r='2' fill='%23f093c7'/%3E%3Cpath d='M10 27l-2 2M22 27l2 2' stroke='%23746bd1' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M12 4h8' stroke='%2358cbdc' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+body.skin-theme .main-nav__item--scheduledtasks {
+  --skin-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M10 6L7 9M22 6l3 3' stroke='%23ec88bf' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='17' r='10' fill='%23f6f3ff' stroke='%23806bd6' stroke-width='1.8'/%3E%3Cpath d='M16 11v6l4 2' fill='none' stroke='%2358cbdc' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='17' r='2' fill='%23f093c7'/%3E%3Cpath d='M10 27l-2 2M22 27l2 2' stroke='%23746bd1' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M12 4h8' stroke='%2358cbdc' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
 }
 
-body[data-gui-skin='nangong-wan'] .main-nav__item--settings {
-  --xianxia-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M13 4h6l1 4 3.5 2 4-1 3 5-3 3v4l3 3-3 5-4-1-3.5 2-1 4h-6l-1-4-3.5-2-4 1-3-5 3-3v-4l-3-3 3-5 4 1L12 8z' transform='scale(.78) translate(4.5 4.5)' fill='%23f8effb' stroke='%23836bd5' stroke-width='2' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23ddf9ff' stroke='%2359cbdc' stroke-width='1.8'/%3E%3Ccircle cx='16' cy='16' r='2' fill='%23ee8ec4'/%3E%3C/svg%3E");
+body.skin-theme .main-nav__item--settings {
+  --skin-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M13 4h6l1 4 3.5 2 4-1 3 5-3 3v4l3 3-3 5-4-1-3.5 2-1 4h-6l-1-4-3.5-2-4 1-3-5 3-3v-4l-3-3 3-5 4 1L12 8z' transform='scale(.78) translate(4.5 4.5)' fill='%23f8effb' stroke='%23836bd5' stroke-width='2' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23ddf9ff' stroke='%2359cbdc' stroke-width='1.8'/%3E%3Ccircle cx='16' cy='16' r='2' fill='%23ee8ec4'/%3E%3C/svg%3E");
 }
 
-body[data-gui-skin='nangong-wan'] .main-nav__item--overview:has(.is-active)::before {
+body.skin-theme .main-nav__item--overview:has(.is-active)::before {
   content: '✧';
-  position: absolute;
-  left: -1px;
-  top: 2px;
   color: #ee8bc3;
-  font-size: 13px;
   text-shadow:
     -5px 9px #74d5e5,
     5px 18px #9172db;
   animation: xianxia-card-glint 3.4s ease-in-out infinite;
 }
 
-body[data-gui-skin='nangong-wan'] .app-page {
-  margin-top: 6px !important;
-  padding: 0 6px !important;
-}
-
-body[data-gui-skin='nangong-wan'] .app-page--overview {
-  overflow: hidden !important;
-}
-
-body[data-gui-skin='nangong-wan'] .home-view,
-body[data-gui-skin='nangong-wan'] .home-overview {
-  overflow: visible;
-}
-
-body[data-gui-skin='nangong-wan'] .overview-toolbar {
-  position: relative;
-  min-height: 38px;
-  padding: 5px 12px !important;
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  border-radius: 999px !important;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.56), rgba(236, 238, 255, 0.48), rgba(245, 232, 255, 0.46)) !important;
-  box-shadow:
-    var(--xianxia-shadow),
-    inset 0 0 0 1px rgba(146, 169, 231, 0.18);
-  backdrop-filter: blur(var(--xianxia-blur, 18px)) saturate(1.2);
-}
-
-body[data-gui-skin='nangong-wan'] .overview-toolbar .gui-switch {
-  border: 1px solid rgba(115, 149, 221, 0.3);
-  box-shadow: 0 3px 10px rgba(95, 128, 205, 0.12);
-}
-
-body[data-gui-skin='nangong-wan'] .gui-switch.on {
+body.skin-theme .gui-switch.on {
   background: linear-gradient(90deg, #6bd1e5, #8c7ee4) !important;
 }
 
-body[data-gui-skin='nangong-wan'] .gui-switch.on:hover {
+body.skin-theme .gui-switch.on:hover {
   background: linear-gradient(90deg, #5dc7e2, #d27bc8) !important;
 }
 
-body[data-gui-skin='nangong-wan'] .home-stats {
-  gap: 12px !important;
-  margin-top: 12px !important;
-}
-
-body[data-gui-skin='nangong-wan'] .gui-card {
-  border: 1px solid rgba(255, 255, 255, 0.74);
-  background: var(--xianxia-glass) !important;
-  box-shadow:
-    var(--xianxia-shadow),
-    inset 0 0 0 1px var(--xianxia-border);
-  backdrop-filter: none;
-  transition:
-    transform 180ms ease,
-    box-shadow 220ms ease,
-    background 220ms ease;
-}
-
-body[data-gui-skin='nangong-wan'] .gui-card:hover {
-  transform: none;
-  background: var(--xianxia-glass-strong) !important;
-  box-shadow:
-    0 12px 28px rgba(94, 126, 205, 0.2),
-    0 0 18px rgba(224, 120, 187, 0.12),
-    inset 0 0 0 1px rgba(169, 154, 235, 0.48);
-}
-
-body[data-gui-skin='nangong-wan'] .gui-card__header {
-  position: relative;
-  padding: 9px 10px 5px;
-}
-
-body[data-gui-skin='nangong-wan'] .gui-card__title {
-  color: var(--xianxia-ink) !important;
-  font-size: 15px;
-  text-shadow: 0 1px rgba(255, 255, 255, 0.72);
-}
-
-body[data-gui-skin='nangong-wan'] .home-stat-card {
-  position: relative;
-  min-height: 82px;
-  overflow: hidden;
-  border-color: rgba(157, 151, 232, 0.62);
-  border-radius: 14px !important;
-  outline: 1px solid rgba(255, 255, 255, 0.9);
-  outline-offset: -4px;
-  box-shadow:
-    0 5px 14px rgba(91, 190, 232, 0.22),
-    0 0 13px rgba(205, 124, 224, 0.13),
-    inset 0 0 0 1px rgba(136, 176, 231, 0.26),
-    inset 0 0 18px rgba(255, 255, 255, 0.34);
-}
-
-body[data-gui-skin='nangong-wan'] .home-stat-card:hover {
+body.skin-theme .home-stat-card:hover {
   box-shadow:
     0 7px 18px rgba(76, 185, 230, 0.3),
     0 0 17px rgba(213, 116, 222, 0.2),
@@ -428,604 +110,164 @@ body[data-gui-skin='nangong-wan'] .home-stat-card:hover {
     inset 0 0 22px rgba(255, 255, 255, 0.46);
 }
 
-body[data-gui-skin='nangong-wan'] .home-stat-card > :not([data-skin-decoration='stats']) {
-  position: relative;
-  z-index: 2;
-}
-
-body[data-gui-skin='nangong-wan'] .home-stat-card .gui-card__header::before {
-  content: '';
-  flex: 0 0 21px;
-  width: 21px;
-  height: 21px;
-  margin-right: 5px;
-  color: #8c6bdd;
+body.skin-theme .home-stat-card .gui-card__header::before {
   background: currentColor;
-  -webkit-mask: var(--xianxia-card-icon) center / contain no-repeat;
-  mask: var(--xianxia-card-icon) center / contain no-repeat;
-  filter: drop-shadow(0 0 7px rgba(255, 255, 255, 0.92));
+  -webkit-mask: var(--skin-card-icon) center / contain no-repeat;
+  mask: var(--skin-card-icon) center / contain no-repeat;
 }
 
-body[data-gui-skin='nangong-wan'] .home-stat-card .gui-card__header::after {
-  content: '';
-  position: absolute;
-  left: 10px;
-  bottom: 0;
-  width: 76px;
-  height: 1px;
-  background: linear-gradient(90deg, rgba(76, 190, 220, 0.72), rgba(152, 116, 220, 0.38), transparent);
-  box-shadow: 0 1px rgba(255, 255, 255, 0.82);
-}
-
-body[data-gui-skin='nangong-wan'] .home-stat-card--realtime {
-  --xianxia-card-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M2 12h4l2-7 4 14 3-10 2 3h5' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-}
-body[data-gui-skin='nangong-wan'] .home-stat-card--total {
-  --xianxia-card-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 3h11l3 3v15H5zM8 9h8M8 13h8M8 17h5' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-}
-body[data-gui-skin='nangong-wan'] .home-stat-card--connections {
-  --xianxia-card-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21S3 15.6 3 8.8C3 3.8 9.2 2 12 6c2.8-4 9-2.2 9 2.8C21 15.6 12 21 12 21z' fill='none' stroke='black' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E");
-}
-body[data-gui-skin='nangong-wan'] .home-stat-card--memory {
-  --xianxia-card-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='5' y='5' width='14' height='14' rx='2' fill='none' stroke='black' stroke-width='2'/%3E%3Crect x='9' y='9' width='6' height='6' fill='black'/%3E%3Cpath d='M8 2v3m4-3v3m4-3v3M8 19v3m4-3v3m4-3v3M2 8h3m-3 4h3m-3 4h3m14-8h3m-3 4h3m-3 4h3' stroke='black' stroke-width='1.7'/%3E%3C/svg%3E");
-}
-
-body[data-gui-skin='nangong-wan'] .home-stat-card--realtime .gui-card__header::before {
+body.skin-theme .home-stat-card--realtime .gui-card__header::before {
   color: #4baac8;
 }
-body[data-gui-skin='nangong-wan'] .home-stat-card--connections .gui-card__header::before {
+body.skin-theme .home-stat-card--connections .gui-card__header::before {
   color: #dd71b5;
 }
-body[data-gui-skin='nangong-wan'] .home-stat-card--memory .gui-card__header::before {
+body.skin-theme .home-stat-card--memory .gui-card__header::before {
   color: #9868dc;
 }
 
-body[data-gui-skin='nangong-wan'] .home-stat-card::after {
-  position: absolute;
-  right: 12px;
-  bottom: 2px;
-  z-index: 1;
-  color: rgba(133, 118, 218, 0.25);
-  font-size: 36px;
-  line-height: 1;
-  text-shadow:
-    0 0 2px rgba(255, 255, 255, 0.96),
-    0 0 10px rgba(118, 181, 238, 0.38);
-}
-
-body[data-gui-skin='nangong-wan'] .home-stat-card--realtime {
+body.skin-theme .home-stat-card--realtime {
   background:
     radial-gradient(circle at 92% 12%, rgba(246, 154, 220, 0.3), transparent 28%),
     radial-gradient(circle at 18% 95%, rgba(141, 224, 239, 0.24), transparent 38%),
     linear-gradient(120deg, rgba(230, 250, 255, 0.78), rgba(247, 230, 255, 0.66)) !important;
 }
 
-body[data-gui-skin='nangong-wan'] .home-stat-card--realtime::after {
-  content: '♡';
+body.skin-theme .home-stat-card--realtime::after {
   color: rgba(121, 132, 226, 0.28);
 }
-body[data-gui-skin='nangong-wan'] .home-stat-card--total::after {
-  content: '♪';
+body.skin-theme .home-stat-card--total::after {
   color: rgba(76, 163, 225, 0.28);
 }
-body[data-gui-skin='nangong-wan'] .home-stat-card--connections::after {
-  content: '♡';
+body.skin-theme .home-stat-card--connections::after {
   color: rgba(72, 179, 224, 0.34);
 }
-body[data-gui-skin='nangong-wan'] .home-stat-card--memory::after {
-  content: '♡';
+body.skin-theme .home-stat-card--memory::after {
   color: rgba(216, 101, 186, 0.32);
 }
 
-body[data-gui-skin='nangong-wan'] .home-stat-card--total {
+body.skin-theme .home-stat-card--total {
   background:
     radial-gradient(circle at 14% 15%, rgba(154, 225, 243, 0.3), transparent 34%),
     radial-gradient(circle at 86% 80%, rgba(178, 177, 247, 0.28), transparent 35%),
     linear-gradient(120deg, rgba(232, 249, 255, 0.76), rgba(237, 232, 255, 0.68)) !important;
 }
 
-body[data-gui-skin='nangong-wan'] .home-stat-card--connections {
+body.skin-theme .home-stat-card--connections {
   background:
     radial-gradient(circle at 26% 28%, rgba(255, 176, 226, 0.31), transparent 38%),
     radial-gradient(circle at 88% 78%, rgba(145, 219, 242, 0.25), transparent 36%),
     linear-gradient(120deg, rgba(255, 238, 251, 0.74), rgba(229, 246, 255, 0.68)) !important;
 }
 
-body[data-gui-skin='nangong-wan'] .home-stat-card--memory {
+body.skin-theme .home-stat-card--memory {
   background:
     radial-gradient(circle at 15% 15%, rgba(185, 169, 246, 0.31), transparent 36%),
     radial-gradient(circle at 84% 78%, rgba(255, 171, 220, 0.34), transparent 42%), linear-gradient(120deg, rgba(239, 232, 255, 0.76), rgba(255, 238, 250, 0.7)) !important;
 }
 
-body[data-gui-skin='nangong-wan'] .home-stat-card__value {
-  position: relative;
-  z-index: 1;
+body.skin-theme .home-stat-card__value {
   color: #427a9b;
-  padding: 12px 0px 2px 8px;
-  font-size: 12px !important;
 }
 
-body[data-gui-skin='nangong-wan'] .metric--upload {
+body.skin-theme .metric--upload {
   color: #4ba994;
 }
-body[data-gui-skin='nangong-wan'] .metric--download {
+body.skin-theme .metric--download {
   color: #d86ba8;
 }
 
-body[data-gui-skin='nangong-wan'] [data-skin-decoration='stats'] {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  overflow: hidden;
-  border-radius: inherit;
-  pointer-events: none;
-}
-
-body[data-gui-skin='nangong-wan'] [data-skin-decoration-item] {
-  position: absolute;
-  display: block;
-  line-height: 1;
-  text-shadow: 0 0 7px rgba(255, 255, 255, 0.98);
-}
-
-body[data-gui-skin='nangong-wan'] [data-skin-decoration-item='star-a'] {
-  top: 7px;
-  right: 10px;
+body.skin-theme .skin-decoration__item--star-a {
   color: rgba(235, 104, 192, 0.58);
-  font-size: 24px;
   animation: xianxia-card-glint 3.8s ease-in-out infinite;
 }
 
-body[data-gui-skin='nangong-wan'] [data-skin-decoration-item='star-b'] {
-  top: 27px;
-  right: 50px;
+body.skin-theme .skin-decoration__item--star-b {
   color: rgba(77, 197, 228, 0.6);
-  font-size: 10px;
   animation: xianxia-card-glint 3.1s -1.2s ease-in-out infinite;
 }
 
-body[data-gui-skin='nangong-wan'] [data-skin-decoration-item='star-c'] {
-  right: 28px;
-  bottom: 8px;
+body.skin-theme .skin-decoration__item--star-c {
   color: rgba(139, 103, 218, 0.55);
-  font-size: 11px;
   animation: xianxia-card-glint 4.4s -2.1s ease-in-out infinite;
 }
 
-body[data-gui-skin='nangong-wan'] [data-skin-decoration-item='note'] {
-  top: 8px;
-  right: 50px;
+body.skin-theme .skin-decoration__item--note {
   color: rgba(255, 255, 255, 0.88);
   font-size: 17px;
-  transform: rotate(-12deg);
 }
 
-body[data-gui-skin='nangong-wan'] [data-skin-decoration-item='heart'] {
-  right: 47px;
-  bottom: 6px;
+body.skin-theme .skin-decoration__item--heart {
   color: rgba(229, 95, 185, 0.5);
-  font-size: 14px;
 }
 
-body[data-gui-skin='nangong-wan'] [data-skin-decoration-item='orbit'] {
-  display: none;
-  top: 30px;
-  right: 14px;
-  width: 86px;
-  height: 28px;
-  border-top: 1px dashed rgba(116, 139, 227, 0.42);
-  border-radius: 50%;
-  transform: rotate(-30deg);
-}
-
-body[data-gui-skin='nangong-wan'] [data-skin-decoration-item='orbit']::before,
-body[data-gui-skin='nangong-wan'] [data-skin-decoration-item='orbit']::after {
-  content: '';
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: #7bcfe5;
-  box-shadow: 0 0 6px rgba(103, 197, 229, 0.78);
-}
-
-body[data-gui-skin='nangong-wan'] [data-skin-decoration-item='orbit']::before {
-  left: 12px;
-  top: -3px;
-}
-body[data-gui-skin='nangong-wan'] [data-skin-decoration-item='orbit']::after {
-  right: 14px;
-  top: 0;
-  background: #e394c9;
-}
-
-body[data-gui-skin='nangong-wan'] .home-stat-card--realtime [data-skin-decoration-item='note'],
-body[data-gui-skin='nangong-wan'] .home-stat-card--realtime [data-skin-decoration-item='orbit'] {
-  display: none;
-}
-
-body[data-gui-skin='nangong-wan'] .home-stat-card--total [data-skin-decoration-item='star-a'] {
+body.skin-theme .home-stat-card--total .skin-decoration__item--star-a {
   color: rgba(111, 121, 224, 0.55);
 }
-body[data-gui-skin='nangong-wan'] .home-stat-card--total [data-skin-decoration-item='heart'] {
-  display: none;
-}
-body[data-gui-skin='nangong-wan'] .home-stat-card--connections [data-skin-decoration-item='note'] {
-  display: none;
-}
-body[data-gui-skin='nangong-wan'] .home-stat-card--connections [data-skin-decoration-item='orbit'] {
-  display: block;
-  right: 27px;
-  border-top-style: solid;
-  border-top-color: rgba(255, 255, 255, 0.72);
-  transform: rotate(-24deg);
-}
-body[data-gui-skin='nangong-wan'] .home-stat-card--memory [data-skin-decoration-item='orbit'] {
-  display: block;
-}
-body[data-gui-skin='nangong-wan'] .home-stat-card--memory [data-skin-decoration-item='star-a'] {
-  color: rgba(94, 191, 229, 0.56);
-}
-body[data-gui-skin='nangong-wan'] .home-stat-card--memory [data-skin-decoration-item='note'] {
-  right: 13px;
+
+body.skin-theme .home-stat-card--memory .skin-decoration__item--note {
   color: rgba(239, 146, 200, 0.65);
 }
 
-body[data-gui-skin='nangong-wan'] .home-dashboard {
-  gap: 12px;
-  min-height: 0;
-}
-
-body[data-gui-skin='nangong-wan'] .traffic-panel,
-body[data-gui-skin='nangong-wan'] .mode-panel {
-  position: relative;
-  overflow: hidden;
-  margin-top: 12px;
-  padding: 0 10px 10px;
+body.skin-theme .traffic-panel,
+body.skin-theme .mode-panel {
   border: 1px solid rgba(255, 255, 255, 0.72);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.36);
-  box-shadow:
-    var(--xianxia-shadow),
-    inset 0 0 0 1px rgba(147, 154, 226, 0.22);
-  backdrop-filter: blur(calc(var(--xianxia-blur, 18px) * 0.62)) saturate(1.08);
 }
 
-body[data-gui-skin='nangong-wan'] .traffic-panel > :not(.traffic-panel__art) {
-  position: relative;
-  z-index: 2;
-}
-
-body[data-gui-skin='nangong-wan'] .traffic-panel__art {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  opacity: min(1, calc(var(--xianxia-background-opacity, 0.78) + 0.18));
-  background-image:
-    linear-gradient(90deg, rgba(247, 249, 255, 0.82) 0%, rgba(247, 249, 255, 0.18) 38%, rgba(245, 226, 255, 0.03) 100%), var(--skin-manager-background);
-  background-position:
-    center,
-    58% bottom;
-  background-repeat: no-repeat;
-  background-size:
-    cover,
-    auto 128%;
-  filter: saturate(1.02) brightness(1.03);
-  mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.54), #000 34%, #000);
-}
-
-body[data-gui-skin='nangong-wan'] .mode-panel {
-  margin-left: 0 !important;
+body.skin-theme .mode-panel {
   background: linear-gradient(150deg, rgba(255, 255, 255, 0.46), rgba(244, 229, 255, 0.38));
 }
 
-body[data-gui-skin='nangong-wan'] .traffic-panel__title,
-body[data-gui-skin='nangong-wan'] .mode-panel__title {
-  position: relative;
-  padding: 10px 2px 7px !important;
-  color: var(--xianxia-ink) !important;
-  font-size: 15px;
-}
-
-body[data-gui-skin='nangong-wan'] :is(.traffic-panel__title, .mode-panel__title)::before {
-  content: '☆';
-  display: inline-flex;
-  vertical-align: middle;
-  margin-right: 6px;
-  color: #df77b6;
+body.skin-theme :is(.traffic-panel__title, .mode-panel__title)::before {
   font-size: 18px;
-  line-height: 1;
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.86);
 }
 
-body[data-gui-skin='nangong-wan'] .gui-traffic-chart {
-  position: relative;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  z-index: 2;
-  background: linear-gradient(120deg, rgba(255, 255, 255, 0.12), rgba(231, 240, 255, 0.08)) !important;
-  box-shadow: inset 0 0 22px rgba(152, 164, 232, 0.1);
-}
-
-body[data-gui-skin='nangong-wan'] .traffic-chart__grid-line {
-  stroke: rgba(103, 125, 207, 0.52) !important;
-}
-
-body[data-gui-skin='nangong-wan'] .traffic-chart__axis-label {
-  fill: #477bd2 !important;
-}
-
-body[data-gui-skin='nangong-wan'] .traffic-chart__series--upload {
-  stroke: #9d72df !important;
-  fill: rgba(173, 125, 228, 0.08) !important;
-}
-
-body[data-gui-skin='nangong-wan'] .traffic-chart__series--download {
-  stroke: #49bee3 !important;
-  fill: rgba(69, 190, 227, 0.08) !important;
-}
-
-body[data-gui-skin='nangong-wan'] .mode-panel__list {
-  gap: 10px !important;
-}
-
-body[data-gui-skin='nangong-wan'] .home-mode-card {
-  min-height: 68px;
-  overflow: hidden;
-  border-radius: 14px !important;
-}
-
-body[data-gui-skin='nangong-wan'] .home-mode-card .gui-card__header::before {
-  content: '';
-  flex: 0 0 25px;
-  width: 25px;
-  height: 25px;
-  margin-right: 6px;
-  color: #6d76dd;
-  background: currentColor;
-  -webkit-mask: var(--xianxia-mode-icon) center / contain no-repeat;
-  mask: var(--xianxia-mode-icon) center / contain no-repeat;
-}
-
-body[data-gui-skin='nangong-wan'] .home-mode-card--global {
-  --xianxia-mode-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9' fill='none' stroke='black' stroke-width='2'/%3E%3Cpath d='M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18' fill='none' stroke='black' stroke-width='1.7'/%3E%3C/svg%3E");
-}
-body[data-gui-skin='nangong-wan'] .home-mode-card--rule {
-  --xianxia-mode-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 3h11l3 3v15H5zM8 9h8M8 13h8M8 17h4' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='17.5' cy='17.5' r='2.5' fill='black'/%3E%3C/svg%3E");
-}
-body[data-gui-skin='nangong-wan'] .home-mode-card--direct {
-  --xianxia-mode-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 11L21 3l-8 18-2.3-7.7L3 11zm7.7 2.3L21 3' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-}
-
-body[data-gui-skin='nangong-wan'] .home-mode-card--global .gui-card__header::before {
+body.skin-theme .home-mode-card--global .gui-card__header::before {
   color: #38a9d1;
 }
-body[data-gui-skin='nangong-wan'] .home-mode-card--rule .gui-card__header::before {
+body.skin-theme .home-mode-card--rule .gui-card__header::before {
   color: #8b68db;
 }
-body[data-gui-skin='nangong-wan'] .home-mode-card--direct .gui-card__header::before {
+body.skin-theme .home-mode-card--direct .gui-card__header::before {
   color: #a474dc;
 }
 
-body[data-gui-skin='nangong-wan'] .home-mode-card::after {
-  position: absolute;
-  right: 16px;
-  top: 11px;
-  color: rgba(119, 127, 217, 0.18);
-  font-size: 31px;
-}
-
-body[data-gui-skin='nangong-wan'] .home-mode-card--global::after {
+body.skin-theme .home-mode-card--global::after {
   content: '♁';
 }
-body[data-gui-skin='nangong-wan'] .home-mode-card--rule::after {
+body.skin-theme .home-mode-card--rule::after {
   content: '☆';
 }
-body[data-gui-skin='nangong-wan'] .home-mode-card--direct::after {
+body.skin-theme .home-mode-card--direct::after {
   content: '♡';
   color: rgba(221, 101, 175, 0.2);
 }
 
-body[data-gui-skin='nangong-wan'] .home-mode-card.is-selected {
-  background: linear-gradient(120deg, rgba(236, 249, 255, 0.72), rgba(244, 230, 255, 0.68)) !important;
-  box-shadow:
-    0 8px 22px rgba(96, 127, 207, 0.16),
-    inset 0 0 0 2px rgba(112, 151, 226, 0.34);
-}
-
-body[data-gui-skin='nangong-wan'] .gui-card__state--selected {
-  z-index: 2;
-  color: #3d7adf !important;
-  filter: drop-shadow(0 0 5px rgba(91, 152, 231, 0.32));
-}
-
-body[data-gui-skin='nangong-wan'] .controller-trigger {
-  position: absolute;
-  left: 50%;
-  bottom: 3px;
-  z-index: 8;
-  width: min(58%, 420px);
-  margin: 0;
-  transform: translateX(-50%);
-}
-
-body[data-gui-skin='nangong-wan'] .controller-trigger .gui-divider__content {
-  padding: 3px 15px;
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  border-radius: 999px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.62), rgba(238, 229, 255, 0.58));
-  box-shadow: 0 4px 14px rgba(102, 126, 209, 0.16);
-}
-
-body[data-gui-skin='nangong-wan'] .controller-trigger .gui-divider__content::before {
-  content: '✦  ୨୧';
-  margin-right: 9px;
-  color: #d976b8;
-}
-
-body[data-gui-skin='nangong-wan'] .controller-trigger .gui-divider__content::after {
-  content: '୨୧  ✦';
-  margin-left: 9px;
-  color: #6fc6e2;
-}
-
-body[data-gui-skin='nangong-wan'] .controller-panel {
-  padding: 12px;
-  border-radius: 16px;
-  background: rgba(245, 248, 255, 0.7);
-  backdrop-filter: none;
-}
-
-body[data-gui-skin='nangong-wan'] :is(.gui-input, .gui-select, .gui-dropdown-overlay, .gui-menu) {
-  border-color: rgba(140, 151, 219, 0.3);
-  box-shadow: 0 6px 18px rgba(91, 116, 194, 0.1);
-  backdrop-filter: blur(var(--xianxia-blur, 18px)) saturate(1.16);
-}
-
-body[data-gui-skin='nangong-wan'] .gui-button {
-  transition:
-    transform 160ms ease,
-    filter 180ms ease,
-    box-shadow 180ms ease;
-}
-
-body[data-gui-skin='nangong-wan'] .gui-button.primary {
-  background: linear-gradient(110deg, #62cbe4, #718de9 52%, #c07cde) !important;
-}
-
-body[data-gui-skin='nangong-wan'] .gui-button.primary:hover {
-  background: linear-gradient(110deg, #52bedb, #7d84e7 52%, #d278ce) !important;
-}
-
-body[data-gui-skin='nangong-wan'] .gui-button:hover {
-  transform: translateY(-1px);
-  filter: drop-shadow(0 4px 6px rgba(93, 118, 205, 0.18));
-}
-
-body[data-gui-skin='nangong-wan'] .gui-button:active {
-  transform: scale(0.97);
-}
-
-body[data-gui-skin='nangong-wan'] .controller-close {
-  width: 31px;
-  height: 31px;
-  padding: 5px;
+body.skin-theme .controller-close {
   border: 1px solid rgba(137, 132, 222, 0.46);
-  border-radius: 50%;
-  color: #7967cd;
-  background:
-    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.92), transparent 33%), linear-gradient(135deg, rgba(218, 249, 255, 0.9), rgba(249, 218, 244, 0.9)) !important;
-  box-shadow:
-    0 5px 15px rgba(94, 128, 210, 0.22),
-    inset 0 0 0 2px rgba(255, 255, 255, 0.62),
-    0 0 11px rgba(211, 113, 198, 0.16);
-  transform: translateX(-50%) !important;
 }
 
-body[data-gui-skin='nangong-wan'] .controller-close:hover {
+body.skin-theme .controller-close:hover {
   color: #d765ad;
-  filter: drop-shadow(0 4px 6px rgba(93, 118, 205, 0.18));
   box-shadow:
     0 6px 17px rgba(82, 164, 220, 0.28),
     inset 0 0 0 2px rgba(255, 255, 255, 0.76),
     0 0 14px rgba(218, 107, 193, 0.24);
-  transform: translateX(-50%) !important;
 }
 
-body[data-gui-skin='nangong-wan'] .controller-close:active {
-  transform: translateX(-50%) scale(0.96) !important;
-}
-
-body[data-gui-skin='nangong-wan'] .controller-close svg {
-  width: 17px !important;
-  height: 17px !important;
-  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.92));
-}
-
-body[data-gui-skin='nangong-wan'] svg {
-  filter: drop-shadow(0 1px 2px rgba(90, 105, 188, 0.16));
-}
-body[data-gui-skin='nangong-wan'] ::selection {
-  color: #3d477c;
-  background: rgba(210, 186, 247, 0.58);
-}
-
-body[data-gui-skin='nangong-wan'] [data-skin-motion-layer] {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-  pointer-events: none;
-  contain: layout paint style;
-}
-
-body[data-gui-skin='nangong-wan'] :is(.gui-dropdown-overlay, .gui-menu) {
-  border: 1px solid rgba(255, 255, 255, 0.74);
-  background: rgba(248, 250, 255, 0.9) !important;
-  box-shadow:
-    0 14px 38px rgba(86, 107, 189, 0.2),
-    inset 0 0 0 1px rgba(159, 148, 226, 0.2);
-  backdrop-filter: blur(20px) saturate(1.2);
-}
-
-body[data-gui-skin='nangong-wan'] [data-skin-particle='sparkle'] {
-  position: absolute;
-  left: var(--skin-x);
-  top: var(--skin-y);
-  width: var(--skin-size);
-  height: var(--skin-size);
-  opacity: 0.14;
-  background: linear-gradient(135deg, #ffffff, #86dff1 48%, #eaa0d0);
-  clip-path: polygon(50% 0, 61% 38%, 100% 50%, 61% 62%, 50% 100%, 39% 62%, 0 50%, 39% 38%);
-  filter: drop-shadow(0 0 5px rgba(133, 177, 235, 0.62));
+body.skin-theme .skin-particle--sparkle {
   animation: xianxia-sparkle var(--skin-duration) var(--skin-delay) ease-in-out infinite;
 }
 
-body[data-gui-skin='nangong-wan'] :is([data-skin-particle='ornament-left'], [data-skin-particle='ornament-right']) {
-  position: absolute;
-  color: rgba(133, 100, 214, 0.5);
-  font-size: 42px;
-  line-height: 1;
-  text-shadow:
-    0 0 8px rgba(255, 255, 255, 0.92),
-    0 0 14px rgba(133, 177, 235, 0.32);
+body.skin-theme :is(.skin-particle--ornament-left, .skin-particle--ornament-right) {
   animation: xianxia-ornament 5s ease-in-out infinite;
 }
 
-body[data-gui-skin='nangong-wan'] [data-skin-particle='ornament-left'] {
-  left: 14px;
-  bottom: 14px;
+body.skin-theme .skin-particle--ornament-left {
   color: rgba(221, 113, 183, 0.5);
 }
-body[data-gui-skin='nangong-wan'] [data-skin-particle='ornament-right'] {
-  right: 18px;
-  bottom: 14px;
-  font-size: 49px;
-  animation-delay: -2s;
-}
 
-body[data-gui-skin='nangong-wan'] [data-skin-equalizer] {
-  position: absolute;
-  right: 12%;
-  bottom: 9px;
-  left: 10%;
-  height: 44px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 3px;
-  opacity: 0.26;
-  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
-}
-
-body[data-gui-skin='nangong-wan'] [data-skin-equalizer-bar] {
-  width: 3px;
-  height: var(--skin-height);
-  border-radius: 999px 999px 2px 2px;
-  background: linear-gradient(180deg, #e68fc7, #6acde6 56%, rgba(101, 118, 211, 0.28));
-  transform: scaleY(0.2);
-  transform-origin: bottom;
+body.skin-theme .skin-equalizer__bar {
   animation: xianxia-equalizer var(--skin-duration) var(--skin-delay) ease-in-out infinite alternate;
 }
 
@@ -1098,95 +340,22 @@ body[data-gui-skin='nangong-wan'] [data-skin-equalizer-bar] {
   }
 }
 
-@media (max-width: 760px) {
-  body[data-gui-skin='nangong-wan']::before {
-    background-position: 62% center;
-  }
-  body[data-gui-skin='nangong-wan'] .main-nav {
-    gap: 0;
-    padding-inline: 4px;
-  }
-  body[data-gui-skin='nangong-wan'] .main-nav__button {
-    padding-inline: 7px;
-  }
-  body[data-gui-skin='nangong-wan'] .home-stats {
-    gap: 7px !important;
-  }
-  body[data-gui-skin='nangong-wan'] .home-stat-card__value {
-    font-size: 12px !important;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  body[data-gui-skin='nangong-wan'] *,
-  body[data-gui-skin='nangong-wan'] *::before,
-  body[data-gui-skin='nangong-wan'] *::after {
-    animation: none !important;
-  }
-  body[data-gui-skin='nangong-wan'] [data-skin-equalizer] {
-    display: none;
-  }
-}
-
-body[data-gui-skin='nangong-wan'][feature-no-animation='true'] [data-skin-motion-layer] {
-  display: none;
-}
-
 /* Moonlit immortal cultivation theme */
-body[data-gui-skin='nangong-wan'] {
-  --xianxia-ink: #eee4e8;
-  --xianxia-muted: #b9b3cd;
-  --xianxia-blue: #8d8bd8;
-  --xianxia-cyan: #8ab6e8;
-  --xianxia-purple: #a895dc;
-  --xianxia-pink: #d8b8ca;
-  --xianxia-glass: rgba(28, 39, 82, 0.66);
-  --xianxia-glass-strong: rgba(35, 46, 92, 0.78);
-  --xianxia-border: rgba(202, 178, 199, 0.48);
-  --xianxia-shadow: 0 10px 26px rgba(0, 4, 20, 0.34);
-  --primary-color: #9a91dc !important;
-  --secondary-color: #d8b8ca !important;
-  --color-light: #eee4e8 !important;
-  --color-dark: #f4eaf0 !important;
-  --bg-color-light: rgba(7, 18, 43, 0.74) !important;
-  --bg-color-dark: rgba(4, 12, 31, 0.82) !important;
-  --card-color-light: #eee4e8 !important;
-  --card-color-dark: #f4eaf0 !important;
-  --card-bg-light: rgba(29, 40, 83, 0.66) !important;
-  --card-bg-dark: rgba(22, 31, 70, 0.74) !important;
-  --card-hover-bg-light: rgba(43, 55, 104, 0.76) !important;
-  --card-hover-bg-dark: rgba(38, 49, 96, 0.82) !important;
-  --card-active-bg-light: rgba(57, 55, 111, 0.78) !important;
-  --card-active-bg-dark: rgba(52, 49, 103, 0.84) !important;
-  --btn-normal-color-light: #e9dfe6 !important;
-  --btn-normal-color-dark: #f2e8ef !important;
-  --btn-normal-bg-light: rgba(43, 52, 95, 0.72) !important;
-  --btn-normal-bg-dark: rgba(32, 42, 84, 0.82) !important;
-  --btn-text-color-light: #eee4e8 !important;
-  --btn-text-color-dark: #f4eaf0 !important;
-  --btn-text-hover-bg-light: rgba(150, 139, 211, 0.18) !important;
-  --btn-text-hover-bg-dark: rgba(160, 147, 220, 0.22) !important;
-  --btn-link-color-light: #b9b3ee !important;
-  --btn-link-color-dark: #c9c2f2 !important;
-  --input-color-light: #eee4e8 !important;
-  --input-color-dark: #f4eaf0 !important;
-  --input-bg-light: rgba(30, 40, 80, 0.8) !important;
-  --input-bg-dark: rgba(19, 29, 65, 0.86) !important;
-  --dropdown-bg-light: rgba(15, 25, 58, 0.96) !important;
-  --dropdown-bg-dark: rgba(10, 19, 47, 0.97) !important;
-  --modal-bg-light: rgba(16, 27, 61, 0.96) !important;
-  --modal-bg-dark: rgba(9, 18, 45, 0.97) !important;
-  --divider-color-light: rgba(191, 171, 202, 0.32) !important;
-  --divider-color-dark: rgba(200, 181, 212, 0.36) !important;
-  --switch-on-bg-light: #8278c4 !important;
-  --switch-on-bg-dark: #8d82d0 !important;
-  color: var(--xianxia-ink);
+body.skin-theme {
+  --skin-ink: #eee4e8;
+  --skin-blue: #8d8bd8;
+  --skin-purple: #a895dc;
+  --skin-glass: rgba(28, 39, 82, 0.66);
+  --skin-glass-strong: rgba(35, 46, 92, 0.78);
+  --skin-border: rgba(202, 178, 199, 0.48);
+  --skin-shadow: 0 10px 26px rgba(0, 4, 20, 0.34);
+  color: var(--skin-ink);
   background: #07142d !important;
   font-family: 'Noto Serif SC', 'Songti SC', 'STSong', 'Microsoft YaHei', serif;
 }
 
-body[data-gui-skin='nangong-wan']::before,
-body[data-gui-skin='nangong-wan'][theme-mode='dark']::before {
+body.skin-theme::before,
+body.skin-theme[theme-mode='dark']::before {
   opacity: 0.3;
   background-image:
     linear-gradient(180deg, rgba(4, 12, 31, 0.18), rgba(5, 13, 34, 0.72)),
@@ -1200,7 +369,7 @@ body[data-gui-skin='nangong-wan'][theme-mode='dark']::before {
   filter: saturate(0.82) brightness(0.58) contrast(1.08);
 }
 
-body[data-gui-skin='nangong-wan']::after {
+body.skin-theme::after {
   opacity: 1;
   background:
     radial-gradient(circle at 72% 34%, rgba(196, 197, 242, 0.1), transparent 22%),
@@ -1208,16 +377,15 @@ body[data-gui-skin='nangong-wan']::after {
     linear-gradient(125deg, rgba(4, 12, 31, 0.62), rgba(12, 24, 58, 0.36) 50%, rgba(8, 17, 41, 0.58));
 }
 
-body[data-gui-skin='nangong-wan'][theme-mode='dark'] {
-  --xianxia-ink: #f4eaf0;
-  --xianxia-muted: #c7bfd3;
-  --xianxia-glass: rgba(22, 31, 70, 0.74);
-  --xianxia-glass-strong: rgba(33, 43, 88, 0.84);
+body.skin-theme[theme-mode='dark'] {
+  --skin-ink: #f4eaf0;
+  --skin-glass: rgba(22, 31, 70, 0.74);
+  --skin-glass-strong: rgba(33, 43, 88, 0.84);
   background: #040c1f !important;
 }
 
-body[data-gui-skin='nangong-wan'] #app {
-  color: var(--xianxia-ink);
+body.skin-theme #app {
+  color: var(--skin-ink);
   background-image:
     radial-gradient(circle at 50% 0, rgba(151, 149, 217, 0.08), transparent 36%), linear-gradient(rgba(171, 157, 204, 0.035) 1px, transparent 1px),
     linear-gradient(90deg, rgba(171, 157, 204, 0.035) 1px, transparent 1px);
@@ -1227,8 +395,7 @@ body[data-gui-skin='nangong-wan'] #app {
     28px 28px;
 }
 
-body[data-gui-skin='nangong-wan'] #app::before {
-  inset: 5px;
+body.skin-theme #app::before {
   border-color: rgba(208, 184, 199, 0.52);
   border-radius: 14px;
   box-shadow:
@@ -1237,8 +404,8 @@ body[data-gui-skin='nangong-wan'] #app::before {
     0 0 18px rgba(6, 8, 28, 0.58);
 }
 
-body[data-gui-skin='nangong-wan'] .app-titlebar {
-  color: var(--xianxia-ink);
+body.skin-theme .app-titlebar {
+  color: var(--skin-ink);
   background: linear-gradient(90deg, rgba(7, 17, 41, 0.82), rgba(20, 30, 65, 0.7), rgba(8, 18, 43, 0.82));
   box-shadow:
     inset 0 -1px rgba(204, 181, 199, 0.28),
@@ -1246,60 +413,60 @@ body[data-gui-skin='nangong-wan'] .app-titlebar {
   backdrop-filter: blur(16px) saturate(1.08);
 }
 
-body[data-gui-skin='nangong-wan'] .app-titlebar__logo {
+body.skin-theme .app-titlebar__logo {
   filter: grayscale(0.2) sepia(0.12) hue-rotate(205deg) brightness(1.22) drop-shadow(0 0 8px rgba(166, 158, 224, 0.56));
 }
 
-body[data-gui-skin='nangong-wan'] .app-titlebar__brand,
-body[data-gui-skin='nangong-wan'] .app-titlebar__version,
-body[data-gui-skin='nangong-wan'] .app-titlebar__custom-actions,
-body[data-gui-skin='nangong-wan'] .window-control {
+body.skin-theme .app-titlebar__brand,
+body.skin-theme .app-titlebar__version,
+body.skin-theme .app-titlebar__custom-actions,
+body.skin-theme .window-control {
   color: #eadde4 !important;
   text-shadow: 0 0 10px rgba(153, 148, 215, 0.26);
 }
 
-body[data-gui-skin='nangong-wan'] .window-control:hover {
+body.skin-theme .window-control:hover {
   color: #fff6f2;
   background: rgba(123, 113, 181, 0.24) !important;
 }
 
-body[data-gui-skin='nangong-wan'] .window-control--close:hover {
+body.skin-theme .window-control--close:hover {
   color: #fff;
   background: linear-gradient(120deg, #8d6e91, #544a91) !important;
 }
 
-body[data-gui-skin='nangong-wan'] .main-nav {
+body.skin-theme .main-nav {
   border-bottom: 1px solid rgba(208, 184, 199, 0.18);
 }
 
-body[data-gui-skin='nangong-wan'] .main-nav__button {
+body.skin-theme .main-nav__button {
   color: #d9ced9;
   font-weight: 620;
   letter-spacing: 0.04em;
 }
 
-body[data-gui-skin='nangong-wan'] .main-nav__button svg {
+body.skin-theme .main-nav__button svg {
   display: block;
   color: #cfc5db;
   filter: drop-shadow(0 0 5px rgba(165, 157, 220, 0.2));
 }
 
-body[data-gui-skin='nangong-wan'] .main-nav__button::before,
-body[data-gui-skin='nangong-wan'] .main-nav__item--overview:has(.is-active)::before {
+body.skin-theme .main-nav__button::before,
+body.skin-theme .main-nav__item--overview:has(.is-active)::before {
   display: none;
 }
 
-body[data-gui-skin='nangong-wan'] .main-nav__button:hover {
+body.skin-theme .main-nav__button:hover {
   color: #fff1ed;
   filter: drop-shadow(0 0 7px rgba(175, 163, 224, 0.48));
 }
 
-body[data-gui-skin='nangong-wan'] .main-nav__button.is-active {
+body.skin-theme .main-nav__button.is-active {
   color: #fff2ef;
   text-shadow: 0 0 12px rgba(184, 171, 227, 0.66);
 }
 
-body[data-gui-skin='nangong-wan'] .main-nav__button.is-active::after {
+body.skin-theme .main-nav__button.is-active::after {
   height: 2px;
   background: linear-gradient(90deg, transparent, #d7b9ca 18%, #a49adf 52%, #d7b9ca 82%, transparent);
   box-shadow:
@@ -1307,7 +474,7 @@ body[data-gui-skin='nangong-wan'] .main-nav__button.is-active::after {
     0 0 18px rgba(188, 174, 224, 0.38);
 }
 
-body[data-gui-skin='nangong-wan'] .overview-toolbar {
+body.skin-theme .overview-toolbar {
   border-color: rgba(207, 180, 198, 0.48);
   border-radius: 10px !important;
   background: linear-gradient(90deg, rgba(30, 37, 80, 0.78), rgba(39, 44, 92, 0.7), rgba(24, 32, 72, 0.78)) !important;
@@ -1317,39 +484,37 @@ body[data-gui-skin='nangong-wan'] .overview-toolbar {
     inset 0 0 20px rgba(124, 118, 188, 0.08);
 }
 
-body[data-gui-skin='nangong-wan'] .gui-switch.on,
-body[data-gui-skin='nangong-wan'] .gui-switch.on:hover {
+body.skin-theme .gui-switch.on,
+body.skin-theme .gui-switch.on:hover {
   background: linear-gradient(90deg, #746eb5, #a28fc7) !important;
 }
 
-body[data-gui-skin='nangong-wan'] .gui-card {
-  color: var(--xianxia-ink);
+body.skin-theme .gui-card {
+  color: var(--skin-ink);
   border-color: rgba(203, 181, 200, 0.48);
-  background: var(--xianxia-glass) !important;
   box-shadow:
-    var(--xianxia-shadow),
+    var(--skin-shadow),
     inset 0 0 0 1px rgba(130, 124, 183, 0.34),
     inset 0 0 22px rgba(112, 119, 191, 0.08);
-  backdrop-filter: blur(10px) saturate(1.04);
 }
 
-body[data-gui-skin='nangong-wan'] .gui-card:hover {
-  background: var(--xianxia-glass-strong) !important;
+body.skin-theme .gui-card:hover {
+  background: var(--skin-glass-strong) !important;
   box-shadow:
     0 12px 30px rgba(0, 4, 20, 0.4),
     0 0 16px rgba(144, 134, 204, 0.16),
     inset 0 0 0 1px rgba(215, 190, 205, 0.58);
 }
 
-body[data-gui-skin='nangong-wan'] .gui-card__title,
-body[data-gui-skin='nangong-wan'] .traffic-panel__title,
-body[data-gui-skin='nangong-wan'] .mode-panel__title {
+body.skin-theme .gui-card__title,
+body.skin-theme .traffic-panel__title,
+body.skin-theme .mode-panel__title {
   color: #efe2e6 !important;
   letter-spacing: 0.06em;
   text-shadow: 0 0 8px rgba(180, 166, 219, 0.28);
 }
 
-body[data-gui-skin='nangong-wan'] .home-stat-card {
+body.skin-theme .home-stat-card {
   border-color: rgba(210, 186, 201, 0.54);
   border-radius: 10px !important;
   outline-color: rgba(126, 120, 177, 0.42);
@@ -1361,32 +526,32 @@ body[data-gui-skin='nangong-wan'] .home-stat-card {
     inset 0 0 20px rgba(120, 129, 199, 0.08);
 }
 
-body[data-gui-skin='nangong-wan'] .home-stat-card .gui-card__header::before {
+body.skin-theme .home-stat-card .gui-card__header::before {
   color: #c9bfd7;
   filter: drop-shadow(0 0 6px rgba(175, 164, 219, 0.46));
 }
 
-body[data-gui-skin='nangong-wan'] .home-stat-card--realtime {
-  --xianxia-card-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 16c3-4 5-4 8 0s5 4 10-1M4 11c3-3 5-3 8 0s5 3 8-1M7 7c2-2 4-2 6 0' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E");
+body.skin-theme .home-stat-card--realtime {
+  --skin-card-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 16c3-4 5-4 8 0s5 4 10-1M4 11c3-3 5-3 8 0s5 3 8-1M7 7c2-2 4-2 6 0' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E");
 }
 
-body[data-gui-skin='nangong-wan'] .home-stat-card--total {
-  --xianxia-card-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M2 19l6-9 3 4 4-9 7 14zM5 19l5-4 3 2 4-3 4 5' fill='none' stroke='black' stroke-width='1.8' stroke-linejoin='round'/%3E%3C/svg%3E");
+body.skin-theme .home-stat-card--total {
+  --skin-card-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M2 19l6-9 3 4 4-9 7 14zM5 19l5-4 3 2 4-3 4 5' fill='none' stroke='black' stroke-width='1.8' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 
-body[data-gui-skin='nangong-wan'] .home-stat-card--connections {
-  --xianxia-card-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21c-5-3-8-6-8-10 4 0 6 1 8 4 2-3 4-4 8-4 0 4-3 7-8 10zM12 15c-3-3-3-7 0-11 3 4 3 8 0 11zM12 17c-4 0-7-2-9-5M12 17c4 0 7-2 9-5' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+body.skin-theme .home-stat-card--connections {
+  --skin-card-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21c-5-3-8-6-8-10 4 0 6 1 8 4 2-3 4-4 8-4 0 4-3 7-8 10zM12 15c-3-3-3-7 0-11 3 4 3 8 0 11zM12 17c-4 0-7-2-9-5M12 17c4 0 7-2 9-5' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 
-body[data-gui-skin='nangong-wan'] .home-stat-card--memory {
-  --xianxia-card-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M13 2c2 5-2 6 1 10 1-2 3-3 4-5 3 5 2 12-6 15-7-2-8-9-4-14 0 4 2 5 3 6-1-5 1-8 2-12z' fill='black'/%3E%3Cpath d='M12 20c-3-2-3-5 0-8 0 2 2 3 2 5 0 1-1 2-2 3z' fill='white'/%3E%3C/svg%3E");
+body.skin-theme .home-stat-card--memory {
+  --skin-card-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M13 2c2 5-2 6 1 10 1-2 3-3 4-5 3 5 2 12-6 15-7-2-8-9-4-14 0 4 2 5 3 6-1-5 1-8 2-12z' fill='black'/%3E%3Cpath d='M12 20c-3-2-3-5 0-8 0 2 2 3 2 5 0 1-1 2-2 3z' fill='white'/%3E%3C/svg%3E");
 }
 
-body[data-gui-skin='nangong-wan'] .home-stat-card .gui-card__header::after {
+body.skin-theme .home-stat-card .gui-card__header::after {
   background: linear-gradient(90deg, rgba(212, 183, 199, 0.68), rgba(143, 137, 201, 0.4), transparent);
 }
 
-body[data-gui-skin='nangong-wan'] .home-stat-card::after {
+body.skin-theme .home-stat-card::after {
   display: grid;
   place-items: center;
   right: 12px;
@@ -1407,46 +572,46 @@ body[data-gui-skin='nangong-wan'] .home-stat-card::after {
   text-shadow: 0 0 8px rgba(219, 205, 218, 0.56);
 }
 
-body[data-gui-skin='nangong-wan'] .home-stat-card--realtime::after {
+body.skin-theme .home-stat-card--realtime::after {
   content: '≈';
 }
 
-body[data-gui-skin='nangong-wan'] .home-stat-card--total::after {
+body.skin-theme .home-stat-card--total::after {
   content: '△';
 }
 
-body[data-gui-skin='nangong-wan'] .home-stat-card--connections::after {
+body.skin-theme .home-stat-card--connections::after {
   content: '✥';
 }
 
-body[data-gui-skin='nangong-wan'] .home-stat-card--memory::after {
+body.skin-theme .home-stat-card--memory::after {
   content: '♨';
 }
 
-body[data-gui-skin='nangong-wan'] .home-stat-card__value,
-body[data-gui-skin='nangong-wan'] .metric--upload,
-body[data-gui-skin='nangong-wan'] .metric--download {
+body.skin-theme .home-stat-card__value,
+body.skin-theme .metric--upload,
+body.skin-theme .metric--download {
   color: #dcd3df;
 }
 
-body[data-gui-skin='nangong-wan'] [data-skin-decoration='stats'] {
+body.skin-theme .skin-decoration--stats {
   opacity: 0.5;
 }
 
-body[data-gui-skin='nangong-wan'] [data-skin-decoration-item='note'],
-body[data-gui-skin='nangong-wan'] [data-skin-decoration-item='heart'],
-body[data-gui-skin='nangong-wan'] [data-skin-decoration-item='orbit'] {
+body.skin-theme .skin-decoration__item--note,
+body.skin-theme .skin-decoration__item--heart,
+body.skin-theme .skin-decoration__item--orbit {
   display: none !important;
 }
 
-body[data-gui-skin='nangong-wan'] [data-skin-decoration-item='star-a'],
-body[data-gui-skin='nangong-wan'] [data-skin-decoration-item='star-b'],
-body[data-gui-skin='nangong-wan'] [data-skin-decoration-item='star-c'] {
+body.skin-theme .skin-decoration__item--star-a,
+body.skin-theme .skin-decoration__item--star-b,
+body.skin-theme .skin-decoration__item--star-c {
   color: rgba(213, 193, 211, 0.54);
 }
 
-body[data-gui-skin='nangong-wan'] .traffic-panel,
-body[data-gui-skin='nangong-wan'] .mode-panel {
+body.skin-theme .traffic-panel,
+body.skin-theme .mode-panel {
   border-color: rgba(207, 182, 199, 0.5);
   border-radius: 10px;
   background: rgba(14, 25, 58, 0.62);
@@ -1456,8 +621,8 @@ body[data-gui-skin='nangong-wan'] .mode-panel {
     inset 0 0 28px rgba(100, 111, 187, 0.08);
 }
 
-body[data-gui-skin='nangong-wan'] .traffic-panel__art {
-  opacity: min(1, calc(var(--xianxia-background-opacity, 0.82) + 0.14));
+body.skin-theme .traffic-panel__art {
+  opacity: min(1, calc(var(--skin-background-opacity, 0.82) + 0.14));
   background-image:
     linear-gradient(90deg, rgba(10, 21, 51, 0.76) 0%, rgba(10, 21, 51, 0.24) 34%, rgba(8, 18, 44, 0.04) 100%),
     linear-gradient(180deg, rgba(9, 19, 47, 0.08), rgba(7, 16, 40, 0.2)), var(--skin-manager-background);
@@ -1473,7 +638,7 @@ body[data-gui-skin='nangong-wan'] .traffic-panel__art {
   mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.58), #000 32%, #000);
 }
 
-body[data-gui-skin='nangong-wan'] .mode-panel {
+body.skin-theme .mode-panel {
   background-image: linear-gradient(150deg, rgba(19, 30, 67, 0.86), rgba(13, 24, 57, 0.58)), var(--skin-manager-background);
   background-position:
     center,
@@ -1484,67 +649,67 @@ body[data-gui-skin='nangong-wan'] .mode-panel {
     auto 110%;
 }
 
-body[data-gui-skin='nangong-wan'] :is(.traffic-panel__title, .mode-panel__title)::before {
+body.skin-theme :is(.traffic-panel__title, .mode-panel__title)::before {
   content: '◇';
   color: #d1becf;
   text-shadow: 0 0 8px rgba(178, 163, 217, 0.56);
 }
 
-body[data-gui-skin='nangong-wan'] .gui-traffic-chart {
+body.skin-theme .gui-traffic-chart {
   border-color: rgba(196, 176, 199, 0.3);
   background: linear-gradient(120deg, rgba(16, 28, 63, 0.16), rgba(54, 54, 102, 0.08)) !important;
   box-shadow: inset 0 0 24px rgba(105, 113, 188, 0.1);
 }
 
-body[data-gui-skin='nangong-wan'] .traffic-chart__grid-line {
+body.skin-theme .traffic-chart__grid-line {
   stroke: rgba(137, 139, 201, 0.42) !important;
   stroke-dasharray: 3 5;
 }
 
-body[data-gui-skin='nangong-wan'] .traffic-chart__axis-label {
+body.skin-theme .traffic-chart__axis-label {
   fill: #c8bed1 !important;
 }
 
-body[data-gui-skin='nangong-wan'] .traffic-chart__series--upload {
+body.skin-theme .traffic-chart__series--upload {
   stroke: #b27ad9 !important;
   fill: rgba(178, 122, 217, 0.08) !important;
 }
 
-body[data-gui-skin='nangong-wan'] .traffic-chart__series--download {
+body.skin-theme .traffic-chart__series--download {
   stroke: #779bde !important;
   fill: rgba(119, 155, 222, 0.08) !important;
 }
 
-body[data-gui-skin='nangong-wan'] .home-mode-card {
+body.skin-theme .home-mode-card {
   border-color: rgba(205, 181, 199, 0.48);
   border-radius: 9px !important;
   background: linear-gradient(120deg, rgba(34, 43, 87, 0.78), rgba(25, 34, 76, 0.66)) !important;
 }
 
-body[data-gui-skin='nangong-wan'] .home-mode-card .gui-card__header::before {
+body.skin-theme .home-mode-card .gui-card__header::before {
   color: #cbc1dc;
   filter: drop-shadow(0 0 6px rgba(171, 157, 218, 0.42));
 }
 
-body[data-gui-skin='nangong-wan'] .home-mode-card--global {
-  --xianxia-mode-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9' fill='none' stroke='black' stroke-width='1.7'/%3E%3Cellipse cx='12' cy='12' rx='4' ry='9' fill='none' stroke='black' stroke-width='1.4'/%3E%3Cpath d='M3 12h18M5 7h14M5 17h14' fill='none' stroke='black' stroke-width='1.3'/%3E%3C/svg%3E");
+body.skin-theme .home-mode-card--global {
+  --skin-mode-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9' fill='none' stroke='black' stroke-width='1.7'/%3E%3Cellipse cx='12' cy='12' rx='4' ry='9' fill='none' stroke='black' stroke-width='1.4'/%3E%3Cpath d='M3 12h18M5 7h14M5 17h14' fill='none' stroke='black' stroke-width='1.3'/%3E%3C/svg%3E");
 }
 
-body[data-gui-skin='nangong-wan'] .home-mode-card--rule {
-  --xianxia-mode-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='6' y='2.5' width='12' height='19' rx='1.5' fill='none' stroke='black' stroke-width='1.8'/%3E%3Cpath d='M9 7h6M9 11l6 5M15 11l-6 5M9 19h6' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+body.skin-theme .home-mode-card--rule {
+  --skin-mode-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='6' y='2.5' width='12' height='19' rx='1.5' fill='none' stroke='black' stroke-width='1.8'/%3E%3Cpath d='M9 7h6M9 11l6 5M15 11l-6 5M9 19h6' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
 }
 
-body[data-gui-skin='nangong-wan'] .home-mode-card--direct {
-  --xianxia-mode-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9.5 14.5l-2 2a4 4 0 0 1-5.7-5.7l4-4a4 4 0 0 1 5.7 0M14.5 9.5l2-2a4 4 0 0 1 5.7 5.7l-4 4a4 4 0 0 1-5.7 0M8 16l8-8' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+body.skin-theme .home-mode-card--direct {
+  --skin-mode-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9.5 14.5l-2 2a4 4 0 0 1-5.7-5.7l4-4a4 4 0 0 1 5.7 0M14.5 9.5l2-2a4 4 0 0 1 5.7 5.7l-4 4a4 4 0 0 1-5.7 0M8 16l8-8' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
 }
 
-body[data-gui-skin='nangong-wan'] .home-mode-card::after {
+body.skin-theme .home-mode-card::after {
   content: '◇';
   color: rgba(213, 187, 204, 0.28);
   font-size: 22px;
 }
 
-body[data-gui-skin='nangong-wan'] .home-mode-card.is-selected {
+body.skin-theme .home-mode-card.is-selected {
   border-color: rgba(210, 184, 205, 0.74);
   background: linear-gradient(120deg, rgba(63, 57, 112, 0.78), rgba(39, 43, 91, 0.74)) !important;
   box-shadow:
@@ -1553,12 +718,12 @@ body[data-gui-skin='nangong-wan'] .home-mode-card.is-selected {
     0 0 14px rgba(126, 112, 186, 0.16);
 }
 
-body[data-gui-skin='nangong-wan'] .gui-card__state--selected {
+body.skin-theme .gui-card__state--selected {
   color: #d7c0e8 !important;
   filter: drop-shadow(0 0 7px rgba(154, 133, 213, 0.58));
 }
 
-body[data-gui-skin='nangong-wan'] .controller-trigger .gui-divider__content {
+body.skin-theme .controller-trigger .gui-divider__content {
   border-color: rgba(205, 180, 199, 0.56);
   color: #eadde5;
   background: linear-gradient(90deg, rgba(34, 42, 85, 0.88), rgba(58, 53, 102, 0.86), rgba(31, 40, 82, 0.88));
@@ -1567,41 +732,37 @@ body[data-gui-skin='nangong-wan'] .controller-trigger .gui-divider__content {
     inset 0 0 0 1px rgba(132, 124, 184, 0.34);
 }
 
-body[data-gui-skin='nangong-wan'] .controller-trigger .gui-divider__content::before {
+body.skin-theme .controller-trigger .gui-divider__content::before {
   content: '◇  ✦';
   color: #cbb9cf;
 }
 
-body[data-gui-skin='nangong-wan'] .controller-trigger .gui-divider__content::after {
+body.skin-theme .controller-trigger .gui-divider__content::after {
   content: '✦  ◇';
   color: #9fa4dc;
 }
 
-body[data-gui-skin='nangong-wan'] .controller-panel {
+body.skin-theme .controller-panel {
   border: 1px solid rgba(202, 179, 198, 0.48);
   background: rgba(14, 24, 57, 0.9);
   box-shadow: inset 0 0 0 1px rgba(126, 119, 179, 0.32);
 }
 
-body[data-gui-skin='nangong-wan'] :is(.gui-input, .gui-select, .gui-dropdown-overlay, .gui-menu) {
-  color: #eee4e8;
+body.skin-theme :is(.gui-input, .gui-select, .gui-dropdown-overlay, .gui-menu) {
   border-color: rgba(193, 171, 198, 0.38);
-  background: rgba(18, 29, 66, 0.94) !important;
-  box-shadow:
-    0 12px 32px rgba(0, 3, 18, 0.38),
-    inset 0 0 0 1px rgba(125, 119, 180, 0.24);
+  box-shadow: 0 6px 18px rgba(0, 3, 18, 0.22);
 }
 
-body[data-gui-skin='nangong-wan'] .gui-button.primary {
+body.skin-theme .gui-button.primary {
   background: linear-gradient(110deg, #696bad, #8c79bd 52%, #9f789f) !important;
   box-shadow: 0 5px 14px rgba(0, 3, 18, 0.24);
 }
 
-body[data-gui-skin='nangong-wan'] .gui-button.primary:hover {
+body.skin-theme .gui-button.primary:hover {
   background: linear-gradient(110deg, #7b7bc0, #9a86ca 52%, #b087ad) !important;
 }
 
-body[data-gui-skin='nangong-wan'] .controller-close {
+body.skin-theme .controller-close {
   border-color: rgba(205, 181, 200, 0.5);
   color: #d9cbd9;
   background: radial-gradient(circle at 35% 28%, rgba(230, 218, 231, 0.2), transparent 34%), rgba(39, 45, 91, 0.9) !important;
@@ -1611,12 +772,12 @@ body[data-gui-skin='nangong-wan'] .controller-close {
     0 0 12px rgba(151, 137, 203, 0.2);
 }
 
-body[data-gui-skin='nangong-wan'] ::selection {
+body.skin-theme ::selection {
   color: #fff2ef;
   background: rgba(139, 121, 192, 0.58);
 }
 
-body[data-gui-skin='nangong-wan'] [data-skin-motion-layer]::before {
+body.skin-theme .skin-motion-layer::before {
   content: '';
   position: absolute;
   width: 300px;
@@ -1628,13 +789,21 @@ body[data-gui-skin='nangong-wan'] [data-skin-motion-layer]::before {
   background: radial-gradient(circle, rgba(174, 165, 224, 0.26), rgba(92, 107, 181, 0.08) 42%, transparent 72%);
 }
 
-body[data-gui-skin='nangong-wan'] [data-skin-particle='sparkle'] {
+body.skin-theme :is(.gui-dropdown-overlay, .gui-menu) {
+  border: 1px solid rgba(205, 182, 202, 0.52);
+  background: rgba(13, 23, 55, 0.97) !important;
+  box-shadow:
+    0 14px 38px rgba(0, 3, 18, 0.48),
+    inset 0 0 0 1px rgba(126, 119, 181, 0.3);
+}
+
+body.skin-theme .skin-particle--sparkle {
   opacity: 0.12;
   background: linear-gradient(135deg, #fff2e7, #b8b5ec 48%, #d7b9ca);
   filter: drop-shadow(0 0 6px rgba(184, 174, 226, 0.72));
 }
 
-body[data-gui-skin='nangong-wan'] [data-skin-particle='mist'] {
+body.skin-theme .skin-particle--mist {
   position: absolute;
   left: var(--skin-x);
   top: var(--skin-y);
@@ -1647,7 +816,7 @@ body[data-gui-skin='nangong-wan'] [data-skin-particle='mist'] {
   animation: xianxia-mist var(--skin-duration) var(--skin-delay) ease-in-out infinite;
 }
 
-body[data-gui-skin='nangong-wan'] [data-skin-burst] {
+body.skin-theme .skin-burst {
   position: fixed;
   z-index: 9999;
   color: #d9c8d9;
@@ -1658,7 +827,7 @@ body[data-gui-skin='nangong-wan'] [data-skin-burst] {
   animation: xianxia-burst 720ms var(--skin-delay) ease-out both;
 }
 
-body[data-gui-skin='nangong-wan'] :is([data-skin-particle='ornament-left'], [data-skin-particle='ornament-right']) {
+body.skin-theme :is(.skin-particle--ornament-left, .skin-particle--ornament-right) {
   color: rgba(205, 188, 210, 0.4);
   text-shadow:
     0 0 8px rgba(175, 164, 218, 0.68),
@@ -1689,8 +858,8 @@ body[data-gui-skin='nangong-wan'] :is([data-skin-particle='ornament-left'], [dat
 }
 
 @media (prefers-reduced-motion: reduce) {
-  body[data-gui-skin='nangong-wan'] [data-skin-particle='mist'],
-  body[data-gui-skin='nangong-wan'] [data-skin-motion-layer]::before {
+  body.skin-theme .skin-particle--mist,
+  body.skin-theme .skin-motion-layer::before {
     display: none;
   }
 }
