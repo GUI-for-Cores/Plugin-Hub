@@ -1,6 +1,6 @@
 const DATA_PATH = 'data/third/plugin-skin-manager'
 const CATALOG_FILE = 'themes.json'
-const CATALOG_REVISION = 5
+const CATALOG_REVISION = 6
 const STATE_FILE = 'state.json'
 const SHARED_STYLESHEET = 'skin-manager.css'
 const FALLBACK_REMOTE_PATH = 'https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Resources/plugin-skin-manager'
@@ -12,8 +12,10 @@ const GENERATED_CLASS = 'skin-manager-generated'
 export default (Plugin) => {
   const styleId = Plugin.id + '-applied-style'
   const sharedStyleId = Plugin.id + '-shared-style'
+  const coreStateActionId = Plugin.id + '_core_state'
   let cleanupMotion
   let cleanupDecorations
+  let cleanupAnimationPause
 
   const getRemotePath = () => {
     try {
@@ -307,6 +309,20 @@ export default (Plugin) => {
     }
   }
 
+  const createAnimationPauseController = () => {
+    const sync = () => document.body.classList.toggle('skin-animations-paused', document.hidden || !document.hasFocus())
+    sync()
+    document.addEventListener('visibilitychange', sync)
+    window.addEventListener('focus', sync)
+    window.addEventListener('blur', sync)
+    return () => {
+      document.removeEventListener('visibilitychange', sync)
+      window.removeEventListener('focus', sync)
+      window.removeEventListener('blur', sync)
+      document.body.classList.remove('skin-animations-paused')
+    }
+  }
+
   const createDecorations = (theme) => {
     if (!Array.isArray(theme.decorations) || theme.decorations.length === 0) return undefined
 
@@ -344,6 +360,8 @@ export default (Plugin) => {
   }
 
   const removeAppliedTheme = () => {
+    cleanupAnimationPause?.()
+    cleanupAnimationPause = undefined
     cleanupDecorations?.()
     cleanupDecorations = undefined
     cleanupMotion?.()
@@ -394,6 +412,7 @@ export default (Plugin) => {
     removeAppliedTheme()
     document.head.appendChild(style)
     document.body.classList.add(ACTIVE_CLASS)
+    cleanupAnimationPause = createAnimationPauseController()
     cleanupMotion = createMotionLayer(theme)
     cleanupDecorations = createDecorations(theme)
     const nextState = { selectedThemeId: theme.id, enabled: true }
@@ -429,6 +448,78 @@ export default (Plugin) => {
         }
       })
     )
+  }
+
+  const loadThemeOptions = async () => {
+    const catalog = await ensureAssets()
+    return Promise.all(
+      catalog.themes.map(async (entry) => {
+        const theme = await readTheme(entry)
+        return { id: theme.id, name: theme.name }
+      })
+    )
+  }
+
+  const addCoreStateAction = async () => {
+    const appStore = Plugins.useAppStore()
+    if (!appStore.addCustomActions) return
+    const runtime = getRuntime()
+    runtime.themes.value = await loadThemeOptions()
+    appStore.removeCustomActions('core_state', [coreStateActionId])
+    appStore.addCustomActions('core_state', {
+      id: coreStateActionId,
+      component: 'Dropdown',
+      componentProps: {
+        class: 'skin-manager-core-dropdown',
+        trigger: ['hover']
+      },
+      componentSlots: {
+        default: ({ h }) => {
+          const activeName = runtime.themes.value.find((theme) => theme.id === runtime.activeId.value)?.name || '未知皮肤'
+          return h(
+            'Button',
+            {
+              type: 'link',
+              size: 'small',
+              loading: runtime.loading.value
+            },
+            () => `皮肤：${activeName}${runtime.enabled.value ? '' : '（已关闭）'}`
+          )
+        },
+        overlay: ({ h }) =>
+          h(
+            'div',
+            { class: 'flex flex-col gap-2 min-w-40 p-2' },
+            runtime.themes.value.map((theme) => {
+              const active = runtime.enabled.value && runtime.activeId.value === theme.id
+              return h(
+                'Button',
+                {
+                  key: theme.id,
+                  type: active ? 'primary' : 'link',
+                  size: 'small',
+                  disabled: runtime.loading.value,
+                  onClick: async () => {
+                    runtime.loading.value = true
+                    try {
+                      await Apply(theme.id)
+                    } catch (error) {
+                      Plugins.message.error(error instanceof Error ? error.message : String(error))
+                    } finally {
+                      runtime.loading.value = false
+                    }
+                  }
+                },
+                () => theme.name
+              )
+            })
+          )
+      }
+    })
+  }
+
+  const removeCoreStateAction = () => {
+    Plugins.useAppStore().removeCustomActions('core_state', [coreStateActionId])
   }
 
   const refreshRuntime = async () => {
@@ -546,6 +637,7 @@ export default (Plugin) => {
     const state = await readState()
     syncRuntimeState(state)
     if (state.enabled) await Apply(state.selectedThemeId, true)
+    await addCoreStateAction()
   }
   const onEnabled = onReady
   const onInstall = async () => {
@@ -555,6 +647,7 @@ export default (Plugin) => {
     Plugins.message.success('皮肤中心安装完成')
   }
   const onDispose = () => {
+    removeCoreStateAction()
     removeAppliedTheme()
     document.getElementById(sharedStyleId)?.remove()
     delete window[Plugin.id]
