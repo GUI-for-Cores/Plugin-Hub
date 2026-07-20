@@ -325,7 +325,7 @@
   {
     "id": "plugin-gui-agent",
     "name": "GUI Agent",
-    "version": "v1.0.0",
+    "version": "v2.0.0",
     "group": "Tools",
     "description": "支持通用 AI 对话及 GUI.for.Cores 专属操作，可调用文件、网络、命令与 GUI 管理工具。",
     "tags": [],
@@ -360,6 +360,24 @@
         "key": "Model",
         "component": "Input",
         "value": "gemini-3.1-flash-lite",
+        "options": []
+      },
+      {
+        "id": "ID_gui_agent_compression_model",
+        "title": "压缩模型",
+        "description": "用于生成会话摘要，留空时使用模型名称",
+        "key": "CompressionModel",
+        "component": "Input",
+        "value": "gemini-3.1-flash-lite",
+        "options": []
+      },
+      {
+        "id": "ID_gui_agent_auto_compress_tokens",
+        "title": "自动压缩 Token 阈值",
+        "description": "请根据当前模型最大上下文来设置，默认为0不自动压缩，需要手动压缩",
+        "key": "AutoCompressTokens",
+        "component": "Input",
+        "value": "0",
         "options": []
       },
       {
