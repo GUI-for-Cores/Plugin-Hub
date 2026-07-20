@@ -48,7 +48,7 @@ body.skin-theme .main-nav__button::before {
 }
 
 body.skin-theme .main-nav__button.is-active {
-  background: transparent !important;
+  background: transparent;
 }
 
 body.skin-theme .main-nav__button.is-active::after {
@@ -95,11 +95,11 @@ body.skin-theme .main-nav__item--overview:has(.is-active)::before {
 }
 
 body.skin-theme .gui-switch.on {
-  background: linear-gradient(90deg, #6bd1e5, #8c7ee4) !important;
+  background: linear-gradient(90deg, #6bd1e5, #8c7ee4);
 }
 
 body.skin-theme .gui-switch.on:hover {
-  background: linear-gradient(90deg, #5dc7e2, #d27bc8) !important;
+  background: linear-gradient(90deg, #5dc7e2, #d27bc8);
 }
 
 body.skin-theme .home-stat-card:hover {
@@ -130,7 +130,7 @@ body.skin-theme .home-stat-card--realtime {
   background:
     radial-gradient(circle at 92% 12%, rgba(246, 154, 220, 0.3), transparent 28%),
     radial-gradient(circle at 18% 95%, rgba(141, 224, 239, 0.24), transparent 38%),
-    linear-gradient(120deg, rgba(230, 250, 255, 0.78), rgba(247, 230, 255, 0.66)) !important;
+    linear-gradient(120deg, rgba(230, 250, 255, 0.78), rgba(247, 230, 255, 0.66));
 }
 
 body.skin-theme .home-stat-card--realtime::after {
@@ -150,20 +150,20 @@ body.skin-theme .home-stat-card--total {
   background:
     radial-gradient(circle at 14% 15%, rgba(154, 225, 243, 0.3), transparent 34%),
     radial-gradient(circle at 86% 80%, rgba(178, 177, 247, 0.28), transparent 35%),
-    linear-gradient(120deg, rgba(232, 249, 255, 0.76), rgba(237, 232, 255, 0.68)) !important;
+    linear-gradient(120deg, rgba(232, 249, 255, 0.76), rgba(237, 232, 255, 0.68));
 }
 
 body.skin-theme .home-stat-card--connections {
   background:
     radial-gradient(circle at 26% 28%, rgba(255, 176, 226, 0.31), transparent 38%),
     radial-gradient(circle at 88% 78%, rgba(145, 219, 242, 0.25), transparent 36%),
-    linear-gradient(120deg, rgba(255, 238, 251, 0.74), rgba(229, 246, 255, 0.68)) !important;
+    linear-gradient(120deg, rgba(255, 238, 251, 0.74), rgba(229, 246, 255, 0.68));
 }
 
 body.skin-theme .home-stat-card--memory {
   background:
     radial-gradient(circle at 15% 15%, rgba(185, 169, 246, 0.31), transparent 36%),
-    radial-gradient(circle at 84% 78%, rgba(255, 171, 220, 0.34), transparent 42%), linear-gradient(120deg, rgba(239, 232, 255, 0.76), rgba(255, 238, 250, 0.7)) !important;
+    radial-gradient(circle at 84% 78%, rgba(255, 171, 220, 0.34), transparent 42%), linear-gradient(120deg, rgba(239, 232, 255, 0.76), rgba(255, 238, 250, 0.7));
 }
 
 body.skin-theme .home-stat-card__value {
@@ -350,7 +350,7 @@ body.skin-theme {
   --skin-border: rgba(202, 178, 199, 0.48);
   --skin-shadow: 0 10px 26px rgba(0, 4, 20, 0.34);
   color: var(--skin-ink);
-  background: #07142d !important;
+  background: #07142d;
   font-family: 'Noto Serif SC', 'Songti SC', 'STSong', 'Microsoft YaHei', serif;
 }
 
@@ -381,7 +381,7 @@ body.skin-theme[theme-mode='dark'] {
   --skin-ink: #f4eaf0;
   --skin-glass: rgba(22, 31, 70, 0.74);
   --skin-glass-strong: rgba(33, 43, 88, 0.84);
-  background: #040c1f !important;
+  background: #040c1f;
 }
 
 body.skin-theme #app {
@@ -421,18 +421,18 @@ body.skin-theme .app-titlebar__brand,
 body.skin-theme .app-titlebar__version,
 body.skin-theme .app-titlebar__custom-actions,
 body.skin-theme .window-control {
-  color: #eadde4 !important;
+  color: #eadde4;
   text-shadow: 0 0 10px rgba(153, 148, 215, 0.26);
 }
 
 body.skin-theme .window-control:hover {
   color: #fff6f2;
-  background: rgba(123, 113, 181, 0.24) !important;
+  background: rgba(123, 113, 181, 0.24);
 }
 
 body.skin-theme .window-control--close:hover {
   color: #fff;
-  background: linear-gradient(120deg, #8d6e91, #544a91) !important;
+  background: linear-gradient(120deg, #8d6e91, #544a91);
 }
 
 body.skin-theme .main-nav {
@@ -476,8 +476,8 @@ body.skin-theme .main-nav__button.is-active::after {
 
 body.skin-theme .overview-toolbar {
   border-color: rgba(207, 180, 198, 0.48);
-  border-radius: 10px !important;
-  background: linear-gradient(90deg, rgba(30, 37, 80, 0.78), rgba(39, 44, 92, 0.7), rgba(24, 32, 72, 0.78)) !important;
+  border-radius: 10px;
+  background: linear-gradient(90deg, rgba(30, 37, 80, 0.78), rgba(39, 44, 92, 0.7), rgba(24, 32, 72, 0.78));
   box-shadow:
     0 8px 24px rgba(0, 4, 20, 0.28),
     inset 0 0 0 1px rgba(130, 123, 184, 0.34),
@@ -486,7 +486,7 @@ body.skin-theme .overview-toolbar {
 
 body.skin-theme .gui-switch.on,
 body.skin-theme .gui-switch.on:hover {
-  background: linear-gradient(90deg, #746eb5, #a28fc7) !important;
+  background: linear-gradient(90deg, #746eb5, #a28fc7);
 }
 
 body.skin-theme .gui-card {
@@ -499,7 +499,7 @@ body.skin-theme .gui-card {
 }
 
 body.skin-theme .gui-card:hover {
-  background: var(--skin-glass-strong) !important;
+  background: var(--skin-glass-strong);
   box-shadow:
     0 12px 30px rgba(0, 4, 20, 0.4),
     0 0 16px rgba(144, 134, 204, 0.16),
@@ -509,17 +509,17 @@ body.skin-theme .gui-card:hover {
 body.skin-theme .gui-card__title,
 body.skin-theme .traffic-panel__title,
 body.skin-theme .mode-panel__title {
-  color: #efe2e6 !important;
+  color: #efe2e6;
   letter-spacing: 0.06em;
   text-shadow: 0 0 8px rgba(180, 166, 219, 0.28);
 }
 
 body.skin-theme .home-stat-card {
   border-color: rgba(210, 186, 201, 0.54);
-  border-radius: 10px !important;
+  border-radius: 10px;
   outline-color: rgba(126, 120, 177, 0.42);
   background:
-    radial-gradient(circle at 88% 20%, rgba(144, 139, 207, 0.14), transparent 34%), linear-gradient(135deg, rgba(32, 42, 86, 0.82), rgba(25, 34, 76, 0.72)) !important;
+    radial-gradient(circle at 88% 20%, rgba(144, 139, 207, 0.14), transparent 34%), linear-gradient(135deg, rgba(32, 42, 86, 0.82), rgba(25, 34, 76, 0.72));
   box-shadow:
     0 8px 20px rgba(0, 4, 22, 0.3),
     inset 0 0 0 1px rgba(129, 123, 182, 0.34),
@@ -601,7 +601,7 @@ body.skin-theme .skin-decoration--stats {
 body.skin-theme .skin-decoration__item--note,
 body.skin-theme .skin-decoration__item--heart,
 body.skin-theme .skin-decoration__item--orbit {
-  display: none !important;
+  display: none;
 }
 
 body.skin-theme .skin-decoration__item--star-a,
@@ -657,33 +657,33 @@ body.skin-theme :is(.traffic-panel__title, .mode-panel__title)::before {
 
 body.skin-theme .gui-traffic-chart {
   border-color: rgba(196, 176, 199, 0.3);
-  background: linear-gradient(120deg, rgba(16, 28, 63, 0.16), rgba(54, 54, 102, 0.08)) !important;
+  background: linear-gradient(120deg, rgba(16, 28, 63, 0.16), rgba(54, 54, 102, 0.08));
   box-shadow: inset 0 0 24px rgba(105, 113, 188, 0.1);
 }
 
 body.skin-theme .traffic-chart__grid-line {
-  stroke: rgba(137, 139, 201, 0.42) !important;
+  stroke: rgba(137, 139, 201, 0.42);
   stroke-dasharray: 3 5;
 }
 
 body.skin-theme .traffic-chart__axis-label {
-  fill: #c8bed1 !important;
+  fill: #c8bed1;
 }
 
 body.skin-theme .traffic-chart__series--upload {
-  stroke: #b27ad9 !important;
-  fill: rgba(178, 122, 217, 0.08) !important;
+  stroke: #b27ad9;
+  fill: rgba(178, 122, 217, 0.08);
 }
 
 body.skin-theme .traffic-chart__series--download {
-  stroke: #779bde !important;
-  fill: rgba(119, 155, 222, 0.08) !important;
+  stroke: #779bde;
+  fill: rgba(119, 155, 222, 0.08);
 }
 
 body.skin-theme .home-mode-card {
   border-color: rgba(205, 181, 199, 0.48);
-  border-radius: 9px !important;
-  background: linear-gradient(120deg, rgba(34, 43, 87, 0.78), rgba(25, 34, 76, 0.66)) !important;
+  border-radius: 9px;
+  background: linear-gradient(120deg, rgba(34, 43, 87, 0.78), rgba(25, 34, 76, 0.66));
 }
 
 body.skin-theme .home-mode-card .gui-card__header::before {
@@ -711,7 +711,7 @@ body.skin-theme .home-mode-card::after {
 
 body.skin-theme .home-mode-card.is-selected {
   border-color: rgba(210, 184, 205, 0.74);
-  background: linear-gradient(120deg, rgba(63, 57, 112, 0.78), rgba(39, 43, 91, 0.74)) !important;
+  background: linear-gradient(120deg, rgba(63, 57, 112, 0.78), rgba(39, 43, 91, 0.74));
   box-shadow:
     0 8px 22px rgba(0, 4, 22, 0.32),
     inset 0 0 0 1px rgba(169, 151, 204, 0.5),
@@ -719,7 +719,7 @@ body.skin-theme .home-mode-card.is-selected {
 }
 
 body.skin-theme .gui-card__state--selected {
-  color: #d7c0e8 !important;
+  color: #d7c0e8;
   filter: drop-shadow(0 0 7px rgba(154, 133, 213, 0.58));
 }
 
@@ -754,18 +754,18 @@ body.skin-theme :is(.gui-input, .gui-select, .gui-dropdown-overlay, .gui-menu) {
 }
 
 body.skin-theme .gui-button.primary {
-  background: linear-gradient(110deg, #696bad, #8c79bd 52%, #9f789f) !important;
+  background: linear-gradient(110deg, #696bad, #8c79bd 52%, #9f789f);
   box-shadow: 0 5px 14px rgba(0, 3, 18, 0.24);
 }
 
 body.skin-theme .gui-button.primary:hover {
-  background: linear-gradient(110deg, #7b7bc0, #9a86ca 52%, #b087ad) !important;
+  background: linear-gradient(110deg, #7b7bc0, #9a86ca 52%, #b087ad);
 }
 
 body.skin-theme .controller-close {
   border-color: rgba(205, 181, 200, 0.5);
   color: #d9cbd9;
-  background: radial-gradient(circle at 35% 28%, rgba(230, 218, 231, 0.2), transparent 34%), rgba(39, 45, 91, 0.9) !important;
+  background: radial-gradient(circle at 35% 28%, rgba(230, 218, 231, 0.2), transparent 34%), rgba(39, 45, 91, 0.9);
   box-shadow:
     0 6px 18px rgba(0, 3, 20, 0.4),
     inset 0 0 0 2px rgba(130, 122, 184, 0.3),
@@ -791,7 +791,7 @@ body.skin-theme .skin-motion-layer::before {
 
 body.skin-theme :is(.gui-dropdown-overlay, .gui-menu) {
   border: 1px solid rgba(205, 182, 202, 0.52);
-  background: rgba(13, 23, 55, 0.97) !important;
+  background: rgba(13, 23, 55, 0.97);
   box-shadow:
     0 14px 38px rgba(0, 3, 18, 0.48),
     inset 0 0 0 1px rgba(126, 119, 181, 0.3);

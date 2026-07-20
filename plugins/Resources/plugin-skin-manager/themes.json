@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 6,
+  "revision": 9,
   "themes": [
     {
       "id": "miku",
@@ -25,6 +25,24 @@
       "manifest": "cream-moon/cream-moon.json",
       "featured": true,
       "order": 40
+    },
+    {
+      "id": "chrome-dino",
+      "manifest": "chrome-dino/chrome-dino.json",
+      "featured": true,
+      "order": 50
+    },
+    {
+      "id": "kaori-spring",
+      "manifest": "kaori-spring/kaori-spring.json",
+      "featured": true,
+      "order": 60
+    },
+    {
+      "id": "black-cat-detective",
+      "manifest": "black-cat-detective/black-cat-detective.json",
+      "featured": true,
+      "order": 70
     }
   ]
 }

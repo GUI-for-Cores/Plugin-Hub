@@ -6,7 +6,7 @@ body.skin-theme {
   --skin-border: rgba(26, 157, 232, 0.46);
   --skin-shadow: 0 8px 24px rgba(0, 115, 204, 0.18);
   color: var(--skin-ink);
-  background: #d9f4ff !important;
+  background: #d9f4ff;
 }
 
 body.skin-theme::before {
@@ -26,7 +26,7 @@ body.skin-theme[theme-mode='dark'] {
   --skin-glass: rgba(8, 42, 80, 0.66);
   --skin-glass-strong: rgba(10, 49, 91, 0.8);
   --skin-border: rgba(62, 174, 236, 0.4);
-  background: #061d3d !important;
+  background: #061d3d;
 }
 
 body.skin-theme #app {
@@ -74,12 +74,12 @@ body.skin-theme .window-control {
 
 body.skin-theme .window-control:hover {
   color: #007fcf;
-  background: rgba(255, 255, 255, 0.58) !important;
+  background: rgba(255, 255, 255, 0.58);
 }
 
 body.skin-theme .window-control--close:hover {
   color: white;
-  background: linear-gradient(110deg, #ff6c96, #e83866) !important;
+  background: linear-gradient(110deg, #ff6c96, #e83866);
 }
 
 body.skin-theme .main-nav {
@@ -99,14 +99,14 @@ body.skin-theme .main-nav__button::before {
 
 body.skin-theme .main-nav__button:hover {
   color: #006fc9;
-  background: rgba(255, 255, 255, 0.52) !important;
+  background: rgba(255, 255, 255, 0.52);
   filter: drop-shadow(0 4px 5px rgba(110, 129, 217, 0.22));
 }
 
 body.skin-theme .main-nav__button.is-active {
   color: #006fd0;
   border-color: rgba(255, 255, 255, 0.88);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(226, 247, 255, 0.68)) !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(226, 247, 255, 0.68));
   box-shadow:
     0 6px 16px rgba(0, 117, 204, 0.18),
     inset 0 0 0 1px rgba(64, 174, 233, 0.2);
@@ -161,23 +161,23 @@ body.skin-theme .main-nav__item--overview:has(.is-active)::before {
 
 body.skin-theme .overview-toolbar {
   border-color: rgba(56, 166, 227, 0.36);
-  border-radius: 14px !important;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.76), rgba(230, 248, 255, 0.64), rgba(255, 255, 255, 0.72)) !important;
+  border-radius: 14px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.76), rgba(230, 248, 255, 0.64), rgba(255, 255, 255, 0.72));
   box-shadow:
     var(--skin-shadow),
     inset 0 0 0 1px rgba(146, 169, 231, 0.18);
 }
 
 body.skin-theme .gui-switch.on {
-  background: linear-gradient(90deg, #22c7f2, #0788e8) !important;
+  background: linear-gradient(90deg, #22c7f2, #0788e8);
 }
 
 body.skin-theme .gui-switch.on:hover {
-  background: linear-gradient(90deg, #33d3f6, #0078d5) !important;
+  background: linear-gradient(90deg, #33d3f6, #0078d5);
 }
 
 body.skin-theme .gui-card:hover {
-  background: var(--skin-glass-strong) !important;
+  background: var(--skin-glass-strong);
   box-shadow:
     0 12px 28px rgba(0, 117, 204, 0.22),
     0 0 18px rgba(50, 195, 242, 0.14),
@@ -186,7 +186,7 @@ body.skin-theme .gui-card:hover {
 
 body.skin-theme .home-stat-card {
   border-color: rgba(37, 155, 224, 0.62);
-  border-radius: 14px !important;
+  border-radius: 14px;
   box-shadow:
     0 5px 14px rgba(0, 133, 211, 0.22),
     0 0 13px rgba(71, 198, 244, 0.14),
@@ -228,7 +228,7 @@ body.skin-theme .home-stat-card::after {
 body.skin-theme .home-stat-card--realtime {
   background:
     radial-gradient(circle at 88% 12%, rgba(107, 215, 255, 0.3), transparent 28%),
-    radial-gradient(circle at 18% 95%, rgba(168, 231, 255, 0.26), transparent 38%), linear-gradient(120deg, rgba(255, 255, 255, 0.9), rgba(226, 246, 255, 0.72)) !important;
+    radial-gradient(circle at 18% 95%, rgba(168, 231, 255, 0.26), transparent 38%), linear-gradient(120deg, rgba(255, 255, 255, 0.9), rgba(226, 246, 255, 0.72));
 }
 
 body.skin-theme .home-stat-card--realtime::after {
@@ -251,19 +251,19 @@ body.skin-theme .home-stat-card--memory::after {
 body.skin-theme .home-stat-card--total {
   background:
     radial-gradient(circle at 14% 15%, rgba(154, 225, 243, 0.3), transparent 34%),
-    radial-gradient(circle at 86% 80%, rgba(255, 217, 91, 0.22), transparent 35%), linear-gradient(120deg, rgba(255, 255, 255, 0.88), rgba(226, 246, 255, 0.72)) !important;
+    radial-gradient(circle at 86% 80%, rgba(255, 217, 91, 0.22), transparent 35%), linear-gradient(120deg, rgba(255, 255, 255, 0.88), rgba(226, 246, 255, 0.72));
 }
 
 body.skin-theme .home-stat-card--connections {
   background:
     radial-gradient(circle at 26% 28%, rgba(164, 229, 255, 0.28), transparent 38%),
-    radial-gradient(circle at 88% 78%, rgba(91, 196, 244, 0.25), transparent 36%), linear-gradient(120deg, rgba(255, 255, 255, 0.88), rgba(223, 245, 255, 0.7)) !important;
+    radial-gradient(circle at 88% 78%, rgba(91, 196, 244, 0.25), transparent 36%), linear-gradient(120deg, rgba(255, 255, 255, 0.88), rgba(223, 245, 255, 0.7));
 }
 
 body.skin-theme .home-stat-card--memory {
   background:
     radial-gradient(circle at 15% 15%, rgba(166, 229, 255, 0.3), transparent 36%),
-    radial-gradient(circle at 84% 78%, rgba(255, 218, 80, 0.24), transparent 42%), linear-gradient(120deg, rgba(255, 255, 255, 0.88), rgba(224, 246, 255, 0.72)) !important;
+    radial-gradient(circle at 84% 78%, rgba(255, 218, 80, 0.24), transparent 42%), linear-gradient(120deg, rgba(255, 255, 255, 0.88), rgba(224, 246, 255, 0.72));
 }
 
 body.skin-theme .home-stat-card__value {
@@ -345,32 +345,32 @@ body.skin-theme :is(.traffic-panel__title, .mode-panel__title)::before {
 }
 
 body.skin-theme .gui-traffic-chart {
-  background: linear-gradient(120deg, rgba(255, 255, 255, 0.12), rgba(231, 240, 255, 0.08)) !important;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.12), rgba(231, 240, 255, 0.08));
   box-shadow: inset 0 0 22px rgba(42, 165, 228, 0.12);
 }
 
 body.skin-theme .traffic-chart__grid-line {
-  stroke: rgba(0, 104, 190, 0.56) !important;
+  stroke: rgba(0, 104, 190, 0.56);
 }
 
 body.skin-theme .traffic-chart__axis-label {
-  fill: #076dca !important;
+  fill: #076dca;
 }
 
 body.skin-theme .traffic-chart__series--upload {
-  stroke: #8f5ee9 !important;
-  fill: rgba(143, 94, 233, 0.08) !important;
+  stroke: #8f5ee9;
+  fill: rgba(143, 94, 233, 0.08);
 }
 
 body.skin-theme .traffic-chart__series--download {
-  stroke: #0788e8 !important;
-  fill: rgba(7, 136, 232, 0.08) !important;
+  stroke: #0788e8;
+  fill: rgba(7, 136, 232, 0.08);
 }
 
 body.skin-theme .home-mode-card {
   border-color: rgba(47, 159, 224, 0.44);
-  border-radius: 14px !important;
-  background: rgba(255, 255, 255, 0.7) !important;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.7);
 }
 
 body.skin-theme .home-mode-card--global .gui-card__header::before {
@@ -396,14 +396,14 @@ body.skin-theme .home-mode-card--direct::after {
 
 body.skin-theme .home-mode-card.is-selected {
   border-color: rgba(0, 154, 231, 0.84);
-  background: linear-gradient(120deg, rgba(255, 255, 255, 0.9), rgba(216, 244, 255, 0.82)) !important;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.9), rgba(216, 244, 255, 0.82));
   box-shadow:
     0 8px 22px rgba(96, 127, 207, 0.16),
     inset 0 0 0 2px rgba(34, 170, 231, 0.34);
 }
 
 body.skin-theme .gui-card__state--selected {
-  color: #0788e8 !important;
+  color: #0788e8;
   filter: drop-shadow(0 0 5px rgba(91, 152, 231, 0.32));
 }
 
@@ -422,7 +422,7 @@ body.skin-theme .home-stat-card .gui-card__header::before {
 }
 
 body.skin-theme .home-stat-card::after {
-  content: '' !important;
+  content: '';
   top: 8px;
   right: 9px;
   bottom: auto;
@@ -500,18 +500,18 @@ body.skin-theme :is(.gui-input, .gui-select, .gui-dropdown-overlay, .gui-menu) {
 }
 
 body.skin-theme .gui-button.primary {
-  background: linear-gradient(110deg, #22c7f2, #0788e8 58%, #0870cc) !important;
+  background: linear-gradient(110deg, #22c7f2, #0788e8 58%, #0870cc);
 }
 
 body.skin-theme .gui-button.primary:hover {
-  background: linear-gradient(110deg, #3bd5f6, #0081de 58%, #ff6699) !important;
+  background: linear-gradient(110deg, #3bd5f6, #0081de 58%, #ff6699);
 }
 
 body.skin-theme .controller-close {
   border: 1px solid rgba(0, 137, 218, 0.54);
   color: #0875d4;
   background:
-    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.96), transparent 33%), linear-gradient(135deg, rgba(218, 249, 255, 0.94), rgba(171, 228, 255, 0.9)) !important;
+    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.96), transparent 33%), linear-gradient(135deg, rgba(218, 249, 255, 0.94), rgba(171, 228, 255, 0.9));
   box-shadow:
     0 5px 15px rgba(94, 128, 210, 0.22),
     inset 0 0 0 2px rgba(255, 255, 255, 0.62),
@@ -548,7 +548,7 @@ body.skin-theme .skin-motion-layer::before {
 
 body.skin-theme :is(.gui-dropdown-overlay, .gui-menu) {
   border: 1px solid rgba(255, 255, 255, 0.74);
-  background: rgba(248, 250, 255, 0.9) !important;
+  background: rgba(248, 250, 255, 0.9);
   box-shadow:
     0 14px 38px rgba(86, 107, 189, 0.2),
     inset 0 0 0 1px rgba(38, 157, 220, 0.22);

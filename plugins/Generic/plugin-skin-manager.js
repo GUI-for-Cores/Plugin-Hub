@@ -1,6 +1,6 @@
 const DATA_PATH = 'data/third/plugin-skin-manager'
 const CATALOG_FILE = 'themes.json'
-const CATALOG_REVISION = 6
+const CATALOG_REVISION = 9
 const STATE_FILE = 'state.json'
 const SHARED_STYLESHEET = 'skin-manager.css'
 const FALLBACK_REMOTE_PATH = 'https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Resources/plugin-skin-manager'
@@ -16,6 +16,7 @@ export default (Plugin) => {
   let cleanupMotion
   let cleanupDecorations
   let cleanupAnimationPause
+  let catalogCache
 
   const getRemotePath = () => {
     try {
@@ -51,9 +52,17 @@ export default (Plugin) => {
   const ensureSharedStyle = async (refresh = false) => {
     const current = document.getElementById(sharedStyleId)
     if (current && !refresh) return
+    let stylesheet
+    try {
+      stylesheet = await Plugins.ReadFile(localPath(SHARED_STYLESHEET))
+      if (!stylesheet.trim()) throw new Error('皮肤共享样式为空')
+    } catch {
+      await downloadFile(SHARED_STYLESHEET)
+      stylesheet = await Plugins.ReadFile(localPath(SHARED_STYLESHEET))
+    }
     const style = document.createElement('style')
     style.id = sharedStyleId
-    style.textContent = await Plugins.ReadFile(localPath(SHARED_STYLESHEET))
+    style.textContent = stylesheet
     current?.remove()
     document.head.appendChild(style)
   }
@@ -136,11 +145,6 @@ export default (Plugin) => {
   }
 
   const readState = async () => {
-    if (!(await Plugins.FileExists(localPath(STATE_FILE)))) {
-      const state = { selectedThemeId: DEFAULT_THEME_ID, enabled: true }
-      await writeState(state)
-      return state
-    }
     try {
       const state = await readJson(STATE_FILE)
       return {
@@ -166,13 +170,6 @@ export default (Plugin) => {
     await Promise.all([downloadFile(theme.stylesheetPath), downloadFile(theme.backgroundPath)])
   }
 
-  const themeFilesExist = async (entry) => {
-    if (!(await Plugins.FileExists(localPath(entry.manifest)))) return false
-    const theme = await readTheme(entry)
-    const files = await Promise.all([Plugins.FileExists(localPath(theme.stylesheetPath)), Plugins.FileExists(localPath(theme.backgroundPath))])
-    return files.every(Boolean)
-  }
-
   const downloadAssets = async () => {
     await Plugins.MakeDir(DATA_PATH)
     await Promise.all([downloadFile(CATALOG_FILE), downloadFile(SHARED_STYLESHEET)])
@@ -182,17 +179,28 @@ export default (Plugin) => {
     if (!catalog.themes.some((item) => item.id === state.selectedThemeId)) {
       await writeState({ selectedThemeId: catalog.themes[0].id, enabled: state.enabled })
     }
+    catalogCache = catalog
     return catalog
   }
 
   const ensureAssets = async () => {
-    const coreFiles = await Promise.all([Plugins.FileExists(localPath(CATALOG_FILE)), Plugins.FileExists(localPath(SHARED_STYLESHEET))])
-    if (coreFiles.some((exists) => !exists)) return downloadAssets()
+    if (catalogCache) return catalogCache
     try {
-      const catalog = await readCatalog()
-      return (await Promise.all(catalog.themes.map(themeFilesExist))).every(Boolean) ? catalog : downloadAssets()
+      catalogCache = await readCatalog()
+      return catalogCache
     } catch {
       return downloadAssets()
+    }
+  }
+
+  const readThemeOrDefault = async (catalog, selectedId, includeContent = false) => {
+    const defaultEntry = catalog.themes.find((item) => item.id === DEFAULT_THEME_ID) || catalog.themes[0]
+    const selectedEntry = catalog.themes.find((item) => item.id === selectedId)
+    if (!selectedEntry || selectedEntry.id === defaultEntry.id) return readTheme(defaultEntry, includeContent)
+    try {
+      return await readTheme(selectedEntry, includeContent)
+    } catch {
+      return readTheme(defaultEntry, includeContent)
     }
   }
 
@@ -395,14 +403,12 @@ export default (Plugin) => {
     syncRuntimeState(state)
   }
 
-  const Apply = async (themeId, silent = false) => {
+  const Apply = async (themeId) => {
     const catalog = await ensureAssets()
     await ensureSharedStyle()
     const state = await readState()
     const selectedId = themeId || state.selectedThemeId || catalog.themes[0].id
-    const entry = catalog.themes.find((item) => item.id === selectedId)
-    if (!entry) throw new Error(`未找到皮肤: ${selectedId}`)
-    const theme = await readTheme(entry, true)
+    const theme = await readThemeOrDefault(catalog, selectedId, true)
     const variables = Object.entries(theme.variables)
       .map(([property, value]) => `  ${property}: ${value} !important;`)
       .join('\n')
@@ -417,7 +423,6 @@ export default (Plugin) => {
     cleanupDecorations = createDecorations(theme)
     const nextState = { selectedThemeId: theme.id, enabled: true }
     await saveState(nextState)
-    if (!silent) Plugins.message.success(`已切换到 ${theme.name}`)
   }
 
   const ApplySelected = async () => Apply((await readState()).selectedThemeId)
@@ -540,7 +545,7 @@ export default (Plugin) => {
       runtime.loading.value = false
     }
     await ensureSharedStyle()
-    const { h, defineComponent, computed, resolveComponent } = Vue
+    const { h, ref, defineComponent, computed, resolveComponent } = Vue
     const component = defineComponent({
       template: /* html */ `
         <div class="skin-manager-ui">
@@ -572,7 +577,12 @@ export default (Plugin) => {
                 <div class="skin-manager-description">{{ theme.description }}</div>
                 <div class="skin-manager-tags"><span v-for="tag in theme.tags" :key="tag" class="skin-manager-tag">{{ tag }}</span></div>
                 <div class="skin-manager-actions">
-                  <Button :type="enabled && activeId === theme.id ? 'default' : 'primary'" :disabled="loading" @click="applyTheme(theme.id)">
+                  <Button
+                    :type="enabled && activeId === theme.id ? 'default' : 'primary'"
+                    :loading="applyingId === theme.id"
+                    :disabled="Boolean(applyingId)"
+                    @click="applyTheme(theme.id)"
+                  >
                     {{ enabled && activeId === theme.id ? '重新应用' : '应用皮肤' }}
                   </Button>
                 </div>
@@ -582,19 +592,21 @@ export default (Plugin) => {
         </div>
       `,
       setup() {
+        const applyingId = ref('')
         return {
           themes: runtime.themes,
           activeId: runtime.activeId,
           enabled: runtime.enabled,
           loading: runtime.loading,
+          applyingId,
           error: runtime.error,
           activeName: computed(() => runtime.themes.value.find((theme) => theme.id === runtime.activeId.value)?.name || '未知皮肤'),
           async applyTheme(themeId) {
-            runtime.loading.value = true
+            applyingId.value = themeId
             try {
               await Apply(themeId)
             } finally {
-              runtime.loading.value = false
+              applyingId.value = ''
             }
           }
         }
@@ -621,7 +633,7 @@ export default (Plugin) => {
       await downloadAssets()
       await ensureSharedStyle(true)
       const state = await readState()
-      if (state.enabled) await Apply(state.selectedThemeId, true)
+      if (state.enabled) await Apply(state.selectedThemeId)
       if (fromUi) await refreshRuntime()
       Plugins.message.success('皮肤资源已更新')
     } finally {
@@ -636,14 +648,14 @@ export default (Plugin) => {
     await ensureSharedStyle()
     const state = await readState()
     syncRuntimeState(state)
-    if (state.enabled) await Apply(state.selectedThemeId, true)
+    if (state.enabled) await Apply(state.selectedThemeId)
     await addCoreStateAction()
   }
   const onEnabled = onReady
   const onInstall = async () => {
     await downloadAssets()
     await ensureSharedStyle()
-    await Apply(DEFAULT_THEME_ID, true)
+    await Apply(DEFAULT_THEME_ID)
     Plugins.message.success('皮肤中心安装完成')
   }
   const onDispose = () => {
