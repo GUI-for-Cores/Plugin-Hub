@@ -255,11 +255,11 @@ export default (Plugin) => {
             <MarkdownViewer v-if="item.content" :content="item.content" />
             <div class="flex items-center">
               <Tag v-if="item.model" size="small">{{ item.model }}</Tag>
-              <Tag v-if="item.tool_calls" size="small" @click="toggleToolVisibility(item.id)">
+              <Tag v-if="item.tool_calls" size="small" :color="toolVisibility.has(item.id) ? 'primary' : 'default'" @click="toggleToolVisibility(item.id)">
                 tools: {{ item.tool_calls.length }}
               </Tag>
               <Tag v-if="item.usage" size="small">
-                tokens: {{ item.usage.completion_tokens }}
+                in: {{ item.usage.prompt_tokens || 0 }} / out: {{ item.usage.completion_tokens || 0 }}
               </Tag>
               <Tag v-if="item.duration !== undefined" size="small">
                 duration: {{ item.duration < 1000 ? item.duration + 'ms' : (item.duration / 1000).toFixed(item.duration < 10000 ? 1 : 0) + 's' }}
@@ -347,10 +347,42 @@ export default (Plugin) => {
           @keydown.shift.enter.prevent="onInsertNewline"
           @keydown.meta.enter.prevent="onInsertNewline"
           @input="onAutoResize"
+          rows="1"
           class="border-0 p-0 outline-none bg-transparent"
           style="resize: none; font-family: inherit; max-height: 200px; color: var(--color)"
         />
         <div class="flex items-center">
+          <Dropdown placement="top" class="mr-4">
+            <Progress
+              type="circle"
+              :radius="10"
+              :percent="tokenPercent"
+              :status="tokenPercent > 90 ? 'danger' : tokenPercent > 80 ? 'warning' : undefined"
+            />
+            <template #overlay>
+              <div class="flex flex-col gap-4 p-8 text-12" style="min-width: 180px">
+                <div class="flex items-center justify-between gap-16">
+                  <span>自动压缩上限</span>
+                  <span>{{ compressionThreshold || '未启用' }}</span>
+                </div>
+                <div class="flex items-center justify-between gap-16">
+                  <span>已使用 Token</span>
+                  <span>{{ tokenUsage?.total_tokens }}</span>
+                </div>
+                <div class="flex items-center justify-between gap-16">
+                  <span>缓存 Token</span>
+                  <span>{{ tokenUsage?.prompt_tokens_details?.cached_tokens || 0 }}</span>
+                </div>
+                <div class="flex items-center justify-between gap-16">
+                  <span>已用上下文</span>
+                  <span>{{ tokenPercent }}%</span>
+                </div>
+                <Button :loading="compressing" @click="onCompress" type="primary">
+                  立即压缩上下文
+                </Button>
+              </div>
+            </template>
+          </Dropdown>
           <Dropdown placement="top">
             <Tag :color="permission.tagColor">
               {{ permission.text }}
@@ -442,6 +474,11 @@ export default (Plugin) => {
             if (message.role === 'assistant' && message.usage) return message.usage
           }
           return undefined
+        })
+        const compressionThreshold = computed(() => Math.max(0, Number(Plugin.AutoCompressTokens) || 0))
+        const tokenPercent = computed(() => {
+          if (compressionThreshold.value === 0) return 0
+          return Math.min(100, Math.round(((Number(tokenUsage.value?.prompt_tokens) || 0) / compressionThreshold.value) * 100))
         })
 
         const toolVisibility = ref(new Set())
@@ -893,7 +930,7 @@ export default (Plugin) => {
           if (clearHistory) {
             chatHistory.value.splice(0)
           } else {
-            const threshold = Math.max(0, Number(Plugin.AutoCompressTokens) || 0)
+            const threshold = compressionThreshold.value
             if (threshold > 0) {
               let compressedIndex = -1
               for (let i = chatHistory.value.length - 1; i >= 0; i--) {
@@ -974,7 +1011,7 @@ export default (Plugin) => {
                 <div class="flex items-center">
                   <div class="font-bold mr-8">Agent</div>
                   <Tag color="purple">${Plugin.Model.toUpperCase()}</Tag>
-                  <Tag v-if="tokenUsage">Tokens: {{ tokenUsage.total_tokens }}, Cached: {{ tokenUsage.prompt_tokens_details?.cached_tokens || 0 }}</Tag>
+                  <Tag v-if="tokenUsage">Tokens: {{ tokenUsage?.total_tokens }}, Cached: {{ tokenUsage?.prompt_tokens_details?.cached_tokens || 0 }}</Tag>
                 </div>
                 `,
                 setup() {
@@ -988,7 +1025,6 @@ export default (Plugin) => {
                 { type: 'text', icon: 'add', disabled: compressing.value, onClick: () => onDeleteSession() },
                 () => '新会话'
               ),
-              Vue.h(Vue.resolveComponent('Button'), { type: 'text', loading: compressing.value, onClick: () => onCompress() }, () => '压缩'),
               Vue.h(Vue.resolveComponent('Button'), {
                 type: 'text',
                 icon: 'close',
@@ -1009,6 +1045,9 @@ export default (Plugin) => {
           compressing,
           chatHistory,
           toolResultMapping,
+          tokenUsage,
+          compressionThreshold,
+          tokenPercent,
           settings,
           permission,
           requestOperation,
