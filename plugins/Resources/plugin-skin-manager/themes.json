@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 9,
+  "revision": 10,
   "themes": [
     {
       "id": "miku",
@@ -43,6 +43,12 @@
       "manifest": "black-cat-detective/black-cat-detective.json",
       "featured": true,
       "order": 70
+    },
+    {
+      "id": "retro-qq",
+      "manifest": "retro-qq/retro-qq.json",
+      "featured": true,
+      "order": 80
     }
   ]
 }
