@@ -325,7 +325,7 @@
   {
     "id": "plugin-gui-agent",
     "name": "GUI Agent",
-    "version": "v2.1.0",
+    "version": "v2.2.0",
     "group": "Tools",
     "description": "支持通用 AI 对话及 GUI.for.Cores 专属操作，可调用文件、网络、命令与 GUI 管理工具。",
     "tags": [],

@@ -530,6 +530,10 @@ export default (Plugin) => {
         })
 
         const onDeleteSession = () => {
+          if (compressing.value) {
+            Plugins.message.info('请等待会话压缩完成')
+            return
+          }
           chatHistory.value = []
         }
 
@@ -948,7 +952,9 @@ export default (Plugin) => {
                 }
               }
               if (promptTokens > 0 && promptTokens + Math.ceil(new TextEncoder().encode(message).length / 3) >= threshold) {
+                const { destroy } = Plugins.message.info('正在压缩上下文...', 999999)
                 const compressed = await onCompress()
+                destroy()
                 if (!compressed) return
               }
             }
@@ -1020,11 +1026,7 @@ export default (Plugin) => {
               })
             ],
             toolbar: () => [
-              Vue.h(
-                Vue.resolveComponent('Button'),
-                { type: 'text', icon: 'add', disabled: compressing.value, onClick: () => onDeleteSession() },
-                () => '新会话'
-              ),
+              Vue.h(Vue.resolveComponent('Button'), { type: 'text', icon: 'add', onClick: () => onDeleteSession() }, () => '新会话'),
               Vue.h(Vue.resolveComponent('Button'), {
                 type: 'text',
                 icon: 'close',
@@ -1254,8 +1256,6 @@ const envStoreTools = {
   },
   setSystemProxy: () => Plugins.useEnvStore().setSystemProxy(),
   clearSystemProxy: () => Plugins.useEnvStore().clearSystemProxy(),
-  switchSystemProxy: (args) => Plugins.useEnvStore().switchSystemProxy(args.enable),
-  setSystemDNS: (args) => Plugins.useEnvStore().setSystemDNS(args.proxy)
 }
 
 const kernelApiStoreTools = {
@@ -1348,7 +1348,7 @@ const bridgeTools = {
   MakeDir: (args) => Plugins.MakeDir(args.path),
   ReadDir: (args) => Plugins.ReadDir(args.path),
   Requests: async (args) => {
-    const { cleanHtmlToText = true, includeSelector, excludeSelector, maxBodyLength = 60000, ...requestOptions } = args
+    const { cleanHtmlToText = true, includeSelector, excludeSelector, maxBodyLength = 60000, returnHeaders = false, ...requestOptions } = args
     const { status, headers, body } = await Plugins.Requests(requestOptions)
     let responseBody = body
     const cleaned = Boolean(cleanHtmlToText && (headers['Content-Type'].includes('text/html') || headers['Content-Type'].includes('application/xhtml+xml')))
@@ -1365,7 +1365,7 @@ const bridgeTools = {
     }
     return {
       status,
-      headers,
+      ...(returnHeaders ? { headers } : {}),
       body: responseBody,
       cleaned,
       ...(shouldTruncate ? { truncated: true, originalBodyLength } : {})
@@ -1459,35 +1459,13 @@ const tools = [
           options: {
             type: 'object',
             properties: {
-              PidFile: {
-                type: 'string'
-              },
-              LogFile: {
-                type: 'string'
-              },
-              Convert: {
-                type: 'boolean'
-              },
               Env: {
                 type: 'object',
                 additionalProperties: true
               },
-              StopOutputKeyword: {
-                type: 'string'
-              },
               WorkingDirectory: {
                 type: 'string'
               },
-              convert: {
-                type: 'boolean'
-              },
-              env: {
-                type: 'object',
-                additionalProperties: true
-              },
-              stopOutputKeyword: {
-                type: 'string'
-              }
             },
             additionalProperties: false
           }
@@ -1779,6 +1757,11 @@ const tools = [
             type: 'number',
             description: 'Maximum returned string body length. Use 0 to disable truncation.',
             default: 60000
+          },
+          returnHeaders: {
+            type: 'boolean',
+            description: 'Whether to include response headers in the tool result.',
+            default: false
           }
         },
         required: ['url'],
@@ -2534,40 +2517,6 @@ const tools = [
   {
     type: 'function',
     function: {
-      name: 'switchSystemProxy',
-      description: 'Enable or disable system proxy.',
-      parameters: {
-        type: 'object',
-        properties: {
-          enable: {
-            type: 'boolean',
-            description: 'Whether to enable system proxy.'
-          }
-        },
-        required: ['enable']
-      }
-    }
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'setSystemDNS',
-      description: 'Enable or disable system DNS setting.',
-      parameters: {
-        type: 'object',
-        properties: {
-          proxy: {
-            type: 'boolean',
-            description: 'Whether DNS should use proxy mode.'
-          }
-        },
-        required: ['proxy']
-      }
-    }
-  },
-  {
-    type: 'function',
-    function: {
       name: 'getCoreState',
       description: 'Get current core process state and restart flags.',
       parameters: {
@@ -2662,25 +2611,8 @@ const tools = [
           event: {
             type: 'string',
             enum: [
-              'onEnabled',
-              'onDisabled',
-              'onDispose',
-              'onInstall',
-              'onUninstall',
               'onRun',
-              'onTrayUpdate',
-              'onSubscribe',
-              'onGenerate',
-              'onStartup',
-              'onShutdown',
-              'onReady',
-              'onReload',
               'onTask',
-              'onConfigure',
-              'onCoreStarted',
-              'onCoreStopped',
-              'onBeforeCoreStart',
-              'onBeforeCoreStop'
             ],
             description: 'Plugin trigger event function name.'
           },
