@@ -19,13 +19,13 @@
     "particles": [
       {
         "type": "bubble",
-        "count": 6,
+        "count": 10,
         "xOffset": 8,
         "xStep": 31,
         "yOffset": 15,
         "yStep": 29,
-        "sizeBase": 8,
-        "sizeStep": 4,
+        "sizeBase": 13,
+        "sizeStep": 6,
         "sizeCycle": 4,
         "driftBase": 10,
         "driftStep": 7,
