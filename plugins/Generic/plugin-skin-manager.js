@@ -410,11 +410,11 @@ export default (Plugin) => {
     const selectedId = themeId || state.selectedThemeId || catalog.themes[0].id
     const theme = await readThemeOrDefault(catalog, selectedId, true)
     const variables = Object.entries(theme.variables)
-      .map(([property, value]) => `  ${property}: ${value} !important;`)
+      .map(([property, value]) => `  ${property}: ${value};`)
       .join('\n')
     const style = document.createElement('style')
     style.id = styleId
-    style.textContent = `body.${ACTIVE_CLASS} {\n${variables}\n  --skin-manager-background: url("data:${theme.files.backgroundMime};base64,${theme.background}") !important;\n}\n${theme.stylesheet}`
+    style.textContent = `body.${ACTIVE_CLASS} {\n${variables}\n  --skin-manager-background: url("data:${theme.files.backgroundMime};base64,${theme.background}");\n}\n${theme.stylesheet}`
     removeAppliedTheme()
     document.head.appendChild(style)
     document.body.classList.add(ACTIVE_CLASS)

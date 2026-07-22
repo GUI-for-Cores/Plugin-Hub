@@ -6,6 +6,9 @@ body.skin-theme {
   --skin-glass-strong: rgba(255, 255, 255, 0.78);
   --skin-border: #d9d9d9;
   --skin-shadow: none;
+  --skin-control-shadow: none;
+  --skin-control-active-shadow: inset 2px 2px rgba(41, 41, 41, 0.18);
+  --skin-control-focus-shadow: 0 0 0 1px var(--primary-color);
   color: var(--skin-ink);
   font-family: 'Microsoft YaHei UI', 'Segoe UI', sans-serif;
   background: #faf9f6;

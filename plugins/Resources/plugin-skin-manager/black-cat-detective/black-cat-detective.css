@@ -7,6 +7,7 @@ body.skin-theme {
   --skin-glass-strong: rgba(255, 255, 255, 0.94);
   --skin-border: rgba(35, 35, 35, 0.16);
   --skin-shadow: 0 5px 13px rgba(18, 18, 18, 0.13);
+  --skin-control-shadow: 0 4px 10px rgba(18, 18, 18, 0.13), inset 0 1px rgba(255, 255, 255, 0.84);
   color: var(--skin-ink);
   font-family: 'Microsoft YaHei UI', 'Segoe UI', sans-serif;
   background: #faf9f6;

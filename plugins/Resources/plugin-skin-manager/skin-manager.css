@@ -20,6 +20,11 @@ body.skin-theme {
   --menu-bg-dark: rgba(25, 34, 67, 0.92);
   --btn-text-hover-color: var(--btn-text-color-light);
   --btn-text-active-color: var(--btn-text-color-light);
+  --skin-control-border: var(--skin-border);
+  --skin-control-bg: var(--skin-glass-strong);
+  --skin-control-shadow: 0 3px 10px color-mix(in srgb, var(--skin-blue) 12%, transparent), inset 0 1px rgba(255, 255, 255, 0.72);
+  --skin-control-active-shadow: inset 0 2px 5px color-mix(in srgb, var(--secondary-color) 26%, transparent), inset 0 1px rgba(255, 255, 255, 0.24);
+  --skin-control-focus-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 17%, transparent), inset 0 1px rgba(255, 255, 255, 0.62);
 }
 
 body.skin-theme[theme-mode='dark'] {
@@ -289,6 +294,151 @@ body.skin-theme .gui-button:active {
   transform: scale(0.97);
 }
 
+/* Shared component surface. Theme JSON supplies the actual light/dark colors. */
+body.skin-theme :is(.gui-button.normal, .gui-button.primary) {
+  border: 1px solid var(--skin-control-border);
+  box-shadow: var(--skin-control-shadow);
+}
+
+body.skin-theme :is(.gui-button.normal, .gui-button.primary):active {
+  box-shadow: var(--skin-control-active-shadow);
+}
+
+body.skin-theme :is(.gui-radio, .gui-checkbox) {
+  overflow: hidden;
+  border-color: var(--skin-control-border);
+  background: var(--skin-control-bg);
+  box-shadow: var(--skin-control-shadow);
+}
+
+body.skin-theme :is(.gui-radio-button, .gui-checkbox-button) {
+  border-left-color: var(--skin-control-border);
+  transition:
+    color 150ms ease,
+    background 150ms ease,
+    box-shadow 150ms ease;
+}
+
+body.skin-theme :is(.gui-radio-button, .gui-checkbox-button):hover {
+  background: color-mix(in srgb, var(--primary-color) 9%, var(--skin-control-bg));
+}
+
+body.skin-theme :is(.gui-radio-button.active, .gui-checkbox-button.active) {
+  box-shadow: var(--skin-control-active-shadow);
+  text-shadow: 0 1px color-mix(in srgb, var(--secondary-color) 32%, transparent);
+}
+
+body.skin-theme :is(.gui-input, .gui-select, .gui-input-list) {
+  border-color: var(--skin-control-border);
+  background: var(--skin-control-bg);
+  box-shadow:
+    inset 0 1px 3px color-mix(in srgb, var(--skin-ink) 9%, transparent),
+    inset 0 1px rgba(255, 255, 255, 0.56);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+body.skin-theme :is(.gui-input, .gui-select, .gui-input-list):hover,
+body.skin-theme .gui-input:focus-within {
+  border-color: var(--primary-color);
+  box-shadow: var(--skin-control-focus-shadow);
+}
+
+body.skin-theme :is(.gui-input, .gui-select) input,
+body.skin-theme :is(.gui-input, .gui-select) textarea {
+  color: inherit;
+}
+
+body.skin-theme .gui-input.disabled {
+  opacity: 0.56;
+  filter: saturate(0.55);
+}
+
+body.skin-theme .gui-switch {
+  border: 1px solid var(--skin-control-border);
+  box-shadow:
+    inset 0 1px 3px color-mix(in srgb, var(--skin-ink) 12%, transparent),
+    0 2px 6px color-mix(in srgb, var(--skin-blue) 10%, transparent);
+}
+
+body.skin-theme .gui-switch .dot {
+  border: 1px solid color-mix(in srgb, var(--skin-control-border) 78%, white);
+  box-shadow:
+    0 1px 4px color-mix(in srgb, var(--skin-ink) 24%, transparent),
+    inset 0 1px rgba(255, 255, 255, 0.9);
+}
+
+body.skin-theme .gui-progress-line {
+  overflow: hidden;
+  border: 1px solid var(--skin-control-border);
+  box-shadow: inset 0 1px 3px color-mix(in srgb, var(--skin-ink) 13%, transparent);
+}
+
+body.skin-theme .gui-progress-line .inner {
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.46);
+}
+
+body.skin-theme .gui-table {
+  overflow: hidden;
+  border: 1px solid var(--skin-control-border);
+  box-shadow: var(--skin-control-shadow);
+}
+
+body.skin-theme .gui-table :is(th, td) {
+  border-color: color-mix(in srgb, var(--skin-control-border) 66%, transparent);
+}
+
+body.skin-theme :is(.gui-dropdown-overlay, .gui-menu, .gui-picker, .gui-confirm, .gui-message, .gui-tips) {
+  border: 1px solid var(--skin-control-border);
+  color: var(--skin-ink);
+  box-shadow:
+    0 10px 26px color-mix(in srgb, var(--skin-ink) 18%, transparent),
+    inset 0 1px rgba(255, 255, 255, 0.62);
+}
+
+body.skin-theme .gui-picker .item:hover {
+  background: color-mix(in srgb, var(--primary-color) 12%, transparent);
+}
+
+body.skin-theme .gui-modal-mask {
+  backdrop-filter: blur(3px);
+}
+
+body.skin-theme .gui-modal-modal {
+  overflow: hidden;
+  border: 1px solid var(--skin-control-border);
+  color: var(--skin-ink);
+  box-shadow:
+    0 18px 46px color-mix(in srgb, var(--skin-ink) 24%, transparent),
+    inset 0 1px rgba(255, 255, 255, 0.7);
+}
+
+body.skin-theme .gui-modal-modal > :first-child {
+  border-bottom: 1px solid var(--skin-control-border);
+  background: color-mix(in srgb, var(--primary-color) 8%, var(--skin-control-bg));
+}
+
+body.skin-theme .gui-modal-modal > :last-child {
+  border-top: 1px solid color-mix(in srgb, var(--skin-control-border) 70%, transparent);
+}
+
+body.skin-theme .gui-color-picker {
+  border: 1px solid var(--skin-control-border);
+  box-shadow: var(--skin-control-shadow);
+}
+
+body.skin-theme .gui-tag {
+  border: 1px solid color-mix(in srgb, var(--primary-color) 32%, var(--skin-control-border));
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.48);
+}
+
+body.skin-theme .gui-tabs-tab .gui-button.link.active {
+  background: color-mix(in srgb, var(--primary-color) 12%, var(--skin-control-bg));
+  box-shadow: inset 0 -2px var(--primary-color);
+}
+
 body.skin-theme .controller-close:active {
   transform: translateX(-50%) scale(0.96);
 }
@@ -418,8 +568,6 @@ body.skin-theme {
 body.skin-theme #app {
   box-sizing: border-box;
   padding: 6px;
-  position: relative;
-  z-index: 2;
 }
 
 body.skin-theme #app::before {
