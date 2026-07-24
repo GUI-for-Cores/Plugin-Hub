@@ -49,6 +49,12 @@
       "manifest": "retro-qq/retro-qq.json",
       "featured": true,
       "order": 80
+    },
+    {
+      "id": "neon-tianyi",
+      "manifest": "neon-tianyi/neon-tianyi.json",
+      "featured": true,
+      "order": 90
     }
   ]
 }
