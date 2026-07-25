@@ -381,7 +381,6 @@ body.skin-theme .gui-progress-line .inner {
 }
 
 body.skin-theme .gui-table {
-  overflow: hidden;
   border: 1px solid var(--skin-control-border);
   box-shadow: var(--skin-control-shadow);
 }
