@@ -566,22 +566,24 @@ export default (Plugin) => {
           close?.()
         }
 
-        const onCompress = async () => {
-          if (requesting.value) {
+        const onCompress = async (endIndex) => {
+          const hasEndIndex = Number.isInteger(endIndex)
+          if (requesting.value && !hasEndIndex) {
             Plugins.message.info('请等待AI输出完成')
             return false
           }
           if (compressing.value) return false
 
+          const compressionEndIndex = hasEndIndex ? endIndex : chatHistory.value.length - 1
           let compressedIndex = -1
-          for (let i = chatHistory.value.length - 1; i >= 0; i--) {
+          for (let i = compressionEndIndex; i >= 0; i--) {
             if (chatHistory.value[i].compressed) {
               compressedIndex = i
               break
             }
           }
           const messages = chatHistory.value
-            .slice(compressedIndex < 0 ? 0 : compressedIndex)
+            .slice(compressedIndex < 0 ? 0 : compressedIndex, compressionEndIndex + 1)
             .filter((message) => (message.role === 'user' || message.role === 'assistant') && typeof message.content === 'string' && message.content.trim())
             .map((message) => ({ role: message.role, content: message.content }))
           if (!messages.length) {
@@ -630,7 +632,7 @@ export default (Plugin) => {
               return false
             }
 
-            appendMessage({
+            const summaryMessage = {
               role: 'assistant',
               content: '会话压缩摘要：\n\n' + summary.trim(),
               compressed: true,
@@ -639,7 +641,12 @@ export default (Plugin) => {
               usage: body.usage,
               created: body.created,
               duration: Date.now() - startTime
-            })
+            }
+            if (hasEndIndex) {
+              chatHistory.value.splice(compressionEndIndex + 1, 0, summaryMessage)
+            } else {
+              appendMessage(summaryMessage)
+            }
             try {
               await saveSession()
               Plugins.message.success('会话压缩完成')
@@ -759,6 +766,7 @@ export default (Plugin) => {
             const finalToolCalls = streamMessage.tool_calls?.filter(Boolean) || []
             if (finalToolCalls.length) {
               streamMessage.tool_calls = finalToolCalls
+              const toolResultStartIndex = chatHistory.value.length
 
               for (const toolCall of finalToolCalls) {
                 if (stopRequested.value) return res
@@ -771,6 +779,43 @@ export default (Plugin) => {
               }, 3000)
 
               if (stopRequested.value) return res
+              if (compressionThreshold.value > 0) {
+                let lastUserIndex = -1
+                let lastCompressedIndex = -1
+                for (let i = chatHistory.value.length - 1; i >= 0; i--) {
+                  const message = chatHistory.value[i]
+                  if (lastCompressedIndex < 0 && message.compressed) {
+                    lastCompressedIndex = i
+                  }
+                  if (lastUserIndex < 0 && message.role === 'user' && !message.compressed) {
+                    lastUserIndex = i
+                  }
+                  if (lastUserIndex >= 0 && (lastCompressedIndex >= 0 || i === 0)) break
+                }
+                if (lastUserIndex > 0 && lastCompressedIndex < lastUserIndex - 1) {
+                  let hasCompressibleMessages = false
+                  for (let i = Math.max(0, lastCompressedIndex); i < lastUserIndex; i++) {
+                    const message = chatHistory.value[i]
+                    if ((message.role === 'user' || message.role === 'assistant') && typeof message.content === 'string' && message.content.trim()) {
+                      hasCompressibleMessages = true
+                      break
+                    }
+                  }
+                  let estimatedTokens = (Number(streamMessage.usage?.prompt_tokens) || 0) + (Number(streamMessage.usage?.completion_tokens) || 0)
+                  for (let i = toolResultStartIndex; i < chatHistory.value.length; i++) {
+                    const message = chatHistory.value[i]
+                    if (message.role !== 'tool') continue
+                    const content = typeof message.content === 'string' ? message.content : JSON.stringify(message.content)
+                    estimatedTokens += Math.ceil(new TextEncoder().encode(content || '').length / 3)
+                  }
+                  if (hasCompressibleMessages && estimatedTokens >= compressionThreshold.value) {
+                    const { destroy } = Plugins.message.info('正在压缩工具调用前的上下文...', 999999)
+                    const compressed = await onCompress(lastUserIndex - 1)
+                    destroy()
+                    if (!compressed) return res
+                  }
+                }
+              }
               return await askAI()
             }
 
