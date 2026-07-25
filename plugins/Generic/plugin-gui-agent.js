@@ -1,6 +1,6 @@
 const PATH = 'data/third/gui-agent'
-const DEFAULT_MAX_TOOL_RESULT_CHARS = 20000
-const DEFAULT_MAX_HTTP_BODY_CHARS = 12000
+const DEFAULT_MAX_TOOL_RESULT_CHARS = 30000
+const DEFAULT_MAX_HTTP_BODY_CHARS = 20000
 
 const envStore = Plugins.useEnvStore()
 
@@ -231,7 +231,7 @@ export default (Plugin) => {
             </Card>
           </div>
         </div>
-        <div v-for="(item, index) in chatHistory" :key="index" class="text-14 break-all mb-8px leading-relaxed">
+        <div v-for="(item, index) in chatHistory" :key="index" class="text-14 break-all leading-relaxed">
           <div v-if="item.compressed" class="flex justify-center my-8">
             <details class="text-12 w-full" style="color: var(--card-color)">
               <summary class="flex items-center justify-center cursor-pointer">
@@ -245,7 +245,7 @@ export default (Plugin) => {
               </Card>
             </details>
           </div>
-          <div v-else-if="item.role == 'user'" class="flex items-center justify-end">
+          <div v-else-if="item.role == 'user'" class="flex items-center justify-end mb-8">
             <div class="ml-24 rounded-8 px-8 py-4" style="background: var(--card-bg)">{{ item.content }}</div>
             <Dropdown placement="bottom">
               <Button icon="more" type="text" />
@@ -368,10 +368,6 @@ export default (Plugin) => {
             <template #overlay>
               <div class="flex flex-col gap-4 p-8 text-12" style="min-width: 180px">
                 <div class="flex items-center justify-between gap-16">
-                  <span>模型上下文上限</span>
-                  <span>{{ contextWindowTokens || '未设置' }}</span>
-                </div>
-                <div class="flex items-center justify-between gap-16">
                   <span>自动压缩上限</span>
                   <span>{{ compressionThreshold || '未启用' }}</span>
                 </div>
@@ -486,7 +482,10 @@ export default (Plugin) => {
           return undefined
         })
         const compressionThreshold = computed(() => Math.max(0, Number(Plugin.AutoCompressTokens) || 0))
-        const maxToolResultChars = computed(() => Math.max(4000, Number(Plugin.MaxToolResultChars) || DEFAULT_MAX_TOOL_RESULT_CHARS))
+        const maxToolResultChars = computed(() => {
+          const value = Number(Plugin.MaxToolResultChars)
+          return Number.isFinite(value) && value > 0 ? Math.floor(value) : DEFAULT_MAX_TOOL_RESULT_CHARS
+        })
         const tokenPercent = computed(() => {
           if (compressionThreshold.value === 0) return 0
           return Math.min(100, Math.round(((Number(tokenUsage.value?.prompt_tokens) || 0) / compressionThreshold.value) * 100))
@@ -1125,7 +1124,6 @@ export default (Plugin) => {
           toolResultMapping,
           tokenUsage,
           compressionThreshold,
-          contextWindowTokens: compressionThreshold,
           tokenPercent,
           settings,
           permission,
@@ -1313,12 +1311,17 @@ const Utils = {
   },
   truncateText(text, maxLength, label = '内容') {
     const value = String(text ?? '')
-    if (!Number.isFinite(maxLength) || maxLength <= 0 || value.length <= maxLength) {
+    const limit = Math.floor(maxLength)
+    if (!Number.isFinite(maxLength) || limit <= 0 || value.length <= limit) {
       return value
     }
 
     const marker = `\n\n...[${label}已截断：原始 ${value.length} 字符；请缩小查询范围或筛选字段后重试]...\n\n`
-    const available = Math.max(0, maxLength - marker.length)
+    if (marker.length >= limit) {
+      return value.slice(0, Math.max(0, limit - 1)) + '…'
+    }
+
+    const available = limit - marker.length
     const headLength = Math.ceil(available * 0.75)
     const tailLength = available - headLength
     return value.slice(0, headLength) + marker + (tailLength > 0 ? value.slice(-tailLength) : '')
@@ -1445,7 +1448,7 @@ const bridgeTools = {
       returnHeaders = false,
       ...requestOptions
     } = args
-    const { status, headers, body } = await Plugins.Requests(requestOptions)
+    const { status, headers, body } = await Plugins.Requests({ ...requestOptions, autoTransformBody: false })
     let responseBody = body
     const cleaned = Boolean(cleanHtmlToText && (headers['Content-Type'].includes('text/html') || headers['Content-Type'].includes('application/xhtml+xml')))
     if (cleaned) {
@@ -1804,31 +1807,9 @@ const tools = [
               },
               Insecure: {
                 type: 'boolean'
-              },
-              Redirect: {
-                type: 'boolean'
-              },
-              Timeout: {
-                type: 'number'
-              },
-              CancelId: {
-                type: 'string'
-              },
-              FileField: {
-                type: 'string'
-              },
-              Sha256: {
-                type: 'string'
-              },
-              Stream: {
-                type: 'string'
               }
             },
             additionalProperties: false
-          },
-          autoTransformBody: {
-            type: 'boolean',
-            default: true
           },
           cleanHtmlToText: {
             type: 'boolean',

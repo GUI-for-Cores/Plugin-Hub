@@ -325,7 +325,7 @@
   {
     "id": "plugin-gui-agent",
     "name": "GUI Agent",
-    "version": "v3.0.0",
+    "version": "v3.0.1",
     "group": "Tools",
     "description": "支持通用 AI 对话及 GUI.for.Cores 专属操作，可调用文件、网络、命令与 GUI 管理工具。",
     "tags": [],
@@ -383,10 +383,10 @@
       {
         "id": "ID_gui_agent_max_tool_result_chars",
         "title": "单次工具结果字符上限",
-        "description": "防止大型JSON、日志或文件内容耗尽上下文",
+        "description": "请输入正整数，0或无效值使用默认值30000；用于防止大型JSON、日志或文件内容耗尽上下文",
         "key": "MaxToolResultChars",
         "component": "Input",
-        "value": "20000",
+        "value": "30000",
         "options": []
       },
       {
