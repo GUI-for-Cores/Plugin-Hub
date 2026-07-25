@@ -1,4 +1,6 @@
 const PATH = 'data/third/gui-agent'
+const DEFAULT_MAX_TOOL_RESULT_CHARS = 20000
+const DEFAULT_MAX_HTTP_BODY_CHARS = 12000
 
 const envStore = Plugins.useEnvStore()
 
@@ -33,11 +35,15 @@ const system_prompt = `
 
 # 工具调用协议
 
-每次调用工具前，必须先用一句话说明为何调用、目标对象是什么、希望确认或完成什么；不得静默调用工具。
+每次调用工具前，必须说明为何调用、目标对象是什么、希望确认或完成什么；不得静默调用工具。
 
 调用工具时必须严格遵守参数定义，使用已验证的对象标识，不调用无关工具，不用相同参数无意义重复调用，不虚构参数或结果。
 
-每次工具调用后，必须先基于返回做简短总结，说明关键返回、当前结论、是否达到目标和下一步动作。若继续调用工具，下一次调用前的说明必须承接上一工具结果。
+控制返回体积：优先在命令、API 查询或选择器中只返回完成任务所需的字段和范围，不要把大型原始 JSON、HTML、日志、完整仓库差异或整份文件直接送回上下文。GitHub commits、compare 等宽泛接口必须先投影字段、分页或改用浅克隆后的摘要命令；若结果被截断，应缩小查询，而不是原样重复请求。
+
+控制外部请求次数：禁止对批量结果中的每个对象逐条请求详情形成 N+1 调用。优先请求一次批量接口并在同一命令进程内解析、筛选和聚合；只有批量结果缺少回答所必需的信息时，才补充少量目标明确的详情请求。
+
+每次工具调用后，必须先基于返回做总结，说明关键返回（例如唯一标志）、当前结论、是否达到目标和下一步动作。若继续调用工具，下一次调用前的说明必须承接上一工具结果。
 
 调用以下工具前必须先调用 \`getAppDts\` 获取当前版本数据结构，结果可复用：\`editProfile\`、\`editSubscribe\`、\`addRuleset\`、\`editRuleset\`、\`addPlugin\`、\`editPlugin\`、\`addScheduledTask\`、\`editScheduledTask\`。
 
@@ -362,6 +368,10 @@ export default (Plugin) => {
             <template #overlay>
               <div class="flex flex-col gap-4 p-8 text-12" style="min-width: 180px">
                 <div class="flex items-center justify-between gap-16">
+                  <span>模型上下文上限</span>
+                  <span>{{ contextWindowTokens || '未设置' }}</span>
+                </div>
+                <div class="flex items-center justify-between gap-16">
                   <span>自动压缩上限</span>
                   <span>{{ compressionThreshold || '未启用' }}</span>
                 </div>
@@ -476,10 +486,30 @@ export default (Plugin) => {
           return undefined
         })
         const compressionThreshold = computed(() => Math.max(0, Number(Plugin.AutoCompressTokens) || 0))
+        const maxToolResultChars = computed(() => Math.max(4000, Number(Plugin.MaxToolResultChars) || DEFAULT_MAX_TOOL_RESULT_CHARS))
         const tokenPercent = computed(() => {
           if (compressionThreshold.value === 0) return 0
           return Math.min(100, Math.round(((Number(tokenUsage.value?.prompt_tokens) || 0) / compressionThreshold.value) * 100))
         })
+
+        const prepareRequestMessages = (history) => {
+          let lastUserIndex = -1
+          for (let i = history.length - 1; i >= 0; i--) {
+            if (history[i].role === 'user') {
+              lastUserIndex = i
+              break
+            }
+          }
+
+          return history.map((message, index) => {
+            const { id, model, usage, created, duration, compressed, reasoning, reasoning_content, ...requestMessage } = message
+            if (requestMessage.role === 'tool' && index < lastUserIndex) {
+              const length = typeof requestMessage.content === 'string' ? requestMessage.content.length : 0
+              requestMessage.content = `[先前已完成轮次的 ${requestMessage.name || 'tool'} 结果已省略；原始长度 ${length} 字符。需要细节时请重新执行窄范围查询。]`
+            }
+            return requestMessage
+          })
+        }
 
         const toolVisibility = ref(new Set())
         let savedSession = '[]'
@@ -704,7 +734,7 @@ export default (Plugin) => {
               },
               body: {
                 model: Plugin.Model,
-                messages: requestHistory.map(({ id, model, usage, created, duration, compressed, reasoning, reasoning_content, ...message }) => message),
+                messages: prepareRequestMessages(requestHistory),
                 temperature: 0.2,
                 tools: settings.value.sessionMode === 'agent' ? tools : assistantTools,
                 stream: true
@@ -952,6 +982,7 @@ export default (Plugin) => {
           } catch (error) {
             result = error.message || error
           }
+          result = Utils.truncateText(result, maxToolResultChars.value, `${fnName} 工具结果`)
           appendMessage({ role: 'tool', tool_call_id: toolCall.id, name: fnName, content: result })
         }
 
@@ -1094,6 +1125,7 @@ export default (Plugin) => {
           toolResultMapping,
           tokenUsage,
           compressionThreshold,
+          contextWindowTokens: compressionThreshold,
           tokenPercent,
           settings,
           permission,
@@ -1278,6 +1310,18 @@ const Utils = {
     }
 
     return normalizeText(walk(root))
+  },
+  truncateText(text, maxLength, label = '内容') {
+    const value = String(text ?? '')
+    if (!Number.isFinite(maxLength) || maxLength <= 0 || value.length <= maxLength) {
+      return value
+    }
+
+    const marker = `\n\n...[${label}已截断：原始 ${value.length} 字符；请缩小查询范围或筛选字段后重试]...\n\n`
+    const available = Math.max(0, maxLength - marker.length)
+    const headLength = Math.ceil(available * 0.75)
+    const tailLength = available - headLength
+    return value.slice(0, headLength) + marker + (tailLength > 0 ? value.slice(-tailLength) : '')
   }
 }
 
@@ -1300,7 +1344,7 @@ const envStoreTools = {
     }
   },
   setSystemProxy: () => Plugins.useEnvStore().setSystemProxy(),
-  clearSystemProxy: () => Plugins.useEnvStore().clearSystemProxy(),
+  clearSystemProxy: () => Plugins.useEnvStore().clearSystemProxy()
 }
 
 const kernelApiStoreTools = {
@@ -1393,7 +1437,14 @@ const bridgeTools = {
   MakeDir: (args) => Plugins.MakeDir(args.path),
   ReadDir: (args) => Plugins.ReadDir(args.path),
   Requests: async (args) => {
-    const { cleanHtmlToText = true, includeSelector, excludeSelector, maxBodyLength = 60000, returnHeaders = false, ...requestOptions } = args
+    const {
+      cleanHtmlToText = true,
+      includeSelector,
+      excludeSelector,
+      maxBodyLength = DEFAULT_MAX_HTTP_BODY_CHARS,
+      returnHeaders = false,
+      ...requestOptions
+    } = args
     const { status, headers, body } = await Plugins.Requests(requestOptions)
     let responseBody = body
     const cleaned = Boolean(cleanHtmlToText && (headers['Content-Type'].includes('text/html') || headers['Content-Type'].includes('application/xhtml+xml')))
@@ -1406,7 +1457,7 @@ const bridgeTools = {
     const originalBodyLength = typeof responseBody === 'string' ? responseBody.length : undefined
     const shouldTruncate = typeof responseBody === 'string' && maxBodyLength > 0 && responseBody.length > maxBodyLength
     if (shouldTruncate) {
-      responseBody = responseBody.slice(0, maxBodyLength)
+      responseBody = Utils.truncateText(responseBody, maxBodyLength, 'HTTP 响应体')
     }
     return {
       status,
@@ -1487,7 +1538,8 @@ const tools = [
     type: 'function',
     function: {
       name: 'Exec',
-      description: 'Execute a command and return its output.',
+      description:
+        'Execute a command and return its output. Filter or summarize output in the command itself; do not return broad raw JSON, logs, repository diffs, or full files when a narrower projection can answer the request. Avoid N+1 network calls: fetch bulk data once, then parse and aggregate it locally.',
       parameters: {
         type: 'object',
         properties: {
@@ -1510,7 +1562,7 @@ const tools = [
               },
               WorkingDirectory: {
                 type: 'string'
-              },
+              }
             },
             additionalProperties: false
           }
@@ -1800,8 +1852,9 @@ const tools = [
           },
           maxBodyLength: {
             type: 'number',
-            description: 'Maximum returned string body length. Use 0 to disable truncation.',
-            default: 60000
+            description:
+              'Maximum returned string body length. Prefer a small limit and narrow queries; 0 disables this body-specific limit, but the generic tool-result limit still applies.',
+            default: DEFAULT_MAX_HTTP_BODY_CHARS
           },
           returnHeaders: {
             type: 'boolean',
@@ -2655,10 +2708,7 @@ const tools = [
           },
           event: {
             type: 'string',
-            enum: [
-              'onRun',
-              'onTask',
-            ],
+            enum: ['onRun', 'onTask'],
             description: 'Plugin trigger event function name.'
           },
           args: {
