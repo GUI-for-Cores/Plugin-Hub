@@ -16,27 +16,7 @@
     "backgroundMime": "image/webp"
   },
   "motion": {
-    "particles": [
-      {
-        "type": "bubble",
-        "count": 10,
-        "xOffset": 8,
-        "xStep": 31,
-        "yOffset": 15,
-        "yStep": 29,
-        "sizeBase": 13,
-        "sizeStep": 6,
-        "sizeCycle": 4,
-        "driftBase": 10,
-        "driftStep": 7,
-        "driftCycle": 4,
-        "delayStep": 1.3,
-        "delayCycle": 6,
-        "durationBase": 11,
-        "durationStep": 1.4,
-        "durationCycle": 4
-      }
-    ],
+    "particles": [],
     "interactiveGlow": false,
     "clickBursts": false
   },
