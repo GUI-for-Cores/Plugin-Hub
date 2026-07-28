@@ -7,6 +7,12 @@ export default (Plugin) => {
 
   const appStore = Plugins.useAppStore()
 
+  const getIPInfo = async () => {
+    const proxy = await Plugins.GetRequestProxy('kernel')
+    if (!proxy) throw new Error('未获取到内核代理地址，请确认内核已启动且存在可用出站')
+    return Plugins.HttpGet('https://ipwho.is/', undefined, { Proxy: proxy, Timeout: 8000 })
+  }
+
   const add_UI = () => {
     appStore.removeCustomActions('core_state', [ui_id])
     appStore.addCustomActions('core_state', {
@@ -17,10 +23,11 @@ export default (Plugin) => {
           const content = ref('')
           const refreshIP = async () => {
             content.value = 'IP: Loading'
-            const { body } = await Plugins.HttpGet('https://ipwho.is/')
+            const { body } = await getIPInfo()
             const country = flags.get(body.country_code) || '❓'
             const ip = body.ip
-            content.value = `IP: ${country} ${ip}`
+            const area = [body.country, body.region].filter(Boolean).join('/')
+            content.value = `IP: ${country} ${area} ${ip}`
           }
 
           refreshIP()
@@ -45,8 +52,7 @@ export default (Plugin) => {
 
   return {
     onRun: async () => {
-      const url = 'https://ipwho.is/'
-      const { body } = await Plugins.HttpGet(url)
+      const { body } = await getIPInfo()
       const emoji = flags.get(body.country_code) || '❓'
       const text1 = `${emoji} ${body.region} ${body.city}`
       const text2 = `🌐 IP: ${body.ip}`
