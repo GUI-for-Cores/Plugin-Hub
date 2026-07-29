@@ -325,7 +325,7 @@
   {
     "id": "plugin-gui-agent",
     "name": "GUI Agent",
-    "version": "v3.0.1",
+    "version": "v4.0.0",
     "group": "Tools",
     "description": "支持通用 AI 对话及 GUI.for.Cores 专属操作，可调用文件、网络、命令与 GUI 管理工具。",
     "tags": [],
@@ -394,6 +394,33 @@
         "title": "API Key",
         "description": "",
         "key": "ApiKey",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_gui_agent_image_base_url",
+        "title": "文生图接口地址",
+        "description": "请使用 OpenAI 兼容的图片生成接口",
+        "key": "ImageBaseUrl",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_gui_agent_image_model",
+        "title": "文生图模型",
+        "description": "",
+        "key": "ImageModel",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_gui_agent_image_api_key",
+        "title": "文生图 API Key",
+        "description": "",
+        "key": "ImageApiKey",
         "component": "Input",
         "value": "",
         "options": []

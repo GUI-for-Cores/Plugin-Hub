@@ -121,8 +121,54 @@ export default (Plugin) => {
       }
     }
 
+    const imageUrlCache = new Map()
+
+    const StoredImage = {
+      props: {
+        path: {
+          type: String,
+          required: true
+        },
+        mime: {
+          type: String,
+          default: 'image/png'
+        }
+      },
+      template: `
+        <div>
+          <img v-if="src" :src="src" alt="生成图片" class="block max-w-full rounded-8" style="max-height: 70vh; object-fit: contain" />
+          <div v-else-if="failed" class="text-12" style="color: var(--card-color)">图片加载失败</div>
+          <div v-else class="text-12" style="color: var(--card-color)">图片加载中...</div>
+        </div>
+      `,
+      setup(props) {
+        const { ref, onMounted } = Vue
+        const src = ref('')
+        const failed = ref(false)
+        onMounted(async () => {
+          try {
+            if (imageUrlCache.has(props.path)) {
+              src.value = imageUrlCache.get(props.path)
+              return
+            }
+            const base64 = await Plugins.ReadFile(`${PATH}/${props.path}`, { Mode: 'Binary' })
+            const binary = atob(base64)
+            const bytes = new Uint8Array(binary.length)
+            for (let i = 0; i < binary.length; i++) {
+              bytes[i] = binary.charCodeAt(i)
+            }
+            src.value = URL.createObjectURL(new Blob([bytes], { type: props.mime }))
+            imageUrlCache.set(props.path, src.value)
+          } catch {
+            failed.value = true
+          }
+        })
+        return { src, failed }
+      }
+    }
+
     const component = {
-      components: { LoadingDots },
+      components: { LoadingDots, StoredImage },
       template: /* html */ `
     <div class="flex flex-col h-full pb-8">
       <div ref="chatBox" class="overflow-y-auto select-text flex flex-col flex-1 pb-8 pr-8" @scroll="onChatScroll" @wheel.passive="onChatWheel">
@@ -257,8 +303,11 @@ export default (Plugin) => {
               </template>
             </Dropdown>
           </div>
-          <div v-else-if="item.role == 'assistant' && (item.content || item.tool_calls)">
+          <div v-else-if="item.role == 'assistant' && (item.content || item.tool_calls || item.images)">
             <MarkdownViewer v-if="item.content" :content="item.content" />
+            <div v-if="item.images?.length" class="flex flex-col gap-8 my-8">
+              <StoredImage v-for="image in item.images" :key="image.path" :path="image.path" :mime="image.type" />
+            </div>
             <div class="flex items-center">
               <Tag v-if="item.model" size="small">{{ item.model }}</Tag>
               <Tag v-if="item.tool_calls" size="small" :color="toolVisibility.has(item.id) ? 'primary' : 'default'" @click="toggleToolVisibility(item.id)">
@@ -280,6 +329,9 @@ export default (Plugin) => {
                 </template>
               </Dropdown>
             </div>
+          </div>
+          <div v-else-if="item.role == 'tool' && item.images?.length" class="flex flex-col gap-8 my-8">
+            <StoredImage v-for="image in item.images" :key="image.path" :path="image.path" :mime="image.type" />
           </div>
           <TransitionGroup
             v-if="item.tool_calls"
@@ -460,7 +512,7 @@ export default (Plugin) => {
         /** @type (v: boolean) => void */
         let userAuthorized
 
-        /** @type { {value: {role: 'system' | 'user' | 'assistant' | 'tool', content: string, tool_calls?: any, tool_call_id?: string, name?: string, id?: string, model?: string, usage?: any, created?: number, duration?: number, compressed?: boolean}[]} } */
+        /** @type { {value: {role: 'system' | 'user' | 'assistant' | 'tool', content: string, tool_calls?: any, tool_call_id?: string, name?: string, id?: string, model?: string, usage?: any, created?: number, duration?: number, compressed?: boolean, images?: {path: string, type: string}[]}[]} } */
         const chatHistory = ref([])
         const toolResultMapping = computed(() =>
           chatHistory.value
@@ -501,10 +553,12 @@ export default (Plugin) => {
           }
 
           return history.map((message, index) => {
-            const { id, model, usage, created, duration, compressed, reasoning, reasoning_content, ...requestMessage } = message
+            const { id, model, usage, created, duration, compressed, reasoning, reasoning_content, images, ...requestMessage } = message
             if (requestMessage.role === 'tool' && index < lastUserIndex) {
               const length = typeof requestMessage.content === 'string' ? requestMessage.content.length : 0
-              requestMessage.content = `[先前已完成轮次的 ${requestMessage.name || 'tool'} 结果已省略；原始长度 ${length} 字符。需要细节时请重新执行窄范围查询。]`
+              if (requestMessage.content.length > 2000) {
+                requestMessage.content = `[先前已完成轮次的 ${requestMessage.name || 'tool'} 结果已省略；原始长度 ${length} 字符。需要细节时请重新执行窄范围查询。]`
+              }
             }
             return requestMessage
           })
@@ -556,12 +610,24 @@ export default (Plugin) => {
         onBeforeUnmount(() => {
           modal = undefined
           saveSession()
+          for (const url of imageUrlCache.values()) {
+            URL.revokeObjectURL(url)
+          }
+          imageUrlCache.clear()
         })
 
         const onDeleteSession = () => {
           if (compressing.value) {
             Plugins.message.info('请等待会话压缩完成')
             return
+          }
+          for (const message of chatHistory.value) {
+            for (const image of message.images || []) {
+              const url = imageUrlCache.get(image.path)
+              if (url) URL.revokeObjectURL(url)
+              imageUrlCache.delete(image.path)
+              Plugins.RemoveFile(`${PATH}/${image.path}`).catch(() => {})
+            }
           }
           chatHistory.value = []
         }
@@ -699,7 +765,7 @@ export default (Plugin) => {
           const startTime = Date.now()
           const cancelId = Plugin.id + Plugins.sampleID()
           activeRequestCancelId.value = cancelId
-          /** @type {{ role: string, content: string, tool_calls?: any[], id?: string, model?: string, usage?: any, created?: number, duration?: number }} */
+          /** @type {{ role: string, content: string, images?: any[], tool_calls?: any[], id?: string, model?: string, usage?: any, created?: number, duration?: number }} */
           const streamMessage = reactive({ role: 'assistant', content: '' })
           let pendingContent = ''
           const flushStreamContent = async () => {
@@ -760,6 +826,37 @@ export default (Plugin) => {
                   const choice = body.choices?.[0]
                   if (!choice?.delta) return
                   const message = choice.delta
+
+                  if (message.images?.length) {
+                    streamMessage.images ||= []
+                    for (const image of message.images) {
+                      const dataUrl = image?.image_url?.url || image?.url || (image?.b64_json ? `data:image/png;base64,${image.b64_json}` : '')
+                      const match = /^data:([^;,]+);base64,(.+)$/.exec(dataUrl)
+                      if (!match) continue
+                      const mime = match[1]
+                      const extension =
+                        {
+                          'image/png': 'png',
+                          'image/jpeg': 'jpg',
+                          'image/webp': 'webp',
+                          'image/gif': 'gif',
+                          'image/svg+xml': 'svg'
+                        }[mime] || 'bin'
+                      const relativePath = `images/${Date.now()}-${Plugins.sampleID()}.${extension}`
+                      await Plugins.WriteFile(`${PATH}/${relativePath}`, match[2], { Mode: 'Binary' })
+                      const binary = atob(match[2])
+                      const bytes = new Uint8Array(binary.length)
+                      for (let i = 0; i < binary.length; i++) {
+                        bytes[i] = binary.charCodeAt(i)
+                      }
+                      imageUrlCache.set(relativePath, URL.createObjectURL(new Blob([bytes], { type: mime })))
+                      streamMessage.images.push({ path: relativePath, type: mime })
+                    }
+                    if (streamMessage.images.length && loading.value) {
+                      await nextTick()
+                      loading.value = false
+                    }
+                  }
 
                   if (message.content) {
                     pendingContent += message.content
@@ -903,7 +1000,7 @@ export default (Plugin) => {
           const hadToolCalls = Boolean(target.tool_calls?.some(Boolean))
 
           for (const [key, value] of Object.entries(delta)) {
-            if (value === undefined || key === 'content' || key === 'tool_calls') continue
+            if (value === undefined || key === 'content' || key === 'tool_calls' || key === 'images') continue
             target[key] = value
           }
 
@@ -943,6 +1040,7 @@ export default (Plugin) => {
         const handleTool = async (toolCall) => {
           const fnName = toolCall.function.name
           let result = ''
+          let images
           try {
             const fnArgs = JSON.parse(toolCall.function.arguments || '{}')
             if (settings.value.sessionMode === 'assistant' && !assistantToolNames.has(fnName)) {
@@ -971,18 +1069,94 @@ export default (Plugin) => {
               if (!ok) throw new Error('危险命令，用户拒绝执行')
             }
 
-            const handler = toolHandlers[fnName]
-            if (!handler) {
-              result = `Tool not found: ${fnName}`
+            if (fnName === 'GenerateImage') {
+              if (!String(fnArgs.prompt || '').trim()) {
+                throw new Error('生图提示词不能为空')
+              }
+              if (!String(Plugin.ImageBaseUrl || '').trim()) {
+                throw new Error('未配置生图接口地址')
+              }
+              if (!String(Plugin.ImageModel || '').trim()) {
+                throw new Error('未配置生图模型')
+              }
+              if (!String(Plugin.ImageApiKey || '').trim()) {
+                throw new Error('未配置生图 API Key')
+              }
+              const response = await Plugins.Requests({
+                url: Plugin.ImageBaseUrl,
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${Plugin.ImageApiKey}`
+                },
+                body: {
+                  model: Plugin.ImageModel,
+                  prompt: fnArgs.prompt
+                },
+                options: {
+                  Timeout: 60 * 20
+                }
+              })
+              if (response.status < 200 || response.status >= 300) {
+                const errorBody = typeof response.body === 'string' ? response.body : JSON.stringify(response.body)
+                throw new Error(`生图请求失败（HTTP ${response.status}）：${errorBody}`)
+              }
+              let responseBody = response.body
+              if (typeof responseBody === 'string') {
+                try {
+                  responseBody = JSON.parse(responseBody)
+                } catch {}
+              }
+              const returnedImages = []
+              for (const choice of responseBody?.choices || []) {
+                returnedImages.push(...(choice?.delta?.images || choice?.message?.images || []))
+              }
+              returnedImages.push(...(responseBody?.data || []))
+              if (!returnedImages.length) {
+                throw new Error('生图接口未返回图片数据')
+              }
+              images = []
+              for (const image of returnedImages) {
+                const dataUrl = image?.image_url?.url || image?.url || (image?.b64_json ? `data:image/png;base64,${image.b64_json}` : '')
+                const match = /^data:([^;,]+);base64,(.+)$/.exec(dataUrl)
+                if (!match) continue
+                const mime = match[1]
+                const extension =
+                  {
+                    'image/png': 'png',
+                    'image/jpeg': 'jpg',
+                    'image/webp': 'webp',
+                    'image/gif': 'gif',
+                    'image/svg+xml': 'svg'
+                  }[mime] || 'bin'
+                const relativePath = `images/${Date.now()}-${Plugins.sampleID()}.${extension}`
+                await Plugins.WriteFile(`${PATH}/${relativePath}`, match[2], { Mode: 'Binary' })
+                const binary = atob(match[2])
+                const bytes = new Uint8Array(binary.length)
+                for (let i = 0; i < binary.length; i++) {
+                  bytes[i] = binary.charCodeAt(i)
+                }
+                imageUrlCache.set(relativePath, URL.createObjectURL(new Blob([bytes], { type: mime })))
+                images.push({ path: relativePath, type: mime })
+              }
+              if (!images.length) {
+                throw new Error('生图接口未返回可保存的 Base64 图片')
+              }
+              result = `已生成 ${images.length} 张图片并保存到本地。`
             } else {
-              result = await handler(fnArgs)
-              result = result === undefined ? 'Success' : typeof result === 'string' ? result : JSON.stringify(result)
+              const handler = toolHandlers[fnName]
+              if (!handler) {
+                result = `Tool not found: ${fnName}`
+              } else {
+                result = await handler(fnArgs)
+              }
             }
+            result = result === undefined ? 'Success' : typeof result === 'string' ? result : JSON.stringify(result)
           } catch (error) {
             result = error.message || error
           }
           result = Utils.truncateText(result, maxToolResultChars.value, `${fnName} 工具结果`)
-          appendMessage({ role: 'tool', tool_call_id: toolCall.id, name: fnName, content: result })
+          appendMessage({ role: 'tool', tool_call_id: toolCall.id, name: fnName, content: result, images })
         }
 
         const onInsertNewline = () => {
@@ -1007,6 +1181,14 @@ export default (Plugin) => {
             return
           }
           if (clearHistory) {
+            for (const item of chatHistory.value) {
+              for (const image of item.images || []) {
+                const url = imageUrlCache.get(image.path)
+                if (url) URL.revokeObjectURL(url)
+                imageUrlCache.delete(image.path)
+                Plugins.RemoveFile(`${PATH}/${image.path}`).catch(() => {})
+              }
+            }
             chatHistory.value.splice(0)
           } else {
             const threshold = compressionThreshold.value
@@ -1055,7 +1237,15 @@ export default (Plugin) => {
           if (requesting.value || compressing.value) return
 
           input.value = chatHistory.value[index].content
-          chatHistory.value.splice(index)
+          const removedMessages = chatHistory.value.splice(index)
+          for (const message of removedMessages) {
+            for (const image of message.images || []) {
+              const url = imageUrlCache.get(image.path)
+              if (url) URL.revokeObjectURL(url)
+              imageUrlCache.delete(image.path)
+              Plugins.RemoveFile(`${PATH}/${image.path}`).catch(() => {})
+            }
+          }
           onSend()
           close()
         }
@@ -1067,6 +1257,12 @@ export default (Plugin) => {
           const toolCallIds = new Set((message.tool_calls || []).map((toolCall) => toolCall?.id).filter(Boolean))
 
           chatHistory.value.splice(index, 1)
+          for (const image of message.images || []) {
+            const url = imageUrlCache.get(image.path)
+            if (url) URL.revokeObjectURL(url)
+            imageUrlCache.delete(image.path)
+            Plugins.RemoveFile(`${PATH}/${image.path}`).catch(() => {})
+          }
           if (message.id) {
             toolVisibility.value.delete(message.id)
             toolVisibility.value.delete(message.id + ':manual')
@@ -1076,6 +1272,12 @@ export default (Plugin) => {
               const item = chatHistory.value[i]
               if (item.role !== 'tool') break
               if (item.role === 'tool' && toolCallIds.has(item.tool_call_id)) {
+                for (const image of item.images || []) {
+                  const url = imageUrlCache.get(image.path)
+                  if (url) URL.revokeObjectURL(url)
+                  imageUrlCache.delete(image.path)
+                  Plugins.RemoveFile(`${PATH}/${image.path}`).catch(() => {})
+                }
                 chatHistory.value.splice(i, 1)
                 i--
               }
@@ -1498,6 +1700,7 @@ const readOnlyTools = new Set([
   'FileSHA256',
   'AbsolutePath',
   'Requests',
+  'GenerateImage',
   'TcpPing',
   'getAppSettings',
   'getSystemProxyStatus',
@@ -1522,7 +1725,7 @@ const readOnlyTools = new Set([
   'getScheduledTaskById'
 ])
 
-const assistantToolNames = new Set(['Exec', 'ReadFile', 'WriteFile', 'Requests'])
+const assistantToolNames = new Set(['Exec', 'ReadFile', 'WriteFile', 'Requests', 'GenerateImage'])
 
 const tools = [
   {
@@ -1844,6 +2047,25 @@ const tools = [
           }
         },
         required: ['url'],
+        additionalProperties: false
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'GenerateImage',
+      description:
+        'Generate an image from a text prompt with the configured image service. The generated image is saved locally and displayed in the conversation.',
+      parameters: {
+        type: 'object',
+        properties: {
+          prompt: {
+            type: 'string',
+            description: 'A detailed description of the image to generate.'
+          }
+        },
+        required: ['prompt'],
         additionalProperties: false
       }
     }
