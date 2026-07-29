@@ -346,8 +346,8 @@
     "configuration": [
       {
         "id": "ID_gui_agent_base_url",
-        "title": "接口地址",
-        "description": "请使用 OpenAI 兼容接口",
+        "title": "对话接口地址",
+        "description": "请使用 OpenAI 兼容接口，例如：https://.../v1/chat/completions",
         "key": "BaseUrl",
         "component": "Input",
         "value": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
@@ -355,35 +355,35 @@
       },
       {
         "id": "ID_gui_agent_model",
-        "title": "模型名称",
-        "description": "例如: gemini-3.1-flash-lite。请勿使用低智模型，避免删库跑路风险！",
+        "title": "对话模型名称",
+        "description": "请勿使用低智模型，避免删库跑路风险，例如: gpt-5.6-sol",
         "key": "Model",
         "component": "Input",
-        "value": "gemini-3.1-flash-lite",
+        "value": "gpt-5.6-sol",
         "options": []
       },
       {
         "id": "ID_gui_agent_compression_model",
-        "title": "压缩模型",
-        "description": "用于生成会话摘要，留空时使用模型名称",
+        "title": "上下文压缩模型",
+        "description": "用于生成会话摘要，留空时使用模型名称，例如：gpt-5.6-luna",
         "key": "CompressionModel",
         "component": "Input",
-        "value": "gemini-3.1-flash-lite",
+        "value": "gpt-5.6-luna",
         "options": []
       },
       {
         "id": "ID_gui_agent_auto_compress_tokens",
-        "title": "自动压缩 Token 阈值",
-        "description": "请根据当前模型最大上下文来设置，默认为0不自动压缩，需要手动压缩",
+        "title": "上下文自动压缩 Token 阈值",
+        "description": "请根据当前模型最大上下文来设置，默认200K，取消自动压缩请设置为0",
         "key": "AutoCompressTokens",
         "component": "Input",
-        "value": "0",
+        "value": "200000",
         "options": []
       },
       {
         "id": "ID_gui_agent_max_tool_result_chars",
         "title": "单次工具结果字符上限",
-        "description": "请输入正整数，0或无效值使用默认值30000；用于防止大型JSON、日志或文件内容耗尽上下文",
+        "description": "用于防止大型JSON、日志或文件内容耗尽上下文，请输入正整数，0或无效值使用默认值30000",
         "key": "MaxToolResultChars",
         "component": "Input",
         "value": "30000",
@@ -391,7 +391,7 @@
       },
       {
         "id": "ID_gui_agent_api_key",
-        "title": "API Key",
+        "title": "对话接口的 Api Key",
         "description": "",
         "key": "ApiKey",
         "component": "Input",
@@ -401,7 +401,7 @@
       {
         "id": "ID_gui_agent_image_base_url",
         "title": "文生图接口地址",
-        "description": "请使用 OpenAI 兼容的图片生成接口",
+        "description": "请使用 OpenAI 兼容的图片生成接口，例如：https://.../v1/images/generations",
         "key": "ImageBaseUrl",
         "component": "Input",
         "value": "",
@@ -409,7 +409,7 @@
       },
       {
         "id": "ID_gui_agent_image_model",
-        "title": "文生图模型",
+        "title": "文生图模型名称",
         "description": "",
         "key": "ImageModel",
         "component": "Input",
@@ -418,7 +418,7 @@
       },
       {
         "id": "ID_gui_agent_image_api_key",
-        "title": "文生图 API Key",
+        "title": "文生图接口的 API Key",
         "description": "",
         "key": "ImageApiKey",
         "component": "Input",
