@@ -350,7 +350,7 @@
         "description": "请使用 OpenAI 兼容接口，例如：https://.../v1/chat/completions",
         "key": "BaseUrl",
         "component": "Input",
-        "value": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+        "value": "",
         "options": []
       },
       {
