@@ -1,5 +1,5 @@
 /**
- * 本插件使用项目：https://github.com/sub-store-org/Sub-Store
+- 本插件使用项目：https://github.com/sub-store-org/Sub-Store
  */
 
 const PATH = 'data/third/sub-store-v2'
@@ -15,22 +15,22 @@ export default (Plugin) => {
   const envStore = Plugins.useEnvStore()
 
   /**
-   * 启动Sub-Store服务
+- 启动Sub-Store服务
    */
   const startSubStoreService = () => {
     return new Promise(async (resolve, reject) => {
-      let backendFlag = false
       let timeout = true
-      setTimeout(() => timeout && reject('启动Sub-Store服务超时'), 5000)
+      // FIX: 延长超时 5s → 15s，给 Sub-Store v2 更充裕的启动时间
+      setTimeout(() => timeout && reject('启动Sub-Store服务超时'), 15000)
       try {
         const pid = await Plugins.ExecBackground(
           Plugin.NODE_PATH || 'node',
           [envStore.env.basePath + '/' + BACKEND_FILE],
           (out) => {
+            // FIX: Sub-Store v2.36.26+ 前后端合并为单一 bundle，
+            //      不再输出 [sub-store] INFO: [FRONTEND] 日志行。
+            //      改为仅检测 [BACKEND] 日志即判定启动成功。
             if (out.includes('[sub-store] INFO: [BACKEND]')) {
-              backendFlag = true
-            }
-            if (out.includes('[sub-store] INFO: [FRONTEND]') && backendFlag) {
               Plugins.WriteFile(PID_FILE, pid.toString())
               timeout = false
               resolve(null)
@@ -62,7 +62,7 @@ export default (Plugin) => {
   }
 
   /**
-   * 停止Sub-Store服务
+- 停止Sub-Store服务
    */
   const stopSubStoreService = async () => {
     del_UI()
@@ -74,24 +74,27 @@ export default (Plugin) => {
   }
 
   /**
-   * 检测Sub-Store是否在运行
+- 检测Sub-Store是否在运行
    */
   const isSubStoreRunning = async () => {
     const pid = await Plugins.ignoredError(Plugins.ReadFile, PID_FILE)
     if (pid && pid !== '0') {
-      if (env.os !== 'linux') {
+      // FIX: env 不是全局变量，其他插件均使用 envStore.env
+      //      原代码 env.os 抛出 ReferenceError: env is not defined
+      if (envStore.env.os !== 'linux') {
         const name = await Plugins.ignoredError(Plugins.ProcessInfo, Number(pid))
         return name && ['node.exe', 'node', 'node-default'].includes(name)
       }
       const processCommand = await Plugins.ignoredError(Plugins.Exec, '/usr/bin/ps', ['-p', pid.toString(), '-o', 'cmd='])
-      const match = `.*${Plugin.NODE_PATH || 'node'}\\s+${env.basePath}/${BACKEND_FILE}`
+      // FIX: 同上，env → envStore.env
+      const match = .*${Plugin.NODE_PATH || 'node'}\\s+${envStore.env.basePath}/${BACKEND_FILE}
       return new RegExp(match, 'g').test(String(processCommand).trim())
     }
     return false
   }
 
   /**
-   * 下载Sub-Store前端和后端文件
+- 下载Sub-Store前端和后端文件
    */
   const installSubStore = async () => {
     const BackendUrl = 'https://github.com/sub-store-org/Sub-Store/releases/latest/download/sub-store.bundle.js'
@@ -242,7 +245,7 @@ export default (Plugin) => {
         throw '检测到系统未安装Nodejs环境，请先安装。'
       }
       await startSubStoreService()
-      Plugins.message.success('✨Sub-Store 启动成功!')
+      Plugins.message.success('Sub-Store 启动成功!')
       return 1
     },
     Stop: async () => {
