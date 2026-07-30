@@ -20,6 +20,10 @@ type UseModalOptions = Partial<{
   cancelText?: string
   submitText?: string
   maskClosable?: boolean
+  toolbar?: {
+    maximize?: boolean,
+    minimize?: boolean
+  }
   onOk?: () => MaybePromise<boolean | void>
   onCancel?: () => MaybePromise<boolean | void>
   beforeClose?: (isOk: boolean) => MaybePromise<boolean | void>

@@ -136,7 +136,7 @@ export default (Plugin) => {
       },
       template: `
         <div>
-          <img v-if="src" :src="src" alt="生成图片" class="block max-w-full rounded-8" style="max-height: 70vh; object-fit: contain" />
+          <img v-if="src" v-menu="menuItems" @click="onPreview" :src="src" alt="生成图片" class="block rounded-8 w-256" style="object-fit: contain" />
           <div v-else-if="failed" class="text-12" style="color: var(--card-color)">图片加载失败</div>
           <div v-else class="text-12" style="color: var(--card-color)">图片加载中...</div>
         </div>
@@ -145,6 +145,19 @@ export default (Plugin) => {
         const { ref, onMounted } = Vue
         const src = ref('')
         const failed = ref(false)
+        const menuItems = [
+          {
+            label: '下载',
+            handler: () => {
+              const link = document.createElement('a')
+              link.href = src.value
+              link.download = props.path.split('/').pop() || 'image'
+              document.body.appendChild(link)
+              link.click()
+              link.remove()
+            }
+          }
+        ]
         onMounted(async () => {
           try {
             if (imageUrlCache.has(props.path)) {
@@ -163,7 +176,29 @@ export default (Plugin) => {
             failed.value = true
           }
         })
-        return { src, failed }
+
+        const onPreview = () => {
+          const modal = Plugins.modal({
+            title: '图片预览',
+            width: '90',
+            height: '90',
+            maskClosable: true,
+            submit: false,
+            cancelText: 'common.close',
+            toolbar: {
+              maximize: false,
+              minimize: false
+            }
+          })
+          modal.setContent({
+            template: `<div class="flex items-center justify-center h-full overflow-auto"><img :src="src" class="block max-w-full" style="max-height: 100%; object-fit: contain" /></div>`,
+            setup() {
+              return { src }
+            }
+          })
+          modal.open()
+        }
+        return { src, failed, menuItems, onPreview }
       }
     }
 
@@ -1091,7 +1126,8 @@ export default (Plugin) => {
                 },
                 body: {
                   model: Plugin.ImageModel,
-                  prompt: fnArgs.prompt
+                  prompt: fnArgs.prompt,
+                  ...(String(fnArgs.size || '').trim() ? { size: String(fnArgs.size).trim() } : {})
                 },
                 options: {
                   Timeout: 60 * 20
@@ -1142,7 +1178,7 @@ export default (Plugin) => {
               if (!images.length) {
                 throw new Error('生图接口未返回可保存的 Base64 图片')
               }
-              result = `已生成 ${images.length} 张图片并保存到本地。`
+              result = `已生成 ${images.length} 张图片并保存到本地。图片描述提示词：${fnArgs.prompt}`
             } else {
               const handler = toolHandlers[fnName]
               if (!handler) {
@@ -2063,6 +2099,10 @@ const tools = [
           prompt: {
             type: 'string',
             description: 'A detailed description of the image to generate.'
+          },
+          size: {
+            type: 'string',
+            description: 'Requested output dimensions, for example 1024x1024.'
           }
         },
         required: ['prompt'],

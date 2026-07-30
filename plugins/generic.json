@@ -325,7 +325,7 @@
   {
     "id": "plugin-gui-agent",
     "name": "GUI Agent",
-    "version": "v4.0.0",
+    "version": "v4.1.0",
     "group": "Tools",
     "description": "支持通用 AI 对话及 GUI.for.Cores 专属操作，可调用文件、网络、命令与 GUI 管理工具。",
     "tags": [],
@@ -355,11 +355,11 @@
       },
       {
         "id": "ID_gui_agent_model",
-        "title": "对话模型名称",
+        "title": "对话模型",
         "description": "请勿使用低智模型，避免删库跑路风险。推荐参考值: gpt-5.6-sol",
         "key": "Model",
         "component": "Input",
-        "value": "gpt-5.6-sol",
+        "value": "",
         "options": []
       },
       {
@@ -382,8 +382,8 @@
       },
       {
         "id": "ID_gui_agent_image_model",
-        "title": "文生图模型名称",
-        "description": "",
+        "title": "文生图模型",
+        "description": "推荐参考值：gpt-image-2",
         "key": "ImageModel",
         "component": "Input",
         "value": "",
@@ -404,7 +404,7 @@
         "description": "用于生成会话摘要，留空时使用模型名称。推荐参考值：gpt-5.6-luna",
         "key": "CompressionModel",
         "component": "Input",
-        "value": "gpt-5.6-luna",
+        "value": "",
         "options": []
       },
       {
