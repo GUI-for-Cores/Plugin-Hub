@@ -45,9 +45,12 @@ export default (Plugin) => {
         return
       }
       const proxies = kernelApi.proxies[group].all.map((proxy) => {
+        const provider = kernelApi.proxies[proxy]?.provider
         return {
           id: proxy,
-          url: `/proxies/${encodeURIComponent(proxy)}/delay`,
+          url: provider
+            ? `/providers/proxies/${encodeURIComponent(provider)}/${encodeURIComponent(proxy)}/healthcheck`
+            : `/proxies/${encodeURIComponent(proxy)}/delay`,
           priority: 1, // 节点权重暂未使用，全设置为1
           group
         }
