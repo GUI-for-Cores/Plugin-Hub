@@ -20,7 +20,6 @@ export default (Plugin) => {
   const startSubStoreService = () => {
     return new Promise(async (resolve, reject) => {
       let timeout = true
-      // FIX: 延长超时 5s → 15s，给 Sub-Store v2 更充裕的启动时间
       setTimeout(() => timeout && reject('启动Sub-Store服务超时'), 15000)
       try {
         const pid = await Plugins.ExecBackground(
