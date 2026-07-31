@@ -58,7 +58,7 @@ export default (Plugin) => {
   }
 
   /**
-- 停止Sub-Store服务
+   * 停止Sub-Store服务
    */
   const stopSubStoreService = async () => {
     del_UI()
