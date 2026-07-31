@@ -1,5 +1,5 @@
 /**
-- 本插件使用项目：https://github.com/sub-store-org/Sub-Store
+ * 本插件使用项目：https://github.com/sub-store-org/Sub-Store
  */
 
 const PATH = 'data/third/sub-store-v2'
