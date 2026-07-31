@@ -87,7 +87,7 @@ export default (Plugin) => {
   }
 
   /**
-- 下载Sub-Store前端和后端文件
+   * 下载Sub-Store前端和后端文件
    */
   const installSubStore = async () => {
     const BackendUrl = 'https://github.com/sub-store-org/Sub-Store/releases/latest/download/sub-store.bundle.js'
