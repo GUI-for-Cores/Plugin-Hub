@@ -19,18 +19,14 @@ export default (Plugin) => {
    */
   const startSubStoreService = () => {
     return new Promise(async (resolve, reject) => {
-      let backendFlag = false
       let timeout = true
-      setTimeout(() => timeout && reject('启动Sub-Store服务超时'), 5000)
+      setTimeout(() => timeout && reject('启动Sub-Store服务超时'), 15000)
       try {
         const pid = await Plugins.ExecBackground(
           Plugin.NODE_PATH || 'node',
           [envStore.env.basePath + '/' + BACKEND_FILE],
           (out) => {
             if (out.includes('[sub-store] INFO: [BACKEND]')) {
-              backendFlag = true
-            }
-            if (out.includes('[sub-store] INFO: [FRONTEND]') && backendFlag) {
               Plugins.WriteFile(PID_FILE, pid.toString())
               timeout = false
               resolve(null)
@@ -79,12 +75,12 @@ export default (Plugin) => {
   const isSubStoreRunning = async () => {
     const pid = await Plugins.ignoredError(Plugins.ReadFile, PID_FILE)
     if (pid && pid !== '0') {
-      if (env.os !== 'linux') {
+      if (envStore.env.os !== 'linux') {
         const name = await Plugins.ignoredError(Plugins.ProcessInfo, Number(pid))
         return name && ['node.exe', 'node', 'node-default'].includes(name)
       }
       const processCommand = await Plugins.ignoredError(Plugins.Exec, '/usr/bin/ps', ['-p', pid.toString(), '-o', 'cmd='])
-      const match = `.*${Plugin.NODE_PATH || 'node'}\\s+${env.basePath}/${BACKEND_FILE}`
+      const match = `.*${Plugin.NODE_PATH || 'node'}\\s+${envStore.env.basePath}/${BACKEND_FILE}`
       return new RegExp(match, 'g').test(String(processCommand).trim())
     }
     return false
