@@ -238,7 +238,7 @@ export default (Plugin) => {
         throw '检测到系统未安装Nodejs环境，请先安装。'
       }
       await startSubStoreService()
-      Plugins.message.success('Sub-Store 启动成功!')
+      Plugins.message.success('✨Sub-Store 启动成功!')
       return 1
     },
     Stop: async () => {
