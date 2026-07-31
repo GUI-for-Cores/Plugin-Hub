@@ -26,9 +26,6 @@ export default (Plugin) => {
           Plugin.NODE_PATH || 'node',
           [envStore.env.basePath + '/' + BACKEND_FILE],
           (out) => {
-            // FIX: Sub-Store v2.36.26+ 前后端合并为单一 bundle，
-            //      不再输出 [sub-store] INFO: [FRONTEND] 日志行。
-            //      改为仅检测 [BACKEND] 日志即判定启动成功。
             if (out.includes('[sub-store] INFO: [BACKEND]')) {
               Plugins.WriteFile(PID_FILE, pid.toString())
               timeout = false
