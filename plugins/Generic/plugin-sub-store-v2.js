@@ -70,7 +70,7 @@ export default (Plugin) => {
   }
 
   /**
-- 检测Sub-Store是否在运行
+   * 检测Sub-Store是否在运行
    */
   const isSubStoreRunning = async () => {
     const pid = await Plugins.ignoredError(Plugins.ReadFile, PID_FILE)
