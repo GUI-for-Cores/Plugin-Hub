@@ -15,7 +15,7 @@ export default (Plugin) => {
   const envStore = Plugins.useEnvStore()
 
   /**
-- 启动Sub-Store服务
+   * 启动Sub-Store服务
    */
   const startSubStoreService = () => {
     return new Promise(async (resolve, reject) => {
