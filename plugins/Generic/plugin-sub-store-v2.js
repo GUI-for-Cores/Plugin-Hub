@@ -75,8 +75,6 @@ export default (Plugin) => {
   const isSubStoreRunning = async () => {
     const pid = await Plugins.ignoredError(Plugins.ReadFile, PID_FILE)
     if (pid && pid !== '0') {
-      // FIX: env 不是全局变量，其他插件均使用 envStore.env
-      //      原代码 env.os 抛出 ReferenceError: env is not defined
       if (envStore.env.os !== 'linux') {
         const name = await Plugins.ignoredError(Plugins.ProcessInfo, Number(pid))
         return name && ['node.exe', 'node', 'node-default'].includes(name)
