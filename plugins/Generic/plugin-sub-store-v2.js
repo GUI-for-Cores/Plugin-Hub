@@ -80,8 +80,7 @@ export default (Plugin) => {
         return name && ['node.exe', 'node', 'node-default'].includes(name)
       }
       const processCommand = await Plugins.ignoredError(Plugins.Exec, '/usr/bin/ps', ['-p', pid.toString(), '-o', 'cmd='])
-      // FIX: 同上，env → envStore.env
-      const match = .*${Plugin.NODE_PATH || 'node'}\\s+${envStore.env.basePath}/${BACKEND_FILE}
+      const match = `.*${Plugin.NODE_PATH || 'node'}\\s+${envStore.env.basePath}/${BACKEND_FILE}`
       return new RegExp(match, 'g').test(String(processCommand).trim())
     }
     return false
