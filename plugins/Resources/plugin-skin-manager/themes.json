@@ -27,12 +27,6 @@
       "order": 40
     },
     {
-      "id": "chrome-dino",
-      "manifest": "chrome-dino/chrome-dino.json",
-      "featured": true,
-      "order": 50
-    },
-    {
       "id": "kaori-spring",
       "manifest": "kaori-spring/kaori-spring.json",
       "featured": true,
