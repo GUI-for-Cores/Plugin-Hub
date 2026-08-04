@@ -312,7 +312,7 @@ export default (Plugin) => {
             </Card>
           </div>
         </div>
-        <div v-for="(item, index) in chatHistory" :key="index" class="text-14 break-all leading-relaxed">
+        <div v-for="(item, index) in chatHistory" :key="index" class="gui-agent-message text-14 break-all leading-relaxed" :class="'gui-agent-message--' + item.role">
           <div v-if="item.compressed" class="flex justify-center my-8">
             <details class="text-12 w-full" style="color: var(--card-color)">
               <summary class="flex items-center justify-center cursor-pointer">
@@ -327,7 +327,7 @@ export default (Plugin) => {
             </details>
           </div>
           <div v-else-if="item.role == 'user'" class="flex items-center justify-end mb-8">
-            <div class="ml-24 rounded-8 px-8 py-4" style="background: var(--card-bg)">{{ item.content }}</div>
+            <div class="gui-agent-message__bubble ml-24 rounded-8 px-8 py-4" style="background: var(--gui-agent-user-message-bg, var(--card-bg))">{{ item.content }}</div>
             <Dropdown placement="bottom">
               <Button icon="more" type="text" />
               <template #overlay="{ close }">
@@ -338,7 +338,7 @@ export default (Plugin) => {
               </template>
             </Dropdown>
           </div>
-          <div v-else-if="item.role == 'assistant' && (item.content || item.tool_calls || item.images)">
+          <div v-else-if="item.role == 'assistant' && (item.content || item.tool_calls || item.images)" class="gui-agent-message__assistant">
             <MarkdownViewer v-if="item.content" :content="item.content" />
             <div v-if="item.images?.length" class="flex flex-col gap-8 my-8">
               <StoredImage v-for="image in item.images" :key="image.path" :path="image.path" :mime="image.type" />

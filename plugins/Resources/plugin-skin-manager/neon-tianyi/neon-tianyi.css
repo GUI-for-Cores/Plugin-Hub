@@ -565,6 +565,17 @@ body.skin-theme .gui-modal-modal {
   backdrop-filter: none;
 }
 
+body.skin-theme .gui-agent-message--user .gui-agent-message__bubble {
+  --gui-agent-user-message-bg: linear-gradient(135deg, rgba(14, 68, 82, 0.96), rgba(18, 42, 74, 0.96));
+  border: 1px solid rgba(97, 216, 232, 0.42);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+}
+
+body.skin-theme .gui-agent-message--assistant .gui-agent-message__assistant {
+  padding-left: 10px;
+  border-left: 2px solid rgba(154, 139, 237, 0.58);
+}
+
 body.skin-theme .gui-tag {
   color: #bfecef;
   border-color: rgba(97, 216, 232, 0.22);
