@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 11,
+  "revision": 12,
   "themes": [
     {
       "id": "miku",
@@ -55,6 +55,12 @@
       "manifest": "aqua-glass/aqua-glass.json",
       "featured": true,
       "order": 100
+    },
+    {
+      "id": "fluent-mica",
+      "manifest": "fluent-mica/fluent-mica.json",
+      "featured": true,
+      "order": 110
     }
   ]
 }
