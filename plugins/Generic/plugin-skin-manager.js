@@ -1,6 +1,6 @@
 const DATA_PATH = 'data/third/plugin-skin-manager'
 const CATALOG_FILE = 'themes.json'
-const CATALOG_REVISION = 10
+const CATALOG_REVISION = 11
 const STATE_FILE = 'state.json'
 const SHARED_STYLESHEET = 'skin-manager.css'
 const FALLBACK_REMOTE_PATH = 'https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Resources/plugin-skin-manager'
@@ -81,15 +81,18 @@ export default (Plugin) => {
   }
 
   const validateTheme = (theme, entry) => {
+    const hasBackground = theme?.files?.background !== undefined || theme?.files?.backgroundMime !== undefined
     if (
       theme?.schemaVersion !== 2 ||
       theme.id !== entry.id ||
       typeof theme.name !== 'string' ||
       !theme.name.trim() ||
       typeof theme.files?.stylesheet !== 'string' ||
-      typeof theme.files?.background !== 'string' ||
-      typeof theme.files?.backgroundMime !== 'string' ||
-      !theme.files.backgroundMime.startsWith('image/') ||
+      (hasBackground &&
+        (typeof theme.files.background !== 'string' ||
+          !theme.files.background.trim() ||
+          typeof theme.files.backgroundMime !== 'string' ||
+          !theme.files.backgroundMime.startsWith('image/'))) ||
       !theme.variables ||
       typeof theme.variables !== 'object' ||
       Array.isArray(theme.variables)
@@ -130,13 +133,13 @@ export default (Plugin) => {
   const readTheme = async (entry, includeContent = false) => {
     const theme = validateTheme(await readJson(entry.manifest), entry)
     const stylesheetPath = resolveSibling(entry.manifest, theme.files.stylesheet)
-    const backgroundPath = resolveSibling(entry.manifest, theme.files.background)
+    const backgroundPath = theme.files.background ? resolveSibling(entry.manifest, theme.files.background) : undefined
     if (!includeContent) return { ...theme, entry, stylesheetPath, backgroundPath }
     const [stylesheet, background] = await Promise.all([
       Plugins.ReadFile(localPath(stylesheetPath)),
-      Plugins.ReadFile(localPath(backgroundPath), { Mode: 'Binary' })
+      backgroundPath ? Plugins.ReadFile(localPath(backgroundPath), { Mode: 'Binary' }) : undefined
     ])
-    if (!stylesheet.trim() || !background) throw new Error(`皮肤资源不完整: ${theme.name}`)
+    if (!stylesheet.trim() || (backgroundPath && !background)) throw new Error(`皮肤资源不完整: ${theme.name}`)
     return { ...theme, entry, stylesheetPath, backgroundPath, stylesheet, background }
   }
 
@@ -167,7 +170,9 @@ export default (Plugin) => {
   const downloadTheme = async (entry) => {
     await downloadFile(entry.manifest)
     const theme = await readTheme(entry)
-    await Promise.all([downloadFile(theme.stylesheetPath), downloadFile(theme.backgroundPath)])
+    const assets = [theme.stylesheetPath]
+    if (theme.backgroundPath) assets.push(theme.backgroundPath)
+    await Promise.all(assets.map(downloadFile))
   }
 
   const downloadAssets = async () => {
@@ -414,7 +419,8 @@ export default (Plugin) => {
       .join('\n')
     const style = document.createElement('style')
     style.id = styleId
-    style.textContent = `body.${ACTIVE_CLASS} {\n${variables}\n  --skin-manager-background: url("data:${theme.files.backgroundMime};base64,${theme.background}");\n}\n${theme.stylesheet}`
+    const background = theme.background ? `url("data:${theme.files.backgroundMime};base64,${theme.background}")` : 'none'
+    style.textContent = `body.${ACTIVE_CLASS} {\n${variables}\n  --skin-manager-background: ${background};\n}\n${theme.stylesheet}`
     removeAppliedTheme()
     document.head.appendChild(style)
     document.body.classList.add(ACTIVE_CLASS)
@@ -449,7 +455,9 @@ export default (Plugin) => {
           accent: theme.ui?.accent || '#14b8a6',
           accentSecondary: theme.ui?.accentSecondary || '#ec4899',
           previewPosition: theme.ui?.previewPosition || 'center',
-          preview: `data:${theme.files.backgroundMime};base64,${theme.background}`
+          preview: theme.background
+            ? `url("data:${theme.files.backgroundMime};base64,${theme.background}")`
+            : theme.ui?.previewBackground || 'linear-gradient(145deg, #e9eef5, #ffffff 48%, #dce6f3)'
         }
       })
     )
@@ -567,7 +575,7 @@ export default (Plugin) => {
               :class="{ 'is-active': enabled && activeId === theme.id }"
               :style="{ '--skin-card-accent': theme.accent, '--skin-card-accent-secondary': theme.accentSecondary }"
             >
-              <div class="skin-manager-preview" :style="{ backgroundImage: 'url(' + theme.preview + ')', '--skin-preview-position': theme.previewPosition }">
+              <div class="skin-manager-preview" :style="{ backgroundImage: theme.preview, '--skin-preview-position': theme.previewPosition }">
                 <span v-if="enabled && activeId === theme.id" class="skin-manager-badge">使用中</span>
               </div>
               <div class="skin-manager-card-body">

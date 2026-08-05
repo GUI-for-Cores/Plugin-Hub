@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 10,
+  "revision": 11,
   "themes": [
     {
       "id": "miku",
@@ -49,6 +49,12 @@
       "manifest": "neon-tianyi/neon-tianyi.json",
       "featured": true,
       "order": 90
+    },
+    {
+      "id": "aqua-glass",
+      "manifest": "aqua-glass/aqua-glass.json",
+      "featured": true,
+      "order": 100
     }
   ]
 }
