@@ -335,12 +335,20 @@ body.skin-theme .traffic-panel__art {
     linear-gradient(90deg, rgba(247, 249, 255, 0.82) 0%, rgba(247, 249, 255, 0.18) 38%, rgba(245, 226, 255, 0.03) 100%), var(--skin-manager-background);
   background-position:
     center,
-    58% bottom;
+    83% 69%;
   background-size:
     cover,
-    auto 128%;
+    cover;
   filter: saturate(1.02) brightness(1.03);
   mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.54), #000 34%, #000);
+}
+
+@media (max-width: 900px) {
+  body.skin-theme .traffic-panel__art {
+    background-position:
+      center,
+      79% 69%;
+  }
 }
 
 body.skin-theme .mode-panel {
