@@ -61,6 +61,12 @@
       "manifest": "fluent-mica/fluent-mica.json",
       "featured": true,
       "order": 110
+    },
+    {
+      "id": "nachoneko",
+      "manifest": "nachoneko/nachoneko.json",
+      "featured": true,
+      "order": 120
     }
   ]
 }
