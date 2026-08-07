@@ -3338,5 +3338,130 @@
     "disabled": false,
     "install": false,
     "installed": false
+  },
+  {
+    "id": "plugin-batch-download-speed",
+    "version": "v1.3.0",
+    "name": "批量下载测速",
+    "description": "先通过 Clash API 并发预检全部节点延迟，再按延迟升序对合格节点串行执行真实下载测速；支持限制下载测速数量，结束后恢复原节点。",
+    "tags": ["测速", "节点"],
+    "group": "Tools",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-batch-download-speed.js",
+    "path": "data/plugins/plugin-batch-download-speed.js",
+    "status": 0,
+    "triggers": ["on::manual"],
+    "hasUI": true,
+    "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "configuration": [
+      {
+        "id": "batch-group",
+        "title": "策略组名称",
+        "description": "用于轮询测速的策略组",
+        "key": "GroupName",
+        "component": "Input",
+        "value": "🚀 节点选择",
+        "options": []
+      },
+      {
+        "id": "batch-url",
+        "title": "测速文件 URL",
+        "description": "合格节点用于真实下载测速的大文件地址",
+        "key": "TestUrl",
+        "component": "Input",
+        "value": "http://hkg.download.datapacket.com/100mb.bin",
+        "options": []
+      },
+      {
+        "id": "batch-ping-url",
+        "title": "预检 URL",
+        "description": "通过 Clash API 测量每个节点响应延迟",
+        "key": "PingUrl",
+        "component": "Input",
+        "value": "https://www.gstatic.com/generate_204",
+        "options": []
+      },
+      {
+        "id": "batch-count",
+        "title": "节点数量限制",
+        "description": "过滤无效节点后最多预检多少个节点，0 表示全部",
+        "key": "NodeCount",
+        "component": "Input",
+        "value": "0",
+        "options": []
+      },
+      {
+        "id": "batch-timeout",
+        "title": "下载时长（秒）",
+        "description": "每个合格节点持续下载测速的时间，建议 3-10 秒",
+        "key": "TimeoutSeconds",
+        "component": "Input",
+        "value": "5",
+        "options": []
+      },
+      {
+        "id": "batch-delay",
+        "title": "最大预检延迟毫秒",
+        "description": "预检延迟超过此值则跳过下载",
+        "key": "MaxDelayMs",
+        "component": "Input",
+        "value": "3000",
+        "options": []
+      },
+      {
+        "id": "batch-precheck-concurrency",
+        "title": "预检并发数",
+        "description": "同时进行延迟预检的节点数量，建议 5-15",
+        "key": "PrecheckConcurrency",
+        "component": "Input",
+        "value": "10",
+        "options": []
+      },
+      {
+        "id": "batch-download-limit",
+        "title": "下载数量限制",
+        "description": "延迟合格后只对最快的前 N 个节点下载测速，0 表示全部合格节点",
+        "key": "DownloadLimit",
+        "component": "Input",
+        "value": "0",
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
+    "id": "plugin-network-info",
+    "version": "v1.0.0",
+    "name": "当前网络信息",
+    "description": "查看当前节点的国内、国外、Cloudflare 与 X.com 出口信息，并检测常用国内外网站延迟。",
+    "tags": ["网络诊断", "实用工具"],
+    "group": "Tools",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-network-info.js",
+    "path": "data/plugins/plugin-network-info.js",
+    "status": 0,
+    "triggers": ["on::manual"],
+    "hasUI": true,
+    "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "configuration": [],
+    "disabled": false,
+    "install": false,
+    "installed": false
   }
 ]
