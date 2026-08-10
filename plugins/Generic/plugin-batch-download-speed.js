@@ -2,6 +2,9 @@
 
 let batchRunPromise = null
 
+/** 历史批量出口检测的当前停止函数（模块级，供 modal onCancel 调用）；未运行时为 null。 */
+let egressStop = null
+
 /** 历史测速结果保存文件路径（仅保存纯数据 JSON）。 */
 const historyFilePath = () => 'data/plugin-data/batch-download-speed/results.json'
 
@@ -54,6 +57,7 @@ const onRun = async () => {
     submit: false,
     cancelText: '关闭',
     onCancel: async () => {
+      egressStop?.()
       if (runBatchTest.active) {
         runBatchTest.stop?.()
         await runBatchTest.active
@@ -67,7 +71,7 @@ const onRun = async () => {
       <div class="p-8 text-12">
         <div class="grid grid-cols-2 gap-8">
           <div><div class="text-gray-500 mb-4">策略组</div><Select v-model="form.group" :options="groupOptions" :disabled="running" /></div>
-          <div><div class="text-gray-500 mb-4">下载测试 URL</div><Input v-model="form.url" :disabled="running" /></div>
+          <div><div class="text-gray-500 mb-4">下载测试 URL</div><div class="flex gap-8"><Select v-model="form.presetUrl" :options="presetUrlOptions" :disabled="running" style="width: 132px" /><Input v-model="form.url" :disabled="running" class="flex-1" /></div></div>
           <div><div class="text-gray-500 mb-4">延迟测试 URL</div><Input v-model="form.pingUrl" :disabled="running" /></div>
           <div><div class="text-gray-500 mb-4">最大延迟（毫秒）</div><Input v-model="form.maxDelay" type="number" :disabled="running" /></div>
           <div><div class="text-gray-500 mb-4">下载时长（秒）</div><Input v-model="form.seconds" type="number" :disabled="running" /></div>
@@ -86,24 +90,27 @@ const onRun = async () => {
           <Button v-else @click="clear">清空结果</Button>
         </div>
         <div class="mt-8 overflow-auto" style="max-height: 42vh">
-          <table class="w-full text-12"><thead><tr class="text-left text-gray-500"><th class="p-4">节点</th><th class="p-4">延迟</th><th class="p-4">状态</th><th class="p-4">MB/s</th><th class="p-4">Mbps</th><th class="p-4">下载量</th><th class="p-4">有效时间</th><th class="p-4">错误原因</th><th class="p-4">操作</th></tr></thead>
-          <tbody><tr v-for="row in results" :key="row.key || row.name" class="border-t border-gray-200 dark:border-gray-700"><td class="p-4">{{ row.name }}</td><td class="p-4">{{ formatDelay(row.delay) }}</td><td class="p-4">{{ row.status }}</td><td class="p-4">{{ row.mb }}</td><td class="p-4">{{ row.mbps }}</td><td class="p-4">{{ row.bytesText }}</td><td class="p-4">{{ row.time }}</td><td class="p-4 text-red-500">{{ row.error || '—' }}</td><td class="p-4"><Button size="small" type="primary" :disabled="running || row.status !== '成功'" @click="useResult(row)">使用</Button></td></tr></tbody></table>
+          <table class="w-full text-12"><thead><tr class="text-left text-gray-500"><th class="p-4">节点</th><th class="p-4">延迟</th><th class="p-4">状态</th><th class="p-4">MB/s</th><th class="p-4">Mbps</th><th class="p-4">下载量</th><th class="p-4">有效时间</th><th class="p-4">错误原因</th><th class="p-4">国外出口</th><th class="p-4">操作</th></tr></thead>
+          <tbody><tr v-for="row in results" :key="row.key || row.name" class="border-t border-gray-200 dark:border-gray-700"><td class="p-4">{{ row.name }}</td><td class="p-4">{{ formatDelay(row.delay) }}</td><td class="p-4">{{ row.status }}</td><td class="p-4">{{ row.mb }}</td><td class="p-4">{{ row.mbps }}</td><td class="p-4">{{ row.bytesText }}</td><td class="p-4">{{ row.time }}</td><td class="p-4 text-red-500">{{ row.error || '—' }}</td><td class="p-4" :class="row.overseasError ? 'text-red-500' : ''">{{ overseasText(row) }}</td><td class="p-4"><Button size="small" type="primary" :disabled="running || egressRunning || row.status !== '成功'" @click="useResult(row)">使用</Button></td></tr></tbody></table>
           <div v-if="!results.length" class="py-24 text-center text-gray-500">选择策略组后开始测试</div>
         </div>
         <div class="mt-8">
           <div class="flex items-center justify-between mb-4">
             <span class="text-gray-500">历史结果<span v-if="history"> · 保存于 {{ formatTime(history.savedAt) }} · 策略组 {{ history.groupName || '—' }} · 测试 URL {{ history.testUrl || '—' }}</span></span>
-            <Button v-if="history" size="small" @click="deleteHistory">删除历史</Button>
+            <div class="flex gap-8">
+              <Button v-if="history" size="small" type="primary" :loading="egressRunning" :disabled="running" @click="egressRunning ? stopEgress() : runEgress()">{{ egressRunning ? '停止' : '国外出口' }}</Button>
+              <Button v-if="history" size="small" :disabled="running || egressRunning" @click="deleteHistory">删除历史</Button>
+            </div>
           </div>
           <div v-if="!history" class="py-12 text-center text-gray-500">暂无历史记录</div>
           <div v-else class="overflow-auto" style="max-height: 30vh">
-            <table class="w-full text-12"><thead><tr class="text-left text-gray-500"><th class="p-4">节点</th><th class="p-4">延迟</th><th class="p-4">状态</th><th class="p-4">MB/s</th><th class="p-4">Mbps</th><th class="p-4">下载量</th><th class="p-4">有效时间</th><th class="p-4">错误原因</th><th class="p-4">操作</th></tr></thead>
-            <tbody><tr v-for="row in history.results" :key="row.key || row.name" class="border-t border-gray-200 dark:border-gray-700"><td class="p-4">{{ row.name }}</td><td class="p-4">{{ formatDelay(row.delay) }}</td><td class="p-4">{{ row.status }}</td><td class="p-4">{{ row.mb }}</td><td class="p-4">{{ row.mbps }}</td><td class="p-4">{{ row.bytesText }}</td><td class="p-4">{{ row.time }}</td><td class="p-4 text-red-500">{{ row.error || '—' }}</td><td class="p-4"><Button size="small" type="primary" :disabled="running || row.status !== '成功'" @click="useResult(row)">使用</Button></td></tr></tbody></table>
+            <table class="w-full text-12"><thead><tr class="text-left text-gray-500"><th class="p-4">节点</th><th class="p-4">延迟</th><th class="p-4">状态</th><th class="p-4">MB/s</th><th class="p-4">Mbps</th><th class="p-4">下载量</th><th class="p-4">有效时间</th><th class="p-4">错误原因</th><th class="p-4">国外出口</th><th class="p-4">操作</th></tr></thead>
+            <tbody><tr v-for="row in history.results" :key="row.key || row.name" class="border-t border-gray-200 dark:border-gray-700"><td class="p-4">{{ row.name }}</td><td class="p-4">{{ formatDelay(row.delay) }}</td><td class="p-4">{{ row.status }}</td><td class="p-4">{{ row.mb }}</td><td class="p-4">{{ row.mbps }}</td><td class="p-4">{{ row.bytesText }}</td><td class="p-4">{{ row.time }}</td><td class="p-4 text-red-500">{{ row.error || '—' }}</td><td class="p-4" :class="row.overseasError ? 'text-red-500' : ''">{{ overseasText(row) }}</td><td class="p-4"><Button size="small" type="primary" :disabled="running || egressRunning || row.status !== '成功'" @click="useResult(row)">使用</Button></td></tr></tbody></table>
           </div>
         </div>
       </div>`,
     setup() {
-      const { ref, computed, onMounted } = Vue
+      const { ref, computed, onMounted, watch } = Vue
       const api = Plugins.useKernelApiStore()
       /** 获取当前可供测试的 Selector 策略组。 */
       const selectors = () => Object.values(api.proxies || {}).filter((p) => p?.type === 'Selector' && Array.isArray(p.all) && p.all.length)
@@ -114,6 +121,7 @@ const onRun = async () => {
             ? Plugin.GroupName
             : initial[0]?.name || initial[0]?.tag || '',
         url: Plugin.TestUrl || 'http://hkg.download.datapacket.com/100mb.bin',
+        presetUrl: '',
         pingUrl: Plugin.PingUrl || 'https://www.gstatic.com/generate_204',
         maxDelay: Number(Plugin.MaxDelayMs) || 3000,
         seconds: Number(Plugin.TimeoutSeconds) || 5,
@@ -128,12 +136,30 @@ const onRun = async () => {
       const currentNode = ref('')
       const statusText = ref('准备就绪')
       const groupOptions = computed(() => selectors().map((p) => ({ label: p.name || p.tag, value: p.name || p.tag })))
+      /** 下载测速 URL 的预设下拉选项：自定义 + 5 个内置测速地址。 */
+      const presetUrlOptions = computed(() => [{ label: '自定义', value: '' }, ...PRESET_URLS])
+      /** 选择预设地址时填入 URL 输入框；仅当选择的是实际地址时生效。 */
+      watch(
+        () => form.value.presetUrl,
+        (value) => {
+          if (value) form.value.url = value
+        }
+      )
+      /** 手动修改 URL 且不再是当前所选预设时，将下拉复位为“自定义”，避免显示误导。 */
+      watch(
+        () => form.value.url,
+        (value) => {
+          if (value && !PRESET_URLS.some((p) => p.value === value)) form.value.presetUrl = ''
+        }
+      )
       const progressPercent = computed(() => (total.value ? Math.round((progress.value * 100) / total.value) : 0))
       const history = ref(null)
       /** 将时间戳格式化为本地可读文本。 */
       const formatTime = (value) => (value ? new Date(value).toLocaleString() : '未知')
       /** 将有效延迟格式化为 "123 ms"，无效或缺失时显示占位符。 */
       const formatDelay = (value) => (Number.isFinite(Number(value)) && Number(value) > 0 ? `${Math.round(Number(value))} ms` : '—')
+      /** 生成“国外出口”列文本：错误原因 > 归属地 · IP > 占位符。 */
+      const overseasText = (row) => (row.overseasError ? row.overseasError : row.overseasIp ? `${row.overseasPlace} · ${row.overseasIp}` : '—')
       /** 将一条成功测速结果对应的节点，直接切换为当前 Selector 的选择；不做任何测速恢复。 */
       const useResult = async (row) => {
         if (running.value) return Plugins.message.warn('批量测速进行中，请先停止测试再使用节点')
@@ -150,7 +176,7 @@ const onRun = async () => {
       }
       /** 用户确认后删除已保存的历史结果文件，并清空历史展示。 */
       const deleteHistory = async () => {
-        if (!history.value) return
+        if (!history.value || egressRunning.value) return
         const ok = await Plugins.confirm('删除历史记录', '确定删除已保存的测速历史结果吗？删除后不可恢复。').catch(() => false)
         if (!ok) return
         history.value = null
@@ -158,6 +184,80 @@ const onRun = async () => {
         try {
           await Plugins.RemoveFile(historyFilePath())
         } catch {}
+      }
+      /** 历史批量出口检测运行中标记；egressStop（模块级）为当前检测流程的停止函数。 */
+      const egressRunning = ref(false)
+      /** 对历史中 status='成功' 的节点串行执行：切换节点 → 查询国外出口 → 实时更新历史行；完成后写回历史文件。
+       * 节点不存在或不在当前策略组时该行标记原因并跳过；运行中可停止；结束后恢复原 Selector 节点。 */
+      const runEgress = async () => {
+        if (running.value || egressRunning.value) return
+        if (!history.value) return
+        if (!api.running) return Plugins.message.error('内核未运行，请先启动内核')
+        const groupName = form.value.group
+        const group = (api.proxies || {})[groupName]
+        if (!group || group.type !== 'Selector' || !Array.isArray(group.all)) return Plugins.message.error('策略组不存在或不是可用的 Selector')
+        const endpoint = createProxyUrl(api.getProxyEndpoint())
+        const rows = history.value.results.filter((r) => r.status === '成功')
+        if (!rows.length) return Plugins.message.warn('历史中没有已成功测速的节点')
+        let stopped = false
+        const cancelIds = new Set()
+        const isStopped = () => stopped
+        const stop = () => {
+          stopped = true
+          for (const id of cancelIds) {
+            try {
+              Plugins.HttpCancel(id)
+            } catch {}
+          }
+        }
+        egressStop = stop
+        egressRunning.value = true
+        statusText.value = '正在检测国外出口…'
+        const original = group.now
+        try {
+          for (let i = 0; i < rows.length; i++) {
+            if (stopped) break
+            const row = rows[i]
+            const proxy = (api.proxies || {})[row.name]
+            currentNode.value = row.name
+            statusText.value = `国外出口检测 ${i + 1}/${rows.length}`
+            if (!proxy || !group.all.includes(row.name)) {
+              row.overseasIp = ''
+              row.overseasPlace = ''
+              row.overseasSource = ''
+              row.overseasError = '节点不存在或不在当前策略组'
+              continue
+            }
+            await Plugins.handleUseProxy(group, proxy)
+            try {
+              const result = await overseasInfo({ proxy: endpoint, cancelIds, isStopped })
+              row.overseasIp = result.ip
+              row.overseasPlace = result.place
+              row.overseasSource = result.source
+              row.overseasError = ''
+            } catch (error) {
+              if (isStopped()) break
+              row.overseasIp = ''
+              row.overseasPlace = ''
+              row.overseasSource = ''
+              row.overseasError = errorText(error)
+            }
+          }
+        } finally {
+          egressStop = null
+          egressRunning.value = false
+          currentNode.value = ''
+          statusText.value = stopped ? '出口检测已停止' : '出口检测完成'
+          try {
+            const fresh = original && (api.proxies || {})[original]
+            if (fresh) await Plugins.handleUseProxy(group, fresh)
+          } catch {}
+          if (history.value) saveHistory(history.value)
+        }
+      }
+      /** 停止正在进行的批量出口检测。 */
+      const stopEgress = () => {
+        egressStop?.()
       }
       /** 打开面板时异步加载上一次保存的历史结果；失败时仅显示“暂无历史记录”。 */
       onMounted(async () => {
@@ -186,7 +286,7 @@ const onRun = async () => {
       }
       /** 校验表单并启动一轮两阶段批量测试。 */
       const start = async () => {
-        if (running.value) return
+        if (running.value || egressRunning.value) return
         const values = { ...form.value }
         const seconds = Number(values.seconds)
         const maxDelay = Number(values.maxDelay)
@@ -274,14 +374,19 @@ const onRun = async () => {
         currentNode,
         statusText,
         groupOptions,
+        presetUrlOptions,
         progressPercent,
         formatTime,
         formatDelay,
+        overseasText,
         start,
         stop,
         clear,
         useResult,
-        deleteHistory
+        deleteHistory,
+        egressRunning,
+        runEgress,
+        stopEgress
       }
     }
   }
@@ -480,6 +585,70 @@ const downloadForDuration = async ({ url, path, proxy, seconds, cancelId }) => {
   return { bytes, elapsed: Math.max(0.001, (Date.now() - started) / 1000) }
 }
 
+/** 内置的下载测速预设地址，可在面板中一键选择。 */
+const PRESET_URLS = [
+  { label: '🇭🇰 香港', value: 'http://hkg.download.datapacket.com/100mb.bin' },
+  { label: '🇸🇬 新加坡', value: 'http://sgp.download.datapacket.com/100mb.bin' },
+  { label: '🇯🇵 日本', value: 'http://tyo.download.datapacket.com/100mb.bin' },
+  { label: '🇺🇸 美西', value: 'http://lax.download.datapacket.com/100mb.bin' },
+  { label: '🇺🇸 美东', value: 'http://ash.download.datapacket.com/100mb.bin' }
+]
+
+/** 国外出口检测的 3 个回退接口与解析规则（与网络信息插件一致）。 */
+const OVERSEAS_SOURCES = [
+  [
+    'cmliussss API',
+    'https://api.cmliussss.net/api/ipinfo',
+    (body) => {
+      if (!body?.ip) throw new Error('返回格式异常')
+      return { ip: body.ip, place: `${body.country_code || ''} AS${body.asn || ''} ${body.as_name || ''}` }
+    }
+  ],
+  [
+    'ipinfo.io',
+    'https://ipinfo.io/json',
+    (body) => {
+      if (!body?.ip) throw new Error('返回格式异常')
+      return { ip: body.ip, place: `${body.country || ''} ${body.org || ''}` }
+    }
+  ],
+  [
+    'ipapi.co',
+    'https://ipapi.co/json/',
+    (body) => {
+      if (!body?.ip) throw new Error('返回格式异常')
+      return { ip: body.ip, place: `${body.country_code || body.country_name || ''} ${body.org || (body.asn ? `AS${body.asn}` : '')}` }
+    }
+  ]
+]
+
+/** 通过本地代理入站查询国外出口 IP 信息；按 3 个接口依次回退，全部失败抛错。
+ * 每个请求带唯一 CancelId 纳入 cancelIds（停止时统一取消）、超时 5 秒、追加时间戳防缓存。 */
+const overseasInfo = async ({ proxy, cancelIds, isStopped }) => {
+  let last
+  for (const [source, url, parse] of OVERSEAS_SOURCES) {
+    if (isStopped()) throw new Error('检测已停止')
+    const cancelId = `overseas-${Plugins.sampleID()}`
+    cancelIds.add(cancelId)
+    try {
+      const response = await Plugins.Requests({
+        method: 'GET',
+        url: `${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}`,
+        autoTransformBody: true,
+        options: { Proxy: proxy, Timeout: 5, CancelId: cancelId }
+      })
+      if (response.status < 200 || response.status >= 400) throw new Error(`HTTP ${response.status}`)
+      const result = parse(response.body)
+      return { ...result, source }
+    } catch (error) {
+      last = error
+    } finally {
+      cancelIds.delete(cancelId)
+    }
+  }
+  throw last || new Error('国外出口检测失败')
+}
+
 /** 批量测速主流程：阶段一并发延迟预检（不切换节点），阶段二对合格节点按延迟升序串行下载测速。
  * 全部节点最终都有一行结果；停止/完成/异常均尽力恢复原 Selector 节点。 */
 const runBatchTest = async ({
@@ -605,24 +774,19 @@ const runBatchTest = async ({
         if (!proxy) throw new Error('找不到节点代理对象')
         await Plugins.handleUseProxy((api.proxies || {})[groupName] || group, proxy)
         const data = await downloadForDuration({ url, path, proxy: endpoint, seconds, cancelId })
+        /* 下载是否成功在下载结束时定格（success），之后停止不再把已完成的行改成“已停止” */
+        const success = !stopped
+        let overseas = null
+        if (success) {
+          try {
+            overseas = await overseasInfo({ proxy: endpoint, cancelIds, isStopped })
+          } catch (error) {
+            if (!isStopped()) overseas = { error: errorText(error) }
+          }
+        }
         const mb = data.bytes / 1000000 / data.elapsed
-        row = stopped
+        row = success
           ? {
-              key: rowKey,
-              name,
-              status: '已停止',
-              delay,
-              speed: null,
-              mb: '—',
-              mbps: '—',
-              bytesText: '—',
-              time: '—',
-              error: '',
-              groupName,
-              testUrl: url,
-              testedAt: new Date().toISOString()
-            }
-          : {
               key: rowKey,
               name,
               status: '成功',
@@ -632,6 +796,25 @@ const runBatchTest = async ({
               mbps: (mb * 8).toFixed(2),
               bytesText: `${(data.bytes / 1000000).toFixed(2)} MB`,
               time: `${data.elapsed.toFixed(2)} s`,
+              error: '',
+              groupName,
+              testUrl: url,
+              testedAt: new Date().toISOString(),
+              overseasIp: overseas?.ip || '',
+              overseasPlace: overseas?.place || '',
+              overseasSource: overseas?.source || '',
+              overseasError: overseas?.error || ''
+            }
+          : {
+              key: rowKey,
+              name,
+              status: '已停止',
+              delay,
+              speed: null,
+              mb: '—',
+              mbps: '—',
+              bytesText: '—',
+              time: '—',
               error: '',
               groupName,
               testUrl: url,
