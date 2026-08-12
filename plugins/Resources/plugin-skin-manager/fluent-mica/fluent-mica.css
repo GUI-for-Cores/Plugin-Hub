@@ -469,6 +469,15 @@ body.skin-theme .gui-button:active {
   transform: scale(0.98);
 }
 
+body.skin-theme .controller-close,
+body.skin-theme .controller-close:hover {
+  transform: translateX(-50%);
+}
+
+body.skin-theme .controller-close:active {
+  transform: translateX(-50%) scale(0.98);
+}
+
 body.skin-theme :is(.gui-radio, .gui-checkbox) {
   border-color: var(--skin-control-border);
   background: var(--skin-control-bg);

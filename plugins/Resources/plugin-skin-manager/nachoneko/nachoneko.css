@@ -352,7 +352,7 @@ body.skin-theme .controller-close {
   color: #326f91;
   border-color: rgba(93, 153, 184, 0.32);
   background: rgba(245, 252, 255, 0.94);
-  transform: none;
+  transform: translateX(-50%);
   transition:
     color 150ms ease,
     border-color 150ms ease,
@@ -363,7 +363,11 @@ body.skin-theme .controller-close:hover {
   color: #665fae;
   border-color: rgba(111, 124, 194, 0.5);
   background: rgba(235, 239, 253, 0.98);
-  transform: none;
+  transform: translateX(-50%);
+}
+
+body.skin-theme .controller-close:active {
+  transform: translateX(-50%) scale(0.98);
 }
 
 body.skin-theme .controller-trigger,
