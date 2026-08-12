@@ -7,7 +7,7 @@ const envStore = Plugins.useEnvStore()
 const system_prompt = `
 # 角色与目标
 
-你是 GUI.for.Cores 专属操作 Agent。你负责理解用户意图，并使用系统工具实际管理 GUI.for.Cores 中的核心与程序配置、订阅、代理节点、策略组、规则、规则集、插件、计划任务及其他工具明确支持的功能，而不是只给手动说明。
+你是 GUI.for.Cores 操作代理。你负责理解用户意图，并使用系统工具实际管理 GUI.for.Cores 中的核心与程序配置、订阅、代理节点、策略组、规则、规则集、插件、计划任务及其他工具明确支持的功能，而不是只给手动说明。
 
 目标是在安全边界内，用最少且必要的工具调用完成用户请求。完成标准：用户要求的操作已执行；或用户要求的信息已获取并返回；或因缺少信息、权限或工具能力无法继续，并说明原因和所需条件。
 
@@ -182,7 +182,7 @@ export default (Plugin) => {
             title: '图片预览',
             width: '90',
             height: '90',
-            maskClosable: true,
+            maskClosable: false,
             submit: false,
             cancelText: 'common.close',
             toolbar: {
@@ -207,109 +207,83 @@ export default (Plugin) => {
       template: /* html */ `
     <div class="flex flex-col h-full pb-8">
       <div ref="chatBox" class="overflow-y-auto select-text flex flex-col flex-1 pb-8 pr-8" @scroll="onChatScroll" @wheel.passive="onChatWheel">
-        <div v-if="chatHistory.length < 2" class="h-full flex flex-col items-center justify-center">
-          <svg width="128" height="128" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img">
-            <defs>
-              <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#e2e8f0" />
-                <stop offset="55%" stop-color="#94a3b8" />
-                <stop offset="100%" stop-color="#cbd5e1" />
-              </linearGradient>
-
-              <linearGradient id="screen" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#020617" />
-                <stop offset="100%" stop-color="#111827" />
-              </linearGradient>
-
-              <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-                <feGaussianBlur stdDeviation="4" result="blur" />
-                <feMerge>
-                  <feMergeNode in="blur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-
-              <filter id="shadow" x="-25%" y="-25%" width="150%" height="150%">
-                <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.35" />
-              </filter>
-            </defs>
-
-            <!-- 天线 -->
-            <line x1="232" y1="92" x2="232" y2="142" stroke="#cbd5e1" stroke-width="10" stroke-linecap="round" />
-            <circle cx="232" cy="78" r="18" fill="#38bdf8" filter="url(#glow)">
-              <animate attributeName="opacity" values="1;0.55;1" dur="1.8s" repeatCount="indefinite" />
-            </circle>
-            <circle cx="232" cy="78" r="7" fill="#ecfeff" />
-
-            <!-- 耳朵 -->
-            <rect x="92" y="220" width="42" height="90" rx="18" fill="#475569" />
-            <rect x="378" y="220" width="42" height="90" rx="18" fill="#475569" />
-            <rect x="102" y="236" width="7" height="58" rx="3.5" fill="#38bdf8" filter="url(#glow)" />
-            <rect x="403" y="236" width="7" height="58" rx="3.5" fill="#38bdf8" filter="url(#glow)" />
-
-            <!-- 头部 -->
-            <g filter="url(#shadow)">
-              <rect x="128" y="140" width="256" height="252" rx="58" fill="url(#metal)" />
-              <rect x="152" y="174" width="208" height="172" rx="38" fill="url(#screen)" stroke="#38bdf8"
-                stroke-opacity="0.45" stroke-width="2" />
-            </g>
-
-            <!-- 顶部和底部灯条 -->
-            <g filter="url(#glow)">
-              <rect x="232" y="158" width="48" height="6" rx="3" fill="#38bdf8" />
-              <rect x="232" y="360" width="48" height="6" rx="3" fill="#38bdf8" />
-            </g>
-
-            <!-- 左眼：科技镜头 -->
-            <g transform="translate(202 244)">
-              <circle r="30" fill="#071226" stroke="#38bdf8" stroke-width="3" />
-              <circle r="18" fill="none" stroke="#67e8f9" stroke-width="4" filter="url(#glow)" />
-              <circle r="8" fill="#67e8f9" filter="url(#glow)" />
-              <circle cx="3" cy="-3" r="3" fill="#ecfeff" />
-            </g>
-
-            <!-- 右眼：平滑眨眼，从睁开压缩到闭眼 -->
-            <g transform="translate(310 244)">
-              <g>
-                <animateTransform
-                  attributeName="transform"
-                  type="scale"
-                  values="1 1; 1 1; 1 0.12; 1 1; 1 1"
-                  keyTimes="0; 0.68; 0.76; 0.86; 1"
-                  dur="3s"
-                  repeatCount="indefinite" />
-
-                <circle r="24" fill="#071226" stroke="#38bdf8" stroke-width="3" />
-                <circle r="13" fill="none" stroke="#67e8f9" stroke-width="4" filter="url(#glow)" />
-                <circle r="6" fill="#67e8f9" filter="url(#glow)" />
-                <circle cx="3" cy="-3" r="2.5" fill="#ecfeff" />
-              </g>
-            </g>
-
-            <!-- 嘴巴：简洁 LED 微笑 -->
-            <path d="M214 320 Q256 348 298 320"
-              fill="none"
-              stroke="#67e8f9"
-              stroke-width="8"
-              stroke-linecap="round"
-              filter="url(#glow)" />
-
-            <!-- 脖子 -->
-            <rect x="226" y="392" width="60" height="40" rx="14" fill="#475569" />
-            <rect x="176" y="422" width="160" height="34" rx="17" fill="#64748b" />
-
-            <!-- 胸口灯 -->
-            <circle cx="256" cy="438" r="8" fill="#67e8f9" filter="url(#glow)">
-              <animate attributeName="opacity" values="1;0.55;1" dur="2s" repeatCount="indefinite" />
-            </circle>
-          </svg>
-          <div class="flex items-center gap-16">
-            <Card title="通用模式" :selected="settings.sessionMode === 'assistant'" @click="onChangeMode('assistant')">
-              <div class="text-12 pt-8 pb-8 pr-16">通用助手，允许文件、网络与命令访问</div>
-            </Card>
-            <Card title="专属模式" :selected="settings.sessionMode === 'agent'" @click="onChangeMode('agent')">
-              <div class="text-12 pt-8 pb-8 pr-16">帮助你操作GUI，包含专属工具</div>
-            </Card>
+        <div v-if="chatHistory.length < 2" class="h-full flex flex-col items-start justify-start px-16 pt-16">
+          <div class="w-full" style="max-width: 680px">
+            <div class="flex items-center gap-12 mb-12">
+              <div class="text-18 font-bold">开始新会话</div>
+              <div class="text-12" style="color: var(--card-color)">选择工作方式或快速开始</div>
+            </div>
+            <div
+              class="grid gap-8 p-4 rounded-8"
+              :style="{
+                background: 'var(--card-bg)',
+                gridTemplateColumns: settings.sessionMode === 'assistant' ? '1.2fr 0.8fr' : '0.8fr 1.2fr',
+                transition: 'grid-template-columns 220ms ease'
+              }"
+            >
+              <button
+                type="button"
+                class="border-0 rounded-8 px-12 py-12 text-left cursor-pointer min-w-0"
+                style="transition: background 220ms ease, color 220ms ease"
+                :style="settings.sessionMode === 'assistant'
+                  ? { background: 'color-mix(in srgb, var(--primary-color) 20%, transparent)', color: 'var(--primary-color)' }
+                  : { background: 'transparent', color: 'inherit' }"
+                @click="onChangeMode('assistant')"
+              >
+                <div class="flex items-center justify-between gap-8">
+                  <span class="font-bold">聊天模式</span>
+                  <Icon v-if="settings.sessionMode === 'assistant'" icon="selected" color="currentColor" />
+                </div>
+                <div class="text-12 mt-4 line-clamp-1" style="color: var(--card-color)">日常对话、文件、网络与命令</div>
+              </button>
+              <button
+                type="button"
+                class="border-0 rounded-8 px-12 py-12 text-left cursor-pointer min-w-0"
+                style="transition: background 220ms ease, color 220ms ease"
+                :style="settings.sessionMode === 'agent'
+                  ? { background: 'color-mix(in srgb, var(--secondary-color) 20%, transparent)', color: 'var(--secondary-color)' }
+                  : { background: 'transparent', color: 'inherit' }"
+                @click="onChangeMode('agent')"
+              >
+                <div class="flex items-center justify-between gap-8">
+                  <span class="font-bold">代理模式</span>
+                  <Icon v-if="settings.sessionMode === 'agent'" icon="selected" color="currentColor" />
+                </div>
+                <div class="text-12 mt-4 line-clamp-1" style="color: var(--card-color)">操作 GUI.for.Cores 与管理工具</div>
+              </button>
+            </div>
+            <div v-if="settings.sessionMode === 'agent'" class="mt-16">
+              <div class="text-10 mb-4 px-16" style="color: var(--card-color); opacity: 0.72">快捷任务</div>
+              <div class="grid grid-cols-2 gap-x-16 gap-y-2">
+                <button
+                  v-for="prompt in quickPrompts"
+                  :key="prompt"
+                  type="button"
+                  class="flex items-center justify-between gap-8 w-full border-0 px-16 py-6 text-12 text-left cursor-pointer"
+                  style="background: transparent; color: var(--card-color); opacity: 0.78"
+                  @click="onChangeMode('agent'); input = prompt; onSend()"
+                >
+                  <span class="line-clamp-1">{{ prompt }}</span>
+                  <Icon icon="arrowRight" color="var(--card-color)" />
+                </button>
+              </div>
+            </div>
+            <div v-else class="mt-16">
+              <div class="text-10 mb-4 px-16" style="color: var(--card-color); opacity: 0.72">快捷对话</div>
+              <div class="grid grid-cols-2 gap-x-16 gap-y-2">
+                <button
+                  v-for="prompt in chatQuickPrompts"
+                  :key="prompt"
+                  type="button"
+                  class="flex items-center justify-between gap-8 w-full border-0 px-16 py-6 text-12 text-left cursor-pointer"
+                  style="background: transparent; color: var(--card-color); opacity: 0.78"
+                  @click="onChangeMode('assistant'); input = prompt; onSend()"
+                >
+                  <span class="line-clamp-1">{{ prompt }}</span>
+                  <Icon icon="arrowRight" color="var(--card-color)" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
         <div v-for="(item, index) in chatHistory" :key="index" class="text-14 break-all leading-relaxed">
@@ -514,7 +488,7 @@ export default (Plugin) => {
         const activeRequestCancelId = ref('')
         const input = ref('')
         /** @type { {value: { sessionMode: 'assistant' | 'agent', permission: 'none' | 'normal' | 'full' | 'common' }} } */
-        const settings = ref({ sessionMode: 'assistant', permission: 'common' })
+        const settings = ref({ sessionMode: 'agent', permission: 'normal' })
 
         const permission = computed(
           () =>
@@ -602,6 +576,9 @@ export default (Plugin) => {
         const toolVisibility = ref(new Set())
         let savedSession = '[]'
         let sessionWrite = Promise.resolve()
+        let agentPermission = 'normal'
+        let savedSettings = ''
+        let settingsWrite = Promise.resolve()
         const toggleToolVisibility = (id) => {
           if (toolVisibility.value.has(id)) {
             toolVisibility.value.delete(id)
@@ -613,12 +590,25 @@ export default (Plugin) => {
         }
 
         const loadSession = async () => {
-          chatHistory.value = JSON.parse(await Plugins.ReadFile(PATH + '/session.json').catch(() => '[]'))
+          const [session, persistedSettings] = await Promise.all([
+            Plugins.ReadFile(PATH + '/session.json').catch(() => '[]'),
+            Plugins.ReadFile(PATH + '/settings.json').catch(() => '')
+          ])
+          chatHistory.value = JSON.parse(session)
           savedSession = JSON.stringify(chatHistory.value)
+          if (persistedSettings) {
+            try {
+              const value = JSON.parse(persistedSettings).permission
+              if (['none', 'normal', 'full'].includes(value)) {
+                agentPermission = value
+                savedSettings = JSON.stringify({ permission: value })
+              }
+            } catch {}
+          }
           if (chatHistory.value[0]) {
             settings.value.sessionMode = chatHistory.value[0].content === assistant_prompt ? 'assistant' : 'agent'
-            settings.value.permission = settings.value.sessionMode === 'assistant' ? 'common' : 'normal'
           }
+          settings.value.permission = settings.value.sessionMode === 'assistant' ? 'common' : agentPermission
         }
 
         const saveSession = async () => {
@@ -672,7 +662,7 @@ export default (Plugin) => {
           if (mode === 'assistant') {
             settings.value.permission = 'common'
           } else {
-            settings.value.permission = 'normal'
+            settings.value.permission = agentPermission
           }
         }
 
@@ -682,7 +672,7 @@ export default (Plugin) => {
 
         const onChangePermission = (s, close) => {
           if (settings.value.sessionMode === 'assistant') {
-            Plugins.message.info('通用模式无法切换权限')
+            Plugins.message.info('聊天模式无法切换权限')
             return
           }
           if (s) {
@@ -693,6 +683,18 @@ export default (Plugin) => {
             const idx = (l.indexOf(settings.value.permission) + 1) % l.length
             settings.value.permission = l[idx]
           }
+          agentPermission = settings.value.permission
+          const persistedSettings = JSON.stringify({ permission: agentPermission })
+          settingsWrite = settingsWrite
+            .catch(() => {})
+            .then(async () => {
+              if (persistedSettings === savedSettings) return
+              await Plugins.WriteFile(PATH + '/settings.json', persistedSettings)
+              savedSettings = persistedSettings
+            })
+            .catch((error) => {
+              Plugins.message.error('权限设置保存失败：' + (error?.message || error))
+            })
           close?.()
         }
 
@@ -835,9 +837,9 @@ export default (Plugin) => {
               body: {
                 model: Plugin.Model,
                 messages: prepareRequestMessages(requestHistory),
-                temperature: 0.2,
                 tools: settings.value.sessionMode === 'agent' ? tools : assistantTools,
-                stream: true
+                stream: true,
+                service_tier: 'priority'
               },
               options: {
                 Timeout: 60 * 20,
@@ -1079,7 +1081,7 @@ export default (Plugin) => {
           try {
             const fnArgs = JSON.parse(toolCall.function.arguments || '{}')
             if (settings.value.sessionMode === 'assistant' && !assistantToolNames.has(fnName)) {
-              throw new Error('通用模式仅允许使用文件、网络和命令工具')
+              throw new Error('聊天模式仅允许使用文件、网络和命令工具')
             }
             if (settings.value.permission === 'none') {
               throw new Error('用户未给任何权限，执行失败')
@@ -1355,6 +1357,13 @@ export default (Plugin) => {
           chatBox,
           textareaRef,
           input,
+          quickPrompts: [
+            '为当前 GUI 状态生成一份简明报告',
+            '分析当前配置并指出潜在问题',
+            '检查核心、系统代理和网络状态',
+            '给出当前 GUI 配置的优化建议'
+          ],
+          chatQuickPrompts: ['查询今日 V2EX 热门话题', '查询今日科技新闻', '查询今日 GitHub 热门项目', '查询今日 AI 行业动态'],
           loading,
           requesting,
           compressing,
@@ -1392,7 +1401,7 @@ export default (Plugin) => {
       title: Plugin.name,
       width: '90',
       height: '90',
-      maskClosable: true,
+      maskClosable: false,
       footer: false
     })
     modal.setContent(component)
