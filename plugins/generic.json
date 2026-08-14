@@ -325,7 +325,7 @@
   {
     "id": "plugin-gui-agent",
     "name": "GUI Agent",
-    "version": "v4.2.0",
+    "version": "v4.2.1",
     "group": "Tools",
     "description": "支持聊天模式与代理模式，可调用文件、网络、命令及 GUI.for.Cores 管理工具。",
     "tags": [],
