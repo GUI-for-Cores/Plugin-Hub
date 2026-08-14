@@ -2503,7 +2503,7 @@
   {
     "id": "plugin-beautiful-node-name",
     "name": "美化节点名称",
-    "version": "v5.0.2",
+    "version": "v5.0.3",
     "group": "Extensions",
     "description": "统一规范节点名称，使其显示更好看。Supported by: Starfish",
     "tags": ["节点处理"],

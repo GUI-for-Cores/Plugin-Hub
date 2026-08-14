@@ -50,20 +50,8 @@ async function beautifyNodeName(proxies, metadata) {
   const enableUnifyRegionName = Plugin.EnableUnifyRegionName
   const enableCityName = Plugin.EnableCityName
   const reservedKeywords = Plugin.ReservedKeywords
-
-  const regionRules = new Map()
-  const subRegionRules = new Map()
-
-  RegionData.forEach((region) => {
-    region.keywords.forEach((keyword) => {
-      regionRules.set(keyword.toLowerCase(), region)
-    })
-  })
-  RegionData.forEach((region) => {
-    region.subKeywords.forEach((keyword) => {
-      subRegionRules.set(keyword.toLowerCase(), region)
-    })
-  })
+  const { regionRules, subRegionRules, regionByEmoji } = getCompiledRegionData()
+  const reservedKeywordRules = compileReservedKeywordRules(reservedKeywords)
 
   const emojiRegex = /[\u{1F1E6}-\u{1F1FF}]{2}/gu
 
@@ -71,57 +59,54 @@ async function beautifyNodeName(proxies, metadata) {
   const countryCountMap = new Map()
 
   // 根据订阅设置过滤掉节点
+  const includeRegex = createSafeRegex(metadata.include)
+  const excludeRegex = createSafeRegex(metadata.exclude)
+  const includeProtocolRegex = createSafeRegex(metadata.includeProtocol)
+  const excludeProtocolRegex = createSafeRegex(metadata.excludeProtocol)
   proxies = proxies.filter((v) => {
-    const flag1 = metadata.include ? new RegExp(metadata.include).test(v.tag) : true
-    const flag2 = metadata.exclude ? !new RegExp(metadata.exclude).test(v.tag) : true
-    const flag3 = metadata.includeProtocol ? new RegExp(metadata.includeProtocol).test(v.type) : true
-    const flag4 = metadata.excludeProtocol ? !new RegExp(metadata.excludeProtocol).test(v.type) : true
+    const flag1 = includeRegex ? includeRegex.test(v.tag) : true
+    const flag2 = excludeRegex ? !excludeRegex.test(v.tag) : true
+    const flag3 = includeProtocolRegex ? includeProtocolRegex.test(v.type) : true
+    const flag4 = excludeProtocolRegex ? !excludeProtocolRegex.test(v.type) : true
     return flag1 && flag2 && flag3 && flag4
   })
 
   const flag = Plugins.APP_TITLE.includes('SingBox') ? 'tag' : 'name'
+  proxies.sort((a, b) => compareStableKeys(getProxyStableKey(a, flag), getProxyStableKey(b, flag)))
 
   proxies = proxies.map((proxy) => {
     let tag = proxy[flag]
     let matchedRegion = null
     let subMatchedRegion = null
+    const prefix = metadata.name ? `${metadata.name} | ` : ''
 
-    // 检查是否包含 Emoji，并替换为空
+    if (prefix && tag.startsWith(prefix)) {
+      tag = tag.slice(prefix.length)
+    }
+
+    // 仅移除能够识别的国旗，未知国旗保留原样。
     tag = tag
       .replace(emojiRegex, (match) => {
-        const region = RegionData.find((c) => c.emoji === match)
+        const region = regionByEmoji.get(match)
         if (region) {
           matchedRegion = region
+          return ' '
         }
-        return ' '
+        return match
       })
       .trim()
 
+    const subRegionMatch = findRuleMatch(tag, subRegionRules)
+    const regionMatch = findRuleMatch(tag, regionRules)
+    matchedRegion = matchedRegion || regionMatch?.region || subRegionMatch?.region || null
     let matchRegionName = ''
-    for (const [keyword, region] of regionRules) {
-      const [isChinese, regex] = createRegionRegex(keyword)
-      const matchResult = tag.match(regex)
-      if (matchResult) {
-        matchRegionName = matchResult[0].replace(/^[-_]+|[-_]+$/g, '').trim()
-        if (!matchedRegion) {
-          matchedRegion = region
-        }
-        tag = tag.replace(regex, isChinese ? ' ' : '$1').trim()
-        break
-      }
+    if (subRegionMatch && subRegionMatch.region === matchedRegion) {
+      subMatchedRegion = cleanMatchedText(subRegionMatch.matchResult[0])
+      tag = tag.replace(subRegionMatch.regex, subRegionMatch.isChinese ? ' ' : '$1').trim()
     }
-
-    // 匹配子地区（城市）
-    for (const [subKeyword, region] of subRegionRules) {
-      const [isChinese, regex] = createRegionRegex(subKeyword)
-      if (tag.match(regex)) {
-        if (!matchedRegion) {
-          matchedRegion = region
-        }
-        subMatchedRegion = subKeyword
-        tag = tag.replace(regex, isChinese ? ' ' : '$1').trim()
-        break
-      }
+    if (regionMatch && regionMatch.region === matchedRegion) {
+      matchRegionName = cleanMatchedText(regionMatch.matchResult[0])
+      tag = tag.replace(regionMatch.regex, regionMatch.isChinese ? ' ' : '$1').trim()
     }
 
     // 保留非关键字部分
@@ -132,16 +117,11 @@ async function beautifyNodeName(proxies, metadata) {
 
     // 使用正则表达式匹配保留的关键词
     let matchedOtherInfo = []
-    if (reservedKeywords && parts) {
-      const keywords = reservedKeywords
-        .split('|')
-        .map((k) => k.trim())
-        .filter(Boolean)
-      keywords.forEach((keyword) => {
-        const [_, regex] = createRegionRegex(keyword)
+    if (parts) {
+      reservedKeywordRules.forEach(({ regex }) => {
         const match = parts.match(regex)
         if (match) {
-          matchedOtherInfo.push(match[0].trim())
+          matchedOtherInfo.push(cleanMatchedText(match[0]))
         }
       })
     }
@@ -175,8 +155,7 @@ async function beautifyNodeName(proxies, metadata) {
       tag = matchedOtherInfo.length >= 1 ? tag + ' | ' + matchedOtherInfo.join(' ') : tag
       // console.log(tag)
     }
-    const prefix = `${metadata.name} | `
-    tag = enableSubscriptionName && !tag?.startsWith(prefix) ? prefix + tag : tag
+    tag = enableSubscriptionName && prefix && !tag?.startsWith(prefix) ? prefix + tag : tag
     return { ...proxy, [flag]: tag ?? proxy[flag] }
   })
   const sort = enableUnifyRegionName === '统一为英文' ? 'en' : 'zh-Hans-CN'
@@ -184,9 +163,85 @@ async function beautifyNodeName(proxies, metadata) {
   return proxies
 }
 
-function createRegionRegex(keyword) {
+let compiledRegionData = null
+
+function getCompiledRegionData() {
+  if (compiledRegionData) return compiledRegionData
+
+  const regionRules = []
+  const subRegionRules = []
+  const regionByEmoji = new Map()
+
+  RegionData.forEach((region) => {
+    regionByEmoji.set(region.emoji, region)
+    region.keywords.forEach((keyword) => {
+      const [isChinese, regex] = createRegionRegex(keyword)
+      regionRules.push({ keyword, region, isChinese, regex })
+    })
+    region.subKeywords.forEach((keyword) => {
+      const [isChinese, regex] = createRegionRegex(keyword)
+      subRegionRules.push({ keyword, region, isChinese, regex })
+    })
+  })
+
+  const byLongestKeyword = (a, b) => Array.from(b.keyword).length - Array.from(a.keyword).length
+  regionRules.sort(byLongestKeyword)
+  subRegionRules.sort(byLongestKeyword)
+  compiledRegionData = { regionRules, subRegionRules, regionByEmoji }
+  return compiledRegionData
+}
+
+function compileReservedKeywordRules(value) {
+  if (typeof value !== 'string' || value.trim() === '') return []
+  return value
+    .split('|')
+    .map((keyword) => keyword.trim())
+    .filter(Boolean)
+    .map((keyword) => {
+      const [, regex] = createRegionRegex(keyword, true)
+      return { keyword, regex }
+    })
+}
+
+function findRuleMatch(value, rules) {
+  for (const rule of rules) {
+    const matchResult = value.match(rule.regex)
+    if (matchResult) return { ...rule, matchResult }
+  }
+  return null
+}
+
+function createRegionRegex(keyword, allowRegex = false) {
   const isChinese = /[\u4e00-\u9fa5]/.test(keyword)
-  return [isChinese, isChinese ? new RegExp(`${escapeRegExp(keyword)}`, 'gi') : new RegExp(`(^|[^\\p{L}\\p{N}])${keyword}(?=[^\\p{L}]|$)`, 'gui')]
+  const keywordSource = allowRegex && !isChinese ? keyword : escapeRegExp(keyword)
+  const source = isChinese ? keywordSource : `(^|[^\\p{L}\\p{N}])${keywordSource}(?=[^\\p{L}]|$)`
+  try {
+    return [isChinese, new RegExp(source, isChinese ? 'i' : 'iu')]
+  } catch {
+    const escapedSource = isChinese ? escapeRegExp(keyword) : `(^|[^\\p{L}\\p{N}])${escapeRegExp(keyword)}(?=[^\\p{L}]|$)`
+    return [isChinese, new RegExp(escapedSource, isChinese ? 'i' : 'iu')]
+  }
+}
+
+function createSafeRegex(pattern) {
+  if (typeof pattern !== 'string' || pattern === '') return null
+  try {
+    return new RegExp(pattern)
+  } catch {
+    return new RegExp(escapeRegExp(pattern))
+  }
+}
+
+function cleanMatchedText(value) {
+  return value.replace(/^[-_\s]+|[-_\s]+$/g, '').trim()
+}
+
+function getProxyStableKey(proxy, flag) {
+  return [proxy.server ?? '', proxy.server_port ?? proxy.port ?? '', proxy.type ?? '', proxy[flag] ?? ''].map(String).join('\u0000')
+}
+
+function compareStableKeys(a, b) {
+  return a < b ? -1 : a > b ? 1 : 0
 }
 
 // 辅助函数：转义正则特殊字符
@@ -268,8 +323,8 @@ const RegionData = [
     emoji: '🇦🇷'
   },
   {
-    keywords: ['🇦🇺', 'AU', '澳大利亚', '澳洲', 'Australia', 'Sydney'],
-    subKeywords: ['墨尔本', '悉尼', '斯卡伯勒'],
+    keywords: ['🇦🇺', 'AU', '澳大利亚', '澳洲', 'Australia'],
+    subKeywords: ['墨尔本', '悉尼', '斯卡伯勒', 'Sydney'],
     standardName: { zh: '澳大利亚', en: 'AU' },
     emoji: '🇦🇺'
   },
@@ -280,7 +335,7 @@ const RegionData = [
     emoji: '🇧🇪'
   },
   {
-    keywords: ['🇧🇷', 'BR', '巴西', 'GBR', 'Brazil'],
+    keywords: ['🇧🇷', 'BR', '巴西', 'Brazil'],
     subKeywords: ['巴西利亚', '圣保罗', '维涅杜'],
     standardName: { zh: '巴西', en: 'BR' },
     emoji: '🇧🇷'
@@ -304,14 +359,14 @@ const RegionData = [
     emoji: '🇮🇩'
   },
   {
-    keywords: ['🇬🇧', 'GB', '英国', '英國', 'UK', 'England', 'United Kingdom', 'Britain'],
+    keywords: ['🇬🇧', 'GB', 'GBR', '英国', '英國', 'UK', 'England', 'United Kingdom', 'Britain'],
     subKeywords: ['伦敦'],
     standardName: { zh: '英国', en: 'GB' },
     emoji: '🇬🇧'
   },
   {
-    keywords: ['🇫🇷', 'FR', '法国', '法國', '巴黎', 'France'],
-    subKeywords: ['巴黎', 'France'],
+    keywords: ['🇫🇷', 'FR', '法国', '法國', 'France'],
+    subKeywords: ['巴黎'],
     standardName: { zh: '法国', en: 'FR' },
     emoji: '🇫🇷'
   },
@@ -346,7 +401,7 @@ const RegionData = [
     emoji: '🇨🇦'
   },
   {
-    keywords: ['🇲🇾', 'MY', '马来西亚', '马来', '馬來', 'Malaysia', 'MALAYSIA', 'KualaLumpur'],
+    keywords: ['🇲🇾', 'MY', '马来西亚', '马来', '馬來', 'Malaysia', 'MALAYSIA'],
     subKeywords: ['吉隆坡', 'KualaLumpur', 'Kuala Lumpur'],
     standardName: { zh: '马来西亚', en: 'MY' },
     emoji: '🇲🇾'
@@ -533,7 +588,7 @@ const RegionData = [
   },
   {
     keywords: ['🇪🇸', 'ES', '西班牙', 'Spain'],
-    subKeywords: [],
+    subKeywords: ['Seville', 'Sevilla'],
     standardName: { zh: '西班牙', en: 'ES' },
     emoji: '🇪🇸'
   },
@@ -658,7 +713,7 @@ const RegionData = [
     emoji: '🇲🇰'
   },
   {
-    keywords: ['🇷🇸', 'RS', '塞尔维亚', '塞爾維亞', 'Seville', 'Sevilla'],
+    keywords: ['🇷🇸', 'RS', '塞尔维亚', '塞爾維亞'],
     subKeywords: [],
     standardName: { zh: '塞尔维亚', en: 'RS' },
     emoji: '🇷🇸'

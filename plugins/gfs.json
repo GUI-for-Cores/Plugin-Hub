@@ -75,14 +75,14 @@
   {
     "id": "plugin-sync-singbox-configuration-gists",
     "name": "一键同步config.json",
-    "version": "v1.0.2",
+    "version": "v2.0.0",
     "group": "Extensions",
-    "description": "将所有配置生成的config.json一键同步到Gists。Supported by: StarfishC",
+    "description": "将选中的配置生成 config.json 并同步到 Gist，可分别上传原始配置与带 Linux TUN 路由预设的配置；不选择配置时默认同步全部。Supported by: StarfishC",
     "tags": ["功能扩展", "提升体验"],
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-sync-singbox-configuration-gists.js",
     "path": "data/plugins/plugin-sync-singbox-configuration-gists.js",
-    "triggers": ["on::manual"],
+    "triggers": ["on::manual", "on::ready"],
     "menus": {},
     "hasUI": false,
     "context": {
@@ -110,6 +110,51 @@
         "key": "GistId",
         "component": "Input",
         "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_profiles_to_sync",
+        "title": "要同步的配置",
+        "description": "下拉选项会根据当前 GUI 中的配置自动更新；不选择时默认同步全部配置",
+        "key": "ProfileIds",
+        "component": "MultipleSelect",
+        "value": [],
+        "options": []
+      },
+      {
+        "id": "ID_upload_original",
+        "title": "上传原始配置",
+        "description": "开启后生成并上传 名称.json；下方脚本仅在开启时执行",
+        "key": "UploadOriginal",
+        "component": "Switch",
+        "value": true,
+        "options": []
+      },
+      {
+        "id": "ID_original_upload_script",
+        "title": "原始配置上传前脚本",
+        "description": "“上传原始配置”开启时执行；脚本接收 config、profile、target，并需由 onUpload 返回配置对象",
+        "key": "OriginalUploadScript",
+        "component": "CodeEditor",
+        "value": "const onUpload = async (config, profile, target) => {\n  return config\n}",
+        "options": []
+      },
+      {
+        "id": "ID_upload_linux",
+        "title": "上传 Linux 配置",
+        "description": "开启后生成并上传 名称_linux.json；不会替换或删除 Gist 中的原始配置",
+        "key": "UploadLinux",
+        "component": "Switch",
+        "value": false,
+        "options": []
+      },
+      {
+        "id": "ID_linux_upload_script",
+        "title": "Linux 配置上传前脚本",
+        "description": "“上传 Linux 配置”开启时执行；默认给所有 TUN 入站启用 auto_route 和 auto_redirect，可自行修改",
+        "key": "LinuxUploadScript",
+        "component": "CodeEditor",
+        "value": "const onUpload = async (config, profile, target) => {\n  const inbounds = Array.isArray(config.inbounds) ? config.inbounds : []\n  for (const inbound of inbounds) {\n    if (inbound && inbound.type === 'tun') {\n      inbound.auto_route = true\n      inbound.auto_redirect = true\n    }\n  }\n  return config\n}",
         "options": []
       }
     ],
