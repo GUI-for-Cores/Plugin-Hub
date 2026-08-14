@@ -838,8 +838,7 @@ export default (Plugin) => {
                 model: Plugin.Model,
                 messages: prepareRequestMessages(requestHistory),
                 tools: settings.value.sessionMode === 'agent' ? tools : assistantTools,
-                stream: true,
-                service_tier: 'priority'
+                stream: true
               },
               options: {
                 Timeout: 60 * 20,
