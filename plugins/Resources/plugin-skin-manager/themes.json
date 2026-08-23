@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 12,
+  "revision": 14,
   "themes": [
     {
       "id": "miku",
@@ -67,6 +67,18 @@
       "manifest": "nachoneko/nachoneko.json",
       "featured": true,
       "order": 120
+    },
+    {
+      "id": "shinchan",
+      "manifest": "shinchan/shinchan.json",
+      "featured": true,
+      "order": 130
+    },
+    {
+      "id": "dead-pig",
+      "manifest": "dead-pig/dead-pig.json",
+      "featured": true,
+      "order": 140
     }
   ]
 }
