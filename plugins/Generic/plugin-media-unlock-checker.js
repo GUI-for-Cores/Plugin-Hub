@@ -1,6 +1,6 @@
 /**
- * 本插件参考代码：https://github.com/clash-verge-rev/clash-verge-rev/tree/dev/src-tauri/src/cmd/media_unlock_checker
- * 上游同步基准：https://github.com/clash-verge-rev/clash-verge-rev/commit/977783e39c02b582914f3546c28c36a082274eff
+ * 本插件参考代码：https://github.com/clash-verge-rev/clash-verge-rev/tree/dev/crates/clash-verge-media-unlock
+ * 上游同步基准：https://github.com/clash-verge-rev/clash-verge-rev/commit/2717aaadad38908c0a3b7e17ffb655910185c85c
  */
 
 /* 触发器 手动触发 */
@@ -13,25 +13,23 @@ const onRun = async () => {
 
   const content = {
     template: `
-    <div v-if="!done" class="flex items-center justify-center min-h-128">
-      <Button @click="onClick" :loading="loading" type="primary" size="large">
-        {{ loading ? '正在检测...' + (progress + '/' + length) : '开始检测' }}
+    <div class="flex items-center justify-between">
+      <div class="font-bold text-16">
+        {{ loading ? '正在检测：' + progress + '/' + length : done ? '检测结束，用时：' + duration : '共 ' + length + ' 个检测项目' }}
+      </div>
+      <Button @click="onClick" :loading="loading" :disabled="result.some(item => item.loading)" type="primary">
+        {{ done ? '重新检测' : '开始检测' }}
       </Button>
     </div>
-    <template v-else>
-      <div class="flex items-center justify-between py-16 px-8">
-        <div class="font-bold text-16">检测结束，用时：{{duration}}</div>
-        <Button @click="onClick" type="primary">重新检测</Button>
-      </div>
-      <div class="grid grid-cols-4 gap-8 p-8">
-        <Card v-for="item in result" :key="item.result.name" :title="item.result.name">
-          <div class="flex items-center justify-between">
-            <div>{{item.result.status}} {{item.result.region}}</div>
-            <div class="text-12">{{item.duration}}</div>
-          </div>
-        </Card>
-      </div>
-    </template>
+    <div class="grid grid-cols-4 gap-8 p-8">
+      <Card v-for="(item, index) in result" :key="item.result.name" :title="item.result.name">
+        <div class="flex items-center justify-between gap-8">
+          <div>{{item.result.status}} {{item.result.region}}</div>
+          <Button @click="checkOne(index)" :loading="item.loading" :disabled="loading" size="small">重测</Button>
+        </div>
+        <div class="text-12 text-right mt-4">{{item.duration}}</div>
+      </Card>
+    </div>
     `,
     setup() {
       const { ref } = Vue
@@ -39,30 +37,37 @@ const onRun = async () => {
       const list = Object.values(Checker).filter((v) => !v.skip)
       const length = list.length
 
-      const result = ref([])
+      const createPendingRows = () => list.map((checker) => ({ result: new CheckResult(checker.name, 'Pending', '-'), duration: '-', loading: false }))
+      const result = ref(createPendingRows())
       const loading = ref(false)
       const progress = ref(0)
       const done = ref(false)
       const duration = ref()
 
+      const runItem = async (index) => {
+        const checker = list[index]
+        result.value[index].loading = true
+        const startTime = Date.now()
+        const checked = await checkWithTimeout(checker)
+        checked.status = formatDisplayStatus(checked.status)
+        checked.region = checked.region || '-'
+        result.value[index] = { result: checked, duration: (Date.now() - startTime) / 1000 + 's', loading: false }
+      }
+
       const check = async () => {
-        const promises = list.map(async (v) => {
-          const startTime = Date.now()
-          const result = await v.check()
-          const endTime = Date.now()
-          progress.value += 1
-          return { result, duration: (endTime - startTime) / 1000 + 's' }
-        })
+        result.value = createPendingRows()
+        let nextIndex = 0
+        const worker = async () => {
+          while (nextIndex < length) {
+            const index = nextIndex++
+            await runItem(index)
+            progress.value += 1
+          }
+        }
 
         const startTime = Date.now()
-        const rows = await Promise.all(promises)
+        await Promise.all(Array.from({ length: Math.min(MAX_CONCURRENT_CHECKS, length) }, worker))
         duration.value = (Date.now() - startTime) / 1000 + 's'
-        rows.forEach((row) => {
-          row.result.status = formatDisplayStatus(row.result.status)
-          row.result.region = row.result.region || '-'
-        })
-
-        result.value = rows
       }
 
       return {
@@ -72,6 +77,9 @@ const onRun = async () => {
         done,
         progress,
         duration,
+        async checkOne(index) {
+          await runItem(index)
+        },
         async onClick() {
           done.value = false
           progress.value = 0
@@ -192,6 +200,38 @@ function extractSpotifyRegion(bodyText, headers) {
   return cookieRegion
 }
 
+function findDeepValue(value, key) {
+  if (!value || typeof value !== 'object') return undefined
+  if (Object.prototype.hasOwnProperty.call(value, key)) return value[key]
+
+  for (const child of Object.values(value)) {
+    const matched = findDeepValue(child, key)
+    if (matched !== undefined) return matched
+  }
+
+  return undefined
+}
+
+async function isDisneyUnavailable() {
+  try {
+    const { headers } = await Plugins.HttpGet('https://disneyplus.com', undefined, { Redirect: false })
+    const location = getHeaderValue(headers, 'location') || ''
+    return location.includes('preview') || location.includes('unavailable')
+  } catch {
+    return true
+  }
+}
+
+async function getDisneyFallbackResult(name) {
+  try {
+    const { body } = await Plugins.HttpGet('https://www.disneyplus.com/')
+    const region = toBodyText(body).match(/region"\s*:\s*"([^"]+)"/)?.[1]
+    if (region) return new CheckResult(name, 'Yes', `${region} (from main page)`)
+  } catch {}
+
+  return null
+}
+
 function formatDisplayStatus(status) {
   if (typeof status !== 'string') return status
 
@@ -216,6 +256,25 @@ class CheckResult {
   }
 }
 
+const MAX_CONCURRENT_CHECKS = 4
+const CHECK_TIMEOUT = 15 * 1000
+
+async function checkWithTimeout(checker) {
+  let timeoutId
+  try {
+    return await Promise.race([
+      checker.check(),
+      new Promise((resolve) => {
+        timeoutId = setTimeout(() => resolve(new CheckResult(checker.name, 'Failed', null)), CHECK_TIMEOUT)
+      })
+    ])
+  } catch {
+    return new CheckResult(checker.name, 'Failed', null)
+  } finally {
+    clearTimeout(timeoutId)
+  }
+}
+
 const Checker = {
   bilibili: {
     skip: true,
@@ -227,9 +286,7 @@ const Checker = {
         if (body.code === 0) status = 'Yes'
         else if (body.code === -10403) status = 'No'
         else status = 'Failed'
-      } catch (error) {
-        status = error.message || error
-      }
+      } catch {}
 
       return new CheckResult(name, status, region)
     }
@@ -252,55 +309,25 @@ const Checker = {
       )
     }
   },
-  chatgpt: {
-    skip: true,
-    regionPromise: null,
-    async fetchRegion() {
-      if (!this.regionPromise) {
-        this.regionPromise = Plugins.HttpGet('https://chat.openai.com/cdn-cgi/trace')
-          .then(({ body }) => extractTraceRegion(body))
-          .catch(() => null)
-      }
-      return this.regionPromise
-    }
-  },
-  chatgpt_ios: {
-    name: 'ChatGPT iOS',
-    async check() {
-      let status = 'Failed'
-
-      try {
-        const { body } = await Plugins.HttpGet('https://ios.chat.openai.com/')
-        const bodyLower = toBodyText(body).toLowerCase()
-        if (bodyLower.includes('you may be connected to a disallowed isp')) {
-          status = 'Disallowed ISP'
-        } else if (bodyLower.includes('request is not allowed. please try again later.')) {
-          status = 'Yes'
-        } else if (bodyLower.includes('sorry, you have been blocked')) {
-          status = 'Blocked'
-        }
-      } catch (error) {
-        status = error.message || error
-      }
-
-      return new CheckResult(this.name, status, await Checker.chatgpt.fetchRegion())
-    }
-  },
   chatgpt_web: {
     name: 'ChatGPT Web',
     async check() {
       let status = 'Failed'
+      let region
+
+      const regionPromise = Plugins.HttpGet('https://chat.openai.com/cdn-cgi/trace')
+        .then(({ body }) => extractTraceRegion(body))
+        .catch(() => null)
 
       try {
         const { body } = await Plugins.HttpGet('https://api.openai.com/compliance/cookie_requirements')
         const bodyLower = toBodyText(body).toLowerCase()
         if (bodyLower.includes('unsupported_country')) status = 'Unsupported Country/Region'
         else status = 'Yes'
-      } catch (error) {
-        status = error.message || error
-      }
+      } catch {}
+      region = await regionPromise
 
-      return new CheckResult(this.name, status, await Checker.chatgpt.fetchRegion())
+      return new CheckResult(this.name, status, region)
     }
   },
   claude: {
@@ -319,9 +346,7 @@ const Checker = {
         } else {
           status = 'Yes'
         }
-      } catch (error) {
-        status = error.message || error
-      }
+      } catch {}
 
       return new CheckResult(this.name, status, region)
     }
@@ -339,9 +364,7 @@ const Checker = {
         if (!region) status = 'Failed'
         else if (['CHN', 'RUS', 'BLR', 'CUB', 'IRN', 'PRK', 'SYR', 'HKG', 'MAC'].includes(region)) status = 'No'
         else status = 'Yes'
-      } catch (error) {
-        status = error.message || error
-      }
+      } catch {}
 
       return new CheckResult(this.name, status, region)
     }
@@ -379,9 +402,7 @@ const Checker = {
         ) {
           status = 'Yes'
         }
-      } catch (error) {
-        status = error.message || error
-      }
+      } catch {}
 
       return new CheckResult(this.name, status, region)
     }
@@ -418,8 +439,8 @@ const Checker = {
         const body3Text = toBodyText(body3)
         const region = body3Text.match(/data-geo="([^"]+)/)?.[1]
         return new CheckResult(this.name, 'Yes', region)
-      } catch (error) {
-        return new CheckResult(this.name, error.message || error, null)
+      } catch {
+        return new CheckResult(this.name, 'Failed', null)
       }
     }
   },
@@ -427,7 +448,7 @@ const Checker = {
     name: 'Netflix',
     async check() {
       const result = await Checker.netflix_cdn.check()
-      if (result.status === 'Yes') return result
+      if (result.status === 'Yes' || result.status.startsWith('No')) return result
 
       try {
         const [{ status: status1 }, { status: status2 }] = await Promise.all([
@@ -457,8 +478,8 @@ const Checker = {
           }
         }
         return new CheckResult(this.name, `Failed (状态码: ${status1}_${status2})`, null)
-      } catch (error) {
-        return new CheckResult(this.name, error.message || error, null)
+      } catch {
+        return new CheckResult(this.name, 'Failed', null)
       }
     }
   },
@@ -512,9 +533,9 @@ const Checker = {
         }
 
         const bodyText = toBodyText(body)
-        const assertion = body.assertion || bodyText.match(/"assertion"\s*:\s*"([^"]+)"/)?.[1]
+        const assertion = body?.assertion || bodyText.match(/"assertion"\s*:\s*"([^"]+)"/)?.[1]
         if (!assertion) {
-          return new CheckResult(this.name, 'Failed (Error: Cannot extract assertion)', null)
+          return new CheckResult(this.name, 'Failed (Cannot extract assertion)', null)
         }
 
         const { body: body2, status: status2 } = await Plugins.HttpPost(
@@ -533,14 +554,16 @@ const Checker = {
           }
         )
         const body2Text = toBodyText(body2)
-        if (body2Text.includes('forbidden-location') || body2Text.includes('403 ERROR')) {
+        if (status2 === 403 || body2Text.includes('forbidden-location') || body2Text.includes('403 ERROR')) {
           return new CheckResult(this.name, 'No (IP Banned By Disney+)', null)
         }
 
-        const refreshToken = body2.refresh_token || body2Text.match(/"refresh_token"\s*:\s*"([^"]+)"/)?.[1]
+        const refreshToken = body2?.refresh_token || body2Text.match(/"refresh_token"\s*:\s*"([^"]+)"/)?.[1]
         if (!refreshToken) {
-          return new CheckResult(this.name, `Failed (Error: Cannot extract refresh token, status: ${status2}, response: ${body2Text.slice(0, 100)}...)`, null)
+          return new CheckResult(this.name, `Failed (Cannot extract refresh token: ${status2})`, null)
         }
+
+        const unavailable = await isDisneyUnavailable()
 
         const { body: body3, status: status3 } = await Plugins.HttpPost(
           'https://disney.api.edge.bamgrid.com/graph/v1/device/graphql',
@@ -565,52 +588,44 @@ const Checker = {
         )
 
         const body3Text = toBodyText(body3)
-        if (!body3Text || status3 >= 400) {
-          try {
-            const { body } = await Plugins.HttpGet('https://www.disneyplus.com/')
-            const bodyText = toBodyText(body)
-            const region = bodyText.match(/region"\s*:\s*"([^"]+)"/)?.[1]
-            if (region) return new CheckResult(this.name, 'Yes', `${region} (from main page)`)
-          } catch {}
-          if (!body3Text) {
-            return new CheckResult(this.name, `Failed (GraphQL error: empty response, status: ${status3})`, null)
-          }
-          return new CheckResult(this.name, `Failed (GraphQL error: ${body3Text.slice(0, 50)}..., status: ${status3})`, null)
+        if (!body3Text || status3 < 200 || status3 >= 300) {
+          return (await getDisneyFallbackResult(this.name)) || new CheckResult(this.name, `Failed (GraphQL: ${status3})`, null)
         }
 
-        let region = body3Text.match(/"countryCode"\s*:\s*"([^"]+)"/)?.[1]
-        const supported = body3Text.match(/"inSupportedLocation"\s*:\s*(true|false)/)?.[1]
+        let graphData = body3
+        if (!graphData || typeof graphData !== 'object') {
+          try {
+            graphData = JSON.parse(body3Text)
+          } catch {
+            return (await getDisneyFallbackResult(this.name)) || new CheckResult(this.name, 'Failed (Invalid GraphQL Response)', null)
+          }
+        }
+
+        const region = findDeepValue(graphData, 'countryCode')
+        const supported = findDeepValue(graphData, 'inSupportedLocation')
 
         if (!region) {
-          try {
-            const { body } = await Plugins.HttpGet('https://www.disneyplus.com/')
-            const bodyText = toBodyText(body)
-            region = bodyText.match(/region"\s*:\s*"([^"]+)"/)?.[1]
-            if (region) return new CheckResult(this.name, 'Yes', `${region} (from main page)`)
-          } catch {}
-          return new CheckResult(this.name, 'No', null)
+          return (await getDisneyFallbackResult(this.name)) || new CheckResult(this.name, 'No', null)
         }
 
         if (region === 'JP') {
           return new CheckResult(this.name, 'Yes', region)
         }
 
-        const { headers } = await Plugins.HttpGet('https://disneyplus.com', undefined, { Redirect: false })
-        const redirectUrl = headers['Location'] || headers['location'] || ''
-        if (redirectUrl.includes('preview') || redirectUrl.includes('unavailable')) {
+        if (unavailable) {
           return new CheckResult(this.name, 'No', null)
         }
 
-        if (supported === 'false') {
+        if (supported === false) {
           return new CheckResult(this.name, 'Soon', `${region}（即将上线）`)
         }
-        if (supported === 'true') {
+        if (supported === true) {
           return new CheckResult(this.name, 'Yes', region)
         }
 
-        return new CheckResult(this.name, `Failed (Error: Unknown region status for ${region})`, null)
-      } catch (error) {
-        return new CheckResult(this.name, error.message || error, null)
+        return new CheckResult(this.name, `Failed (Unknown region status for ${region})`, null)
+      } catch {
+        return new CheckResult(this.name, 'Failed (Network Connection)', null)
       }
     }
   },
@@ -629,7 +644,7 @@ const Checker = {
         } else if (region) {
           status = 'Yes'
         } else {
-          status = 'Failed (Error: PAGE ERROR)'
+          status = 'Failed (PAGE ERROR)'
         }
       } catch {
         status = 'Failed (Network Connection)'
@@ -659,9 +674,7 @@ const Checker = {
         } else {
           status = 'Yes'
         }
-      } catch (error) {
-        status = error.message || error
-      }
+      } catch {}
 
       return new CheckResult(this.name, status, region)
     }
@@ -707,9 +720,7 @@ const Checker = {
               status = 'No'
             else status = 'Yes'
           }
-        } catch (error) {
-          if (status === 'Failed') status = error.message || error
-        }
+        } catch {}
       }
 
       return new CheckResult(this.name, status, region)
