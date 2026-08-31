@@ -3,18 +3,21 @@ export default (plugin) => {
   const appStore = Plugins.useAppStore()
   const appSettingsStore = Plugins.useAppSettingsStore()
   const kernelApiStore = Plugins.useKernelApiStore()
+
   const isAlphaCore = () => appSettingsStore.app.kernel.branch === 'alpha'
+
   const getApiService = () => {
     const [host = '127.0.0.1', port = '20190'] = plugin.listen_address.split(':')
     return {
       type: 'api',
+      tag: Plugins.sampleID(),
       listen: host,
       listen_port: Number(port),
       secret: plugin.secret,
-      access_control_allow_private_network: true,
       dashboard: true
     }
   }
+
   const getFormData = () => {
     const { listen: host, listen_port: port, secret } = getApiService()
     const url = `${host === '0.0.0.0' ? '127.0.0.1' : host}:${port}`
@@ -24,11 +27,13 @@ export default (plugin) => {
       secret
     }
   }
+
   const openDashboardUI = () => {
     if (!isAlphaCore()) {
       Plugins.message.warn('此 Web 面板仅支持内测版核心')
       return
     }
+
     const { url, secret } = getFormData()
     const dashboardUrl = `http://${url}/dashboard`
     const modal = Plugins.modal(
@@ -92,9 +97,11 @@ export default (plugin) => {
     )
     modal.open()
   }
+
   const del_ui = () => {
     appStore.removeCustomActions('core_state', plugin.id)
   }
+
   const add_ui = () => {
     del_ui()
     const { url } = getFormData()
@@ -103,8 +110,8 @@ export default (plugin) => {
       id: plugin.id,
       component: 'div',
       componentSlots: {
-        default: ({ h }) => {
-          return h(
+        default: ({ h }) =>
+          h(
             'Button',
             {
               type: 'link',
@@ -124,44 +131,40 @@ export default (plugin) => {
               'Dashboard'
             ]
           )
-        }
       }
     })
   }
+
   const onRun = () => {
     if (!kernelApiStore.running) {
       throw '请先启动核心'
     }
+
     openDashboardUI()
   }
+
   const onBeforeCoreStart = (config) => {
     if (isAlphaCore()) {
       config.services ??= []
-      config.services.push({
-        tag: Plugins.sampleID(),
-        ...getApiService()
-      })
+      config.services.push(getApiService())
     }
     return config
   }
+
   const onCoreStarted = () => {
     add_ui()
   }
+
   const onCoreStopped = () => {
     del_ui()
   }
+
   const onDispose = () => {
     del_ui()
   }
   const onReady = () => {
     add_ui()
   }
-  return {
-    onRun,
-    onBeforeCoreStart,
-    onCoreStarted,
-    onCoreStopped,
-    onDispose,
-    onReady
-  }
+
+  return { onRun, onBeforeCoreStart, onCoreStarted, onCoreStopped, onDispose, onReady }
 }
