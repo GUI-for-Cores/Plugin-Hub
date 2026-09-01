@@ -84,22 +84,14 @@ export default (Plugin) => {
     const version = await Plugins.picker.single(
       '生成的配置版本',
       [
-        { label: '远古版(v1.11.0-)', value: 1 },
-        { label: '主流版(v1.11.0+)', value: 2 },
-        { label: '稳定版(v1.13.0+)', value: 3 },
-        { label: '测试版(v1.13.0+)', value: 4 }
+        { label: '更老版本已不再支持，请更新至1.14+', value: 1 },
+        { label: '稳定版(v1.14.0+)', value: 3 }
       ],
       [3]
     )
-    const config = await Plugins.generateConfig(profile, version < 4)
-    if (version < 3) {
-      _adaptToV3(config)
-      if (version <= 2) {
-        _adaptToV2(config)
-        if (version <= 1) {
-          _adaptToV1(config)
-        }
-      }
+    const config = await Plugins.generateConfig(profile)
+    if (version !== 3) {
+      throw '请选择更新的版本'
     }
     // 新配置且禁用IPv6
     if (!profile.tunConfig && Plugin.Ipv6Mode === 'disabled') {
@@ -137,152 +129,6 @@ export default (Plugin) => {
   }
 
   return { onRun, Share }
-}
-
-const _adaptToV3 = (config) => {
-  config.route.rules.forEach((rule) => {
-    if (rule.action === 'reject') {
-      if (rule.method === 'reply') {
-        delete rule.method
-      }
-    }
-  })
-}
-
-const _adaptToV2 = (config) => {
-  const DnsServer = {
-    Local: 'local',
-    Hosts: 'hosts',
-    Tcp: 'tcp',
-    Udp: 'udp',
-    Tls: 'tls',
-    Https: 'https',
-    Quic: 'quic',
-    H3: 'h3',
-    Dhcp: 'dhcp',
-    FakeIP: 'fakeip'
-  }
-
-  const generateDnsServerURL = (dnsServer) => {
-    const { type, server_port, path, server, interface: _interface } = dnsServer
-    let address = ''
-    if (type == DnsServer.Https) {
-      address = `https://${server}${server_port ? ':' + server_port : ''}${path ? path : ''}`
-    } else if (type == DnsServer.H3) {
-      address = `h3://${server}${server_port ? ':' + server_port : ''}${path ? path : ''}`
-    } else if (type == DnsServer.Dhcp) {
-      address = `dhcp://${_interface}`
-    } else if (type == DnsServer.FakeIP) {
-      address =
-        'fake-ip://' +
-        (dnsServer.inet4_range ? dnsServer.inet4_range : '') +
-        (dnsServer.inet6_range ? (dnsServer.inet4_range ? ',' : '') + dnsServer.inet6_range : '')
-    } else if (type === DnsServer.Hosts) {
-      address = 'hosts'
-    } else if (type === DnsServer.Local) {
-      address = 'local'
-    } else {
-      address = `${type}://${server}${server_port ? ':' + server_port : ''}`
-    }
-    return address
-  }
-
-  config.dns.rules.unshift({
-    action: 'route',
-    server: config.route.default_domain_resolver.server,
-    outbound: 'any'
-  })
-  delete config.route.default_domain_resolver
-  config.dns.servers = config.dns.servers.map((server) => {
-    const isFakeIP = server.type === DnsServer.FakeIP
-    if (isFakeIP) {
-      config.dns.fakeip = {
-        enabled: true,
-        inet4_range: server.inet4_range,
-        inet6_range: server.inet6_range
-      }
-    }
-    let detour = server.detour
-    if (!detour) {
-      const isSupportDetour = [
-        DnsServer.Local,
-        DnsServer.Tcp,
-        DnsServer.Udp,
-        DnsServer.Tls,
-        DnsServer.Quic,
-        DnsServer.Https,
-        DnsServer.H3,
-        DnsServer.Dhcp
-      ].includes(server.type)
-      isSupportDetour && (detour = config.outbounds.find((v) => v.type === 'direct')?.tag)
-    }
-    return {
-      tag: server.tag,
-      address: isFakeIP ? 'fakeip' : generateDnsServerURL(server),
-      address_resolver: server.domain_resolver,
-      detour: detour
-    }
-  })
-  config.dns.rules = config.dns.rules.filter((rule) => rule.ip_accept_any === undefined)
-  config.dns.rules.forEach((rule) => {
-    delete rule.strategy
-  })
-}
-
-const _adaptToV1 = (config) => {
-  const isExists = (id) => config.outbounds.find((v) => v.type === id && v.tag === id)
-
-  if (!isExists('direct')) {
-    config.outbounds.push({
-      type: 'direct',
-      tag: 'direct'
-    })
-  }
-
-  if (!isExists('block')) {
-    config.outbounds.push({
-      type: 'block',
-      tag: 'block'
-    })
-  }
-
-  config.outbounds.push({
-    type: 'dns',
-    tag: 'dns-out'
-  })
-
-  config.route.rules = config.route.rules.flatMap((rule) => {
-    if (rule.action === 'sniff') {
-      if (rule.inbound) {
-        const inbound = config.inbounds.find((v) => v.tag === rule.inbound)
-        if (inbound) {
-          inbound.sniff = true
-        }
-      }
-      return []
-    } else if (rule.action === 'resolve') {
-      if (rule.inbound) {
-        const inbound = config.inbounds.find((v) => v.tag === rule.inbound)
-        if (inbound) {
-          inbound.domain_strategy = rule.strategy
-        }
-      }
-      return []
-    } else if (rule.action === 'reject') {
-      rule.outbound = 'block'
-    } else if (rule.action === 'hijack-dns') {
-      rule.outbound = 'dns-out'
-    }
-    rule.action = undefined
-    return rule
-  })
-
-  config.dns.rules.forEach((rule) => {
-    if (rule.action === 'reject') {
-      rule.outbound = 'block'
-    }
-    rule.action = undefined
-  })
 }
 
 function getQRCode(rawUrl, rawStr) {
