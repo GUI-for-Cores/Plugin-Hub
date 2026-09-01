@@ -245,7 +245,7 @@
   {
     "id": "plugin-native-config-manager",
     "name": "原生配置管理",
-    "version": "v1.3.2",
+    "version": "v1.3.3",
     "group": "Extensions",
     "description": "允许在 GUI 中直接运行和管理未经修改的 sing-box 原始配置，跳过 GUI 的默认配置覆盖，完美保留你的自定义规则，专为需要高度定制化配置的用户设计。Supported by: 泡泡茶壶",
     "tags": ["实用工具", "功能扩展", "提升体验"],
@@ -270,7 +270,7 @@
   },
   {
     "id": "plugin-sing-box-dashboard",
-    "version": "v2.1.1",
+    "version": "v2.1.2",
     "name": "sing-box 仪表板",
     "description": "全新的 Web 面板，提供与原版图形客户端几乎一致的体验。Supported by: 泡泡茶壶",
     "tags": ["功能扩展", "提升体验"],

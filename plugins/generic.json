@@ -3288,7 +3288,7 @@
   {
     "id": "plugin-subscribe-collection",
     "name": "聚合订阅",
-    "version": "v2.1.2",
+    "version": "v2.1.3",
     "group": "Extensions",
     "description": "将现有的多个订阅组合为一个新订阅。Supported by: 泡泡茶壶",
     "tags": ["提升体验", "功能扩展"],
@@ -3313,7 +3313,7 @@
   },
   {
     "id": "plugin-fast-delay-test",
-    "version": "v2.3.2",
+    "version": "v2.3.3",
     "name": "快速延迟测试",
     "description": "快速测试订阅内节点延迟，支持按延迟排序与一键清理失败/高延迟节点，并可在订阅更新时自动处理。Supported by: 泡泡茶壶",
     "tags": ["功能扩展", "提升体验"],
