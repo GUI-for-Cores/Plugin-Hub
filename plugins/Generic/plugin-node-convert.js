@@ -29,7 +29,7 @@ export default async () => {
       get(_, prop) {
         const fn = proxyUtilsModule[prop]
         if (typeof fn !== 'function') {
-          throw `模块工具「${String(prop)}」不存在，请先右键插件卡片「更新依赖」`
+          throw `模块工具「${String(prop)}」不可用，请先右键插件卡片「更新依赖」`
         }
         return fn
       }
