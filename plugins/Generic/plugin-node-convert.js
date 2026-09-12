@@ -7,7 +7,7 @@ const ProxyUtilsFile = PATH + '/proxy-utils.esm.mjs'
 
 /** @type {EsmPlugin} */
 export default async () => {
-  let parse, produce
+  let proxyUtilsModule = {}
 
   // TODO: 等待GUI支持import本地文件
   const loadModule = async () => {
@@ -15,7 +15,7 @@ export default async () => {
     const blob = new Blob([source], { type: 'text/javascript' })
     const url = URL.createObjectURL(blob)
     try {
-      ;({ parse, produce } = await import(url))
+      proxyUtilsModule = await import(url)
     } finally {
       URL.revokeObjectURL(url)
     }
@@ -23,11 +23,27 @@ export default async () => {
 
   await loadModule().catch(() => {})
 
+  const ProxyUtils = new Proxy(
+    { parse: (..._) => ({}), produce: (..._) => '' },
+    {
+      get(_, prop) {
+        const fn = proxyUtilsModule[prop]
+        if (typeof fn !== 'function') {
+          throw `模块工具「${String(prop)}」不存在，请先右键插件卡片「更新依赖」`
+        }
+        return fn
+      }
+    }
+  )
+
   /**
    * 插件右键菜单 - 更新依赖
    */
   const Update = async () => {
     const { body } = await Plugins.HttpGet('https://api.github.com/repos/sub-store-org/Sub-Store/releases/latest')
+    if (body.message) {
+      throw body.message
+    }
     const asset = body.assets.find((v) => v.uploader.login === 'github-actions[bot]' && v.name === 'proxy-utils.esm.mjs')
     if (!asset) {
       Plugins.message.error('未找到依赖: proxy-utils.esm.mjs')
@@ -53,7 +69,7 @@ export default async () => {
    */
   const ExportAsURI = async (subscription) => {
     const proxies = await getClashProxies(subscription)
-    const v2ray_proxies = produce(proxies, 'v2ray', 'internal')
+    const v2ray_proxies = ProxyUtils.produce(proxies, 'v2ray', 'internal')
     await Plugins.ClipboardSetText(v2ray_proxies)
     Plugins.message.success('已复制')
   }
@@ -72,7 +88,7 @@ export default async () => {
    */
   const ExportAsSingBox = async (subscription) => {
     const proxies = await getClashProxies(subscription)
-    const singbox_proxies = produce(proxies, 'singbox', 'internal')
+    const singbox_proxies = ProxyUtils.produce(proxies, 'singbox', 'internal')
     await Plugins.ClipboardSetText(JSON.stringify(singbox_proxies))
     Plugins.message.success('已复制')
   }
@@ -109,9 +125,9 @@ export default async () => {
       type: 'code'
     })
 
-    const mihomo_proxies = parse(input)
-    const singbox_proxies = produce(mihomo_proxies, 'singbox', 'internal')
-    const v2ray_proxies = produce(mihomo_proxies, 'v2ray', 'internal')
+    const mihomo_proxies = ProxyUtils.parse(input)
+    const singbox_proxies = ProxyUtils.produce(mihomo_proxies, 'singbox', 'internal')
+    const v2ray_proxies = ProxyUtils.produce(mihomo_proxies, 'v2ray', 'internal')
 
     const platform = await Plugins.picker.single('请选择格式', [
       { label: 'Mihomo格式', value: 'mihomo' },
@@ -133,7 +149,7 @@ export default async () => {
 
     // 如果是v2ray分享链接，则转为clash格式
     if (isBase64) {
-      proxies = parse(proxies[0].base64)
+      proxies = ProxyUtils.parse(proxies[0].base64)
     }
 
     const isClashProxies = proxies.some((proxy) => proxy.name && !proxy.tag)
@@ -148,7 +164,7 @@ export default async () => {
 
     // 如果是clash格式，并且是GFS，则转为sing-box格式
     if (isClashProxies && isGFS) {
-      proxies = produce(proxies, 'singbox', 'internal')
+      proxies = ProxyUtils.produce(proxies, 'singbox', 'internal')
     }
 
     if (isGFS) {
