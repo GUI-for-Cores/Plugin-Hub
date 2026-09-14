@@ -205,7 +205,7 @@ export default (Plugin) => {
     const component = {
       components: { LoadingDots, StoredImage },
       template: /* html */ `
-    <div class="flex flex-col h-full pb-8">
+    <div class="flex flex-col h-full">
       <div ref="chatBox" class="overflow-y-auto select-text flex flex-col flex-1 pb-8 pr-8" @scroll="onChatScroll" @wheel.passive="onChatWheel">
         <div v-if="chatHistory.length < 2" class="h-full flex flex-col items-start justify-start px-16 pt-16">
           <div class="w-full" style="max-width: 680px">

@@ -85,12 +85,13 @@ export default (Plugin) => {
       '生成的配置版本',
       [
         { label: '更老版本已不再支持，请更新至1.14+', value: 1 },
-        { label: '稳定版(v1.14.0+)', value: 3 }
+        { label: '稳定版(v1.14.0+)', value: 3 },
+        { label: '稳定版(v1.15.0+)', value: 4 }
       ],
       [3]
     )
-    const config = await Plugins.generateConfig(profile)
-    if (version !== 3) {
+    const config = await Plugins.generateConfig(profile, version < 4)
+    if (version < 3) {
       throw '请选择更新的版本'
     }
     // 新配置且禁用IPv6
