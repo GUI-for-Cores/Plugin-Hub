@@ -1575,13 +1575,10 @@ const Utils = {
 }
 
 const appStoreTools = {
-  checkForUpdates: (args) => Plugins.useAppStore().checkForUpdates(args.showTips),
-  downloadApp: () => Plugins.useAppStore().downloadApp()
 }
 
 const appSettingsStoreTools = {
   getAppSettings: () => Plugins.useAppSettingsStore().app,
-  getThemeMode: () => Plugins.useAppSettingsStore().themeMode
 }
 
 const envStoreTools = {
@@ -1608,7 +1605,6 @@ const kernelApiStoreTools = {
       needRestart: store.needRestart
     }
   },
-  getProxyEndpoint: () => Plugins.useKernelApiStore().getProxyEndpoint(),
   startCore: () => Plugins.useKernelApiStore().startCore(),
   stopCore: () => Plugins.useKernelApiStore().stopCore(),
   restartCore: () => Plugins.useKernelApiStore().restartCore()
@@ -2291,35 +2287,6 @@ const tools = [
   {
     type: 'function',
     function: {
-      name: 'checkForUpdates',
-      description: 'Check for app updates.',
-      parameters: {
-        type: 'object',
-        properties: {
-          showTips: {
-            type: 'boolean',
-            default: false
-          }
-        },
-        required: []
-      }
-    }
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'downloadApp',
-      description: 'Download the app update.',
-      parameters: {
-        type: 'object',
-        properties: {},
-        required: []
-      }
-    }
-  },
-  {
-    type: 'function',
-    function: {
       name: 'setSystemProxy',
       description: 'Enable system proxy.',
       parameters: {
@@ -2842,18 +2809,6 @@ const tools = [
   {
     type: 'function',
     function: {
-      name: 'getThemeMode',
-      description: 'Get GUI theme mode.',
-      parameters: {
-        type: 'object',
-        properties: {},
-        required: []
-      }
-    }
-  },
-  {
-    type: 'function',
-    function: {
       name: 'getSystemProxyStatus',
       description: 'Get current system proxy and system DNS status.',
       parameters: {
@@ -2868,18 +2823,6 @@ const tools = [
     function: {
       name: 'getCoreState',
       description: 'Get current core process state and restart flags.',
-      parameters: {
-        type: 'object',
-        properties: {},
-        required: []
-      }
-    }
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'getProxyEndpoint',
-      description: 'Get the proxy endpoint derived from current profile and kernel config.',
       parameters: {
         type: 'object',
         properties: {},
