@@ -2909,7 +2909,7 @@
   {
     "id": "plugin-aliyunpan-signin",
     "name": "阿里云盘签到",
-    "version": "v2.0.0",
+    "version": "v2.0.1",
     "group": "Tools",
     "description": "阿里云盘自动签到，可配合计划任务系统。",
     "tags": ["实用工具"],
@@ -2929,7 +2929,17 @@
       "scheduledtasks": {}
     },
     "status": 0,
-    "configuration": [],
+    "configuration": [
+      {
+        "id": "aliyunpan-refresh-token-list",
+        "title": "RefreshToken 列表",
+        "description": "支持多个账号，也可通过「管理 RefreshToken」批量添加。",
+        "key": "RefreshTokenList",
+        "component": "InputList",
+        "value": [],
+        "options": []
+      }
+    ],
     "disabled": false,
     "install": false,
     "installed": false
