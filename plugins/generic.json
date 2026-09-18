@@ -2927,17 +2927,7 @@
       "scheduledtasks": {}
     },
     "status": 0,
-    "configuration": [
-      {
-        "id": "ID_635535xp",
-        "title": "RefreshToken列表",
-        "description": "",
-        "key": "RefreshTokenList",
-        "component": "InputList",
-        "value": [],
-        "options": []
-      }
-    ],
+    "configuration": [],
     "disabled": false,
     "install": false,
     "installed": false
