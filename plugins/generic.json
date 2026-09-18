@@ -2909,7 +2909,7 @@
   {
     "id": "plugin-aliyunpan-signin",
     "name": "阿里云盘签到",
-    "version": "v1.0.1",
+    "version": "v2.0.0",
     "group": "Tools",
     "description": "阿里云盘自动签到，可配合计划任务系统。",
     "tags": ["实用工具"],
@@ -2918,7 +2918,9 @@
     "path": "data/plugins/plugin-aliyunpan-signin.js",
     "triggers": ["on::manual"],
     "hasUI": false,
-    "menus": {},
+    "menus": {
+      "管理 RefreshToken": "ManageTokens"
+    },
     "context": {
       "profiles": {},
       "subscriptions": {},
