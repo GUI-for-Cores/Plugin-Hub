@@ -2813,10 +2813,14 @@
     "triggers": ["on::manual", "on::ready"],
     "hasUI": false,
     "menus": {
-      "选择背景": "Select",
+      "选择本地图片": "SelectImage",
+      "在线图片导入": "OnlineImage",
+      "CSS注入": "CustomCSS",
+      "自定义图标": "CustomIcon",
+      "选择纯色背景": "Select",
+      "清除自定义背景图": "ClearImage",
       "清除主题": "Clear",
-      "重置配置": "Reset",
-      "自定义图标": "CustomIcon"
+      "重置配置": "Reset"
     },
     "context": {
       "profiles": {},
@@ -2826,26 +2830,7 @@
       "scheduledtasks": {}
     },
     "status": 0,
-    "configuration": [
-      {
-        "id": "ID_pew8wwt6",
-        "title": "自定义背景图片",
-        "description": "不填时将禁用，填写后启用；可使用本地图片和远程图片，例如：http://xxx.png、C:\\xxx.png",
-        "key": "BgImagePath",
-        "component": "Input",
-        "value": "",
-        "options": []
-      },
-      {
-        "id": "ID_gpypsbm4",
-        "title": "自定义CSS",
-        "description": "提供更高级的自定义功能",
-        "key": "CustomCSS",
-        "component": "CodeEditor",
-        "value": "",
-        "options": []
-      }
-    ],
+    "configuration": [],
     "disabled": false,
     "install": true,
     "installed": false
