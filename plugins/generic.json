@@ -1883,6 +1883,32 @@
     "installed": false
   },
   {
+    "id": "plugin-rss-reader",
+    "version": "v1.0.0",
+    "name": "RSS 阅读器",
+    "description": "轻量级的RSS阅读器。",
+    "tags": ["实用工具"],
+    "group": "Tools",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-rss-reader.js",
+    "path": "data/plugins/plugin-rss-reader.js",
+    "status": 0,
+    "triggers": ["on::manual"],
+    "hasUI": true,
+    "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "configuration": [],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-sync-configuration",
     "name": "配置同步",
     "version": "v2.0.0",

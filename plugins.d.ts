@@ -20,6 +20,8 @@ type UseModalOptions = Partial<{
   cancelText?: string
   submitText?: string
   maskClosable?: boolean
+  px?: number
+  py?: number
   toolbar?: {
     maximize?: boolean,
     minimize?: boolean
