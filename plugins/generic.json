@@ -1884,7 +1884,7 @@
   },
   {
     "id": "plugin-rss-reader",
-    "version": "v1.0.0",
+    "version": "v1.1.0",
     "name": "RSS 阅读器",
     "description": "轻量级的RSS阅读器。",
     "tags": ["实用工具"],
