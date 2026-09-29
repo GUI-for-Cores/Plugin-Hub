@@ -57,8 +57,8 @@ const share = async (profile) => {
   // 3. 生成 Mihomo 配置
   const config = await Plugins.generateConfig(profile)
 
-  // 4. 消除 proxy-providers：全部内联节点，展开 use 引用
-  //    展开失败时：有 URL 则降级为 http 类型保留，无 URL 则报错要求先更新订阅
+  // 4. 消除 proxy-providers：按 Mihomo 的 filter/exclude-filter 语义内联节点并展开 use 引用。
+  //    无法安全复现过滤时，有 URL 则保留为 http 类型；没有 URL 则明确中止分享。
   const subscribesStore = Plugins.useSubscribesStore()
   if (config['proxy-providers']) {
     const existingNames = new Set((config.proxies || []).map((p) => p.name))
@@ -67,7 +67,8 @@ const share = async (profile) => {
     for (const [id, provider] of Object.entries(config['proxy-providers'])) {
       const sub = subscribesStore.getSubscribeById(id)
       const subPath = sub ? sub.path : provider.path?.replace(/^\.\.\//, 'data/')
-      let providerProxyNames = []
+      let providerProxies = []
+      let inlineError = null
       let inlined = false
 
       if (subPath) {
@@ -82,33 +83,52 @@ const share = async (profile) => {
               existingNames.add(proxy.name)
             }
           }
-          providerProxyNames = proxies.map((p) => p.name)
+          providerProxies = proxies
           inlined = true
         } catch (e) {
-          console.warn(`无法读取订阅 ${id} 的缓存:`, e)
+          inlineError = e
+          console.warn(`无法读取订阅 ${id} 的缓存或复现过滤条件:`, e)
+        }
+      }
+
+      const groupProxyNames = []
+      if (inlined) {
+        try {
+          for (const group of config['proxy-groups'] || []) {
+            if (!Array.isArray(group.use) || !group.use.includes(id)) continue
+            groupProxyNames.push([group, filterProviderProxyNames(providerProxies, provider, group, id)])
+          }
+        } catch (e) {
+          inlineError = e
+          inlined = false
+          console.warn(`无法安全复现订阅 ${id} 的过滤条件:`, e)
         }
       }
 
       if (inlined) {
         delete config['proxy-providers'][id]
-        for (const group of config['proxy-groups'] || []) {
-          if (group.use && group.use.includes(id)) {
-            group.use = group.use.filter((u) => u !== id)
-            if (group.use.length === 0) delete group.use
-            group.proxies = group.proxies || []
-            group.proxies.push(...providerProxyNames.filter((n) => !group.proxies.includes(n)))
+        for (const [group, proxyNames] of groupProxyNames) {
+          group.use = group.use.filter((u) => u !== id)
+          group.proxies = group.proxies || []
+          group.proxies.push(...proxyNames.filter((name) => !group.proxies.includes(name)))
+
+          // filter/exclude-filter 仅作用于 provider；所有 use 已展开后不应遗留到手机配置。
+          if (group.use.length === 0) {
+            delete group.use
+            delete group.filter
+            delete group['exclude-filter']
           }
         }
       } else if (provider.url) {
         const { path: _path, ...rest } = provider
         config['proxy-providers'][id] = { ...rest, type: 'http' }
       } else {
-        failedProviders.push(id)
+        failedProviders.push(inlineError ? `${id}（${inlineError?.message || inlineError}）` : id)
       }
     }
 
     if (failedProviders.length > 0) {
-      throw `以下订阅没有缓存也没有远程 URL，无法导出到手机端：${failedProviders.join(', ')}。请先更新订阅后重试。`
+      throw `以下订阅无法安全内联且没有远程 URL，无法导出到手机端：${failedProviders.join(', ')}。请先更新订阅或修正过滤表达式后重试。`
     }
 
     if (Object.keys(config['proxy-providers']).length === 0) {
@@ -120,7 +140,7 @@ const share = async (profile) => {
   if (config['rule-providers']) {
     for (const [name, provider] of Object.entries(config['rule-providers'])) {
       if (provider.type !== 'file') continue
-      const ruleset = rulesetsStore.rulesets.find((r) => r.name === name || r.id === name)
+      const ruleset = findRuleset(rulesetsStore.rulesets, name, provider)
       if (ruleset && ruleset.type === 'Http' && ruleset.url) {
         provider.type = 'http'
         provider.url = ruleset.url
@@ -130,7 +150,60 @@ const share = async (profile) => {
     }
   }
 
-  // 6. CMFA 只显示 GLOBAL 组引用的代理组，确保自定义组可见
+  // 6. 对无法转换为 HTTP 的本地 YAML/文本 rule-provider 做受限内联。
+  //    仅在规则可完整解析时继续导出；MRS、不可读文件或未知格式仍中止分享。
+  if (config['rule-providers']) {
+    const localProviderNames = new Set(
+      Object.entries(config['rule-providers'])
+        .filter(([, provider]) => provider.type === 'file')
+        .map(([name]) => name)
+    )
+    const expandedRules = []
+    const failedLocalRules = []
+
+    for (const rawRule of config.rules || []) {
+      const parts = typeof rawRule === 'string' ? rawRule.split(',') : Array.isArray(rawRule) ? rawRule : []
+      if (parts[0] !== 'RULE-SET' || !localProviderNames.has(parts[1])) {
+        expandedRules.push(rawRule)
+        continue
+      }
+
+      const providerName = parts[1]
+      const provider = config['rule-providers'][providerName]
+      const ruleset = findRuleset(rulesetsStore.rulesets, providerName, provider)
+      const path = normalizeRulesetPath(ruleset?.path || provider?.path)
+      const isMRS = ruleset?.format === 'mrs' || /\.mrs$/i.test(path)
+      if (!path || isMRS) {
+        failedLocalRules.push(`${providerName}（仅支持 YAML/文本规则，不支持 MRS 二进制规则）`)
+        continue
+      }
+
+      try {
+        const content = await Plugins.ReadFile(path)
+        const payload = parseLocalYamlRules(content)
+        if (!payload.length) throw new Error('规则为空或格式不受支持')
+        const target = parts.slice(2).join(',')
+        for (const item of payload) {
+          const rule = normalizeMihomoRule(item, ruleset?.behavior || 'classical')
+          if (!rule) throw new Error(`无法转换规则：${item}`)
+          expandedRules.push(target ? `${rule},${target}` : rule)
+        }
+        delete config['rule-providers'][providerName]
+      } catch (e) {
+        failedLocalRules.push(`${providerName}（${e?.message || e}）`)
+      }
+    }
+
+    if (failedLocalRules.length) {
+      throw `以下本地规则无法内联，未生成分享配置：${failedLocalRules.join('；')}`
+    }
+    config.rules = expandedRules
+    if (Object.keys(config['rule-providers']).length === 0) {
+      delete config['rule-providers']
+    }
+  }
+
+  // 7. CMFA 只显示 GLOBAL 组引用的代理组，确保自定义组可见
   const groups = config['proxy-groups'] || []
   const globalGroup = groups.find((g) => g.name === 'GLOBAL')
   if (globalGroup) {
@@ -144,12 +217,12 @@ const share = async (profile) => {
     }
   }
 
-  // 7. 清理 PC 专属配置
+  // 8. 清理 PC 专属配置
   delete config.secret
   config['external-controller'] = '127.0.0.1:9090'
   config['allow-lan'] = false
 
-  // 8. DNS 适配
+  // 9. DNS 适配
   //    a) 只要 DNS 启用，无论是否 TUN，都必须保证 proxy-server-nameserver 存在
   //       否则 Mihomo 用 DoT/DoH 解析代理节点域名时会经过代理路由，形成死循环
   if (config.dns?.enable) {
@@ -172,7 +245,7 @@ const share = async (profile) => {
     }
   }
 
-  // 9. 最终校验：拒绝导出仍含 file 类型的 rule-providers
+  // 10. 最终校验：拒绝导出仍含 file 类型的 rule-providers
   const residualFileProviders = Object.entries(config['rule-providers'] || {})
     .filter(([, rp]) => rp.type === 'file')
     .map(([name]) => name)
@@ -182,7 +255,7 @@ const share = async (profile) => {
 
   const configYaml = Plugins.YAML.stringify(config)
 
-  // 10. 获取本机局域网 IP 并启动 HTTP 服务
+  // 11. 获取本机局域网 IP 并启动 HTTP 服务
   const ips = await getIPAddress()
   if (ips.length === 0) throw '未找到局域网 IP 地址，请检查网络连接'
 
@@ -233,6 +306,32 @@ function getQRCode(rawUrl, content) {
   })
 }
 
+function compileProxyNameFilter(pattern, label) {
+  if (pattern === undefined || pattern === null || pattern === '') return null
+  try {
+    return new RegExp(String(pattern))
+  } catch (e) {
+    throw new Error(`${label} 正则无效，无法安全内联订阅节点：${e?.message || e}`)
+  }
+}
+
+function filterProviderProxyNames(proxies, provider, group, providerId) {
+  const providerName = providerId || '未命名订阅'
+  const groupName = group.name || '未命名策略组'
+  const providerFilter = compileProxyNameFilter(provider.filter, `订阅 ${providerName} 的 filter`)
+  const providerExclude = compileProxyNameFilter(provider['exclude-filter'], `订阅 ${providerName} 的 exclude-filter`)
+  const groupFilter = compileProxyNameFilter(group.filter, `策略组 ${groupName} 的 filter`)
+  const groupExclude = compileProxyNameFilter(group['exclude-filter'], `策略组 ${groupName} 的 exclude-filter`)
+
+  return proxies
+    .map((proxy) => String(proxy?.name || ''))
+    .filter(Boolean)
+    .filter((name) => !providerFilter || providerFilter.test(name))
+    .filter((name) => !providerExclude || !providerExclude.test(name))
+    .filter((name) => !groupFilter || groupFilter.test(name))
+    .filter((name) => !groupExclude || !groupExclude.test(name))
+}
+
 /**
  * 判断是否为私有 IP
  */
@@ -252,6 +351,69 @@ function isPrivateIP(ip) {
 /**
  * 获取本机局域网 IP 列表
  */
+function normalizeRulesetPath(value) {
+  const path = String(value || '').replace(/\\/g, '/')
+  if (path.startsWith('../data/')) return path.slice(3)
+  if (path.startsWith('../')) return `data/${path.slice(3)}`
+  return path.replace(/^\.\//, '')
+}
+
+function findRuleset(rulesets, providerName, provider) {
+  const items = Array.isArray(rulesets) ? rulesets : []
+  const clean = (value) =>
+    String(value || '')
+      .replace(/[^\p{L}\p{N}]+/gu, '')
+      .toLowerCase()
+  const wanted = clean(providerName)
+  const providerPath = normalizeRulesetPath(provider?.path)
+
+  // 精确匹配优先，避免近似名称覆盖准确 ID。
+  const exact = items.find((r) => r.id === providerName || r.name === providerName)
+  if (exact) return exact
+
+  if (providerPath) {
+    const pathMatched = items.find((r) => normalizeRulesetPath(r.path) === providerPath)
+    if (pathMatched) return pathMatched
+  }
+
+  if (wanted) {
+    return items.find((r) => clean(r.id) === wanted || clean(r.name) === wanted)
+  }
+}
+
+function parseLocalYamlRules(content) {
+  const text = String(content || '').trim()
+  if (!text) return []
+  const toRuleLines = (values) => values.map((value) => String(value).trim().replace(/^-\s+/, '')).filter(isRuleLine)
+
+  try {
+    const parsed = Plugins.YAML.parse(text)
+    if (Array.isArray(parsed)) return toRuleLines(parsed)
+    if (Array.isArray(parsed?.payload)) return toRuleLines(parsed.payload)
+    if (Array.isArray(parsed?.rules)) return toRuleLines(parsed.rules)
+    // YAML 已解析但没有可识别规则字段时，不将键名误当作规则行。
+    if (parsed && typeof parsed === 'object') return []
+  } catch (_) {}
+
+  return toRuleLines(text.split(/\r?\n/))
+}
+
+function isRuleLine(line) {
+  const value = String(line).trim()
+  return Boolean(value) && !value.startsWith('#') && !value.startsWith(';') && !value.startsWith('//') && value !== 'payload:' && value !== 'rules:'
+}
+
+function normalizeMihomoRule(value, behavior) {
+  const line = String(value)
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
+    .trim()
+  if (!line) return null
+  if (line.includes(',')) return line
+  if (behavior === 'domain') return line.startsWith('+.') ? `DOMAIN-SUFFIX,${line.slice(2)}` : `DOMAIN,${line}`
+  if (behavior === 'ipcidr') return line.includes(':') ? `IP-CIDR6,${line}` : `IP-CIDR,${line}`
+  return null
+}
+
 async function getIPAddress() {
   const os = Plugins.useEnvStore().env.os
   const cmd = { windows: 'ipconfig', linux: 'ip', darwin: 'ifconfig' }[os]

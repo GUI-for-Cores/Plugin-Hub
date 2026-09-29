@@ -1,28 +1,38 @@
-const CORE = Plugins.APP_TITLE.includes('SingBox') ? 'sing-box' : 'mihomo'
+const IS_SING_BOX = Plugins.APP_TITLE.includes('SingBox')
+
 /** @type {EsmPlugin} */
 export default (Plugin) => {
   const BASE_PATH = `data/third/${Plugin.id}`
   const CACHE_PATH = `data/.cache/${Plugin.id}`
   const MANAGER_CONFIG_PATH = `${BASE_PATH}/${Plugin.id}.json`
+
   const appStore = Plugins.useAppStore()
   const subscribesStore = Plugins.useSubscribesStore()
+
   const collections = Vue.ref([])
+
   /* 触发器 手动触发 */
   const onRun = async () => {
     await init()
     openMainUI()
   }
+
   /* 触发器: 更新订阅时 */
   const onSubscribe = async (proxies, subscription) => {
     const col = collections.value.find((c) => c.subscriptionId === subscription.id)
-    if (!col) return proxies
+    if (!col) {
+      return proxies
+    }
     return (await updateCollection(col)) ?? proxies
   }
+
   /* 触发器 APP就绪后 */
   const onReady = async () => {
     await init()
     addSubscriptionsHeaderAction()
   }
+
+  /* 触发器 安装插件时 */
   const onInstall = async () => {
     if (!(await Plugins.FileExists(CACHE_PATH))) {
       await Plugins.MakeDir(CACHE_PATH)
@@ -32,9 +42,11 @@ export default (Plugin) => {
       await Plugins.WriteFile(MANAGER_CONFIG_PATH, '[]')
     }
   }
+
   const onUninstall = async () => {
     await Promise.all([BASE_PATH, CACHE_PATH].map((dir) => Plugins.RemoveFile(dir)))
   }
+
   const addSubscriptionsHeaderAction = () => {
     appStore.addCustomActions('subscriptions_header', {
       id: Plugin.id,
@@ -48,8 +60,10 @@ export default (Plugin) => {
       }
     })
   }
+
   const openMainUI = () => {
     const { h, resolveComponent, defineComponent } = Vue
+
     const component = defineComponent({
       template: `
     <div class="h-full w-full">
@@ -85,6 +99,7 @@ export default (Plugin) => {
       </div>
     </div>
     `,
+
       setup(_, { expose }) {
         expose({
           modalSlots: {
@@ -112,6 +127,7 @@ export default (Plugin) => {
             ]
           }
         })
+
         return {
           getSubscribeName,
           collections,
@@ -125,6 +141,7 @@ export default (Plugin) => {
         }
       }
     })
+
     const modal = Plugins.modal({
       title: '聚合订阅管理',
       submit: false,
@@ -132,9 +149,11 @@ export default (Plugin) => {
       width: '80',
       height: '80'
     })
+
     modal.setContent(component)
     modal.open()
   }
+
   const openCreateUI = () => {
     const { reactive, computed, defineComponent } = Vue
     const state = reactive({
@@ -143,9 +162,11 @@ export default (Plugin) => {
       external: {},
       operates: { showOrdinal: false, deduplicate: false }
     })
+
     const existingSubs = computed(() =>
       subscribesStore.subscribes.filter((s) => !collections.value.some((c) => c.subscriptionId === s.id)).map((s) => ({ id: s.id, name: s.name }))
     )
+
     const component = defineComponent({
       template: `
     <div class="flex flex-col gap-8 p-8">
@@ -197,12 +218,16 @@ export default (Plugin) => {
           existingSubs,
           toggle: (id) => {
             const idx = state.selectedSubs.indexOf(id)
-            if (idx === -1) state.selectedSubs.push(id)
-            else state.selectedSubs.splice(idx, 1)
+            if (idx === -1) {
+              state.selectedSubs.push(id)
+            } else {
+              state.selectedSubs.splice(idx, 1)
+            }
           }
         }
       }
     })
+
     const modal = Plugins.modal({
       title: '新建',
       width: '60',
@@ -217,6 +242,7 @@ export default (Plugin) => {
           Plugins.message.error('请至少选择/添加一个订阅')
           return false
         }
+
         try {
           await addCollection(state)
           Plugins.message.success('创建成功')
@@ -227,19 +253,23 @@ export default (Plugin) => {
         }
       }
     })
+
     modal.setContent(component)
     modal.open()
   }
+
   const openEditUI = (col) => {
     const { reactive, computed, defineComponent } = Vue
-    const subscribesStore = Plugins.useSubscribesStore()
+
     const state = reactive({
       members: [...col.members],
       operates: { ...col.operates }
     })
+
     const existingSubs = computed(() =>
       subscribesStore.subscribes.filter((s) => !collections.value.some((c) => c.subscriptionId === s.id)).map((s) => ({ id: s.id, name: s.name }))
     )
+
     const component = defineComponent({
       template: `
     <div class="flex flex-col gap-8 p-8">
@@ -278,12 +308,16 @@ export default (Plugin) => {
           existingSubs,
           toggle: (id) => {
             const idx = state.members.indexOf(id)
-            if (idx === -1) state.members.push(id)
-            else state.members.splice(idx, 1)
+            if (idx === -1) {
+              state.members.push(id)
+            } else {
+              state.members.splice(idx, 1)
+            }
           }
         }
       }
     })
+
     const modal = Plugins.modal({
       title: '编辑',
       width: '60',
@@ -306,9 +340,11 @@ export default (Plugin) => {
         }
       }
     })
+
     modal.setContent(component)
     modal.open()
   }
+
   const init = async () => {
     try {
       const content = await Plugins.ReadFile(MANAGER_CONFIG_PATH)
@@ -318,6 +354,7 @@ export default (Plugin) => {
       collections.value = []
     }
   }
+
   const addCollection = async (payload) => {
     const col = {
       id: Plugins.sampleID(),
@@ -325,8 +362,11 @@ export default (Plugin) => {
       operates: { ...payload.operates },
       subscriptionId: ''
     }
+
     for (const [name, url] of Object.entries(payload.external)) {
-      if (!name.trim() || !url.trim()) continue
+      if (!name.trim() || !url.trim()) {
+        continue
+      }
       const newSub = subscribesStore.getSubscribeTemplate(name.trim(), { url: url.trim() })
       newSub.header.request = {
         'User-Agent': 'Clash.Meta'
@@ -334,58 +374,77 @@ export default (Plugin) => {
       await subscribesStore.addSubscribe(newSub)
       col.members.push(newSub.id)
     }
-    const colSub = subscribesStore.getSubscribeTemplate(payload.name, { url: getProxiesCachePath(col) })
+
+    const colSub = subscribesStore.getSubscribeTemplate(payload.name, {
+      url: getProxiesCachePath(col)
+    })
     colSub.type = 'File'
     await subscribesStore.addSubscribe(colSub)
     col.subscriptionId = colSub.id
+
     await writeCache(col, [])
-    collections.value?.push(col)
+
+    collections.value.push(col)
     await saveCollections()
+
     await subscribesStore.updateSubscribe(colSub.id)
   }
+
   /**
    * 删除集合（可选删除承载订阅）
    */
   const deleteCollection = async (col) => {
     const sure = await Plugins.confirm('删除', `确定要删除「${getSubscribeName(col.subscriptionId)}」吗？`).catch(() => false)
-    if (!sure) return
+    if (!sure) {
+      return
+    }
     const idx = collections.value.findIndex((c) => c.id === col.id)
-    if (idx >= 0) collections.value.splice(idx, 1)
+    if (idx !== -1) {
+      collections.value.splice(idx, 1)
+    }
     await Plugins.RemoveFile(subscribesStore.getSubscribeById(col.subscriptionId).path)
     await subscribesStore.deleteSubscribe(col.subscriptionId)
     await Plugins.RemoveFile(getProxiesCachePath(col))
     await saveCollections()
     Plugins.message.success('已删除')
   }
+
   const saveCollections = async () => {
     await Plugins.WriteFile(MANAGER_CONFIG_PATH, JSON.stringify(collections.value, null, 2))
   }
+
   const updateCollection = async (col) => {
     const memberIds = new Set(col.members)
     const members = subscribesStore.subscribes.filter((s) => memberIds.has(s.id))
     if (members.length === 0) {
       Plugins.message.warn(`组合「${getSubscribeName(col.subscriptionId)}」没有可用成员，已跳过`)
-      return
+      return undefined
     }
+
     const allProxies = []
     for (const sub of members) {
       try {
         await subscribesStore.updateSubscribe(sub.id)
         const content = await Plugins.ReadFile(sub.path, { Mode: 'Text' })
-        const proxies = CORE === 'sing-box' ? JSON.parse(content) : Plugins.YAML.parse(content).proxies
+        const proxies = IS_SING_BOX ? JSON.parse(content) : Plugins.YAML.parse(content).proxies
         allProxies.push(...proxies)
       } catch (err) {
         Plugins.message.warn(`成员订阅 ${sub.name} 更新失败，已忽略，${err instanceof Error ? err.message : String(err)}`)
       }
     }
-    if (allProxies.length === 0) return
+
+    if (allProxies.length === 0) {
+      return undefined
+    }
+
     let collectionProxies = allProxies
+
     // 去重：server + port
     if (col.operates.deduplicate) {
       const unique = new Set()
       collectionProxies = collectionProxies.filter((p) => {
-        const server = p.server
-        const port = CORE === 'sing-box' ? p.server_port : p.port
+        const { server } = p
+        const port = IS_SING_BOX ? p.server_port : p.port
         const key = `${server}:${port}`
         if (!unique.has(key)) {
           unique.add(key)
@@ -394,33 +453,35 @@ export default (Plugin) => {
         return false
       })
     }
+
     // 名称添加序号
     if (col.operates.showOrdinal) {
       const width = String(collectionProxies.length).length
       collectionProxies = collectionProxies.map((p, i) => {
         const seq = String(i + 1).padStart(width, '0')
-        if (CORE === 'sing-box') {
-          const tag = p.tag
+        if (IS_SING_BOX) {
+          const { tag } = p
           return { ...p, tag: `${tag} - ${seq}` }
         }
-        const name = p.name
+        const { name } = p
         return { ...p, name: `${name} - ${seq}` }
       })
     }
+
     await writeCache(col, collectionProxies)
     return collectionProxies
   }
+
   const writeCache = async (col, proxies) => {
     const cachePath = getProxiesCachePath(col)
-    const contentToWrite = CORE === 'sing-box' ? JSON.stringify({ outbounds: proxies }, null, 2) : Plugins.YAML.stringify({ proxies })
+    const contentToWrite = IS_SING_BOX ? JSON.stringify({ outbounds: proxies }, null, 2) : Plugins.YAML.stringify({ proxies })
     await Plugins.WriteFile(cachePath, contentToWrite)
   }
-  const getProxiesCachePath = (col) => {
-    return `${CACHE_PATH}/${col.id}${CORE === 'sing-box' ? '.json' : '.yaml'}`
-  }
-  const getSubscribeName = (id) => {
-    return subscribesStore.getSubscribeById(id)?.name ?? 'Not Found'
-  }
+
+  const getProxiesCachePath = (col) => `${CACHE_PATH}/${col.id}${IS_SING_BOX ? '.json' : '.yaml'}`
+
+  const getSubscribeName = (id) => subscribesStore.getSubscribeById(id)?.name ?? 'Not Found'
+
   return {
     onRun,
     onSubscribe,
