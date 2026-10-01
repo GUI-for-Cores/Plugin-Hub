@@ -84,6 +84,11 @@ async function beautifyNodeName(proxies, metadata) {
       tag = tag.slice(prefix.length)
     }
 
+    // 订阅提示保留原文，避免将流量单位 GB 识别成英国，也不占用地区编号。
+    if (getSubscriptionNoticeKind(tag)) {
+      return { ...proxy, [flag]: enableSubscriptionName ? prefix + tag : tag }
+    }
+
     // 仅移除能够识别的国旗，未知国旗保留原样。
     tag = tag
       .replace(emojiRegex, (match) => {
@@ -99,6 +104,11 @@ async function beautifyNodeName(proxies, metadata) {
     const subRegionMatch = findRuleMatch(tag, subRegionRules)
     const regionMatch = findRuleMatch(tag, regionRules)
     matchedRegion = matchedRegion || regionMatch?.region || subRegionMatch?.region || null
+    // 展示旗帜可共用，但地区识别与编号仍独立；重复处理“🇨🇳 台湾”时保留台湾。
+    const namedRegion = regionMatch?.region || subRegionMatch?.region
+    if (namedRegion?.displayEmoji && namedRegion.displayEmoji === matchedRegion?.emoji) {
+      matchedRegion = namedRegion
+    }
     let matchRegionName = ''
     if (subRegionMatch && subRegionMatch.region === matchedRegion) {
       subMatchedRegion = cleanMatchedText(subRegionMatch.matchResult[0])
@@ -145,7 +155,7 @@ async function beautifyNodeName(proxies, metadata) {
       serialNumber = count.toString().padStart(2, '0')
 
       tag = [
-        enableNationalEmoji ? matchedRegion.emoji : '',
+        enableNationalEmoji ? matchedRegion.displayEmoji || matchedRegion.emoji : '',
         enableUnifyRegionName ? regionName : matchRegionName,
         serialNumber,
         enableCityName ? (subMatchedRegion ?? '') : ''
@@ -164,6 +174,17 @@ async function beautifyNodeName(proxies, metadata) {
 }
 
 let compiledRegionData = null
+
+function getSubscriptionNoticeKind(name) {
+  const text = String(name)
+    .replace(/^[^\p{L}\p{N}]+/u, '')
+    .trim()
+  if (/^(?:剩余流量|已用流量|总流量|流量剩余|流量使用|remaining traffic|traffic remaining)\s*[:：]/i.test(text)) return 'traffic'
+  if (/^(?:距离下次重置|下次重置|重置时间|流量重置|next reset|reset time)/i.test(text)) return 'reset'
+  if (/^(?:套餐到期|订阅到期|到期时间|有效期|expire(?:s|d)?|expiration)\s*[:：]/i.test(text)) return 'expiry'
+  if (/^(?:官网|官方网站|website)\s*[:：]/i.test(text)) return 'website'
+  return null
+}
 
 function getCompiledRegionData() {
   if (compiledRegionData) return compiledRegionData
@@ -260,6 +281,7 @@ const RegionData = [
     keywords: ['🇹🇼', 'TW', '台湾', '台灣', '臺灣', '台', 'CHT', 'HINET', 'Taiwan'],
     subKeywords: ['台北', '台中', '新北', '彰化', '中正'],
     standardName: { zh: '台湾', en: 'TW' },
+    displayEmoji: '🇨🇳',
     emoji: '🇹🇼'
   },
   {

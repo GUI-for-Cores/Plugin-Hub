@@ -75,9 +75,9 @@
   {
     "id": "plugin-sync-singbox-configuration-gists",
     "name": "一键同步config.json",
-    "version": "v2.0.0",
+    "version": "v3.0.0",
     "group": "Extensions",
-    "description": "将选中的配置生成 config.json 并同步到 Gist，可分别上传原始配置与带 Linux TUN 路由预设的配置；不选择配置时默认同步全部。Supported by: StarfishC",
+    "description": "将选中的配置生成 config.json 并同步到 Gist，可同时上传 Windows、Linux、macOS 三个版本的配置，每个版本可自定义上传前脚本；不选择配置时默认同步全部。Supported by: StarfishC",
     "tags": ["功能扩展", "提升体验"],
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-sync-singbox-configuration-gists.js",
@@ -122,27 +122,27 @@
         "options": []
       },
       {
-        "id": "ID_upload_original",
-        "title": "上传原始配置",
-        "description": "开启后生成并上传 名称.json；下方脚本仅在开启时执行",
-        "key": "UploadOriginal",
+        "id": "ID_upload_windows",
+        "title": "上传 Windows 配置",
+        "description": "开启后生成并上传 名称_windows.json；可与其他版本同时勾选",
+        "key": "UploadWindows",
         "component": "Switch",
-        "value": true,
+        "value": false,
         "options": []
       },
       {
-        "id": "ID_original_upload_script",
-        "title": "原始配置上传前脚本",
-        "description": "“上传原始配置”开启时执行；脚本接收 config、profile、target，并需由 onUpload 返回配置对象",
-        "key": "OriginalUploadScript",
+        "id": "ID_windows_upload_script",
+        "title": "Windows配置上传前脚本",
+        "description": "仅在对应上传开关开启时执行；target 为 windows，onUpload(config, profile, target) 必须返回配置对象，可自行修改。",
+        "key": "WindowsUploadScript",
         "component": "CodeEditor",
-        "value": "const onUpload = async (config, profile, target) => {\n  return config\n}",
+        "value": "const onUpload = async (config, profile, target) => {\n  const inbounds = Array.isArray(config.inbounds) ? config.inbounds : []\n  for (const inbound of inbounds) {\n    if (inbound && inbound.type === 'tun') {\n      inbound.auto_route = true\n      // Windows / macOS 不支持 Linux 的 auto_redirect；由系统自动分配 TUN 名称。\n      delete inbound.interface_name\n      for (const key of Object.keys(inbound)) {\n        if (key === 'auto_redirect' || key.startsWith('auto_redirect_')) delete inbound[key]\n      }\n    }\n  }\n  return config\n}",
         "options": []
       },
       {
         "id": "ID_upload_linux",
         "title": "上传 Linux 配置",
-        "description": "开启后生成并上传 名称_linux.json；不会替换或删除 Gist 中的原始配置",
+        "description": "开启后生成并上传 名称_linux.json；可与其他版本同时勾选",
         "key": "UploadLinux",
         "component": "Switch",
         "value": false,
@@ -150,11 +150,29 @@
       },
       {
         "id": "ID_linux_upload_script",
-        "title": "Linux 配置上传前脚本",
-        "description": "“上传 Linux 配置”开启时执行；默认给所有 TUN 入站启用 auto_route 和 auto_redirect，可自行修改",
+        "title": "Linux配置上传前脚本",
+        "description": "仅在对应上传开关开启时执行；target 为 linux，onUpload(config, profile, target) 必须返回配置对象，可自行修改。",
         "key": "LinuxUploadScript",
         "component": "CodeEditor",
         "value": "const onUpload = async (config, profile, target) => {\n  const inbounds = Array.isArray(config.inbounds) ? config.inbounds : []\n  for (const inbound of inbounds) {\n    if (inbound && inbound.type === 'tun') {\n      inbound.auto_route = true\n      inbound.auto_redirect = true\n    }\n  }\n  return config\n}",
+        "options": []
+      },
+      {
+        "id": "ID_upload_macos",
+        "title": "上传 macOS 配置",
+        "description": "开启后生成并上传 名称_macos.json；可与其他版本同时勾选",
+        "key": "UploadMacOS",
+        "component": "Switch",
+        "value": false,
+        "options": []
+      },
+      {
+        "id": "ID_macos_upload_script",
+        "title": "macOS配置上传前脚本",
+        "description": "仅在对应上传开关开启时执行；target 为 macos，onUpload(config, profile, target) 必须返回配置对象，可自行修改。",
+        "key": "MacOSUploadScript",
+        "component": "CodeEditor",
+        "value": "const onUpload = async (config, profile, target) => {\n  const inbounds = Array.isArray(config.inbounds) ? config.inbounds : []\n  for (const inbound of inbounds) {\n    if (inbound && inbound.type === 'tun') {\n      inbound.auto_route = true\n      // Windows / macOS 不支持 Linux 的 auto_redirect；由系统自动分配 TUN 名称。\n      delete inbound.interface_name\n      for (const key of Object.keys(inbound)) {\n        if (key === 'auto_redirect' || key.startsWith('auto_redirect_')) delete inbound[key]\n      }\n    }\n  }\n  return config\n}",
         "options": []
       }
     ],
