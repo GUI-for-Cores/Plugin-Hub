@@ -182,7 +182,7 @@ export default (Plugin) => {
             title: '图片预览',
             width: '90',
             height: '90',
-            maskClosable: false,
+            maskClosable: true,
             submit: false,
             cancelText: 'common.close',
             toolbar: {
@@ -301,7 +301,12 @@ export default (Plugin) => {
             </details>
           </div>
           <div v-else-if="item.role == 'user'" class="flex items-center justify-end mb-8">
-            <div class="ml-24 rounded-8 px-8 py-4" style="background: var(--card-bg)">{{ item.content }}</div>
+            <div class="ml-24 rounded-8 px-8 py-4" style="background: var(--card-bg)">
+              <div v-if="item.content">{{ item.content }}</div>
+              <div v-if="item.images?.length" class="flex flex-wrap justify-end gap-8" :class="item.content ? 'mt-8' : ''">
+                <StoredImage v-for="image in item.images" :key="image.path" :path="image.path" :mime="image.type" />
+              </div>
+            </div>
             <Dropdown placement="bottom">
               <Button icon="more" type="text" />
               <template #overlay="{ close }">
@@ -404,6 +409,12 @@ export default (Plugin) => {
         </Card>
       </div>
       <div v-else class="flex flex-col gap-8 p-8 rounded-16" :style="permission.inputStyle">
+        <div v-if="pendingImages.length" class="flex flex-wrap gap-8">
+          <div v-for="(image, index) in pendingImages" :key="image.id" class="relative">
+            <img :src="image.url" class="rounded-8 w-64 h-64" style="object-fit: cover" />
+            <Button class="absolute" style="top: 0; right: 0" size="small" type="text" icon="close" @click="onRemovePendingImage(index)" />
+          </div>
+        </div>
         <textarea
           ref="textareaRef"
           v-model="input"
@@ -414,6 +425,7 @@ export default (Plugin) => {
           @keydown.shift.enter.prevent="onInsertNewline"
           @keydown.meta.enter.prevent="onInsertNewline"
           @input="onAutoResize"
+          @paste="onPaste"
           rows="1"
           class="border-0 p-0 outline-none bg-transparent"
           style="resize: none; font-family: inherit; max-height: 200px; color: var(--color)"
@@ -480,6 +492,7 @@ export default (Plugin) => {
 
         const chatBox = ref()
         const textareaRef = ref()
+        const pendingImages = ref([])
         const autoScrollToBottom = ref(true)
         const loading = ref(false)
         const requesting = ref(false)
@@ -521,7 +534,7 @@ export default (Plugin) => {
         /** @type (v: boolean) => void */
         let userAuthorized
 
-        /** @type { {value: {role: 'system' | 'user' | 'assistant' | 'tool', content: string, tool_calls?: any, tool_call_id?: string, name?: string, id?: string, model?: string, usage?: any, created?: number, duration?: number, compressed?: boolean, images?: {path: string, type: string}[]}[]} } */
+        /** @type { {value: {role: 'system' | 'user' | 'assistant' | 'tool', content: string, tool_calls?: any, tool_call_id?: string, name?: string, id?: string, model?: string, usage?: any, created?: number, duration?: number, compressed?: boolean, images?: {path: string, type: string, dataUrl?: string}[]}[]} } */
         const chatHistory = ref([])
         const toolResultMapping = computed(() =>
           chatHistory.value
@@ -563,6 +576,15 @@ export default (Plugin) => {
 
           return history.map((message, index) => {
             const { id, model, usage, created, duration, compressed, reasoning, reasoning_content, images, ...requestMessage } = message
+            if (images?.length && requestMessage.role === 'user') {
+              requestMessage.content = [
+                ...(requestMessage.content ? [{ type: 'text', text: requestMessage.content }] : []),
+                ...images.map((image) => ({
+                  type: 'image_url',
+                  image_url: { url: image.dataUrl || imageUrlCache.get(image.path) }
+                }))
+              ].filter((part) => part.type !== 'image_url' || part.image_url.url)
+            }
             if (requestMessage.role === 'tool' && index < lastUserIndex) {
               const length = typeof requestMessage.content === 'string' ? requestMessage.content.length : 0
               if (requestMessage.content.length > 2000) {
@@ -827,6 +849,13 @@ export default (Plugin) => {
             }
             const systemMessage = chatHistory.value.find((message) => message.role === 'system')
             const requestHistory = compressedIndex < 0 ? chatHistory.value : [systemMessage, ...chatHistory.value.slice(compressedIndex)].filter(Boolean)
+            const body = {
+              model: Plugin.Model,
+              messages: prepareRequestMessages(requestHistory),
+              tools: settings.value.sessionMode === 'agent' ? tools : assistantTools,
+              stream: true
+            }
+
             const res = await Plugins.Requests({
               url: Plugin.BaseUrl,
               method: 'POST',
@@ -834,12 +863,7 @@ export default (Plugin) => {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${Plugin.ApiKey}`
               },
-              body: {
-                model: Plugin.Model,
-                messages: prepareRequestMessages(requestHistory),
-                tools: settings.value.sessionMode === 'agent' ? tools : assistantTools,
-                stream: true
-              },
+              body: body,
               options: {
                 Timeout: 60 * 20,
                 CancelId: cancelId
@@ -1204,6 +1228,31 @@ export default (Plugin) => {
           Utils.autoResize(textareaRef.value)
         }
 
+        const onRemovePendingImage = (index) => {
+          const [image] = pendingImages.value.splice(index, 1)
+          if (image) URL.revokeObjectURL(image.url)
+        }
+
+        const onPaste = (event) => {
+          const files = [...(event.clipboardData?.items || [])]
+            .filter((item) => item.kind === 'file' && item.type.startsWith('image/'))
+            .map((item) => item.getAsFile())
+            .filter(Boolean)
+          if (!files.length) return
+          event.preventDefault()
+          for (const file of files) {
+            if (!['image/png', 'image/jpeg', 'image/webp', 'image/gif'].includes(file.type)) {
+              Plugins.message.info('仅支持 PNG、JPEG、WebP 和 GIF 图片')
+              continue
+            }
+            if (file.size > 10 * 1024 * 1024) {
+              Plugins.message.info('图片不能超过 10 MB')
+              continue
+            }
+            pendingImages.value.push({ id: Plugins.sampleID(), file, type: file.type, url: URL.createObjectURL(file) })
+          }
+        }
+
         const onSend = async (clearHistory = false) => {
           if (compressing.value) {
             Plugins.message.info('请等待会话压缩完成')
@@ -1214,8 +1263,35 @@ export default (Plugin) => {
             return
           }
           const message = input.value
-          if (message.trim().length == 0) {
+          if (message.trim().length == 0 && pendingImages.value.length === 0) {
             return
+          }
+          let images
+          try {
+            images = await Promise.all(
+              pendingImages.value.map(async ({ file, type }) => {
+                const bytes = new Uint8Array(await file.arrayBuffer())
+                let binary = ''
+                for (let i = 0; i < bytes.length; i += 0x8000) {
+                  binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000))
+                }
+                const base64 = btoa(binary)
+                const extension = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/gif': 'gif' }[type]
+                const path = `images/${Date.now()}-${Plugins.sampleID()}.${extension}`
+                await Plugins.WriteFile(`${PATH}/${path}`, base64, { Mode: 'Binary' })
+                return { path, type, dataUrl: `data:${type};base64,${base64}` }
+              })
+            )
+          } catch (error) {
+            Plugins.message.error('图片保存失败：' + (error?.message || error))
+            return
+          }
+          for (const image of images) {
+            const base64 = image.dataUrl.split(',')[1]
+            const binary = atob(base64)
+            const bytes = new Uint8Array(binary.length)
+            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+            imageUrlCache.set(image.path, URL.createObjectURL(new Blob([bytes], { type: image.type })))
           }
           if (clearHistory) {
             for (const item of chatHistory.value) {
@@ -1258,7 +1334,9 @@ export default (Plugin) => {
             appendMessage({ role: 'system', content: settings.value.sessionMode === 'agent' ? system_prompt : assistant_prompt })
           }
           autoScrollToBottom.value = true
-          appendMessage({ role: 'user', content: message })
+          appendMessage({ role: 'user', content: message, ...(images.length ? { images } : {}) })
+          for (const image of pendingImages.value) URL.revokeObjectURL(image.url)
+          pendingImages.value = []
           if (input.value === message) {
             input.value = ''
           }
@@ -1355,6 +1433,7 @@ export default (Plugin) => {
         return {
           chatBox,
           textareaRef,
+          pendingImages,
           input,
           quickPrompts: [
             '为当前 GUI 状态生成一份简明报告',
@@ -1386,6 +1465,8 @@ export default (Plugin) => {
           onStopAI,
           onInsertNewline,
           onAutoResize,
+          onPaste,
+          onRemovePendingImage,
           onSend,
           onDelete,
           onResend,
