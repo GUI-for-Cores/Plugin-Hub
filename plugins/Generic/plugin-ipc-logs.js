@@ -1,4 +1,4 @@
-const disallowedList = [':wails:WindowIsMaximised', ':wails:WindowIsMinimised']
+const disallowedList = [':wails:WindowIsMaximised', ':wails:WindowIsMinimised', ':wails:WindowIsFullscreen', ':wails:WindowGetSize', ':wails:WindowGetPos']
 const logs = Vue.ref([])
 let hooked = false
 const originalInvoke = window.WailsInvoke

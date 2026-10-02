@@ -469,7 +469,7 @@
   {
     "id": "plugin-ipc-logs",
     "name": "日志系统",
-    "version": "v2.4.1",
+    "version": "v2.4.2",
     "group": "Extensions",
     "description": "GUI日志系统，包含敏感信息，用于debug。",
     "tags": ["功能扩展"],
