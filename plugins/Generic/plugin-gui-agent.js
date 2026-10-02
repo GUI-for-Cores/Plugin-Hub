@@ -1,6 +1,6 @@
 const PATH = 'data/third/gui-agent'
+const TOOL_RESULT_DIR = `${PATH}/tool-results`
 const DEFAULT_MAX_TOOL_RESULT_CHARS = 30000
-const DEFAULT_MAX_HTTP_BODY_CHARS = 20000
 
 const envStore = Plugins.useEnvStore()
 
@@ -39,7 +39,7 @@ const system_prompt = `
 
 调用工具时必须严格遵守参数定义，使用已验证的对象标识，不调用无关工具，不用相同参数无意义重复调用，不虚构参数或结果。
 
-控制返回体积：优先在命令、API 查询或选择器中只返回完成任务所需的字段和范围，不要把大型原始 JSON、HTML、日志、完整仓库差异或整份文件直接送回上下文。GitHub commits、compare 等宽泛接口必须先投影字段、分页或改用浅克隆后的摘要命令；若结果被截断，应缩小查询，而不是原样重复请求。
+控制返回体积：优先在命令、API 查询或选择器中只返回完成任务所需的字段和范围，不要把大型原始 JSON、HTML、日志、完整仓库差异或整份文件直接送回上下文。GitHub commits、compare 等宽泛接口必须先投影字段、分页或改用浅克隆后的摘要命令。若结果被截断，提示里会给出完整内容的文件路径：用 ReadFile 的 Range 分段读取，或用 Exec 在本地筛选、聚合，只把精简结果留在上下文；不要为了拿全文而重新调用原来的工具。
 
 控制外部请求次数：禁止对批量结果中的每个对象逐条请求详情形成 N+1 调用。优先请求一次批量接口并在同一命令进程内解析、筛选和聚合；只有批量结果缺少回答所必需的信息时，才补充少量目标明确的详情请求。
 
@@ -450,11 +450,19 @@ export default (Plugin) => {
                 </div>
                 <div class="flex items-center justify-between gap-16">
                   <span>缓存 Token</span>
-                  <span>{{ tokenUsage?.prompt_tokens_details?.cached_tokens || 0 }}</span>
+                  <span>{{ cachedTokenCount(tokenUsage) }}</span>
+                </div>
+                <div class="flex items-center justify-between gap-16">
+                  <span>缓存命中率</span>
+                  <span>{{ cacheHitPercent }}%</span>
                 </div>
                 <div class="flex items-center justify-between gap-16">
                   <span>已用上下文</span>
                   <span>{{ tokenPercent }}%</span>
+                </div>
+                <div class="flex items-center justify-between gap-16">
+                  <span>工具调用次数</span>
+                  <span>{{ toolCallCount }}</span>
                 </div>
                 <Button :loading="compressing" @click="onCompress" type="primary">
                   立即压缩上下文
@@ -564,18 +572,36 @@ export default (Plugin) => {
           if (compressionThreshold.value === 0) return 0
           return Math.min(100, Math.round(((Number(tokenUsage.value?.prompt_tokens) || 0) / compressionThreshold.value) * 100))
         })
+        const cachedTokenCount = (usage) => {
+          const cached = usage?.prompt_tokens_details?.cached_tokens ?? usage?.prompt_cache_hit_tokens ?? usage?.cache_read_input_tokens
+          return Number(cached) || 0
+        }
+        const cacheHitPercent = computed(() => {
+          const prompt = Number(tokenUsage.value?.prompt_tokens) || 0
+          if (prompt <= 0) return 0
+          return Math.min(100, Math.round((cachedTokenCount(tokenUsage.value) / prompt) * 100))
+        })
+        const toolCallCount = computed(() => chatHistory.value.reduce((count, message) => count + (message.tool_calls?.length || 0), 0))
 
-        const prepareRequestMessages = (history) => {
-          let lastUserIndex = -1
-          for (let i = history.length - 1; i >= 0; i--) {
-            if (history[i].role === 'user') {
-              lastUserIndex = i
-              break
-            }
-          }
+        const spillToolResult = async (message, text) => {
+          if (message.resultPath) return message.resultPath
+          const id = String(message.tool_call_id || Plugins.sampleID()).replace(/[^a-zA-Z0-9_-]/g, '_') || Plugins.sampleID()
+          const path = `${TOOL_RESULT_DIR}/${id}.txt`
+          await Plugins.WriteFile(path, text)
+          message.resultPath = path
+          return path
+        }
 
-          return history.map((message, index) => {
-            const { id, model, usage, created, duration, compressed, reasoning, reasoning_content, images, ...requestMessage } = message
+        const buildToolResultHint = (path, text) => {
+          const bytes = new TextEncoder().encode(text).length
+          return `完整内容已保存到 ${path}（UTF-8，${bytes} 字节）。不要重新调用刚才的工具。用 ReadFile 按字节区间读取该文件，options.Range 含首尾，例如 "0-7999"、"8000-"、"-4000"；或用 Exec 在本地筛选、聚合。只把精简后的结果留在上下文，不要无 Range 地整文件读回。`
+        }
+
+        const prepareRequestMessages = async (history) => {
+          const messages = []
+          let spilled = false
+          for (const message of history) {
+            const { id, model, usage, created, duration, compressed, reasoning, reasoning_content, images, resultPath, ...requestMessage } = message
             if (images?.length && requestMessage.role === 'user') {
               requestMessage.content = [
                 ...(requestMessage.content ? [{ type: 'text', text: requestMessage.content }] : []),
@@ -585,14 +611,30 @@ export default (Plugin) => {
                 }))
               ].filter((part) => part.type !== 'image_url' || part.image_url.url)
             }
-            if (requestMessage.role === 'tool' && index < lastUserIndex) {
-              const length = typeof requestMessage.content === 'string' ? requestMessage.content.length : 0
-              if (requestMessage.content.length > 2000) {
-                requestMessage.content = `[先前已完成轮次的 ${requestMessage.name || 'tool'} 结果已省略；原始长度 ${length} 字符。需要细节时请重新执行窄范围查询。]`
+            if (requestMessage.role === 'tool') {
+              const text = typeof requestMessage.content === 'string' ? requestMessage.content : JSON.stringify(requestMessage.content ?? '')
+              const limit = maxToolResultChars.value
+              if (text.length > limit) {
+                const hadResult = !!message.resultPath
+                let hint = '完整内容未能写入磁盘。不要为了拿全文而重新调用刚才的工具。'
+                try {
+                  hint = buildToolResultHint(await spillToolResult(message, text), text)
+                  if (!hadResult && message.resultPath) spilled = true
+                } catch (error) {
+                  hint = `完整内容未能写入磁盘（${error?.message || error}）。不要为了拿全文而重新调用刚才的工具。`
+                }
+                requestMessage.content = Utils.truncateText(text, limit, `${requestMessage.name || 'tool'} 工具结果`, hint)
               }
             }
-            return requestMessage
-          })
+            messages.push(requestMessage)
+          }
+          if (spilled) saveSession()
+          return messages
+        }
+
+        const removeToolResultFile = (message) => {
+          if (!message?.resultPath) return
+          Plugins.RemoveFile(message.resultPath).catch(() => {})
         }
 
         const toolVisibility = ref(new Set())
@@ -616,8 +658,21 @@ export default (Plugin) => {
             Plugins.ReadFile(PATH + '/session.json').catch(() => '[]'),
             Plugins.ReadFile(PATH + '/settings.json').catch(() => '')
           ])
-          chatHistory.value = JSON.parse(session)
-          savedSession = JSON.stringify(chatHistory.value)
+          const history = JSON.parse(session)
+          if (Array.isArray(history)) {
+            for (const message of history) {
+              if (message?.role !== 'tool' || !message.resultPath || typeof message.content === 'string') continue
+              const resultPath = message.resultPath
+              try {
+                message.content = await Plugins.ReadFile(resultPath)
+              } catch {
+                message.content = `[工具结果文件缺失：${resultPath}]`
+                delete message.resultPath
+              }
+            }
+          }
+          chatHistory.value = history
+          savedSession = session
           if (persistedSettings) {
             try {
               const value = JSON.parse(persistedSettings).permission
@@ -633,8 +688,14 @@ export default (Plugin) => {
           settings.value.permission = settings.value.sessionMode === 'assistant' ? 'common' : agentPermission
         }
 
+        const toSessionMessage = (message) => {
+          if (message?.role !== 'tool' || !message.resultPath || typeof message.content !== 'string') return message
+          const { content, ...stored } = message
+          return stored
+        }
+
         const saveSession = async () => {
-          const session = JSON.stringify(chatHistory.value)
+          const session = JSON.stringify(chatHistory.value.map(toSessionMessage), null, 2)
           sessionWrite = sessionWrite
             .catch(() => {})
             .then(async () => {
@@ -675,6 +736,7 @@ export default (Plugin) => {
               imageUrlCache.delete(image.path)
               Plugins.RemoveFile(`${PATH}/${image.path}`).catch(() => {})
             }
+            removeToolResultFile(message)
           }
           chatHistory.value = []
         }
@@ -851,10 +913,12 @@ export default (Plugin) => {
             const requestHistory = compressedIndex < 0 ? chatHistory.value : [systemMessage, ...chatHistory.value.slice(compressedIndex)].filter(Boolean)
             const body = {
               model: Plugin.Model,
-              messages: prepareRequestMessages(requestHistory),
+              messages: await prepareRequestMessages(requestHistory),
               tools: settings.value.sessionMode === 'agent' ? tools : assistantTools,
               stream: true
             }
+
+            console.log(body)
 
             const res = await Plugins.Requests({
               url: Plugin.BaseUrl,
@@ -992,7 +1056,8 @@ export default (Plugin) => {
                     const message = chatHistory.value[i]
                     if (message.role !== 'tool') continue
                     const content = typeof message.content === 'string' ? message.content : JSON.stringify(message.content)
-                    estimatedTokens += Math.ceil(new TextEncoder().encode(content || '').length / 3)
+                    const clipped = content.length > maxToolResultChars.value ? content.slice(0, maxToolResultChars.value) : content
+                    estimatedTokens += Math.ceil(new TextEncoder().encode(clipped || '').length / 3)
                   }
                   if (hasCompressibleMessages && estimatedTokens >= compressionThreshold.value) {
                     const { destroy } = Plugins.message.info('正在压缩工具调用前的上下文...', 999999)
@@ -1214,10 +1279,17 @@ export default (Plugin) => {
             }
             result = result === undefined ? 'Success' : typeof result === 'string' ? result : JSON.stringify(result)
           } catch (error) {
-            result = error.message || error
+            result = error.message || String(error)
           }
-          result = Utils.truncateText(result, maxToolResultChars.value, `${fnName} 工具结果`)
-          appendMessage({ role: 'tool', tool_call_id: toolCall.id, name: fnName, content: result, images })
+          if (typeof result !== 'string') result = String(result)
+          const toolMessage = { role: 'tool', tool_call_id: toolCall.id, name: fnName, content: result, images }
+          if (result.length > maxToolResultChars.value) {
+            try {
+              await spillToolResult(toolMessage, result)
+            } catch {}
+          }
+          appendMessage(toolMessage)
+          if (toolMessage.resultPath) saveSession()
         }
 
         const onInsertNewline = () => {
@@ -1301,6 +1373,7 @@ export default (Plugin) => {
                 imageUrlCache.delete(image.path)
                 Plugins.RemoveFile(`${PATH}/${image.path}`).catch(() => {})
               }
+              removeToolResultFile(item)
             }
             chatHistory.value.splice(0)
           } else {
@@ -1360,6 +1433,7 @@ export default (Plugin) => {
               imageUrlCache.delete(image.path)
               Plugins.RemoveFile(`${PATH}/${image.path}`).catch(() => {})
             }
+            removeToolResultFile(message)
           }
           onSend()
           close()
@@ -1378,6 +1452,7 @@ export default (Plugin) => {
             imageUrlCache.delete(image.path)
             Plugins.RemoveFile(`${PATH}/${image.path}`).catch(() => {})
           }
+          removeToolResultFile(message)
           if (message.id) {
             toolVisibility.value.delete(message.id)
             toolVisibility.value.delete(message.id + ':manual')
@@ -1393,6 +1468,7 @@ export default (Plugin) => {
                   imageUrlCache.delete(image.path)
                   Plugins.RemoveFile(`${PATH}/${image.path}`).catch(() => {})
                 }
+                removeToolResultFile(item)
                 chatHistory.value.splice(i, 1)
                 i--
               }
@@ -1409,16 +1485,16 @@ export default (Plugin) => {
                 <div class="flex items-center">
                   <div class="font-bold mr-8">Agent</div>
                   <Tag color="purple">${Plugin.Model.toUpperCase()}</Tag>
-                  <Tag v-if="tokenUsage">Tokens: {{ tokenUsage?.total_tokens }}, Cached: {{ tokenUsage?.prompt_tokens_details?.cached_tokens || 0 }}</Tag>
+                  <Tag v-if="tokenUsage">Tokens: {{ tokenUsage?.total_tokens }}, Cached: {{ cachedTokenCount(tokenUsage) }}, Hit: {{ cacheHitPercent }}%, Tools: {{ toolCallCount }}</Tag>
                 </div>
                 `,
                 setup() {
-                  return { onDeleteSession, tokenUsage }
+                  return { onDeleteSession, tokenUsage, cachedTokenCount, cacheHitPercent, toolCallCount }
                 }
               })
             ],
             toolbar: () => [
-              Vue.h(Vue.resolveComponent('Button'), { type: 'text', icon: 'add', onClick: () => onDeleteSession() }, () => '新会话'),
+              Vue.h(Vue.resolveComponent('Button'), { type: 'text', icon: 'add', onClick: () => onDeleteSession() }),
               Vue.h(Vue.resolveComponent('Button'), {
                 type: 'text',
                 icon: 'close',
@@ -1435,12 +1511,7 @@ export default (Plugin) => {
           textareaRef,
           pendingImages,
           input,
-          quickPrompts: [
-            '为当前 GUI 状态生成一份简明报告',
-            '分析当前配置并指出潜在问题',
-            '检查核心、系统代理和网络状态',
-            '给出当前 GUI 配置的优化建议'
-          ],
+          quickPrompts: ['为当前 GUI 状态生成一份简明报告', '分析当前配置并指出潜在问题', '检查核心、系统代理和网络状态', '给出当前 GUI 配置的优化建议'],
           chatQuickPrompts: ['查询今日 V2EX 热门话题', '查询今日科技新闻', '查询今日 GitHub 热门项目', '查询今日 AI 行业动态'],
           loading,
           requesting,
@@ -1448,6 +1519,9 @@ export default (Plugin) => {
           chatHistory,
           toolResultMapping,
           tokenUsage,
+          cachedTokenCount,
+          cacheHitPercent,
+          toolCallCount,
           compressionThreshold,
           tokenPercent,
           settings,
@@ -1636,16 +1710,16 @@ const Utils = {
 
     return normalizeText(walk(root))
   },
-  truncateText(text, maxLength, label = '内容') {
+  truncateText(text, maxLength, label = '内容', hint) {
     const value = String(text ?? '')
     const limit = Math.floor(maxLength)
     if (!Number.isFinite(maxLength) || limit <= 0 || value.length <= limit) {
       return value
     }
 
-    const marker = `\n\n...[${label}已截断：原始 ${value.length} 字符；请缩小查询范围或筛选字段后重试]...\n\n`
+    const marker = `\n\n...[${label}已截断：原始 ${value.length} 字符。${hint || '请缩小查询范围或筛选字段后重试'}]...\n\n`
     if (marker.length >= limit) {
-      return value.slice(0, Math.max(0, limit - 1)) + '…'
+      return marker.slice(0, limit)
     }
 
     const available = limit - marker.length
@@ -1655,11 +1729,10 @@ const Utils = {
   }
 }
 
-const appStoreTools = {
-}
+const appStoreTools = {}
 
 const appSettingsStoreTools = {
-  getAppSettings: () => Plugins.useAppSettingsStore().app,
+  getAppSettings: () => Plugins.useAppSettingsStore().app
 }
 
 const envStoreTools = {
@@ -1763,14 +1836,7 @@ const bridgeTools = {
   MakeDir: (args) => Plugins.MakeDir(args.path),
   ReadDir: (args) => Plugins.ReadDir(args.path),
   Requests: async (args) => {
-    const {
-      cleanHtmlToText = true,
-      includeSelector,
-      excludeSelector,
-      maxBodyLength = DEFAULT_MAX_HTTP_BODY_CHARS,
-      returnHeaders = false,
-      ...requestOptions
-    } = args
+    const { cleanHtmlToText = true, includeSelector, excludeSelector, returnHeaders = false, ...requestOptions } = args
     const { status, headers, body } = await Plugins.Requests({ ...requestOptions, autoTransformBody: false })
     let responseBody = body
     const cleaned = Boolean(cleanHtmlToText && (headers['Content-Type'].includes('text/html') || headers['Content-Type'].includes('application/xhtml+xml')))
@@ -1780,17 +1846,11 @@ const bridgeTools = {
       }
       responseBody = Utils.cleanHtmlToText(responseBody, includeSelector, excludeSelector)
     }
-    const originalBodyLength = typeof responseBody === 'string' ? responseBody.length : undefined
-    const shouldTruncate = typeof responseBody === 'string' && maxBodyLength > 0 && responseBody.length > maxBodyLength
-    if (shouldTruncate) {
-      responseBody = Utils.truncateText(responseBody, maxBodyLength, 'HTTP 响应体')
-    }
     return {
       status,
       ...(returnHeaders ? { headers } : {}),
       body: responseBody,
-      cleaned,
-      ...(shouldTruncate ? { truncated: true, originalBodyLength } : {})
+      cleaned
     }
   },
   Download: (args) => Plugins.Download(args.url, args.path, args.headers, undefined, args.options),
@@ -1936,7 +1996,7 @@ const tools = [
     type: 'function',
     function: {
       name: 'ReadFile',
-      description: 'Read text or binary content from a file.',
+      description: 'Read text or binary content from a file. Use Range to read part of a spilled tool result instead of repeating the original tool.',
       parameters: {
         type: 'object',
         properties: {
@@ -1953,6 +2013,7 @@ const tools = [
               },
               Range: {
                 type: 'string',
+                description: 'Inclusive byte range: "start-end", "start-" to EOF, or "-end" for the last N bytes. Empty reads the whole file.',
                 default: ''
               }
             },
@@ -2101,7 +2162,8 @@ const tools = [
     type: 'function',
     function: {
       name: 'Requests',
-      description: 'Send an HTTP request and optionally convert an HTML response body to readable text.',
+      description:
+        'Send an HTTP request and optionally convert an HTML response body to readable text. The full response is kept. If it is later truncated for context, the tool result names a file holding the complete body; read that file instead of repeating this request.',
       parameters: {
         type: 'object',
         properties: {
@@ -2154,12 +2216,6 @@ const tools = [
             items: {
               type: 'string'
             }
-          },
-          maxBodyLength: {
-            type: 'number',
-            description:
-              'Maximum returned string body length. Prefer a small limit and narrow queries; 0 disables this body-specific limit, but the generic tool-result limit still applies.',
-            default: DEFAULT_MAX_HTTP_BODY_CHARS
           },
           returnHeaders: {
             type: 'boolean',
