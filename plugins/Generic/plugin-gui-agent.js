@@ -308,7 +308,7 @@ export default (Plugin) => {
       components: { LoadingDots, StoredImage },
       template: /* html */ `
     <div data-gui-agent class="flex flex-col h-full">
-      <div ref="chatBox" class="overflow-y-auto select-text flex flex-col flex-1 pb-8 pr-8" @scroll="onChatScroll" @wheel.passive="onChatWheel">
+      <div ref="chatBox" class="overflow-y-auto select-text flex flex-col flex-1 pb-8 pr-8" style="overflow-anchor: none" @scroll="onChatScroll" @wheel.passive="onChatWheel">
         <div v-if="chatHistory.length < 2" class="h-full flex flex-col items-start justify-start px-16 pt-16">
           <div class="w-full" style="max-width: 680px">
             <div class="flex items-center gap-12 mb-12">
@@ -834,15 +834,67 @@ export default (Plugin) => {
           return sessionWrite
         }
 
+        let chatSizeObserver = null
+        let chatStickObserver = null
+        let chatStickQueued = false
+        const stickChatToBottom = () => {
+          const el = chatBox.value
+          if (!el || !autoScrollToBottom.value) return
+          const top = el.scrollHeight - el.clientHeight
+          if (top <= 0 || el.scrollTop >= top - 2) return
+          el._guiFollow = (el._guiFollow || 0) + 1
+          el.scrollTop = el.scrollHeight
+          requestAnimationFrame(() => {
+            el._guiFollow = Math.max(0, (el._guiFollow || 1) - 1)
+          })
+        }
+        const queueChatStick = () => {
+          if (chatStickQueued) return
+          chatStickQueued = true
+          requestAnimationFrame(() => {
+            chatStickQueued = false
+            stickChatToBottom()
+          })
+        }
+        const bindChatStick = (el) => {
+          if (!el || typeof ResizeObserver !== 'function' || chatSizeObserver) return
+          const observed = new Set()
+          chatSizeObserver = new ResizeObserver(queueChatStick)
+          const watchChildren = () => {
+            const live = new Set(el.children)
+            for (const node of observed) {
+              if (live.has(node)) continue
+              chatSizeObserver.unobserve(node)
+              observed.delete(node)
+            }
+            for (const child of live) {
+              if (observed.has(child)) continue
+              chatSizeObserver.observe(child)
+              observed.add(child)
+            }
+          }
+          watchChildren()
+          chatStickObserver = new MutationObserver(() => {
+            watchChildren()
+            queueChatStick()
+          })
+          chatStickObserver.observe(el, { childList: true, subtree: true, characterData: true })
+        }
+
         onMounted(() => {
           loadSession()
           Utils.focus(textareaRef.value)
+          bindChatStick(chatBox.value)
           setTimeout(() => {
             Utils.scrollToBottom(chatBox.value)
           }, 200)
         })
 
         onBeforeUnmount(() => {
+          chatSizeObserver?.disconnect()
+          chatStickObserver?.disconnect()
+          chatSizeObserver = null
+          chatStickObserver = null
           modal = undefined
           saveSession()
           for (const url of imageUrlCache.values()) {
@@ -1423,12 +1475,13 @@ export default (Plugin) => {
         const onChatScroll = () => {
           const el = chatBox.value
           if (!el) return
-
-          if (el.scrollTop < lastChatScrollTop) {
-            autoScrollToBottom.value = false
-          } else if (Utils.isNearBottom(el)) {
-            autoScrollToBottom.value = true
+          if (el._guiFollow) {
+            lastChatScrollTop = el.scrollTop
+            return
           }
+          // 工具收起时浏览器会把 scrollTop 夹到新底部，这不是用户上滑。
+          if (Utils.isNearBottom(el)) autoScrollToBottom.value = true
+          else if (el.scrollTop < lastChatScrollTop - 1) autoScrollToBottom.value = false
           lastChatScrollTop = el.scrollTop
         }
 
@@ -1825,12 +1878,7 @@ export default (Plugin) => {
           textareaRef,
           pendingImages,
           input,
-          quickPrompts: [
-            '为当前 GUI 状态生成一份简明报告',
-            '分析当前配置并指出潜在问题',
-            '检查核心、系统代理和网络状态',
-            '给出当前 GUI 配置的优化建议',
-          ],
+          quickPrompts: ['为当前 GUI 状态生成一份简明报告', '分析当前配置并指出潜在问题', '检查核心、系统代理和网络状态', '给出当前 GUI 配置的优化建议'],
           chatQuickPrompts: ['查询今日 V2EX 热门话题', '查询今日科技新闻', '查询今日 GitHub 热门项目', '查询今日 AI 行业动态'],
           loading,
           requesting,
@@ -1895,12 +1943,13 @@ const Utils = {
   isNearBottom(container, threshold = 60) {
     return container.scrollHeight - container.scrollTop - container.clientHeight < threshold
   },
-  scrollToBottom(container, behavior = 'smooth', shouldScroll = () => true) {
+  scrollToBottom(container, _behavior = 'auto', shouldScroll = () => true) {
     requestAnimationFrame(() => {
       if (!container || !shouldScroll()) return
-      container.scrollTo({
-        top: container.scrollHeight,
-        behavior
+      container._guiFollow = (container._guiFollow || 0) + 1
+      container.scrollTop = container.scrollHeight
+      requestAnimationFrame(() => {
+        container._guiFollow = Math.max(0, (container._guiFollow || 1) - 1)
       })
     })
   },
@@ -2080,6 +2129,7 @@ const PageControl = (() => {
   let cursorX = null
   let cursorY = null
   let gestureToken = 0
+  let hoveredEl = null
 
   const isInteractive = (el) => {
     const tag = el.tagName
@@ -2458,6 +2508,7 @@ const PageControl = (() => {
       if (el.disabled || el.getAttribute('aria-disabled') === 'true') throw new Error('元素已禁用')
       if (el instanceof HTMLInputElement && el.type === 'file') throw new Error('不能通过工具选择本地文件')
       const motion = await beginGesture(el, 'click')
+      placePointer(el)
       const anchor = el.closest?.('a[href]')
       const href = anchor?.getAttribute('href')
       const leaves = href !== null && href !== undefined && !href.startsWith('#')
@@ -2475,23 +2526,57 @@ const PageControl = (() => {
       return `已点击 ${format(el)}${leaves ? '，已阻止离开当前页面' : ''}`
     })
 
+  // CodeEditor 的 update:modelValue 防抖 300ms。提前离开时，父组件会用旧值把文档盖回去。
+  const codeMirrorEditors = (el) => {
+    const editors = []
+    const seen = new Set()
+    const add = (node) => {
+      if (!node || seen.has(node)) return
+      seen.add(node)
+      const content = node.classList?.contains('cm-content') ? node : node.querySelector?.('.cm-content')
+      const view = content?.cmTile?.root?.view
+      if (view?.state?.doc && typeof view.dispatch === 'function') editors.push({ view, content })
+    }
+    add(el.closest?.('.cm-editor'))
+    add(el.closest?.('.cm-content'))
+    add(el)
+    for (const node of el.querySelectorAll?.('.cm-editor') || []) add(node)
+    return editors
+  }
+
   const fill = (args, ctx) =>
     act(async () => {
       let el = resolve(args, ctx)
-      if (!(el instanceof HTMLInputElement) && !(el instanceof HTMLTextAreaElement) && !(el instanceof HTMLSelectElement) && !el.isContentEditable) {
+      const editors = codeMirrorEditors(el)
+      const codeEditor = editors.find((item) => item.content?.isContentEditable) || null
+      if (editors.length && !codeEditor) throw new Error('编辑器不可编辑')
+      if (
+        !(el instanceof HTMLInputElement) &&
+        !(el instanceof HTMLTextAreaElement) &&
+        !(el instanceof HTMLSelectElement) &&
+        !el.isContentEditable &&
+        !codeEditor
+      ) {
         const inner = el.querySelector('input, textarea, select, [contenteditable="true"]')
         if (inner) el = inner
       }
       if (el instanceof HTMLInputElement && el.type === 'file') throw new Error('不能通过工具选择本地文件')
       if (el.disabled || el.readOnly) throw new Error('元素不可编辑')
-      if (!(el instanceof HTMLInputElement) && !(el instanceof HTMLTextAreaElement) && !(el instanceof HTMLSelectElement) && !el.isContentEditable) {
+      if (
+        !(el instanceof HTMLInputElement) &&
+        !(el instanceof HTMLTextAreaElement) &&
+        !(el instanceof HTMLSelectElement) &&
+        !el.isContentEditable &&
+        !codeEditor
+      ) {
         throw new Error('目标不是可填写的输入框')
       }
       const value = args.value === undefined || args.value === null ? '' : String(args.value)
       const typing =
         el instanceof HTMLInputElement && (el.type === 'checkbox' || el.type === 'radio') ? 'click' : el instanceof HTMLSelectElement ? 'click' : 'type'
-      const motion = await beginGesture(el, typing)
-      el.focus?.({ preventScroll: true })
+      const field = codeEditor?.content || el
+      const motion = await beginGesture(field, typing)
+      field.focus?.({ preventScroll: true })
       if (el instanceof HTMLInputElement && (el.type === 'checkbox' || el.type === 'radio')) {
         const want = !/^(false|0|off|no|unchecked)$/i.test(value)
         if (el.checked !== want) el.click()
@@ -2502,6 +2587,15 @@ const PageControl = (() => {
         const message = selectOption(el, value)
         if (motion) await motion
         return message
+      }
+      if (codeEditor) {
+        const doc = codeEditor.view.state.doc
+        if (doc.toString() !== value) {
+          codeEditor.view.dispatch({ changes: { from: 0, to: doc.length, insert: value } })
+        }
+        if (motion) await motion
+        await sleep(320)
+        return `已填写 ${format(codeEditor.content || el)}`
       }
       if (el.isContentEditable) {
         el.textContent = value
@@ -2569,6 +2663,75 @@ const PageControl = (() => {
     return document.scrollingElement || document.documentElement
   }
 
+  const animateScroll = async (node, left, top) => {
+    if (!node) return
+    const maxLeft = Math.max(0, node.scrollWidth - node.clientWidth)
+    const maxTop = Math.max(0, node.scrollHeight - node.clientHeight)
+    const destLeft = Math.min(maxLeft, Math.max(0, left))
+    const destTop = Math.min(maxTop, Math.max(0, top))
+    const startLeft = node.scrollLeft
+    const startTop = node.scrollTop
+    const deltaX = destLeft - startLeft
+    const deltaY = destTop - startTop
+    const distance = Math.hypot(deltaX, deltaY)
+    if (distance < 1) return
+    if (reducedMotion() || distance < 2) {
+      node.scrollTo({ left: destLeft, top: destTop, behavior: 'instant' })
+      return
+    }
+    const duration = Math.round(Math.min(640, Math.max(220, distance * 0.45)))
+    const start = performance.now()
+    await new Promise((resolve) => {
+      const step = (now) => {
+        const t = Math.min(1, (now - start) / duration)
+        const eased = 1 - (1 - t) ** 3
+        node.scrollTo({
+          left: startLeft + deltaX * eased,
+          top: startTop + deltaY * eased,
+          behavior: 'instant'
+        })
+        if (t < 1) requestAnimationFrame(step)
+        else resolve()
+      }
+      requestAnimationFrame(step)
+    })
+  }
+
+  // 已经完整可见的元素不再挪到正中，避免每次点击都跳一下。
+  const reveal = async (el) => {
+    const scrollingElement = document.scrollingElement || document.documentElement
+    const chain = []
+    for (let node = el.parentElement; node; node = node.parentElement) {
+      const style = getComputedStyle(node)
+      const scrollY = /(auto|scroll|overlay)/.test(style.overflowY) && node.scrollHeight > node.clientHeight + 1
+      const scrollX = /(auto|scroll|overlay)/.test(style.overflowX) && node.scrollWidth > node.clientWidth + 1
+      if (scrollY || scrollX || node === scrollingElement) chain.push(node)
+    }
+    if (
+      !chain.includes(scrollingElement) &&
+      (scrollingElement.scrollHeight > scrollingElement.clientHeight + 1 || scrollingElement.scrollWidth > scrollingElement.clientWidth + 1)
+    ) {
+      chain.push(scrollingElement)
+    }
+    for (const container of chain) {
+      const rect = el.getBoundingClientRect()
+      const viewport = container === scrollingElement || container === document.documentElement || container === document.body
+      const box = viewport
+        ? { top: 0, left: 0, right: window.innerWidth, bottom: window.innerHeight, width: window.innerWidth, height: window.innerHeight }
+        : container.getBoundingClientRect()
+      const fits = rect.height <= box.height + 1 && rect.width <= box.width + 1
+      const fully = fits && rect.top >= box.top - 1 && rect.bottom <= box.bottom + 1 && rect.left >= box.left - 1 && rect.right <= box.right + 1
+      if (fully) continue
+      const deltaY = rect.height > box.height ? rect.top - box.top : rect.top + rect.height / 2 - (box.top + box.height / 2)
+      let deltaX = 0
+      if (rect.width > box.width) deltaX = rect.left - box.left
+      else if (rect.left < box.left) deltaX = rect.left - box.left
+      else if (rect.right > box.right) deltaX = rect.right - box.right
+      if (Math.abs(deltaX) < 2 && Math.abs(deltaY) < 2) continue
+      await animateScroll(container, container.scrollLeft + deltaX, container.scrollTop + deltaY)
+    }
+  }
+
   const scrollPage = async (args, ctx) => {
     const el = hasTarget(args) ? resolve(args, ctx) : null
     if (!args.to && args.dx === undefined && args.dy === undefined) {
@@ -2579,7 +2742,7 @@ const PageControl = (() => {
     }
     if (args.to && args.to !== 'top' && args.to !== 'bottom') throw new Error('to 只能是 top 或 bottom')
     let aimed = false
-    if (el) aimed = await aim(el)
+    if (el) aimed = await aim(el, false)
     else {
       await moveCursor(window.innerWidth / 2, window.innerHeight / 2)
       aimed = true
@@ -2588,23 +2751,88 @@ const PageControl = (() => {
     const distanceY = args.to === 'top' ? -80 : args.to === 'bottom' ? 80 : Number(args.dy) || 0
     const target = scrollable(el)
     const motion = aimed ? playCursor('scroll', distanceX, distanceY) : null
-    if (args.to === 'top') target.scrollTo({ top: 0, left: 0, behavior: 'instant' })
-    else if (args.to === 'bottom') target.scrollTo({ top: target.scrollHeight, left: 0, behavior: 'instant' })
-    else target.scrollBy({ left: distanceX, top: distanceY, behavior: 'instant' })
+    const nextLeft = args.to ? 0 : target.scrollLeft + distanceX
+    const nextTop = args.to === 'top' ? 0 : args.to === 'bottom' ? target.scrollHeight : target.scrollTop + distanceY
+    await animateScroll(target, nextLeft, nextTop)
     if (motion) await motion
     return withSnapshot(`已滚动到 top=${Math.round(target.scrollTop)} left=${Math.round(target.scrollLeft)}`)
+  }
+
+  // mouseenter 不冒泡。下拉和提示的监听在父节点上，只对目标派发 mouseover 不会打开。
+  const ancestorChain = (el) => {
+    const chain = []
+    for (let node = el; node && node.nodeType === 1; node = node.parentElement) chain.push(node)
+    return chain
+  }
+  const pointerInit = (x, y, related) => ({
+    bubbles: false,
+    cancelable: true,
+    composed: true,
+    view: window,
+    clientX: x,
+    clientY: y,
+    screenX: x,
+    screenY: y,
+    button: 0,
+    buttons: 0,
+    relatedTarget: related || null,
+    pointerId: 1,
+    pointerType: 'mouse',
+    isPrimary: true
+  })
+  const dispatchHover = (type, node, init) => {
+    const bubbles =
+      type === 'mouseover' || type === 'mouseout' || type === 'mousemove' || type === 'pointerover' || type === 'pointerout' || type === 'pointermove'
+    const eventInit = { ...init, bubbles }
+    if (type.startsWith('pointer')) node.dispatchEvent(new PointerEvent(type, eventInit))
+    else node.dispatchEvent(new MouseEvent(type, eventInit))
+  }
+  const placePointer = (el) => {
+    if (!el?.isConnected) return
+    const rect = el.getBoundingClientRect()
+    const x = rect.left + Math.max(rect.width, 1) / 2
+    const y = rect.top + Math.max(rect.height, 1) / 2
+    const previous = hoveredEl?.isConnected ? hoveredEl : null
+    if (previous === el) {
+      const move = pointerInit(x, y, null)
+      dispatchHover('pointermove', el, move)
+      dispatchHover('mousemove', el, move)
+      return
+    }
+    const nextChain = ancestorChain(el)
+    const prevChain = previous ? ancestorChain(previous) : []
+    let shared = 0
+    while (shared < prevChain.length && shared < nextChain.length && prevChain[prevChain.length - 1 - shared] === nextChain[nextChain.length - 1 - shared])
+      shared++
+    const leave = pointerInit(x, y, el)
+    for (let i = 0; i < prevChain.length - shared; i++) {
+      const node = prevChain[i]
+      if (i === 0) {
+        dispatchHover('pointerout', node, leave)
+        dispatchHover('mouseout', node, leave)
+      }
+      dispatchHover('pointerleave', node, leave)
+      dispatchHover('mouseleave', node, leave)
+    }
+    const enter = pointerInit(x, y, previous)
+    dispatchHover('pointerover', el, enter)
+    dispatchHover('mouseover', el, enter)
+    for (let i = nextChain.length - shared - 1; i >= 0; i--) {
+      dispatchHover('pointerenter', nextChain[i], enter)
+      dispatchHover('mouseenter', nextChain[i], enter)
+    }
+    const move = pointerInit(x, y, null)
+    dispatchHover('pointermove', el, move)
+    dispatchHover('mousemove', el, move)
+    hoveredEl = el
   }
 
   const hover = (args, ctx) =>
     act(async () => {
       const el = resolve(args, ctx)
       const motion = await beginGesture(el, 'hover')
-      const rect = el.getBoundingClientRect()
-      const init = { bubbles: true, cancelable: true, clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 }
-      el.dispatchEvent(new PointerEvent('pointerover', init))
-      el.dispatchEvent(new PointerEvent('pointermove', init))
-      el.dispatchEvent(new MouseEvent('mouseover', init))
-      el.dispatchEvent(new MouseEvent('mousemove', init))
+      placePointer(el)
+      await sleep(0)
       if (motion) await motion
       return `已悬停 ${format(el)}`
     })
@@ -2661,7 +2889,7 @@ const PageControl = (() => {
 
   const aim = async (el, scroll = true) => {
     if (!el?.isConnected || !el.getBoundingClientRect) return false
-    if (scroll) el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' })
+    if (scroll) await reveal(el)
     await new Promise((resolve) => requestAnimationFrame(resolve))
     const rect = el.getBoundingClientRect()
     if (rect.width < 1 && rect.height < 1) return false
