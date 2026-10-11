@@ -5,11 +5,16 @@
     "version": "v1.0.1",
     "description": "一键添加所有的规则集到你的列表，添加后你需要手动更新规则集来下载到本地，以便在配置文件中引用它们。",
     "group": "Extensions",
-    "tags": ["提升体验", "功能扩展"],
+    "tags": [
+      "提升体验",
+      "功能扩展"
+    ],
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-add-rulesets.js",
     "path": "data/plugins/plugin-add-rulesets.js",
-    "triggers": ["on::manual"],
+    "triggers": [
+      "on::manual"
+    ],
     "menus": {},
     "hasUI": false,
     "context": {
@@ -31,11 +36,16 @@
     "version": "v3.2.0",
     "group": "Tools",
     "description": "专为手机sing-box应用生成的配置，支持二维码导入。",
-    "tags": ["提升体验", "功能扩展"],
+    "tags": [
+      "提升体验",
+      "功能扩展"
+    ],
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-share-profile-to-phone.js",
     "path": "data/plugins/plugin-share-profile-to-phone.js",
-    "triggers": ["on::manual"],
+    "triggers": [
+      "on::manual"
+    ],
     "menus": {},
     "hasUI": false,
     "context": {
@@ -56,7 +66,10 @@
         "key": "Ipv6Mode",
         "component": "Radio",
         "value": "disabled",
-        "options": ["禁用IPv6,disabled", "由配置决定,none"]
+        "options": [
+          "禁用IPv6,disabled",
+          "由配置决定,none"
+        ]
       },
       {
         "id": "ID_dyo2te6b",
@@ -78,11 +91,17 @@
     "version": "v3.0.0",
     "group": "Extensions",
     "description": "将选中的配置生成 config.json 并同步到 Gist，可同时上传 Windows、Linux、macOS 三个版本的配置，每个版本可自定义上传前脚本；不选择配置时默认同步全部。Supported by: StarfishC",
-    "tags": ["功能扩展", "提升体验"],
+    "tags": [
+      "功能扩展",
+      "提升体验"
+    ],
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-sync-singbox-configuration-gists.js",
     "path": "data/plugins/plugin-sync-singbox-configuration-gists.js",
-    "triggers": ["on::manual", "on::ready"],
+    "triggers": [
+      "on::manual",
+      "on::ready"
+    ],
     "menus": {},
     "hasUI": false,
     "context": {
@@ -186,15 +205,23 @@
     "version": "v2.3.2",
     "group": "Extensions",
     "description": "帮助用户快速生成用于添加代理链的配置脚本。Supported by: 泡泡茶壶",
-    "tags": ["实用工具", "功能扩展", "提升体验"],
+    "tags": [
+      "实用工具",
+      "功能扩展",
+      "提升体验"
+    ],
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-relay-proxy-helper.js",
     "path": "data/plugins/plugin-relay-proxy-helper.js",
-    "triggers": ["on::manual"],
+    "triggers": [
+      "on::manual"
+    ],
     "hasUI": true,
     "menus": {},
     "context": {
-      "profiles": { "添加代理链": "addRelayProxy" },
+      "profiles": {
+        "添加代理链": "addRelayProxy"
+      },
       "subscriptions": {},
       "rulesets": {},
       "plugins": {},
@@ -212,11 +239,18 @@
     "version": "v1.0.1",
     "group": "Extensions",
     "description": "按出站分组或出站批量配置链式代理，基于当前生成配置的成员自动写入 detour。Supported by: qqqasdwx",
-    "tags": ["实用工具", "功能扩展", "提升体验"],
+    "tags": [
+      "实用工具",
+      "功能扩展",
+      "提升体验"
+    ],
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-outbound-chain-manager.js",
     "path": "data/plugins/plugin-outbound-chain-manager.js",
-    "triggers": ["on::manual", "on::generate"],
+    "triggers": [
+      "on::manual",
+      "on::generate"
+    ],
     "hasUI": true,
     "menus": {},
     "context": {
@@ -240,11 +274,18 @@
     "version": "v3.1.3",
     "group": "Recommended",
     "description": "将完整的 sing-box 配置导入到 GUI 中。Supported by: 泡泡茶壶",
-    "tags": ["实用工具", "功能扩展", "提升体验"],
+    "tags": [
+      "实用工具",
+      "功能扩展",
+      "提升体验"
+    ],
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-import-configuration-to-gui.js",
     "path": "data/plugins/plugin-import-configuration-to-gui.js",
-    "triggers": ["on::manual", "on::ready"],
+    "triggers": [
+      "on::manual",
+      "on::ready"
+    ],
     "hasUI": true,
     "menus": {},
     "context": {
@@ -266,11 +307,19 @@
     "version": "v1.3.3",
     "group": "Extensions",
     "description": "允许在 GUI 中直接运行和管理未经修改的 sing-box 原始配置，跳过 GUI 的默认配置覆盖，完美保留你的自定义规则，专为需要高度定制化配置的用户设计。Supported by: 泡泡茶壶",
-    "tags": ["实用工具", "功能扩展", "提升体验"],
+    "tags": [
+      "实用工具",
+      "功能扩展",
+      "提升体验"
+    ],
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-native-config-manager.js",
     "path": "data/plugins/plugin-native-config-manager.js",
-    "triggers": ["on::manual", "on::generate", "on::ready"],
+    "triggers": [
+      "on::manual",
+      "on::generate",
+      "on::ready"
+    ],
     "hasUI": true,
     "menus": {},
     "context": {
@@ -291,13 +340,22 @@
     "version": "v2.1.2",
     "name": "sing-box 仪表板",
     "description": "全新的 Web 面板，提供与原版图形客户端几乎一致的体验。Supported by: 泡泡茶壶",
-    "tags": ["功能扩展", "提升体验"],
+    "tags": [
+      "功能扩展",
+      "提升体验"
+    ],
     "group": "Extensions",
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-sing-box-dashboard.js",
     "path": "data/plugins/plugin-sing-box-dashboard.js",
     "status": 0,
-    "triggers": ["on::ready", "on::manual", "on::before::core::start", "on::core::started", "on::core::stopped"],
+    "triggers": [
+      "on::ready",
+      "on::manual",
+      "on::before::core::start",
+      "on::core::started",
+      "on::core::stopped"
+    ],
     "hasUI": true,
     "menus": {},
     "context": {
@@ -335,11 +393,16 @@
     "version": "v1.0.0",
     "group": "Extensions",
     "description": "为 OpenWrt sing-box 生成配置，自动添加必需的入站组件(dns-in/redirect-in/tproxy-in/tun-in)，使用 Zashboard 面板。Supported by: cpkt9762",
-    "tags": ["提升体验", "功能扩展"],
+    "tags": [
+      "提升体验",
+      "功能扩展"
+    ],
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-share-profile-to-openwrt.js",
     "path": "data/plugins/plugin-share-profile-to-openwrt.js",
-    "triggers": ["on::manual"],
+    "triggers": [
+      "on::manual"
+    ],
     "menus": {},
     "hasUI": false,
     "context": {
@@ -360,7 +423,10 @@
         "key": "Ipv6Mode",
         "component": "Radio",
         "value": "disabled",
-        "options": ["禁用IPv6,disabled", "由配置决定,none"]
+        "options": [
+          "禁用IPv6,disabled",
+          "由配置决定,none"
+        ]
       },
       {
         "id": "ID_port",
@@ -382,12 +448,16 @@
     "name": "从零编译sing-box核心",
     "group": "Development",
     "description": "从编译环境到源码下载，再到核心定制，从0开始编译sing-box核心。",
-    "tags": ["实用工具"],
+    "tags": [
+      "实用工具"
+    ],
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-singbox-builder.js",
     "path": "data/plugins/plugin-singbox-builder.js",
     "status": 0,
-    "triggers": ["on::manual"],
+    "triggers": [
+      "on::manual"
+    ],
     "hasUI": true,
     "menus": {},
     "context": {
@@ -408,12 +478,20 @@
     "name": "配置覆盖",
     "group": "Extensions",
     "description": "在 sing-box 启动前，将本地或远程 JSON 作为 override 合并进 GUI 生成的 config.json，支持远程缓存与数组路径追加策略。 Supported by: CorneliaMo",
-    "tags": ["实用工具", "功能扩展", "提升体验"],
+    "tags": [
+      "实用工具",
+      "功能扩展",
+      "提升体验"
+    ],
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-config-override.js",
     "path": "data/plugins/plugin-config-override.js",
     "status": 0,
-    "triggers": ["on::manual", "on::ready", "on::before::core::start"],
+    "triggers": [
+      "on::manual",
+      "on::ready",
+      "on::before::core::start"
+    ],
     "hasUI": true,
     "menus": {},
     "context": {
@@ -431,6 +509,297 @@
         "key": "appendPaths",
         "component": "InputList",
         "value": [],
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
+    "id": "plugin-singbox-resilient-node-switcher",
+    "version": "v1.0.0",
+    "name": "节点弹性切换",
+    "group": "Extensions",
+    "description": "面向 GUI.for.SingBox 的 Selector 健康监控与可恢复故障切换：主动探测节点延迟，连续失败后暂时冷却故障节点，冷却到期半开验证，恢复后重新参与选择；仅在验证候选成功后才切换，不永久剔除节点。",
+    "tags": [
+      "提升体验",
+      "功能扩展",
+      "故障切换"
+    ],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-singbox-resilient-node-switcher.js",
+    "path": "data/plugins/plugin-singbox-resilient-node-switcher.js",
+    "status": 0,
+    "triggers": [
+      "on::manual",
+      "on::core::started",
+      "on::core::stopped",
+      "on::shutdown"
+    ],
+    "hasUI": true,
+    "menus": {
+      "启动": "Start",
+      "停止": "Stop"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "configuration": [
+      {
+        "id": "ID_selector_name",
+        "title": "主 Selector 名称",
+        "description": "需要监控并切换的主策略组名称",
+        "key": "SelectorName",
+        "component": "Input",
+        "value": "🚀 节点选择",
+        "options": []
+      },
+      {
+        "id": "ID_probe_urls",
+        "title": "探测 URL 列表",
+        "description": "节点延迟探测的目标地址，逗号分隔；多 URL 短路探测，任一可达即判健康",
+        "key": "ProbeUrls",
+        "component": "Input",
+        "value": "https://www.gstatic.com/generate_204,https://www.google.com/generate_204,https://github.com",
+        "options": []
+      },
+      {
+        "id": "ID_watch_interval_ms",
+        "title": "快探间隔(ms)",
+        "description": "当前节点快探的间隔，默认 10000",
+        "key": "WatchIntervalMs",
+        "component": "Input",
+        "value": "10000",
+        "options": []
+      },
+      {
+        "id": "ID_watch_timeout_ms",
+        "title": "快探超时(ms)",
+        "description": "当前节点单次快探的超时，默认 4000",
+        "key": "WatchTimeoutMs",
+        "component": "Input",
+        "value": "4000",
+        "options": []
+      },
+      {
+        "id": "ID_max_delay_ms",
+        "title": "绝对延迟阈值(ms)",
+        "description": "探测成功但延迟超过该值即计「慢」，连续慢达标触发切换，默认 2000",
+        "key": "MaxDelayMs",
+        "component": "Input",
+        "value": "2000",
+        "options": []
+      },
+      {
+        "id": "ID_pool_refresh_interval_ms",
+        "title": "候选池刷新间隔(ms)",
+        "description": "候选池后台刷新的间隔，默认 180000",
+        "key": "PoolRefreshIntervalMs",
+        "component": "Input",
+        "value": "180000",
+        "options": []
+      },
+      {
+        "id": "ID_pool_timeout_ms",
+        "title": "候选池探测超时(ms)",
+        "description": "候选池单节点探测超时，默认 2000",
+        "key": "PoolTimeoutMs",
+        "component": "Input",
+        "value": "2000",
+        "options": []
+      },
+      {
+        "id": "ID_pool_concurrency",
+        "title": "候选池并发",
+        "description": "候选池同批并发探测的最大节点数，默认 20",
+        "key": "PoolConcurrency",
+        "component": "Input",
+        "value": "20",
+        "options": []
+      },
+      {
+        "id": "ID_pool_failure_rate_threshold",
+        "title": "全池熔断阈值",
+        "description": "本轮失败率超过该阈值则作废本轮，默认 0.9",
+        "key": "PoolFailureRateThreshold",
+        "component": "Input",
+        "value": "0.9",
+        "options": []
+      },
+      {
+        "id": "ID_failure_threshold",
+        "title": "失败阈值",
+        "description": "连续失败多少次后进入冷却，默认 3",
+        "key": "FailureThreshold",
+        "component": "Input",
+        "value": "3",
+        "options": []
+      },
+      {
+        "id": "ID_recovery_threshold",
+        "title": "恢复阈值",
+        "description": "半开状态下连续成功多少次后恢复健康，默认 2",
+        "key": "RecoveryThreshold",
+        "component": "Input",
+        "value": "2",
+        "options": []
+      },
+      {
+        "id": "ID_initial_cooldown_ms",
+        "title": "初始冷却(ms)",
+        "description": "首次进入冷却的时长，默认 120000",
+        "key": "InitialCooldownMs",
+        "component": "Input",
+        "value": "120000",
+        "options": []
+      },
+      {
+        "id": "ID_max_cooldown_ms",
+        "title": "最大冷却(ms)",
+        "description": "指数退避的冷却上限，默认 1800000",
+        "key": "MaxCooldownMs",
+        "component": "Input",
+        "value": "1800000",
+        "options": []
+      },
+      {
+        "id": "ID_min_dwell_ms",
+        "title": "最短驻留(ms)",
+        "description": "切换后至少驻留该时长才允许再次切换，默认 60000",
+        "key": "MinDwellMs",
+        "component": "Input",
+        "value": "60000",
+        "options": []
+      },
+      {
+        "id": "ID_degradation_ratio",
+        "title": "延迟劣化倍数",
+        "description": "当前节点延迟超过基线该倍数判为劣化，默认 3",
+        "key": "DegradationRatio",
+        "component": "Input",
+        "value": "3",
+        "options": []
+      },
+      {
+        "id": "ID_degradation_threshold",
+        "title": "劣化连续次数",
+        "description": "连续劣化多少次后触发切换，默认 2",
+        "key": "DegradationThreshold",
+        "component": "Input",
+        "value": "2",
+        "options": []
+      },
+      {
+        "id": "ID_slow_threshold",
+        "title": "慢节点连续次数",
+        "description": "连续多少次超过绝对延迟阈值后触发切换，默认 2",
+        "key": "SlowThreshold",
+        "component": "Input",
+        "value": "2",
+        "options": []
+      },
+      {
+        "id": "ID_baseline_window",
+        "title": "基线窗口",
+        "description": "延迟基线的采样窗口大小，默认 5",
+        "key": "BaselineWindow",
+        "component": "Input",
+        "value": "5",
+        "options": []
+      },
+      {
+        "id": "ID_optimize_ratio",
+        "title": "性能择优倍数",
+        "description": "当前节点延迟超过候选池最优延迟该倍数时计一次择优，默认 2",
+        "key": "OptimizeRatio",
+        "component": "Input",
+        "value": "2",
+        "options": []
+      },
+      {
+        "id": "ID_optimize_threshold",
+        "title": "择优连续次数",
+        "description": "连续多少次满足择优条件后切换到最快节点，默认 3",
+        "key": "OptimizeThreshold",
+        "component": "Input",
+        "value": "3",
+        "options": []
+      },
+      {
+        "id": "ID_stalk_probe_delay_ms",
+        "title": "盯梢快探延迟(ms)",
+        "description": "切换成功后多久发起一次盯梢快探验证新节点，默认 2000",
+        "key": "StalkProbeDelayMs",
+        "component": "Input",
+        "value": "2000",
+        "options": []
+      },
+      {
+        "id": "ID_stalk_success_threshold",
+        "title": "盯梢成功次数",
+        "description": "盯梢期内新节点连续成功多少次后退出盯梢恢复正常阈值，默认 2",
+        "key": "StalkSuccessThreshold",
+        "component": "Input",
+        "value": "2",
+        "options": []
+      },
+      {
+        "id": "ID_pre_switch_max_probe",
+        "title": "切换前复核候选数",
+        "description": "切换前最多复核多少个候选节点，跳过不可达者，默认 3",
+        "key": "PreSwitchMaxProbe",
+        "component": "Input",
+        "value": "3",
+        "options": []
+      },
+      {
+        "id": "ID_real_probe_enabled",
+        "title": "真实延迟探测",
+        "description": "sing-box 的 /delay 用 HEAD 且不读 body，系统性低估真实 GET 访问延迟（实测低 3~6 倍）。开启后用 fetch 走系统代理发起真实 GET 并读响应体，测到用户实际感知延迟，作为慢判定的可靠补充",
+        "key": "RealProbeEnabled",
+        "component": "Switch",
+        "value": true,
+        "options": []
+      },
+      {
+        "id": "ID_real_probe_urls",
+        "title": "真实探测 URL 列表",
+        "description": "真实延迟探测的目标地址，逗号分隔；多 URL 全部探测取最慢延迟，至少一个成功才判健康",
+        "key": "RealProbeUrls",
+        "component": "Input",
+        "value": "https://github.com,https://www.google.com",
+        "options": []
+      },
+      {
+        "id": "ID_real_delay_ms",
+        "title": "真实延迟阈值(ms)",
+        "description": "真实 GET 延迟超过该值即计「慢」，默认 3000",
+        "key": "RealDelayMs",
+        "component": "Input",
+        "value": "3000",
+        "options": []
+      },
+      {
+        "id": "ID_real_probe_timeout_ms",
+        "title": "真实探测超时(ms)",
+        "description": "单次真实 GET 探测的超时，默认 8000",
+        "key": "RealProbeTimeoutMs",
+        "component": "Input",
+        "value": "8000",
+        "options": []
+      },
+      {
+        "id": "ID_real_slow_threshold",
+        "title": "真实慢连续次数",
+        "description": "真实 GET 连续多少次超过阈值（或全部失败）后触发切换，默认 1",
+        "key": "RealSlowThreshold",
+        "component": "Input",
+        "value": "1",
         "options": []
       }
     ],
