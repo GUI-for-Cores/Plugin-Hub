@@ -794,6 +794,15 @@
         "options": []
       },
       {
+        "id": "ID_real_stalk_timeout_ms",
+        "title": "盯梢期真实探测超时(ms)",
+        "description": "切换后快速检测阶段的真实 GET 探测超时，更短以便尽快发现慢节点，默认 3000",
+        "key": "RealStalkTimeoutMs",
+        "component": "Input",
+        "value": "3000",
+        "options": []
+      },
+      {
         "id": "ID_real_slow_threshold",
         "title": "真实慢连续次数",
         "description": "真实 GET 连续多少次超过阈值（或全部失败）后触发切换，默认 1",
