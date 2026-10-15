@@ -1,0 +1,188 @@
+[
+  {
+    "id": "plugin-traffic-statistics-vibe",
+    "version": "v2.1.0",
+    "name": "流量统计 Vibe",
+    "group": "Extensions",
+    "description": "流量统计 v2：精确采集 mihomo / sing-box 连接增量（含关闭连接、内核重启校正），按节点/策略组/代理链/域名/进程/规则/端口/协议/入站/客户端等多维统计，提供仪表盘、实时速率、每日柱状图、24 小时热力图、环形图、可搜索排序的排行与下钻、长连接与大流量连接排行，支持自动保存与 HTTP API",
+    "tags": ["功能扩展"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-traffic-statistics-vibe.js",
+    "path": "data/plugins/plugin-traffic-statistics-vibe.js",
+    "triggers": ["on::manual", "on::ready", "on::shutdown"],
+    "hasUI": true,
+    "menus": {
+      "开始": "Start",
+      "停止": "Stop"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "configuration": [
+      {
+        "id": "ID_vibe_api",
+        "title": "监听地址",
+        "description": "",
+        "key": "ApiAddress",
+        "component": "Input",
+        "value": "127.0.0.1:23328",
+        "options": []
+      },
+      {
+        "id": "ID_vibe_autosave",
+        "title": "自动保存间隔（分钟）",
+        "description": "定期把统计数据写入磁盘",
+        "key": "AutoSaveMinutes",
+        "component": "Input",
+        "value": "5",
+        "options": []
+      }
+    ],
+    "status": 0,
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
+    "id": "plugin-auto-failover",
+    "version": "v1.0.0",
+    "name": "节点自动切换",
+    "group": "Extensions",
+    "description": "监听内核日志（mihomo / sing-box），策略组当前节点出现连接失败（拒绝、重置、超时、EOF、握手失败等）并达到阈值后，通过 Clash API 把选择器组切换到下一个可用节点，支持延迟预检、冷却、跳过失败节点和切换通知",
+    "tags": ["功能扩展"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-auto-failover.js",
+    "path": "data/plugins/plugin-auto-failover.js",
+    "triggers": ["on::manual", "on::ready", "on::core::started", "on::shutdown"],
+    "hasUI": true,
+    "menus": {
+      "开始监听": "Start",
+      "停止监听": "Stop"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "configuration": [
+      {
+        "id": "ID_af_1",
+        "title": "目标策略组",
+        "description": "只切换这些选择器组；留空则自动选择失败连接链路中最内层的选择器组（不含 GLOBAL）",
+        "key": "TargetGroups",
+        "component": "InputList",
+        "value": [],
+        "options": []
+      },
+      {
+        "id": "ID_af_2",
+        "title": "失败阈值（次）",
+        "description": "在时间窗口内同一节点失败达到该次数才切换",
+        "key": "Threshold",
+        "component": "Input",
+        "value": "3",
+        "options": []
+      },
+      {
+        "id": "ID_af_3",
+        "title": "时间窗口（秒）",
+        "description": "",
+        "key": "WindowSeconds",
+        "component": "Input",
+        "value": "60",
+        "options": []
+      },
+      {
+        "id": "ID_af_4",
+        "title": "冷却时间（秒）",
+        "description": "同一策略组两次切换的最小间隔，冷却期内的失败不计数",
+        "key": "CooldownSeconds",
+        "component": "Input",
+        "value": "30",
+        "options": []
+      },
+      {
+        "id": "ID_af_5",
+        "title": "跳过上次测速失败的节点",
+        "description": "最近一次延迟测试失败或超时的节点不作为候选",
+        "key": "SkipFailed",
+        "component": "Switch",
+        "value": true,
+        "options": []
+      },
+      {
+        "id": "ID_af_6",
+        "title": "切换前测速",
+        "description": "依次测试候选节点，选第一个测速成功的",
+        "key": "TestBeforeSwitch",
+        "component": "Switch",
+        "value": true,
+        "options": []
+      },
+      {
+        "id": "ID_af_7",
+        "title": "测速地址",
+        "description": "",
+        "key": "TestUrl",
+        "component": "Input",
+        "value": "https://www.gstatic.com/generate_204",
+        "options": []
+      },
+      {
+        "id": "ID_af_8",
+        "title": "测速超时（毫秒）",
+        "description": "",
+        "key": "TestTimeout",
+        "component": "Input",
+        "value": "3000",
+        "options": []
+      },
+      {
+        "id": "ID_af_9",
+        "title": "排除 DIRECT / REJECT",
+        "description": "候选中跳过直连、拒绝等内置出站",
+        "key": "ExcludeBuiltin",
+        "component": "Switch",
+        "value": true,
+        "options": []
+      },
+      {
+        "id": "ID_af_10",
+        "title": "循环切换",
+        "description": "到达组末尾后从头开始",
+        "key": "WrapAround",
+        "component": "Switch",
+        "value": true,
+        "options": []
+      },
+      {
+        "id": "ID_af_11",
+        "title": "切换时通知",
+        "description": "",
+        "key": "NotifyOnSwitch",
+        "component": "Switch",
+        "value": true,
+        "options": []
+      },
+      {
+        "id": "ID_af_12",
+        "title": "启动时自动监听",
+        "description": "应用就绪后自动开始监听日志",
+        "key": "AutoStart",
+        "component": "Switch",
+        "value": true,
+        "options": []
+      }
+    ],
+    "status": 0,
+    "disabled": false,
+    "install": false,
+    "installed": false
+  }
+]

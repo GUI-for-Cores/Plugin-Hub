@@ -1,0 +1,47 @@
+[
+  {
+    "id": "plugin-x-archive-viewer",
+    "name": "X 博主精选画廊",
+    "version": "v1.0.0",
+    "group": "NSFW",
+    "description": "X (Twitter) 博主归档浏览，支持自定义数据源、离线缓存、搜索/分类筛选/排序/分页列表与博主档案详情。",
+    "tags": ["功能扩展", "画廊"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Extra/plugin-x-archive-viewer.js",
+    "path": "data/plugins/plugin-x-archive-viewer.js",
+    "triggers": ["on::manual"],
+    "hasUI": true,
+    "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_x_archive_url",
+        "title": "归档数据源地址",
+        "description": "返回博主数组的 JSON 接口地址，默认使用官方镜像。",
+        "key": "ArchiveUrl",
+        "component": "Input",
+        "value": "https://img.boomboom.nyc.mn/data/archive.json",
+        "options": []
+      },
+      {
+        "id": "ID_x_archive_media_base",
+        "title": "媒体资源基础地址",
+        "description": "用于拼接归档中的相对媒体路径（如 /api/media?key=...）。留空则直接使用原始链接。",
+        "key": "MediaBase",
+        "component": "Input",
+        "value": "https://img.boomboom.nyc.mn",
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  }
+]

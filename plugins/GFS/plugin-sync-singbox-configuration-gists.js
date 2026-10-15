@@ -1,7 +1,5 @@
-const UPLOAD_VARIANTS = ['original', 'linux']
-const DEFAULT_ORIGINAL_UPLOAD_SCRIPT = `const onUpload = async (config, profile, target) => {
-  return config
-}`
+const UPLOAD_VARIANTS = ['windows', 'linux', 'macos']
+const UPLOAD_KEYS = { windows: 'Windows', linux: 'Linux', macos: 'MacOS' }
 const DEFAULT_LINUX_UPLOAD_SCRIPT = `const onUpload = async (config, profile, target) => {
   const inbounds = Array.isArray(config.inbounds) ? config.inbounds : []
   for (const inbound of inbounds) {
@@ -12,13 +10,46 @@ const DEFAULT_LINUX_UPLOAD_SCRIPT = `const onUpload = async (config, profile, ta
   }
   return config
 }`
+const DEFAULT_DESKTOP_UPLOAD_SCRIPT = `const onUpload = async (config, profile, target) => {
+  const inbounds = Array.isArray(config.inbounds) ? config.inbounds : []
+  for (const inbound of inbounds) {
+    if (inbound && inbound.type === 'tun') {
+      inbound.auto_route = true
+      // Windows / macOS 不支持 Linux 的 auto_redirect；由系统自动分配 TUN 名称。
+      delete inbound.interface_name
+      for (const key of Object.keys(inbound)) {
+        if (key === 'auto_redirect' || key.startsWith('auto_redirect_')) delete inbound[key]
+      }
+    }
+  }
+  return config
+}`
+
+let unsubscribeProfiles
+let refreshQueue = Promise.resolve()
 
 const onReady = async () => {
-  await refreshProfileOptions()
+  await initializeConfiguration()
+}
+
+const onEnabled = async () => {
+  await initializeConfiguration()
+}
+
+const onInstall = async () => {
+  await initializeConfiguration()
+}
+
+const onDisabled = async () => {
+  await stopProfileWatcher()
+}
+
+const onDispose = async () => {
+  await stopProfileWatcher()
 }
 
 const onConfigure = async () => {
-  await refreshProfileOptions()
+  await initializeConfiguration()
 }
 
 const onRun = async () => {
@@ -29,34 +60,107 @@ const onTask = async () => {
   return updateGist()
 }
 
-async function refreshProfileOptions() {
-  try {
-    const profiles = Plugins.useProfilesStore().profiles
-    const pluginsStore = Plugins.usePluginsStore()
-    const plugin = pluginsStore.getPluginById(Plugin.id)
-    if (!plugin || !Array.isArray(plugin.configuration)) return
-
-    const profileConfiguration = plugin.configuration.find((configuration) => configuration.key === 'ProfileIds')
-    if (!profileConfiguration) return
-
-    const options = (Array.isArray(profiles) ? profiles : []).map((profile) => {
-      const label = String(profile.name || profile.id)
-        .replace(/,/g, '，')
-        .replace(/\r?\n/g, ' ')
-      return `${label},${profile.id}`
-    })
-    if (JSON.stringify(profileConfiguration.options) === JSON.stringify(options)) return
-
-    const nextPlugin = Plugins.deepClone(plugin)
-    const nextProfileConfiguration = nextPlugin.configuration.find((configuration) => configuration.key === 'ProfileIds')
-    nextProfileConfiguration.options = options
-    await pluginsStore.updatePluginState(Plugin.id, nextPlugin)
-  } catch (error) {
-    console.warn(`[${Plugin.name}] 更新配置候选项失败：${getErrorMessage(error)}`)
+async function initializeConfiguration() {
+  if (!unsubscribeProfiles) {
+    unsubscribeProfiles = Plugins.useProfilesStore().$subscribe(() => refreshProfileOptions(), { detached: true })
   }
+  await refreshProfileOptions()
+}
+
+async function stopProfileWatcher() {
+  if (unsubscribeProfiles) unsubscribeProfiles()
+  unsubscribeProfiles = undefined
+  await refreshQueue
+}
+
+function refreshProfileOptions() {
+  // 串行读取最新状态，避免快速新增/删除时较早的保存覆盖较新的候选项。
+  refreshQueue = refreshQueue
+    .then(async () => {
+      const profiles = Plugins.useProfilesStore().profiles
+      const pluginsStore = Plugins.usePluginsStore()
+      const plugin = pluginsStore.getPluginById(Plugin.id)
+      if (!plugin || !Array.isArray(plugin.configuration)) return
+
+      let changed = ensureUploadConfiguration(plugin)
+      const profileConfiguration = plugin.configuration.find((configuration) => configuration.key === 'ProfileIds')
+
+      const options = (Array.isArray(profiles) ? profiles : []).map((profile) => {
+        const label = String(profile.name || profile.id)
+          .replace(/,/g, '，')
+          .replace(/\r?\n/g, ' ')
+        return `${label},${profile.id}`
+      })
+      if (profileConfiguration && JSON.stringify(profileConfiguration.options) !== JSON.stringify(options)) {
+        // 保留配置对象的引用，让已打开的设置弹窗也能收到更新。
+        profileConfiguration.options = options
+        changed = true
+      }
+      if (changed) await pluginsStore.updatePluginState(Plugin.id, plugin)
+    })
+    .catch((error) => {
+      console.warn(`[${Plugin.name}] 更新配置候选项失败：${getErrorMessage(error)}`)
+    })
+  return refreshQueue
+}
+
+function getUploadSettings() {
+  const plugin = Plugins.usePluginsStore().getPluginById(Plugin.id)
+  const defaults = Object.fromEntries(((plugin && plugin.configuration) || []).map(({ key, value }) => [key, value]))
+  // 直接读 store，避免插件元数据的短暂缓存使刚保存的设置延迟生效。
+  return Object.assign(defaults, Plugins.useAppSettingsStore().app.pluginSettings[Plugin.id])
+}
+
+function ensureUploadConfiguration(plugin) {
+  let changed = false
+  const labels = { windows: 'Windows', linux: 'Linux', macos: 'macOS' }
+  for (const [targetIndex, target] of UPLOAD_VARIANTS.entries()) {
+    const key = UPLOAD_KEYS[target]
+    const defaults = [
+      {
+        id: `ID_upload_${target}`,
+        title: `上传 ${labels[target]} 配置`,
+        description: `开启后生成并上传 名称_${target}.json；可与其他版本同时勾选`,
+        key: `Upload${key}`,
+        component: 'Switch',
+        value: false,
+        options: []
+      },
+      {
+        id: `ID_${target}_upload_script`,
+        title: `${labels[target]}配置上传前脚本`,
+        description: `仅在对应上传开关开启时执行；target 为 ${target}，onUpload(config, profile, target) 必须返回配置对象，可自行修改。`,
+        key: `${key}UploadScript`,
+        component: 'CodeEditor',
+        value: getUploadScript(target),
+        options: []
+      }
+    ]
+    for (const configuration of defaults) {
+      const existing = plugin.configuration.find((item) => item.key === configuration.key)
+      if (!existing) {
+        const nextKeys = UPLOAD_VARIANTS.slice(targetIndex + 1).map((variant) => `Upload${UPLOAD_KEYS[variant]}`)
+        const nextIndex =
+          configuration.component === 'CodeEditor'
+            ? plugin.configuration.findIndex((item) => item.key === `Upload${key}`) + 1
+            : plugin.configuration.findIndex((item) => nextKeys.includes(item.key))
+        plugin.configuration.splice(nextIndex < 0 ? plugin.configuration.length : nextIndex, 0, configuration)
+        changed = true
+      } else {
+        for (const field of ['title', 'description']) {
+          if (existing[field] !== configuration[field]) {
+            existing[field] = configuration[field]
+            changed = true
+          }
+        }
+      }
+    }
+  }
+  return changed
 }
 
 const updateGist = async () => {
+  await initializeConfiguration()
   if (!Plugin.GistId) throw '未配置GIST ID'
   if (!Plugin.Authorization) throw '未配置TOKEN'
 
@@ -113,23 +217,16 @@ function getSelectedProfiles(profiles, configuredIds) {
   if (selectedIds.length === 0) return profiles
 
   const profileMap = new Map(profiles.map((profile) => [String(profile.id), profile]))
-  const missingIds = selectedIds.filter((id) => !profileMap.has(id))
-  if (missingIds.length > 0) {
-    throw `已选择的配置不存在，请重新保存插件设置：${missingIds.join(', ')}`
-  }
-
-  return selectedIds.map((id) => profileMap.get(id))
+  const selected = selectedIds.filter((id) => profileMap.has(id)).map((id) => profileMap.get(id))
+  // 已选配置全部被删除时不能按“未选择”处理，否则会意外上传全部配置。
+  if (selected.length === 0) throw '已选择的配置均已删除，请重新选择要同步的配置'
+  return selected
 }
 
 function getUploadVariants() {
-  const hasVariantSwitches = typeof Plugin.UploadOriginal === 'boolean' || typeof Plugin.UploadLinux === 'boolean'
-  const variants = hasVariantSwitches
-    ? [...(Plugin.UploadOriginal === true ? ['original'] : []), ...(Plugin.UploadLinux === true ? ['linux'] : [])]
-    : normalizeStringArray(Plugin.UploadVariants)
+  const settings = getUploadSettings()
+  const variants = UPLOAD_VARIANTS.filter((target) => settings[`Upload${UPLOAD_KEYS[target]}`] === true)
   if (variants.length === 0) throw '至少选择一个上传版本'
-
-  const unknown = variants.filter((variant) => !UPLOAD_VARIANTS.includes(variant))
-  if (unknown.length > 0) throw `未知的上传版本：${unknown.join(', ')}`
   return variants
 }
 
@@ -146,20 +243,16 @@ function assertUniqueFileNames(profiles, variants) {
 }
 
 function getProfileFileName(profile, variant) {
-  const suffix = variant === 'linux' ? '_linux' : ''
-  return `${profile.name}${suffix}.json`
+  return `${profile.name}_${variant}.json`
 }
 
 function getUploadScript(target) {
-  const configuredScript = target === 'linux' ? Plugin.LinuxUploadScript : Plugin.OriginalUploadScript
+  const settings = getUploadSettings()
+  const configuredScript = settings[`${UPLOAD_KEYS[target]}UploadScript`]
   if (typeof configuredScript === 'string') return configuredScript
 
-  // 兼容旧版共用的上传前脚本；新设置保存后改用两个独立脚本。
-  if (typeof Plugin.UploadScript === 'string' && Plugin.UploadScript.trim() !== '') {
-    return Plugin.UploadScript
-  }
-
-  return target === 'linux' ? DEFAULT_LINUX_UPLOAD_SCRIPT : DEFAULT_ORIGINAL_UPLOAD_SCRIPT
+  if (target === 'linux') return DEFAULT_LINUX_UPLOAD_SCRIPT
+  return DEFAULT_DESKTOP_UPLOAD_SCRIPT
 }
 
 async function applyUploadScript(config, profile, target, script) {

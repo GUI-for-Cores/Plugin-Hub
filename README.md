@@ -10,7 +10,8 @@ Plugin Hub
    ├─ GFS           // Directory for GUI.for.SingBox plugins
    ├─ generic.json  // Plugin index file
    ├─ gfc.json      // Plugin index file
-   └─ gfs.json      // Plugin index file
+   ├─ gfs.json      // Plugin index file
+   └─ vibe.json     // Plugin index file
 ```
 
 ## How to Use

@@ -325,9 +325,9 @@
   {
     "id": "plugin-gui-agent",
     "name": "GUI Agent",
-    "version": "v4.2.2",
+    "version": "v4.7.0",
     "group": "Tools",
-    "description": "支持聊天模式与代理模式，可调用文件、网络、命令及 GUI.for.Cores 管理工具。",
+    "description": "支持聊天模式与代理模式，可调用文件、网络、命令、当前界面及 GUI.for.Cores 管理工具。",
     "tags": [],
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-gui-agent.js",
@@ -469,7 +469,7 @@
   {
     "id": "plugin-ipc-logs",
     "name": "日志系统",
-    "version": "v2.4.1",
+    "version": "v2.4.2",
     "group": "Extensions",
     "description": "GUI日志系统，包含敏感信息，用于debug。",
     "tags": ["功能扩展"],
@@ -2529,7 +2529,7 @@
   {
     "id": "plugin-beautiful-node-name",
     "name": "美化节点名称",
-    "version": "v5.0.3",
+    "version": "v5.0.4",
     "group": "Extensions",
     "description": "统一规范节点名称，使其显示更好看。Supported by: Starfish",
     "tags": ["节点处理"],

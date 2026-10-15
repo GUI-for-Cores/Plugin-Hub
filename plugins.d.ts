@@ -30,6 +30,7 @@ type UseModalOptions = Partial<{
   onCancel?: () => MaybePromise<boolean | void>
   beforeClose?: (isOk: boolean) => MaybePromise<boolean | void>
   afterClose?: (isOk: boolean) => void
+  afterDestroy?: () => void
 }>
 
 interface UseModalSlots {
