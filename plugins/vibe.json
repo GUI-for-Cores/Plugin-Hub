@@ -1,7 +1,7 @@
 [
   {
     "id": "plugin-traffic-statistics-vibe",
-    "version": "v2.0.0",
+    "version": "v2.0.1",
     "name": "流量统计 Vibe",
     "group": "Extensions",
     "description": "流量统计 v2：精确采集 mihomo 连接增量（含关闭连接、内核重启校正），按节点/策略组/代理链/域名/进程/规则/端口/协议/入站/客户端等多维统计，提供仪表盘、实时速率、每日柱状图、24 小时热力图、环形图、可搜索排序的排行与下钻、长连接与大流量连接排行，支持自动保存与 HTTP API",

@@ -743,29 +743,60 @@ function registerTagsApi(router) {
 }
 
 /* ======================= UI ======================= */
+/* ======================= UI ======================= */
 const onRun = async () => {
+  // clicked right after a close: queue the open (300ms) instead of dropping it
+  const since = Date.now() - (TrafficUI.closedAt || 0)
+  if (since < 300) await new Promise((r) => setTimeout(r, 300 - since))
+  // a previous window may still be playing its close animation: wait for it (bounded) instead of racing it
+  if (TrafficUI.closing) await Promise.race([TrafficUI.closing, new Promise((r) => setTimeout(r, 600))])
+  TrafficUI.closing = null
+  if (TrafficUI.modal) {
+    // stale instance from an earlier open: drop it so this click always opens a fresh window
+    try {
+      TrafficUI.modal.destroy()
+    } catch (e) {}
+    TrafficUI.modal = null
+  }
+  TrafficUI.stopTimer()
   await ensureData()
   refreshNodeMeta()
-  TrafficUI.injectStyle()
   const modal = Plugins.modal({
     title: '流量统计',
     width: '92',
     height: '92',
+    minWidth: '90',
+    minHeight: '90',
+    maxWidth: '96',
+    maxHeight: '96',
     submit: false,
     cancelText: '关闭',
     maskClosable: true,
+    beforeClose: () => {
+      // the fading mask would swallow a Run click during the close animation: let clicks pass through it
+      const mask = TrafficUI.rootEl && TrafficUI.rootEl.closest && TrafficUI.rootEl.closest('.gui-modal-mask')
+      if (mask) mask.style.pointerEvents = 'none'
+      TrafficUI.closing = new Promise((r) => (TrafficUI.closed = r))
+      return true
+    },
     afterClose: () => {
+      TrafficUI.closed && TrafficUI.closed()
+      TrafficUI.closedAt = Date.now()
+      TrafficUI.closing = null
+      // destroyOnClose (default true) unmounts it; calling destroy() here re-entered close and could leave a stale instance
       TrafficUI.stopTimer()
-      modal.destroy()
+      if (TrafficUI.modal === modal) TrafficUI.modal = null
     }
   })
+  TrafficUI.modal = modal
+  // the component exposes modalSlots (toolbar / action), setContent patches them into the modal
   modal.setContent(TrafficUI.createComponent(), null, null, false)
   modal.open()
 }
 
 const TrafficUI = {
   timer: null,
-  PALETTE: ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#06b6d4', '#a855f7', '#ec4899', '#84cc16', '#94a3b8'],
+  PALETTE: ['#4e79a7', '#59a14f', '#e0a33a', '#c75c5c', '#76a3b8', '#8f7bb0', '#b0876a', '#8a9a5b', '#a0a4ab'],
   TABS: [
     { label: '节点', value: 'nodes' },
     { label: '域名', value: 'domains' },
@@ -893,12 +924,12 @@ const TrafficUI = {
         bx: L + i * bw,
         bw,
         active: selectedDay === d.day,
-        tip: `${d.day}日  合计 ${TrafficUI.fmt(d.up + d.down)}\n↑ ${TrafficUI.fmt(d.up)}   ↓ ${TrafficUI.fmt(d.down)}\n连接 ${d.conns}`
+        tip: `${d.day} 日  合计 ${TrafficUI.fmt(d.up + d.down)}\n上传 ${TrafficUI.fmt(d.up)}  下载 ${TrafficUI.fmt(d.down)}\n连接 ${d.conns}`
       }
     })
     return { bars, ticks, W, H, plot, L, T, base, max }
   },
-  HEAT: ['transparent', '#c7d2fe', '#a5b4fc', '#818cf8', '#6366f1', '#3730a3'],
+  HEAT: [0, 0.18, 0.34, 0.52, 0.74, 1],
   buildHeatmap(monthData, daily, selectedDay) {
     const rows = selectedDay ? daily.filter((d) => d.day === selectedDay) : daily.filter((d) => d.up + d.down > 0)
     let max = 0
@@ -913,12 +944,12 @@ const TrafficUI = {
         return {
           h,
           lvl,
-          color: TrafficUI.HEAT[lvl],
-          tip: `${r.day}日 ${pad2(h)}:00-${pad2(h + 1)}:00\n流量 ${TrafficUI.fmt(t)}  连接 ${v.hits || 0}${v.peakDown ? '\n峰值 ↓' + TrafficUI.speed(v.peakDown) : ''}`
+          alpha: TrafficUI.HEAT[lvl],
+          tip: `${r.day} 日 ${pad2(h)}:00-${pad2(h + 1)}:00\n流量 ${TrafficUI.fmt(t)}  连接 ${v.hits || 0}${v.peakDown ? '\n下载峰值 ' + TrafficUI.speed(v.peakDown) : ''}`
         }
       })
     }))
-    const legend = TrafficUI.HEAT.map((c, i) => ({ color: c, label: i === 0 ? '无' : i === 5 ? TrafficUI.fmt(max) : '' }))
+    const legend = TrafficUI.HEAT.map((a) => ({ alpha: a }))
     return { rows: has ? out : [], max, legend, single: !!selectedDay }
   },
   buildDonut(map, limit = 6, valueOf = (v) => (v.up || 0) + (v.down || 0)) {
@@ -1060,112 +1091,86 @@ const TrafficUI = {
     if (opt.client) return d.clients?.[drill.key]?.[opt.client] || {}
     return d[opt.field]?.[drill.key] || {}
   },
-  injectStyle() {
-    if (typeof document === 'undefined') return
-    const id = 'traffic-stats-vibe-style'
-    let el = document.getElementById(id)
-    if (!el) {
-      el = document.createElement('style')
-      el.id = id
-      document.head.appendChild(el)
+  // grouped connections -> flat rows for <Table>; children follow their (expanded) group
+  flattenConns(listId, groups, expanded = {}) {
+    const out = []
+    for (const g of groups || []) {
+      const key = listId + g.key
+      const open = g.count > 1 && !!expanded[key]
+      out.push({
+        id: key,
+        key,
+        group: true,
+        open,
+        expandable: g.count > 1,
+        host: g.host,
+        sub: [g.process, g.rule].filter(Boolean).join(' · '),
+        node: g.node,
+        chain: g.chain || g.node,
+        count: g.count,
+        bytes: g.up + g.down,
+        duration: g.duration
+      })
+      if (open)
+        g.items.forEach((c, i) =>
+          out.push({
+            id: key + '#' + i,
+            key,
+            group: false,
+            host: [TrafficUI.time(c.start), c.network, c.client].filter(Boolean).join(' · '),
+            sub: '',
+            node: c.process || '',
+            chain: c.chain || c.node || '',
+            count: '',
+            bytes: (c.up || 0) + (c.down || 0),
+            duration: c.duration
+          })
+        )
     }
-    el.textContent = TrafficUI.CSS
+    return out
   },
-  CSS: `
-.tsx { --ts-accent: var(--primary-color, #0059d6); --ts-text: var(--color, #1f2328); --ts-card: var(--card-bg, #fff); --ts-bg: var(--modal-bg, #f6f6f6); --ts-line: var(--divider-color, #e5e7eb); --ts-input: var(--input-bg, #fff); --ts-up: #7c3aed; --ts-down: #10b981;
-  display: flex; flex-direction: column; gap: 14px; padding: 0 4px 12px; font-size: 13px; line-height: 1.5; color: var(--ts-text); }
-.tsx * { box-sizing: border-box; }
-.tsx .bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 10px 12px; border-radius: 12px; background: var(--ts-card); border: 1px solid var(--ts-line); }
-.tsx .title { font-size: 15px; font-weight: 700; margin-right: 4px; }
-.tsx select, .tsx input.ts-in { height: 30px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--ts-line); background: var(--ts-input); color: var(--ts-text); font-size: 13px; outline: none; }
-.tsx select option { background: var(--ts-bg); color: var(--ts-text); }
-.tsx input.ts-in:focus, .tsx select:focus { border-color: var(--ts-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ts-accent) 18%, transparent); }
-.tsx .btn { height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--ts-line); background: var(--ts-input); color: var(--ts-text); cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; transition: all .15s; }
-.tsx .btn:hover { border-color: var(--ts-accent); color: var(--ts-accent); }
-.tsx .btn.primary { background: var(--ts-accent); border-color: var(--ts-accent); color: #fff; }
-.tsx .btn.primary:hover { filter: brightness(1.1); color: #fff; }
-.tsx .btn.on { color: var(--ts-accent); border-color: var(--ts-accent); background: color-mix(in srgb, var(--ts-accent) 8%, var(--ts-input)); }
-.tsx .btn.sm { height: 26px; padding: 0 10px; font-size: 12px; }
-.tsx .btn:disabled { opacity: .45; cursor: not-allowed; }
-.tsx .dot { width: 8px; height: 8px; border-radius: 50%; background: #9ca3af; display: inline-block; }
-.tsx .dot.live { background: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,.2); }
-.tsx .muted { color: var(--ts-text); opacity: .68; font-size: 12px; }
-.tsx .spacer { margin-left: auto; }
-.tsx .note { font-size: 12px; padding: 8px 12px; border-radius: 10px; background: color-mix(in srgb, #f59e0b 12%, var(--ts-card)); border: 1px solid color-mix(in srgb, #f59e0b 35%, transparent); }
-.tsx .grid { display: grid; gap: 12px; }
-.tsx { position: relative; z-index: 0; }
-.tsx .kpis { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
-.tsx .rings { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-@media (max-width: 980px) { .tsx .rings { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 640px) { .tsx .rings { grid-template-columns: 1fr; } }
-.tsx .kvrow { display: flex; gap: 12px; align-items: flex-start; padding: 6px 0; border-top: 1px dashed var(--ts-line); }
-.tsx .kvrow:first-of-type { border-top: 0; }
-.tsx .kvrow .k { flex: none; width: 64px; font-size: 12px; opacity: .75; padding-top: 3px; }
-.tsx tr.child td { background: color-mix(in srgb, var(--ts-accent) 3%, transparent); padding-top: 4px; padding-bottom: 4px; }
-.tsx .tip { position: relative; }
-.tsx .tip:hover::after { content: attr(data-tip); position: absolute; left: 0; top: calc(100% + 4px); z-index: 5; max-width: 420px; width: max-content; white-space: normal; word-break: break-all; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 400; line-height: 1.4; background: rgba(30,30,30,.92); color: #fff; pointer-events: none; }
-.tsx td .tip { display: inline; }
-.tsx td { overflow: visible; }
-.tsx td > .tip, .tsx td > .sub2 { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tsx td > .tip:hover { overflow: visible; }
-.tsx .two { grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); }
-.tsx .three { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
-.tsx .card { background: var(--ts-card); border: 1px solid var(--ts-line); border-radius: 12px; padding: 14px 16px; min-width: 0; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
-.tsx .card h4 { margin: 0 0 12px; font-size: 14px; font-weight: 600; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-.tsx .card h4 .muted { font-weight: 400; }
-.tsx .kpi { border-top: 3px solid var(--kc, #6366f1); }
-.tsx .kpi .lbl { font-size: 12px; opacity: .75; display: flex; align-items: center; gap: 6px; }
-.tsx .kpi .val { font-size: 24px; font-weight: 700; margin-top: 4px; letter-spacing: -.3px; font-variant-numeric: tabular-nums; }
-.tsx .kpi .sub { font-size: 12px; opacity: .72; margin-top: 2px; line-height: 1.45; }
-.tsx .ico { width: 20px; height: 20px; border-radius: 6px; display: inline-grid; place-items: center; font-size: 11px; color: #fff; background: var(--kc, #6366f1); }
-.tsx .ratio { height: 6px; border-radius: 3px; background: var(--ts-line); overflow: hidden; margin-top: 8px; display: flex; }
-.tsx svg text { fill: currentColor; }
-.tsx .legend { display: flex; gap: 16px; font-size: 12px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
-.tsx .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
-.tsx .donut-wrap { display: flex; align-items: center; gap: 16px; }
-.tsx .donut-legend { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; font-size: 12px; }
-.tsx .donut-legend div { display: flex; align-items: flex-start; gap: 8px; }
-.tsx .donut-legend i { width: 10px; height: 10px; border-radius: 3px; flex: none; margin-top: 4px; }
-.tsx .donut-legend span.n { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.4; }
-.tsx .donut-legend span.n:hover { overflow: visible; }
-.tsx .donut-legend span.p { font-variant-numeric: tabular-nums; opacity: .8; white-space: nowrap; }
-.tsx .heat { display: grid; grid-template-columns: 34px repeat(24, minmax(0, 1fr)); gap: 3px; align-items: center; }
-.tsx .heat .hl { font-size: 11px; opacity: .7; text-align: right; padding-right: 6px; line-height: 1; }
-.tsx .heat .hc { height: 14px; border-radius: 3px; }
-.tsx .heat .hc.e { box-shadow: inset 0 0 0 1px var(--ts-line); }
-.tsx .heat.single .hc { height: 34px; }
-.tsx .heat .hh { font-size: 10px; opacity: .75; text-align: center; }
-.tsx .heat-legend { display: flex; align-items: center; gap: 4px; font-size: 11px; margin-top: 10px; justify-content: flex-end; }
-.tsx .heat-legend span.c { width: 16px; height: 10px; border-radius: 2px; border: 1px solid var(--ts-line); }
-.tsx .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
-.tsx .tab { padding: 4px 12px; border-radius: 999px; cursor: pointer; font-size: 12px; border: 1px solid var(--ts-line); background: var(--ts-input); }
-.tsx .tab:hover { border-color: var(--ts-accent); color: var(--ts-accent); }
-.tsx .tab.act { background: var(--ts-accent); border-color: var(--ts-accent); color: #fff; }
-.tsx table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-.tsx th { text-align: left; font-weight: 600; font-size: 12px; opacity: .75; padding: 8px; cursor: pointer; user-select: none; white-space: nowrap; border-bottom: 1px solid var(--ts-line); }
-.tsx th.r, .tsx td.r { text-align: right; }
-.tsx th:hover { opacity: 1; color: var(--ts-accent); }
-.tsx td { padding: 8px; border-bottom: 1px solid var(--ts-line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
-.tsx tbody tr:hover td { background: color-mix(in srgb, var(--ts-accent) 6%, transparent); }
-.tsx tr.click { cursor: pointer; }
-.tsx .sub2 { display: block; font-size: 11px; opacity: .7; overflow: hidden; text-overflow: ellipsis; }
-.tsx .rank { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; font-size: 11px; font-weight: 600; background: var(--ts-line); }
-.tsx .rank.t1 { background: #f59e0b; color: #fff; } .tsx .rank.t2 { background: #64748b; color: #fff; } .tsx .rank.t3 { background: #b45309; color: #fff; }
-.tsx .pbar { display: flex; align-items: center; gap: 8px; }
-.tsx .pbar .trk { flex: 1; height: 6px; border-radius: 3px; background: var(--ts-line); overflow: hidden; }
-.tsx .pbar .fill { height: 100%; border-radius: 3px; background: var(--ts-accent); }
-.tsx .pbar .pv { width: 46px; text-align: right; font-size: 12px; }
-.tsx .pill { display: inline-block; padding: 0 7px; line-height: 18px; border-radius: 999px; font-size: 11px; font-weight: 500; background: color-mix(in srgb, var(--ts-accent) 12%, transparent); color: var(--ts-accent); margin-left: 6px; }
-.tsx .pill.g { background: rgba(16,185,129,.14); color: #047857; } .tsx .pill.o { background: rgba(245,158,11,.16); color: #b45309; } .tsx .pill.r { background: rgba(239,68,68,.14); color: #b91c1c; }
-body[theme-mode='dark'] .tsx .pill.g { color: #6ee7b7; } body[theme-mode='dark'] .tsx .pill.o { color: #fcd34d; } body[theme-mode='dark'] .tsx .pill.r { color: #fca5a5; }
-.tsx .crumb { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; padding: 8px 10px; border-radius: 10px; background: color-mix(in srgb, var(--ts-accent) 8%, transparent); }
-.tsx .pager { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 12px; font-size: 12px; }
-.tsx .empty { text-align: center; padding: 28px 0; opacity: .7; font-size: 12px; }
-.tsx .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.tsx .chip { padding: 2px 10px; border-radius: 999px; background: var(--ts-input); border: 1px solid var(--ts-line); font-size: 12px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tsx .chip b { font-weight: 600; margin-left: 6px; color: var(--ts-accent); }
-.tsx .kv { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; font-size: 12px; }
-`,
+  SORTS: [
+    { label: '按合计', value: 'total' },
+    { label: '按下载', value: 'down' },
+    { label: '按上传', value: 'up' },
+    { label: '按连接数', value: 'hits' },
+    { label: '按名称', value: 'name' }
+  ],
+  PAGE_SIZES: [
+    { label: '15 条/页', value: '15' },
+    { label: '30 条/页', value: '30' },
+    { label: '100 条/页', value: '100' }
+  ],
+  RANK_COLUMNS: [
+    { title: '#', key: 'rank', align: 'right' },
+    { title: '名称', key: 'name' },
+    { title: '上传', key: 'up', align: 'right' },
+    { title: '下载', key: 'down', align: 'right' },
+    { title: '合计', key: 'total', align: 'right' },
+    { title: '连接', key: 'hits', align: 'right' },
+    { title: '占比', key: 'percent' }
+  ],
+  // fixed cell widths (see the #slots) + a name width derived from the window, so columns never shift between refreshes
+  // w = measured width of the content root (ResizeObserver), not the screen/window
+  // tabsW = natural width of the tab row; below it the tabs become a Select
+  tableLayout(w, sortKey, tabsW = 1100) {
+    const narrow = w < 760
+    // hide secondary columns when narrow, but never the one being sorted by
+    const cols = TrafficUI.RANK_COLUMNS.map((c) => (narrow && c.key !== sortKey && ['up', 'down', 'hits'].includes(c.key) ? { ...c, hidden: true } : c))
+    // rank 24 + total 72 + share 120 (+ up/down 72 each + hits 52) + 16px padding per cell + card padding/scrollbar ~32
+    const extra = { up: 72, down: 72, hits: 52 }
+    const fixed =
+      24 + 72 + 120 + cols.reduce((sum, c) => sum + (!c.hidden && extra[c.key] ? extra[c.key] : 0), 0) + cols.filter((c) => !c.hidden).length * 16 + 32
+    const ringCols = w >= 1000 ? 3 : w >= 600 ? 2 : 1
+    return { narrow, compact: w < tabsW, ringCols, colsKey: cols.map((c) => (c.hidden ? 0 : 1)).join(''), cols, nameW: Math.max(60, Math.floor(w) - fixed) }
+  },
+  CONN_COLUMNS: [
+    { title: '目标 / 进程', key: 'host' },
+    { title: '节点', key: 'node' },
+    { title: '次数', key: 'count', align: 'right' },
+    { title: '流量', key: 'bytes', align: 'right' },
+    { title: '时长', key: 'duration', align: 'right' }
+  ],
   // whole view model, rebuilt from scratch on every refresh / user action (store data is mutated in place, so no reliance on Vue tracking it)
   buildView(st, pastData) {
     const isCurrent = st.month === store.currentMonth
@@ -1218,9 +1223,7 @@ body[theme-mode='dark'] .tsx .pill.g { color: #6ee7b7; } body[theme-mode='dark']
     return {
       isCurrent,
       hasData: !!t,
-      note: md?.v2Since
-        ? `端口、协议、入站、策略组、代理链、小时分布等新维度自 ${TrafficUI.time(md.v2Since)} 起统计；之前的流量在这些维度中计入「${LEGACY}」。`
-        : '',
+      note: md?.v2Since ? `端口、协议、入站、策略组、代理链和小时分布从 ${TrafficUI.time(md.v2Since)} 开始统计，此前的流量记为“${LEGACY}”。` : '',
       kpi,
       chart: TrafficUI.buildChart(daily, st.day),
       days: daily.map((x) => x.day),
@@ -1239,198 +1242,219 @@ body[theme-mode='dark'] .tsx .pill.g { color: #6ee7b7; } body[theme-mode='dark']
       ],
       drillOptions,
       canDrill: !st.drill && drillOptions.length > 0,
-      table: { total: rows.length, pages, offset, list: rows.slice(offset, offset + st.pageSize) },
+      table: { total: rows.length, pages, offset, list: rows.slice(offset, offset + st.pageSize).map((r, i) => ({ ...r, id: r.name, rank: offset + i + 1 })) },
       topLists: [
-        { id: 'bytes', title: '单连接流量排行', list: TrafficUI.groupConns(t?.top_conns, true).sort((a, b) => b.up + b.down - (a.up + a.down)) },
-        { id: 'dur', title: '长连接排行', list: TrafficUI.groupConns(t?.long_conns, false).sort((a, b) => b.duration - a.duration) }
-      ],
+        {
+          id: 'bytes',
+          title: '单连接流量排行',
+          durTitle: '时长',
+          list: TrafficUI.groupConns(t?.top_conns, true).sort((a, b) => b.up + b.down - (a.up + a.down))
+        },
+        { id: 'dur', title: '长连接排行', durTitle: '最长', list: TrafficUI.groupConns(t?.long_conns, false).sort((a, b) => b.duration - a.duration) }
+      ].map((tl) => ({ ...tl, rows: TrafficUI.flattenConns(tl.id, tl.list, st.expanded) })),
       dns: { types: chips(d.dns_types), kinds: chips(d.dns_ip_kinds), top: chips(d.dns_domains, (v) => v.hits || 0).slice(0, 24), logs: chips(d.log_levels) },
       updatedAt: new Date().toLocaleTimeString()
     }
   },
   createComponent() {
-    const { reactive, shallowRef, defineComponent, onUnmounted } = Vue
+    const { reactive, shallowRef, defineComponent, onUnmounted, onMounted, h, resolveComponent } = Vue
     return defineComponent({
       template: /* html */ `
-<div class="tsx">
-  <div class="bar">
-    <span :class="['dot', v.live ? 'live' : '']" :title="v.live ? '正在接收内核实时数据' : '未收到实时数据（插件未启动或内核未运行）'"></span>
-    <span class="title">流量统计</span>
-    <select :value="s.month" @change="setMonth($event.target.value)"><option v-for="m in s.months" :key="m" :value="m">{{ m }}</option></select>
-    <select :value="s.day" @change="setDay($event.target.value)"><option value="">全月</option><option v-for="d in v.days" :key="d" :value="d">{{ d }} 日</option></select>
-    <button class="btn" @click="refresh">⟳ 刷新</button>
-    <button :class="['btn', s.auto ? 'on' : '']" @click="toggleAuto">{{ s.auto ? '● 自动刷新 2s' : '○ 自动刷新' }}</button>
-    <button class="btn primary" @click="save">保存</button>
-    <span class="muted spacer">{{ v.isCurrent ? '实时' : '历史' }} · 更新于 {{ v.updatedAt }}</span>
+<div ref="root" class="text-12 pb-24 w-full" style="display:grid;grid-template-columns:minmax(0,1fr);row-gap:12px;min-width:0;max-width:100%;overflow-x:clip">
+  <div v-if="v.note" class="text-12" style="opacity:.7">{{ v.note }}</div>
+
+  <div class="grid grid-cols-3 gap-8">
+    <Card title="总流量">
+      <div class="text-20 font-bold">{{ fmt(v.kpi.total) }}</div>
+      <div style="opacity:.7">{{ s.day ? s.month + '-' + s.day : s.month + ' 全月' }}</div>
+    </Card>
+    <Card title="上传">
+      <div class="text-20 font-bold">{{ fmt(v.kpi.up) }}</div>
+      <div style="opacity:.7">峰值 {{ speed(v.kpi.peakUp) }}</div>
+    </Card>
+    <Card title="下载">
+      <div class="text-20 font-bold">{{ fmt(v.kpi.down) }}</div>
+      <div style="opacity:.7">峰值 {{ speed(v.kpi.peakDown) }}，{{ time(v.kpi.peakAt) }}</div>
+    </Card>
+    <Card title="连接">
+      <div class="text-20 font-bold">{{ num(v.kpi.conns) }}</div>
+      <div style="opacity:.7">拦截 {{ num(v.kpi.rejected) }}，已关闭 {{ num(v.kpi.closed) }}</div>
+      <div style="opacity:.7">平均 {{ dur(v.kpi.avgDur) }}，最长 {{ dur(v.kpi.maxDur) }}</div>
+    </Card>
+    <Card title="当前速率">
+      <div class="text-20 font-bold">{{ speed(v.spark.last.down) }}</div>
+      <div style="opacity:.7">上传 {{ speed(v.spark.last.up) }}，活动连接 {{ v.active }}</div>
+    </Card>
+    <Card title="直连占比">
+      <div class="text-20 font-bold">{{ v.kpi.directPct.toFixed(1) }}%</div>
+      <Progress :percent="v.kpi.directPct" class="my-4" />
+      <div style="opacity:.7">直连 {{ fmt(v.kpi.direct) }}，代理 {{ fmt(v.kpi.proxy) }}</div>
+    </Card>
   </div>
 
-  <div v-if="v.note" class="note">ⓘ {{ v.note }}</div>
-
-  <div class="grid kpis">
-    <div class="card kpi" style="--kc:#6366f1"><div class="lbl"><span class="ico">Σ</span>总流量</div><div class="val">{{ fmt(v.kpi.total) }}</div><div class="sub">{{ s.day ? s.month + '-' + s.day : s.month + ' 全月' }}</div></div>
-    <div class="card kpi" style="--kc:#7c3aed"><div class="lbl"><span class="ico">↑</span>上传</div><div class="val">{{ fmt(v.kpi.up) }}</div><div class="sub">峰值 {{ speed(v.kpi.peakUp) }}</div></div>
-    <div class="card kpi" style="--kc:#10b981"><div class="lbl"><span class="ico">↓</span>下载</div><div class="val">{{ fmt(v.kpi.down) }}</div><div class="sub">峰值 {{ speed(v.kpi.peakDown) }}<br />{{ time(v.kpi.peakAt) }}</div></div>
-    <div class="card kpi" style="--kc:#0891b2"><div class="lbl"><span class="ico">⇄</span>连接数</div><div class="val">{{ num(v.kpi.conns) }}</div><div class="sub">拦截 {{ num(v.kpi.rejected) }} · 已关闭 {{ num(v.kpi.closed) }}<br />平均 {{ dur(v.kpi.avgDur) }} · 最长 {{ dur(v.kpi.maxDur) }}</div></div>
-    <div class="card kpi" style="--kc:#f59e0b"><div class="lbl"><span class="ico">⚡</span>实时速率</div><div class="val" style="font-size:20px">↓ {{ speed(v.spark.last.down) }}</div><div class="sub">↑ {{ speed(v.spark.last.up) }}<br />活动连接 {{ v.active }}</div></div>
-    <div class="card kpi" style="--kc:#db2777"><div class="lbl"><span class="ico">%</span>直连占比</div><div class="val">{{ v.kpi.directPct.toFixed(1) }}%</div>
-      <div class="ratio"><div :style="{ width: v.kpi.directPct + '%', background: '#10b981' }"></div><div :style="{ flex: 1, background: '#6366f1' }"></div></div>
-      <div class="sub">直连 {{ fmt(v.kpi.direct) }} · 代理 {{ fmt(v.kpi.proxy) }}</div></div>
-  </div>
-
-  <div class="grid two">
-    <div class="card">
-      <h4>每日流量 <span class="muted">点击柱子查看当天，再次点击返回全月</span></h4>
-      <svg :viewBox="'0 0 ' + v.chart.W + ' ' + v.chart.H" style="width:100%;height:220px;display:block" preserveAspectRatio="none">
-        <g v-for="t in v.chart.ticks" :key="'t' + t.y"><line :x1="v.chart.L" :x2="v.chart.W" :y1="t.y" :y2="t.y" stroke="currentColor" stroke-opacity=".12" stroke-dasharray="3 3" /><text :x="v.chart.L - 6" :y="t.y + 4" font-size="11" text-anchor="end" fill-opacity=".8">{{ t.label }}</text></g>
+  <div class="grid gap-8" style="grid-template-columns:repeat(auto-fit,minmax(min(420px,100%),1fr))">
+    <Card title="每日流量" subtitle="点击某一天查看当天，再次点击回到全月">
+      <svg :viewBox="'0 0 ' + v.chart.W + ' ' + v.chart.H" class="mt-8" style="width:100%;height:220px;display:block" preserveAspectRatio="none">
+        <g v-for="t in v.chart.ticks" :key="'t' + t.y"><line :x1="v.chart.L" :x2="v.chart.W" :y1="t.y" :y2="t.y" stroke="currentColor" stroke-opacity=".12" stroke-dasharray="3 3" /><text :x="v.chart.L - 6" :y="t.y + 4" font-size="11" text-anchor="end" fill="currentColor" fill-opacity=".7">{{ t.label }}</text></g>
         <g v-for="b in v.chart.bars" :key="b.day" style="cursor:pointer" @click="setDay(s.day === b.day ? '' : b.day)">
           <title>{{ b.tip }}</title>
-          <rect :x="b.bx" :y="v.chart.T" :width="b.bw" :height="v.chart.plot" :fill="b.active ? 'rgba(99,102,241,.14)' : 'transparent'" />
-          <rect :x="b.x" :y="b.yDown" :width="b.w" :height="b.hDown" fill="#10b981" rx="2" />
-          <rect :x="b.x" :y="b.yUp" :width="b.w" :height="b.hUp" fill="#7c3aed" rx="2" />
-          <text :x="b.lx" :y="v.chart.H - 6" font-size="11" text-anchor="middle" :fill-opacity="b.active ? 1 : .7" :font-weight="b.active ? 700 : 400">{{ b.day }}</text>
+          <rect :x="b.bx" :y="v.chart.T" :width="b.bw" :height="v.chart.plot" fill="currentColor" :fill-opacity="b.active ? .08 : 0" />
+          <rect :x="b.x" :y="b.yDown" :width="b.w" :height="b.hDown" fill="var(--primary-color)" />
+          <rect :x="b.x" :y="b.yUp" :width="b.w" :height="b.hUp" fill="var(--primary-color)" fill-opacity=".4" />
+          <text :x="b.lx" :y="v.chart.H - 6" font-size="11" text-anchor="middle" fill="currentColor" :fill-opacity="b.active ? 1 : .6" :font-weight="b.active ? 700 : 400">{{ b.day }}</text>
         </g>
       </svg>
-      <div class="legend"><span><i style="background:#7c3aed"></i>上传</span><span><i style="background:#10b981"></i>下载</span></div>
-    </div>
-    <div class="card">
-      <h4>实时速率 <span class="muted">最近 {{ v.spark.count }} 个采样（每秒一次，与所选月份无关）</span></h4>
-      <svg v-if="v.spark.count > 1" :viewBox="'0 0 ' + v.spark.W + ' ' + v.spark.H" style="width:100%;height:220px;display:block" preserveAspectRatio="none">
-        <g v-for="t in v.spark.ticks" :key="'s' + t.y"><line :x1="v.spark.L" :x2="v.spark.W" :y1="t.y" :y2="t.y" stroke="currentColor" stroke-opacity=".12" stroke-dasharray="3 3" /><text :x="v.spark.L - 6" :y="t.y + 3" font-size="10" text-anchor="end" fill-opacity=".7">{{ t.label }}</text></g>
-        <polygon :points="v.spark.downArea" fill="#10b981" fill-opacity=".15" />
-        <polyline :points="v.spark.down" fill="none" stroke="#10b981" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round" />
-        <polyline :points="v.spark.up" fill="none" stroke="#7c3aed" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linejoin="round" />
-        <text v-for="(x, i) in v.spark.xlabels" :key="'x' + i" :x="x.x" :y="v.spark.H - 2" font-size="10" :text-anchor="i ? 'end' : 'start'" fill-opacity=".7">{{ x.label }}</text>
+      <div class="flex items-center gap-16 mt-4" style="opacity:.8">
+        <span class="flex items-center gap-4"><svg width="10" height="10"><rect width="10" height="10" fill="var(--primary-color)" fill-opacity=".4" /></svg>上传</span>
+        <span class="flex items-center gap-4"><svg width="10" height="10"><rect width="10" height="10" fill="var(--primary-color)" /></svg>下载</span>
+      </div>
+    </Card>
+    <Card title="实时速率" :subtitle="'最近 ' + v.spark.count + ' 秒，与所选月份无关'">
+      <svg v-if="v.spark.count > 1" :viewBox="'0 0 ' + v.spark.W + ' ' + v.spark.H" class="mt-8" style="width:100%;height:220px;display:block" preserveAspectRatio="none">
+        <g v-for="t in v.spark.ticks" :key="'s' + t.y"><line :x1="v.spark.L" :x2="v.spark.W" :y1="t.y" :y2="t.y" stroke="currentColor" stroke-opacity=".12" stroke-dasharray="3 3" /><text :x="v.spark.L - 6" :y="t.y + 3" font-size="10" text-anchor="end" fill="currentColor" fill-opacity=".7">{{ t.label }}</text></g>
+        <polyline :points="v.spark.down" fill="none" stroke="var(--primary-color)" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linejoin="round" />
+        <polyline :points="v.spark.up" fill="none" stroke="var(--primary-color)" stroke-opacity=".45" stroke-width="1.4" vector-effect="non-scaling-stroke" stroke-linejoin="round" />
+        <text v-for="(x, i) in v.spark.xlabels" :key="'x' + i" :x="x.x" :y="v.spark.H - 2" font-size="10" :text-anchor="i ? 'end' : 'start'" fill="currentColor" fill-opacity=".7">{{ x.label }}</text>
       </svg>
-      <div v-else class="empty" style="height:220px;display:grid;place-items:center">等待内核推送实时速率…（请确认插件已「开始」且内核在运行）</div>
-      <div class="legend"><span><i style="background:#7c3aed"></i>上传 {{ speed(v.spark.last.up) }}</span><span><i style="background:#10b981"></i>下载 {{ speed(v.spark.last.down) }}</span><span class="muted">区间峰值 {{ speed(v.spark.peak) }} · 内存峰值 {{ fmt(v.kpi.memPeak) }}</span></div>
-    </div>
+      <Empty v-else description="暂无实时数据，需要插件已开始且内核在运行" style="height:220px" />
+      <div class="flex items-center gap-16 mt-4" style="opacity:.8">
+        <span class="flex items-center gap-4"><svg width="14" height="10"><line x1="0" x2="14" y1="5" y2="5" stroke="var(--primary-color)" stroke-opacity=".45" stroke-width="2" /></svg>上传 {{ speed(v.spark.last.up) }}</span>
+        <span class="flex items-center gap-4"><svg width="14" height="10"><line x1="0" x2="14" y1="5" y2="5" stroke="var(--primary-color)" stroke-width="2" /></svg>下载 {{ speed(v.spark.last.down) }}</span>
+        <span>区间峰值 {{ speed(v.spark.peak) }}，内存峰值 {{ fmt(v.kpi.memPeak) }}</span>
+      </div>
+    </Card>
   </div>
 
-  <div class="card">
-    <h4>24 小时分布 <span class="muted">{{ v.heat.single ? s.day + ' 日各小时' : '每行一天，悬停查看详情' }}</span></h4>
-    <div v-if="!v.heat.rows.length" class="empty">暂无小时数据（升级到 v2 之前的数据没有小时维度）</div>
+  <Card title="24 小时分布" :subtitle="v.heat.single ? s.day + ' 日各小时' : '每行一天'">
+    <Empty v-if="!v.heat.rows.length" description="暂无小时数据（v2 之前的数据没有这一项）" />
     <template v-else>
-      <div :class="['heat', v.heat.single ? 'single' : '']">
+      <div class="overflow-x-auto"><div class="grid gap-2 items-center" style="grid-template-columns:34px repeat(24,minmax(12px,1fr))">
         <template v-for="r in v.heat.rows" :key="'r' + r.day">
-          <div class="hl">{{ r.day }}日</div>
-          <div v-for="c in r.cells" :key="r.day + '-' + c.h" :class="['hc', c.lvl ? '' : 'e']" :style="{ background: c.color }" :title="c.tip"></div>
+          <div class="text-10 text-right pr-6" style="opacity:.7">{{ r.day }} 日</div>
+          <div v-for="c in r.cells" :key="r.day + '-' + c.h" :title="c.tip" class="rounded-2" :style="{ height: v.heat.single ? '32px' : '14px', background: c.lvl ? 'color-mix(in srgb, var(--primary-color) ' + c.alpha * 100 + '%, transparent)' : 'transparent', boxShadow: c.lvl ? 'none' : 'inset 0 0 0 1px color-mix(in srgb, currentColor 12%, transparent)' }"></div>
         </template>
         <div></div>
-        <div v-for="h in 24" :key="'h' + h" class="hh">{{ h - 1 }}</div>
+        <div v-for="h in 24" :key="'h' + h" class="text-10 text-center" style="opacity:.7">{{ h - 1 }}</div>
+      </div></div>
+      <div class="flex items-center justify-end gap-4 mt-8 text-10" style="opacity:.8">
+        少
+        <div v-for="(l, i) in v.heat.legend" :key="'g' + i" class="rounded-2" :style="{ width: '16px', height: '10px', background: 'color-mix(in srgb, var(--primary-color) ' + l.alpha * 100 + '%, transparent)', boxShadow: 'inset 0 0 0 1px color-mix(in srgb, currentColor 12%, transparent)' }"></div>
+        多，最高 {{ fmt(v.heat.max) }}/小时
       </div>
-      <div class="heat-legend"><span class="muted">少</span><span v-for="(l, i) in v.heat.legend" :key="'g' + i" class="c" :style="{ background: l.color }"></span><span class="muted">多（最高 {{ fmt(v.heat.max) }}/小时）</span></div>
     </template>
-  </div>
+  </Card>
 
-  <div class="grid rings">
-    <div class="card" v-for="d in v.donuts" :key="d.title">
-      <h4>{{ d.title }}</h4>
-      <div v-if="!d.segs.length" class="empty">暂无数据</div>
-      <div v-else class="donut-wrap">
-        <svg viewBox="0 0 110 110" style="width:118px;height:118px;flex:none">
-          <circle cx="55" cy="55" :r="d.R" fill="none" stroke="currentColor" stroke-opacity=".08" stroke-width="13" />
-          <circle v-for="g in d.segs" :key="g.name" cx="55" cy="55" :r="d.R" fill="none" :stroke="g.color" stroke-width="13" :stroke-dasharray="g.dash" :stroke-dashoffset="g.offset" transform="rotate(-90 55 55)"><title>{{ g.name }}  {{ g.percent.toFixed(1) }}%</title></circle>
-          <text x="55" y="51" text-anchor="middle" font-size="11" fill-opacity=".8">{{ d.centerLabel }}</text>
-          <text x="55" y="66" text-anchor="middle" font-size="12" font-weight="700">{{ d.centerValue }}</text>
+  <div class="grid gap-8" :style="{ gridTemplateColumns: 'repeat(' + s.ringCols + ', minmax(0, 1fr))' }">
+    <Card v-for="d in v.donuts" :key="d.title" :title="d.title">
+      <Empty v-if="!d.segs.length" />
+      <div v-else class="flex items-center gap-16">
+        <svg viewBox="0 0 110 110" class="flex-none" style="width:110px;height:110px">
+          <circle cx="55" cy="55" :r="d.R" fill="none" stroke="currentColor" stroke-opacity=".08" stroke-width="12" />
+          <circle v-for="g in d.segs" :key="g.name" cx="55" cy="55" :r="d.R" fill="none" :stroke="g.color" stroke-width="12" :stroke-dasharray="g.dash" :stroke-dashoffset="g.offset" transform="rotate(-90 55 55)"><title>{{ g.name }}  {{ g.percent.toFixed(1) }}%</title></circle>
+          <text x="55" y="51" text-anchor="middle" font-size="11" fill="currentColor" fill-opacity=".7">{{ d.centerLabel }}</text>
+          <text x="55" y="66" text-anchor="middle" font-size="12" font-weight="700" fill="currentColor">{{ d.centerValue }}</text>
         </svg>
-        <div class="donut-legend">
-          <div v-for="g in d.segs" :key="g.name"><i :style="{ background: g.color }"></i><span class="n tip" :data-tip="g.name">{{ g.name }}</span><span class="p">{{ g.percent.toFixed(1) }}%</span></div>
+        <div class="flex-1 flex flex-col gap-4 overflow-hidden">
+          <div v-for="g in d.segs" :key="g.name" class="flex items-center gap-8">
+            <svg width="10" height="10" class="flex-none"><rect width="10" height="10" rx="2" :fill="g.color" /></svg>
+            <span v-tips.fast="g.name" class="flex-1 line-clamp-1 break-all">{{ g.name }}</span>
+            <span class="whitespace-nowrap" style="opacity:.8">{{ g.percent.toFixed(1) }}%</span>
+          </div>
         </div>
       </div>
-    </div>
+    </Card>
   </div>
 
-  <div class="card">
-    <div class="tabs"><span v-for="t in tabs" :key="t.value" :class="['tab', s.tab === t.value ? 'act' : '']" @click="setTab(t.value)">{{ t.label }}</span></div>
-    <div v-if="s.drill" class="crumb">
-      <button class="btn sm" @click.stop="back">← 返回</button>
-      <b style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:420px">{{ s.drill.key }}</b>
-      <span class="muted">明细：</span>
-      <span v-for="(o, i) in v.drillOptions" :key="o.label" :class="['tab', s.drill.sub === i ? 'act' : '']" @click.stop="setSub(i)">{{ o.label }}</span>
+  <div ref="rankCard"><Card title="排行">
+    <template #extra>
+       <div class="flex items-center gap-8" @pointerdown="hold">
+        <div @focusin="s.typing = true" @focusout="s.typing = false"><Input :model-value="s.search" :delay="250" @update:model-value="onSearch" placeholder="搜索名称" clearable size="small" /></div>
+        <Select :model-value="s.sort" :options="sorts" size="small" @change="setSort" />
+        <Button size="small" type="text" @click="toggleOrder">{{ s.order === 'desc' ? '降序' : '升序' }}</Button>
+      </div>
+    </template>
+    <div v-if="s.compact" @pointerdown="hold"><Select :model-value="s.tab" :options="tabs" @change="setTab" /></div>
+    <div v-else class="overflow-x-auto pb-8" style="max-width:100%"><div ref="tabsRow" class="whitespace-nowrap" style="width:max-content"><Radio :model-value="s.tab" :options="tabs" @change="setTab" /></div></div>
+    <div v-if="s.drill" class="flex items-center gap-8 mt-8">
+      <Button size="small" icon="arrowLeft" @click="back">返回</Button>
+      <span v-tips.fast="s.drill.label" class="font-bold line-clamp-1 break-all" style="max-width:min(420px,50vw)">{{ s.drill.label }}</span>
+      <Radio :model-value="s.drill.sub" :options="v.drillOptions.map((o, i) => ({ label: o.label, value: i }))" size="small" @change="setSub" />
     </div>
-    <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
-      <input class="ts-in" :value="s.search" @input="onSearch($event.target.value)" @focus="s.typing = true" @blur="s.typing = false" placeholder="搜索名称…" style="width:260px" />
-      <span class="muted">共 {{ v.table.total }} 项{{ v.canDrill ? ' · 点击行查看明细' : '' }}</span>
+    <div class="mt-8 mb-4" style="opacity:.7">共 {{ v.table.total }} 项</div>
+    <Table v-if="v.table.list.length" class="w-full" :columns="s.cols" :data-source="v.table.list">
+      <template #name="{ record }">
+        <div class="flex items-center gap-4 overflow-hidden" :style="{ width: s.nameW + 'px' }">
+          <Button v-if="v.canDrill && record.name !== '其他'" type="link" size="small" class="overflow-hidden" @click="openDrill(record)"><span v-tips.fast="record.name" class="line-clamp-1 break-all">{{ record.name }}</span></Button>
+          <span v-else v-tips.fast="record.name" class="line-clamp-1 break-all">{{ record.name }}</span>
+          <Tag v-if="record.meta && record.meta.type" size="small">{{ record.meta.type }}</Tag>
+          <Tag v-if="record.meta && record.meta.delay" size="small" :color="record.meta.delay < 200 ? 'green' : record.meta.delay < 500 ? 'orange' : 'red'">{{ record.meta.delay }} ms</Tag>
+        </div>
+      </template>
+      <template #rank="{ record }"><div style="width:24px">{{ record.rank }}</div></template>
+      <template #up="{ record }"><div style="width:72px">{{ fmt(record.up) }}</div></template>
+      <template #down="{ record }"><div style="width:72px">{{ fmt(record.down) }}</div></template>
+      <template #total="{ record }"><div style="width:72px"><b>{{ fmt(record.total) }}</b></div></template>
+      <template #hits="{ record }"><div style="width:52px">{{ num(record.hits) }}</div></template>
+      <template #percent="{ record }">
+        <div class="flex items-center gap-4" style="width:120px"><div class="flex-1"><Progress :percent="record.percent" /></div><span class="text-right flex-none" style="width:40px">{{ record.percent.toFixed(1) }}%</span></div>
+      </template>
+    </Table>
+    <Empty v-else :description="s.search ? '没有匹配“' + s.search + '”的项' : '暂无数据'" />
+    <div v-if="v.table.total > 15" class="flex items-center justify-end gap-8 mt-8">
+      <Pagination :current="s.page" :total="v.table.total" :page-size="s.pageSize" size="small" @update:current="setPage" />
+      <Select :model-value="String(s.pageSize)" :options="pageSizes" size="small" @change="setPageSize" />
     </div>
-    <table>
-      <colgroup><col style="width:46px" /><col /><col style="width:100px" /><col style="width:100px" /><col style="width:104px" /><col style="width:80px" /><col style="width:180px" /></colgroup>
-      <thead><tr>
-        <th>#</th>
-        <th @click="sortBy('name')">名称 {{ arrow('name') }}</th>
-        <th class="r" @click="sortBy('up')">上传 {{ arrow('up') }}</th>
-        <th class="r" @click="sortBy('down')">下载 {{ arrow('down') }}</th>
-        <th class="r" @click="sortBy('total')">合计 {{ arrow('total') }}</th>
-        <th class="r" @click="sortBy('hits')">{{ s.tab === 'failed_hosts' && !s.drill ? '失败' : '连接' }} {{ arrow('hits') }}</th>
-        <th>占比</th>
-      </tr></thead>
-      <tbody>
-        <tr v-for="(r, i) in v.table.list" :key="r.name" :class="v.canDrill && r.name !== '其他' ? 'click' : ''" @click="openDrill(r)">
-          <td><span :class="['rank', 't' + (v.table.offset + i + 1)]">{{ v.table.offset + i + 1 }}</span></td>
-          <td><span class="tip" :data-tip="r.name">{{ r.name }}</span><span v-if="r.meta && r.meta.type" class="pill">{{ r.meta.type }}</span><span v-if="r.meta && r.meta.delay" :class="['pill', r.meta.delay < 200 ? 'g' : r.meta.delay < 500 ? 'o' : 'r']">{{ r.meta.delay }} ms</span></td>
-          <td class="r">{{ fmt(r.up) }}</td>
-          <td class="r">{{ fmt(r.down) }}</td>
-          <td class="r"><b>{{ fmt(r.total) }}</b></td>
-          <td class="r">{{ num(r.hits) }}</td>
-          <td><div class="pbar"><div class="trk"><div class="fill" :style="{ width: r.percent > 0 ? 'max(2px, ' + Math.min(100, r.percent).toFixed(2) + '%)' : '0' }"></div></div><span class="pv">{{ r.percent.toFixed(1) }}%</span></div></td>
-        </tr>
-        <tr v-if="!v.table.list.length"><td colspan="7" class="empty">{{ s.search ? '没有匹配“' + s.search + '”的项' : '暂无数据' }}</td></tr>
-      </tbody>
-    </table>
-    <div class="pager" v-if="v.table.total > 15">
-      <button class="btn sm" :disabled="s.page <= 1" @click="setPage(s.page - 1)">上一页</button>
-      <span>第 {{ s.page }} / {{ v.table.pages }} 页</span>
-      <button class="btn sm" :disabled="s.page >= v.table.pages" @click="setPage(s.page + 1)">下一页</button>
-      <select :value="s.pageSize" @change="setPageSize($event.target.value)"><option value="15">15 条/页</option><option value="30">30 条/页</option><option value="100">100 条/页</option></select>
-    </div>
+  </Card></div>
+
+  <div class="grid gap-8" style="grid-template-columns:repeat(auto-fit,minmax(min(420px,100%),1fr))">
+    <Card v-for="tl in v.topLists" :key="tl.id" :title="tl.title" subtitle="已关闭连接前 20 条，按目标和节点合并">
+      <Table v-if="tl.rows.length" class="w-full" :columns="connColumns(tl)" :data-source="tl.rows">
+        <template #host="{ record }">
+          <div v-if="record.group" :class="record.expandable ? 'cursor-pointer' : ''" @click="record.expandable && toggleGroup(record.key)">
+            <div v-tips.fast="record.host" class="line-clamp-1 break-all" :style="{ maxWidth: s.compact ? '150px' : '360px' }">{{ record.expandable ? (record.open ? '▾ ' : '▸ ') : '' }}{{ record.host }}</div>
+            <div class="text-10 line-clamp-1 break-all" :style="{ opacity: .7, maxWidth: s.compact ? '150px' : '360px' }">{{ record.sub }}</div>
+          </div>
+          <div v-else class="pl-16" style="opacity:.7">{{ record.host }}</div>
+        </template>
+        <template #node="{ record }"><span v-tips.fast="record.chain" class="line-clamp-1 break-all" :style="{ maxWidth: s.compact ? '90px' : '180px', opacity: record.group ? 1 : .7 }">{{ record.node }}</span></template>
+        <template #bytes="{ record }">{{ fmt(record.bytes) }}</template>
+        <template #duration="{ record }">{{ dur(record.duration) }}</template>
+      </Table>
+      <Empty v-else description="暂无记录，连接关闭后才会出现" />
+    </Card>
   </div>
 
-  <div class="grid two">
-    <div class="card" v-for="tl in v.topLists" :key="tl.id">
-      <h4>{{ tl.title }} <span class="muted">已关闭连接 Top 20，按 目标+节点 合并</span></h4>
-      <table v-if="tl.list.length">
-        <colgroup><col /><col style="width:180px" /><col style="width:56px" /><col style="width:90px" /><col style="width:84px" /></colgroup>
-        <thead><tr><th>目标 / 进程</th><th>节点</th><th class="r">次数</th><th class="r">流量</th><th class="r">{{ tl.id === 'dur' ? '最长' : '时长' }}</th></tr></thead>
-        <tbody>
-          <template v-for="g in tl.list" :key="tl.id + g.key">
-            <tr :class="g.count > 1 ? 'click' : ''" @click="g.count > 1 && toggleGroup(tl.id + g.key)">
-              <td><span class="tip" :data-tip="g.host">{{ g.count > 1 ? (s.expanded[tl.id + g.key] ? '▾ ' : '▸ ') : '' }}{{ g.host }}</span><span class="sub2">{{ g.process }}{{ g.rule ? ' · ' + g.rule : '' }}</span></td>
-              <td><span class="tip" :data-tip="g.chain || g.node">{{ g.node }}</span></td>
-              <td class="r">{{ g.count }}</td>
-              <td class="r">{{ fmt(g.up + g.down) }}</td>
-              <td class="r">{{ dur(g.duration) }}</td>
-            </tr>
-            <template v-if="g.count > 1 && s.expanded[tl.id + g.key]">
-              <tr v-for="(c, i) in g.items" :key="tl.id + g.key + i" class="child">
-                <td><span class="sub2">{{ time(c.start) }} · {{ c.network || '' }} · {{ c.client || '' }}</span></td>
-                <td><span class="sub2">{{ c.process }}</span></td>
-                <td></td>
-                <td class="r">{{ fmt(c.up + c.down) }}</td>
-                <td class="r">{{ dur(c.duration) }}</td>
-              </tr>
-            </template>
-          </template>
-        </tbody>
-      </table>
-      <div v-else class="empty">暂无记录（连接关闭后才会出现在这里）</div>
-    </div>
-  </div>
-
-  <div class="grid two">
-    <div class="card">
-      <h4>DNS</h4>
-      <div class="kvrow"><span class="k">记录类型</span><div class="chips"><span v-for="c in v.dns.types" :key="c.name" class="chip">{{ c.name }}<b>{{ num(c.value) }}</b></span><span v-if="!v.dns.types.length" class="muted">暂无</span></div></div>
-      <div class="kvrow"><span class="k">解析结果</span><div class="chips"><span v-for="c in v.dns.kinds" :key="c.name" class="chip">{{ c.name }}<b>{{ num(c.value) }}</b></span></div></div>
-      <div class="kvrow"><span class="k">热门域名</span><div class="chips"><span v-for="c in v.dns.top" :key="c.name" class="chip">{{ c.name }}<b>{{ num(c.value) }}</b></span><span v-if="!v.dns.top.length" class="muted">暂无</span></div></div>
-    </div>
-    <div class="card">
-      <h4>日志与未归属流量</h4>
-      <div class="kvrow"><span class="k">日志级别</span><div class="chips"><span v-for="c in v.dns.logs" :key="c.name" class="chip">{{ c.name }}<b>{{ num(c.value) }}</b></span><span v-if="!v.dns.logs.length" class="muted">暂无</span></div></div>
-      <div class="kvrow"><span class="k">未归属</span><div>↑ <b>{{ fmt(v.residual.up) }}</b> · ↓ <b>{{ fmt(v.residual.down) }}</b><div class="muted">连接在两次采样之间关闭、无法定位到具体连接的字节</div></div></div>
-    </div>
+  <div class="grid gap-8" style="grid-template-columns:repeat(auto-fit,minmax(min(420px,100%),1fr))">
+    <Card title="DNS">
+      <div v-for="row in dnsRows" :key="row.key" class="flex items-start gap-12 py-4">
+        <span class="flex-none pt-2" style="width:64px;opacity:.7">{{ row.label }}</span>
+        <div class="flex flex-wrap gap-4">
+          <Tag v-for="c in v.dns[row.key]" :key="c.name" size="small">{{ c.name }} {{ num(c.value) }}</Tag>
+          <span v-if="!v.dns[row.key].length" style="opacity:.7">暂无</span>
+        </div>
+      </div>
+    </Card>
+    <Card title="日志与未归属流量">
+      <div class="flex items-start gap-12 py-4">
+        <span class="flex-none pt-2" style="width:64px;opacity:.7">日志级别</span>
+        <div class="flex flex-wrap gap-4">
+          <Tag v-for="c in v.dns.logs" :key="c.name" size="small">{{ c.name }} {{ num(c.value) }}</Tag>
+          <span v-if="!v.dns.logs.length" style="opacity:.7">暂无</span>
+        </div>
+      </div>
+      <div class="flex items-start gap-12 py-4">
+        <span class="flex-none" style="width:64px;opacity:.7">未归属</span>
+        <div>
+          <div>上传 {{ fmt(v.residual.up) }}，下载 {{ fmt(v.residual.down) }}</div>
+          <div style="opacity:.7">连接在两次采样之间关闭，无法归到具体连接的字节</div>
+        </div>
+      </div>
+    </Card>
   </div>
 </div>
       `,
-      setup() {
+      setup(_props, ctx) {
+        const m0 = TrafficUI.memo || {}
         const s = reactive({
           month: store.currentMonth,
           day: '',
@@ -1444,14 +1468,44 @@ body[theme-mode='dark'] .tsx .pill.g { color: #6ee7b7; } body[theme-mode='dark']
           pageSize: 15,
           months: [store.currentMonth],
           typing: false,
+          width: 0,
+          holdUntil: 0,
+          openedAt: Date.now(),
+          cols: TrafficUI.RANK_COLUMNS,
+          nameW: 200,
           sorts: {},
           expanded: {}
         })
+        ;['day', 'tab', 'sort', 'order', 'pageSize', 'auto'].forEach((k) => m0[k] !== undefined && (s[k] = m0[k]))
+        s.sorts = { ...(m0.sorts || {}) }
         let pastData = null
         const v = shallowRef(TrafficUI.buildView(s, pastData))
-        const refresh = () => {
-          v.value = TrafficUI.buildView(s, pastData)
+        // remembered for this app session (plugin memory only)
+        const remember = () =>
+          (TrafficUI.memo = {
+            month: s.month,
+            day: s.day,
+            tab: s.tab,
+            sort: s.sort,
+            order: s.order,
+            pageSize: s.pageSize,
+            auto: s.auto,
+            sorts: { ...s.sorts, [s.tab]: { sort: s.sort, order: s.order } }
+          })
+        const layout = () => {
+          const L = TrafficUI.tableLayout(s.width || (typeof window !== 'undefined' ? window.innerWidth * 0.9 : 1100), s.sort, TrafficUI.tabsW || 1100)
+          if (L.nameW !== s.nameW) s.nameW = L.nameW
+          if (L.narrow !== s.narrow) s.narrow = L.narrow
+          if (L.compact !== s.compact) s.compact = L.compact
+          if (L.ringCols !== s.ringCols) s.ringCols = L.ringCols
+          if (L.colsKey !== s.colsKey) ((s.colsKey = L.colsKey), (s.cols = L.cols))
         }
+        const refresh = () => {
+          layout()
+          v.value = TrafficUI.buildView(s, pastData)
+          remember()
+        }
+        layout()
         const loadMonths = async () => {
           const list = await Utils.listMonths()
           if (!list.includes(s.month)) list.unshift(s.month)
@@ -1470,12 +1524,45 @@ body[theme-mode='dark'] .tsx .pill.g { color: #6ee7b7; } body[theme-mode='dark']
         TrafficUI.stopTimer()
         let n = 0
         TrafficUI.timer = setInterval(() => {
-          if (!s.auto || s.typing) return
+          if (!s.auto || s.typing || Date.now() < s.holdUntil) return
           if (++n % 15 === 0) refreshNodeMeta()
           refresh() // realtime chart updates even for past months
         }, 2000)
-        onUnmounted && onUnmounted(() => TrafficUI.stopTimer())
+        // measure the real content width (window size, zoom and modal size all included) and re-layout on resize
+        const root = Vue.ref ? Vue.ref(null) : { value: null }
+        const tabsRow = Vue.ref ? Vue.ref(null) : { value: null }
+        let ro = null
+        // measure the modal body (ScrollView), whose width is set by the modal, never by our content
+        const bodyEl = () =>
+          (root.value && root.value.closest && root.value.closest('.gui-scroll-view')) || (root.value && root.value.parentElement) || root.value
+        const measure = () => {
+          const el = bodyEl()
+          if (!el) return
+          const cs = typeof getComputedStyle !== 'undefined' ? getComputedStyle(el) : null
+          const pad = cs ? (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0) : 0
+          const w = Math.floor(el.clientWidth - pad)
+          if (tabsRow.value && tabsRow.value.scrollWidth) TrafficUI.tabsW = tabsRow.value.scrollWidth + 16
+          if (w <= 0) return
+          s.width = w
+          layout()
+        }
+        onMounted &&
+          onMounted(() => {
+            TrafficUI.rootEl = root.value
+            measure()
+            if (typeof ResizeObserver !== 'undefined' && root.value) {
+              ro = new ResizeObserver(() => measure())
+              ro.observe(bodyEl())
+            } else if (typeof window !== 'undefined') window.addEventListener('resize', measure)
+          })
+        onUnmounted &&
+          onUnmounted(() => {
+            TrafficUI.stopTimer()
+            ro ? ro.disconnect() : typeof window !== 'undefined' && window.removeEventListener && window.removeEventListener('resize', measure)
+            ro = null
+          })
         loadMonths()
+        let restoring = null
 
         const methods = {
           refresh,
@@ -1498,6 +1585,7 @@ body[theme-mode='dark'] .tsx .pill.g { color: #6ee7b7; } body[theme-mode='dark']
             refresh()
           },
           setTab(t) {
+            if (t === s.tab) return
             s.sorts[s.tab] = { sort: s.sort, order: s.order }
             const remembered = s.sorts[t] || { sort: 'total', order: 'desc' }
             s.sort = remembered.sort
@@ -1514,13 +1602,16 @@ body[theme-mode='dark'] .tsx .pill.g { color: #6ee7b7; } body[theme-mode='dark']
             refresh()
           },
           back() {
+            scrollToTable()
+            const keep = s.sorts[s.tab + '#top']
+            if (keep) ((s.sort = keep.sort), (s.order = keep.order))
             s.drill = null
             s.page = 1
             s.search = ''
             refresh()
           },
           onSearch(q) {
-            s.search = q
+            s.search = q || ''
             s.page = 1
             refresh()
           },
@@ -1539,25 +1630,99 @@ body[theme-mode='dark'] .tsx .pill.g { color: #6ee7b7; } body[theme-mode='dark']
             s.page = 1
             refresh()
           },
-          arrow(k) {
-            return s.sort === k ? (s.order === 'desc' ? '↓' : '↑') : ''
+          setSort(k) {
+            if (k === s.sort) return
+            s.sort = k // keep the current order
+            s.page = 1
+            layout()
+            refresh()
+          },
+          toggleOrder() {
+            s.order = s.order === 'desc' ? 'asc' : 'desc'
+            s.page = 1
+            refresh()
           },
           toggleGroup(key) {
             s.expanded = { ...s.expanded, [key]: !s.expanded[key] }
+            refresh()
+          },
+          hold() {
+            // a Select/dropdown is being used: don't re-render under it
+            s.holdUntil = Date.now() + 4000
           },
           openDrill(r) {
             const opts = TrafficUI.DRILL[s.tab] || []
             if (s.drill || !opts.length || r.name === '其他') return
-            s.drill = { key: opts[0].keyOf ? opts[0].keyOf(r) : r.name, sub: 0 }
+            s.sorts[s.tab + '#top'] = { sort: s.sort, order: s.order }
+            s.drill = { key: opts[0].keyOf ? opts[0].keyOf(r) : r.name, label: r.name, sub: 0 }
             s.page = 1
             s.search = ''
             refresh()
+            scrollToTable()
+          },
+          connColumns(tl) {
+            return TrafficUI.CONN_COLUMNS.map((c) => (c.key === 'duration' ? { ...c, title: tl.durTitle } : c))
           }
         }
+
+        // header toolbar: period pickers + refresh controls; footer left: status + save
+        if (m0.month && m0.month !== store.currentMonth) {
+          const day = s.day
+          restoring = methods.setMonth(m0.month).then(() => (s.day = day) && refresh())
+        }
+        TrafficUI.restoring = restoring
+        const rankCard = Vue.ref ? Vue.ref(null) : { value: null }
+        const C = (name) => resolveComponent(name)
+        // keep the ranking card in view when its content height changes (drill in / back)
+        const scrollToTable = () =>
+          (Vue.nextTick || ((f) => f()))(() => rankCard.value && rankCard.value.scrollIntoView && rankCard.value.scrollIntoView({ block: 'start' }))
+        const modalSlots = {
+          toolbar: () =>
+            h('div', { class: 'inline-flex items-center gap-8 mr-8 align-middle' }, [
+              h(
+                'span',
+                { onPointerdown: () => (s.holdUntil = Date.now() + 4000) },
+                h(C('Select'), { modelValue: s.month, options: s.months.map((m) => ({ label: m, value: m })), size: 'small', onChange: methods.setMonth })
+              ),
+              h(
+                'span',
+                { onPointerdown: () => (s.holdUntil = Date.now() + 4000) },
+                h(C('Select'), {
+                  modelValue: s.day,
+                  options: [{ label: '全月', value: '' }, ...v.value.days.map((d) => ({ label: d + ' 日', value: d }))],
+                  size: 'small',
+                  onChange: methods.setDay
+                })
+              ),
+              h(C('Switch'), { modelValue: s.auto, size: 'small', 'onUpdate:modelValue': (val) => (s.auto = val) }, () => '自动刷新'),
+              h(C('Button'), { type: 'text', size: 'small', icon: 'refresh', onClick: refresh }, () => '刷新')
+            ]),
+          action: () => [
+            h(
+              'div',
+              { class: 'mr-auto text-12', style: 'opacity:.7' },
+              `${v.value.isCurrent ? '当前月' : '历史月份'} · ${v.value.isCurrent ? (v.value.live ? '正在接收内核数据 · ' : Date.now() - s.openedAt < 8000 ? '等待数据 · ' : '未收到内核数据 · ') : ''}更新于 ${v.value.updatedAt}`
+            ),
+            h(C('Button'), { onClick: save }, () => '保存')
+          ]
+        }
+        ctx && ctx.expose && ctx.expose({ modalSlots })
+
+        const tabs = TrafficUI.TABS
         return {
           s,
           v,
-          tabs: TrafficUI.TABS,
+          tabs,
+          sorts: TrafficUI.SORTS,
+          pageSizes: TrafficUI.PAGE_SIZES,
+          rankCard,
+          root,
+          tabsRow,
+          dnsRows: [
+            { key: 'types', label: '记录类型' },
+            { key: 'kinds', label: '解析结果' },
+            { key: 'top', label: '热门域名' }
+          ],
           fmt: TrafficUI.fmt,
           speed: TrafficUI.speed,
           num: TrafficUI.num,
