@@ -302,17 +302,38 @@ const recordClosed = (target, rec, endTs) => {
   push(target.long_conns, (x) => x.duration)
 }
 
+// sing-box reports `rule` as "<matcher> => <action>", e.g. "rule_set=GeoLocation-!CN => route(Proxy)",
+// "final => route(Proxy)", "protocol=dns => hijack-dns", "domain=x => reject"; rulePayload is empty.
+// mihomo reports `rule` = "RuleSet" and `rulePayload` = "GeoLocation". Normalize both to { rule, payload, action }.
+const parseRule = (conn) => {
+  const raw = String(conn.rule || '')
+  const i = raw.indexOf(' => ')
+  if (i < 0) return { rule: raw || 'Match', payload: conn.rulePayload || '', action: '' }
+  const matcher = raw.slice(0, i).trim()
+  const action = raw.slice(i + 4).trim()
+  const eq = matcher.indexOf('=')
+  return eq > 0 ? { rule: matcher.slice(0, eq), payload: matcher.slice(eq + 1), action } : { rule: matcher || 'final', payload: '', action }
+}
+
 const buildInfo = (conn, now) => {
   const m = conn.metadata || {}
-  const chains = Array.isArray(conn.chains) && conn.chains.length ? conn.chains : ['DIRECT']
+  const r = parseRule(conn)
+  const actionKind = (r.action.match(/^[a-z-]+/i) || [''])[0].toLowerCase()
+  // sing-box rule actions (reject / hijack-dns ...) produce connections without an outbound chain
+  const fallback = actionKind === 'reject' ? 'REJECT' : actionKind && actionKind !== 'route' ? actionKind.toUpperCase() : 'DIRECT'
+  const chains = Array.isArray(conn.chains) && conn.chains.length ? conn.chains : [fallback]
   const host = m.host || m.sniffHost || m.destinationIP || 'unknown'
   const root = getRootDomain(host)
   let clientIP = m.sourceIP || 'unknown'
   if (clientIP.startsWith('fdfe') || clientIP.startsWith('172.18.') || clientIP === '::1') clientIP = '127.0.0.1'
   const node = chains[0]
   const processPath = m.processPath || m.process || 'system'
-  const rule = conn.rule || 'Match'
-  const type = m.type || 'unknown'
+  // mihomo: type "HTTP" + inboundName; sing-box: type "<inbound type>/<inbound tag>" (e.g. "mixed/mixed-in")
+  const rawType = m.type || 'unknown'
+  const slash = rawType.indexOf('/')
+  const type = slash > 0 ? rawType.slice(0, slash) : rawType
+  const inboundTag = m.inboundName || (slash > 0 ? rawType.slice(slash + 1) : '')
+  const meta = store.data?.node_meta?.[node]
   return {
     node,
     group: chains[chains.length - 1],
@@ -321,18 +342,19 @@ const buildInfo = (conn, now) => {
     root,
     process: processPath,
     processName: m.process || processPath.split(/[\\/]/).pop() || 'system',
-    rule,
-    rulePayload: conn.rulePayload ? `${rule}(${conn.rulePayload})` : rule,
+    rule: r.rule,
+    rulePayload: r.payload ? `${r.rule}(${r.payload})` : r.rule,
     tags: store.tagsConfig[root] || store.tagsConfig[host] || [],
     clientIP,
     port: m.destinationPort ? String(m.destinationPort) : '',
     network: (m.network || 'unknown').toUpperCase(),
-    type: m.inboundName ? `${type}` : type,
-    inbound: m.inboundName || m.inboundUser || (m.inboundPort ? `${type}:${m.inboundPort}` : type),
+    type,
+    inbound: inboundTag || m.inboundUser || (m.inboundPort ? `${type}:${m.inboundPort}` : type),
     destIP: m.remoteDestination || m.destinationIP || '',
     portKind: m.dnsMode ? `dns:${m.dnsMode}` : '',
-    isDirect: node === 'DIRECT' || /^direct$/i.test(node),
-    isReject: chains.some((c) => /^REJECT/i.test(c)),
+    // sing-box direct outbounds can have any tag ("direct", "🎯 Direct" ...): also trust the outbound type
+    isDirect: node === 'DIRECT' || /^direct$/i.test(node) || meta?.type === 'Direct',
+    isReject: chains.some((c) => /^REJECT/i.test(c)) || actionKind === 'reject' || meta?.type === 'Reject' || meta?.type === 'Block',
     hour: now.getHours()
   }
 }
@@ -1373,7 +1395,22 @@ const TrafficUI = {
         <Button size="small" type="text" @click="toggleOrder">{{ s.order === 'desc' ? '降序' : '升序' }}</Button>
       </div>
     </template>
-    <div v-if="s.compact" @pointerdown="hold"><Select :model-value="s.tab" :options="tabs" @change="setTab" /></div>
+    <div v-if="s.compact" @pointerdown="hold">
+      <!-- project Select has no placement prop and flips upward when its 16 options don't fit below; same markup via Dropdown with a capped list so it always opens downward -->
+      <Dropdown :trigger="['click']" placement="bottom">
+        <template #default>
+          <div class="cursor-pointer inline-flex items-center min-w-128 min-h-30 rounded-4 px-8" style="background:var(--select-bg);border:1px solid var(--primary-color)" role="combobox">
+            <span class="line-clamp-1 break-all">{{ (tabs.find((t) => t.value === s.tab) || {}).label }}</span>
+            <Button icon="arrowDown" type="text" size="small" class="ml-auto" style="margin-right:-6px" />
+          </div>
+        </template>
+        <template #overlay="{ close }">
+          <div class="flex flex-col gap-4 min-w-64 p-4 overflow-y-auto" style="max-height:min(220px,45vh)">
+            <Button v-for="t in tabs" :key="t.value" :type="t.value === s.tab ? 'link' : 'text'" @click="setTab(t.value); close()">{{ t.label }}</Button>
+          </div>
+        </template>
+      </Dropdown>
+    </div>
     <div v-else class="overflow-x-auto pb-8" style="max-width:100%"><div ref="tabsRow" class="whitespace-nowrap" style="width:max-content"><Radio :model-value="s.tab" :options="tabs" @change="setTab" /></div></div>
     <div v-if="s.drill" class="flex items-center gap-8 mt-8">
       <Button size="small" icon="arrowLeft" @click="back">返回</Button>
