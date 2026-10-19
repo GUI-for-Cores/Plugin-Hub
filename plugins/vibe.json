@@ -184,5 +184,31 @@
     "disabled": false,
     "install": false,
     "installed": false
+  },
+  {
+    "id": "plugin-are-you-chinese",
+    "name": "你是中国人吗",
+    "version": "v1.0.0",
+    "group": "Tools",
+    "description": "检查 Claude 出口 IP 与地区、浏览器语言、系统时区、国旗 Emoji 渲染、中文字体五项，判断当前环境是否暴露中国大陆用户特征。",
+    "tags": ["网络诊断", "实用工具"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-are-you-chinese.js",
+    "path": "data/plugins/plugin-are-you-chinese.js",
+    "triggers": ["on::manual"],
+    "hasUI": true,
+    "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [],
+    "disabled": false,
+    "install": false,
+    "installed": false
   }
 ]
