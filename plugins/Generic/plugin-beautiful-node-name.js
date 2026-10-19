@@ -9,29 +9,38 @@
 
 /* 手动触发 */
 const onRun = async () => {
-  let subscribesStore = Plugins.useSubscribesStore()
+  const subscribesStore = Plugins.useSubscribesStore()
   if (subscribesStore.subscribes.length === 0) {
     throw '请添加订阅'
   }
-  let subscription_list = await Plugins.picker.multi(
+  const ids = await Plugins.picker.multi(
     '请选择要美化的订阅',
     subscribesStore.subscribes.map((v) => ({
       label: v.name,
-      value: v
+      value: v.id
     })),
     []
   )
-  await Promise.all(
-    subscription_list.map(async (subscription) => {
-      subscription.proxies = await beautifyNodeName(subscription.proxies, subscription)
-      Plugins.message.success(`美化成功 [${subscription.name}]`)
-    })
-  )
+  // 不直接改写订阅记录：交给客户端走完整的更新流程，由 onSubscribe 美化并写入订阅缓存，节点列表与文件保持一致。
+  for (const id of ids) {
+    const name = subscribesStore.getSubscribeById(id)?.name ?? id
+    try {
+      await subscribesStore.updateSubscribe(id)
+      Plugins.message.success(`美化成功 [${name}]`)
+    } catch (error) {
+      Plugins.message.error(`美化失败 [${name}]：${error?.message || error}`)
+    }
+  }
 }
 
 /* 订阅时 */
-const onSubscribe = async (proxies, metadata) => {
-  return await beautifyNodeName(proxies, metadata)
+const onSubscribe = async (proxies, subscription) => {
+  // 本地文件且保存路径就是源文件时，客户端不会回写节点；此时改名会让节点列表与文件对不上（#115），原样返回。
+  if (subscription.type === 'File' && subscription.url === subscription.path) {
+    Plugins.message.warn(`[${subscription.name}] 保存路径与源文件相同，已跳过美化节点名称；如需美化请为该订阅设置单独的保存路径`)
+    return proxies
+  }
+  return beautifyNodeName(proxies, subscription)
 }
 
 /* 测试名称 */
@@ -63,18 +72,22 @@ async function beautifyNodeName(proxies, metadata) {
   const excludeRegex = createSafeRegex(metadata.exclude)
   const includeProtocolRegex = createSafeRegex(metadata.includeProtocol)
   const excludeProtocolRegex = createSafeRegex(metadata.excludeProtocol)
+  const flag = Plugins.APP_TITLE.includes('SingBox') ? 'tag' : 'name'
+  // 与客户端一致：手动订阅不过滤；名称字段按客户端区分（Clash 为 name，SingBox 为 tag）。
+  // 不认识的条目（如节点转换前的 base64 占位）原样保留。
   proxies = proxies.filter((v) => {
-    const flag1 = includeRegex ? includeRegex.test(v.tag) : true
-    const flag2 = excludeRegex ? !excludeRegex.test(v.tag) : true
+    if (metadata.type === 'Manual' || typeof v?.[flag] !== 'string') return true
+    const flag1 = includeRegex ? includeRegex.test(v[flag]) : true
+    const flag2 = excludeRegex ? !excludeRegex.test(v[flag]) : true
     const flag3 = includeProtocolRegex ? includeProtocolRegex.test(v.type) : true
     const flag4 = excludeProtocolRegex ? !excludeProtocolRegex.test(v.type) : true
     return flag1 && flag2 && flag3 && flag4
   })
 
-  const flag = Plugins.APP_TITLE.includes('SingBox') ? 'tag' : 'name'
-  proxies.sort((a, b) => compareStableKeys(getProxyStableKey(a, flag), getProxyStableKey(b, flag)))
+  proxies.sort((a, b) => compareStableKeys(getProxyStableKey(a ?? {}, flag), getProxyStableKey(b ?? {}, flag)))
 
   proxies = proxies.map((proxy) => {
+    if (typeof proxy?.[flag] !== 'string') return proxy
     let tag = proxy[flag]
     let matchedRegion = null
     let subMatchedRegion = null
@@ -169,7 +182,7 @@ async function beautifyNodeName(proxies, metadata) {
     return { ...proxy, [flag]: tag ?? proxy[flag] }
   })
   const sort = enableUnifyRegionName === '统一为英文' ? 'en' : 'zh-Hans-CN'
-  proxies.sort((a, b) => (a[flag] ?? '').localeCompare(b[flag] ?? '', sort, { numeric: true }))
+  proxies.sort((a, b) => String(a?.[flag] ?? '').localeCompare(String(b?.[flag] ?? ''), sort, { numeric: true }))
   return proxies
 }
 
