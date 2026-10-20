@@ -3109,7 +3109,8 @@ const PageControl = (() => {
     document.getElementById('gui-agent-operating')?.remove()
     document.getElementById('gui-agent-cursor')?.remove()
     document.getElementById('gui-agent-operating-style')?.remove()
-    raiseStatus()
+    statusSession = false
+    hideStatus()
   }
 
   const statusCss = `
@@ -3183,6 +3184,8 @@ const PageControl = (() => {
   let statusDecide = null
   let statusTimer = 0
   let statusObserver = null
+  let statusSession = false
+  let statusState = null
 
   const raiseStatus = () => {
     const status = typeof document === 'undefined' ? null : document.getElementById('gui-agent-status')
@@ -3206,10 +3209,9 @@ const PageControl = (() => {
     statusObserver.observe(document.documentElement, { childList: true })
   }
 
-  const setStatus = (text, tone = 'run') => {
-    if (typeof document === 'undefined' || !document.documentElement) return
-    window.clearTimeout(statusTimer)
-    statusTimer = 0
+  const renderStatus = () => {
+    if (!statusSession || !statusState || typeof document === 'undefined' || !document.documentElement) return
+    const { text, tone } = statusState
     ensureStatusStyle()
     let root = document.getElementById('gui-agent-status')
     if (!root) {
@@ -3253,7 +3255,7 @@ const PageControl = (() => {
     watchStatusLayer()
   }
 
-  const clearStatus = () => {
+  const hideStatus = () => {
     window.clearTimeout(statusTimer)
     statusTimer = 0
     statusObserver?.disconnect()
@@ -3263,9 +3265,24 @@ const PageControl = (() => {
     document.getElementById('gui-agent-status-style')?.remove()
   }
 
+  // The top status bar is only visible between Page begin and end; updates outside are remembered for the next begin.
+  const setStatus = (text, tone = 'run') => {
+    window.clearTimeout(statusTimer)
+    statusTimer = 0
+    statusState = { text, tone }
+    renderStatus()
+  }
+
+  const clearStatus = () => {
+    statusSession = false
+    statusState = null
+    hideStatus()
+  }
+
   const finishStatus = (text, tone) => {
+    if (!statusSession) return (statusState = null)
     setStatus(text, tone)
-    statusTimer = window.setTimeout(clearStatus, 1800)
+    statusTimer = window.setTimeout(hideStatus, 1800)
   }
 
   const pageStatusText = (action, args) => {
@@ -3299,6 +3316,8 @@ const PageControl = (() => {
   const beginEffect = () => {
     if (!document.body) throw new Error('页面尚未就绪')
     ensureChromeStyle()
+    statusSession = true
+    renderStatus()
     if (document.getElementById('gui-agent-operating')) return '炫彩边框已经开着'
     const root = document.createElement('div')
     root.id = 'gui-agent-operating'
