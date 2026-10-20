@@ -1117,115 +1117,13 @@ export default (Plugin) => {
         }
 
         let askDepth = 0
-        let askError = ''
-
-        const statusFileName = (value) =>
-          String(value || '')
-            .replace(/\\/g, '/')
-            .split('/')
-            .filter(Boolean)
-            .pop() || ''
-
-        const agentStatusLabel = (fnName, fnArgs) => {
-          const labels = {
-            getAppDts: '正在读取数据结构',
-            Exec: '正在执行命令',
-            WriteFile: '正在写入文件',
-            ReadFile: '正在读取文件',
-            MoveFile: '正在移动文件',
-            RemoveFile: '正在删除文件',
-            CopyFile: '正在复制文件',
-            FileExists: '正在检查文件',
-            FileSHA256: '正在计算文件校验',
-            AbsolutePath: '正在解析路径',
-            MakeDir: '正在创建目录',
-            ReadDir: '正在列出目录',
-            Requests: '正在请求网络',
-            GenerateImage: '正在生成图片',
-            Download: '正在下载文件',
-            HttpCancel: '正在取消请求',
-            TcpPing: '正在测试端口',
-            TcpRequest: '正在发送 TCP',
-            UdpRequest: '正在发送 UDP',
-            getAppSettings: '正在读取应用设置',
-            getSystemProxyStatus: '正在查看系统代理',
-            setSystemProxy: '正在设置系统代理',
-            clearSystemProxy: '正在关闭系统代理',
-            getCoreState: '正在查看核心状态',
-            startCore: '正在启动核心',
-            stopCore: '正在停止核心',
-            restartCore: '正在重启核心',
-            listPlugins: '正在列出插件',
-            getPluginById: '正在读取插件',
-            listPluginHub: '正在读取插件仓库',
-            findPluginInHubById: '正在查找插件',
-            manualTrigger: '正在触发插件',
-            addPlugin: '正在添加插件',
-            editPlugin: '正在修改插件',
-            deletePlugin: '正在删除插件',
-            updatePlugin: '正在更新插件',
-            updatePlugins: '正在更新全部插件',
-            updatePluginHub: '正在刷新插件仓库',
-            listProfiles: '正在列出配置',
-            getCurrentProfile: '正在读取当前配置',
-            getProfileById: '正在读取配置',
-            addProfile: '正在添加配置',
-            editProfile: '正在修改配置',
-            deleteProfile: '正在删除配置',
-            getProfileTemplate: '正在读取配置模板',
-            listSubscribes: '正在列出订阅',
-            getSubscribeById: '正在读取订阅',
-            addSubscribe: '正在添加订阅',
-            editSubscribe: '正在修改订阅',
-            deleteSubscribe: '正在删除订阅',
-            updateSubscribe: '正在更新订阅',
-            updateSubscribes: '正在更新全部订阅',
-            importSubscribe: '正在导入订阅',
-            getSubscribeTemplate: '正在读取订阅模板',
-            listRulesets: '正在列出规则集',
-            getRulesetById: '正在读取规则集',
-            getRulesetByName: '正在读取规则集',
-            getRulesetHub: '正在读取规则仓库',
-            addRuleset: '正在添加规则集',
-            editRuleset: '正在修改规则集',
-            deleteRuleset: '正在删除规则集',
-            updateRuleset: '正在更新规则集',
-            updateRulesets: '正在更新全部规则集',
-            updateRulesetHub: '正在刷新规则仓库',
-            listScheduledTasks: '正在列出计划任务',
-            getScheduledTaskById: '正在读取计划任务',
-            addScheduledTask: '正在添加计划任务',
-            editScheduledTask: '正在修改计划任务',
-            deleteScheduledTask: '正在删除计划任务',
-            runScheduledTask: '正在运行计划任务',
-            Page: '正在操作界面'
-          }
-          let detail = ''
-          if (fnName === 'Exec') detail = [fnArgs.path, ...(Array.isArray(fnArgs.args) ? fnArgs.args : [])].filter(Boolean).join(' ')
-          else if (fnName === 'Requests') {
-            let host = String(fnArgs.url || '')
-            try {
-              host = new URL(fnArgs.url).host
-            } catch {}
-            detail = `${String(fnArgs.method || 'GET').toUpperCase()} ${host}`.trim()
-          } else if (fnArgs.path) detail = statusFileName(fnArgs.path)
-          else if (fnArgs.url) detail = String(fnArgs.url)
-          else if (fnArgs.name) detail = String(fnArgs.name)
-          else if (fnArgs.id) detail = String(fnArgs.id)
-          detail = detail.replace(/\s+/g, ' ').trim().slice(0, 48)
-          const label = labels[fnName] || `正在调用 ${fnName}`
-          return detail ? `${label} ${detail}` : label
-        }
 
         const askAI = async () => {
           if (stopRequested.value) return
-          if (askDepth === 0) askError = ''
           askDepth++
-          let phase = 'think'
 
           loading.value = true
           requesting.value = true
-          PageControl.setStatus('正在思考')
           const startTime = Date.now()
           const cancelId = Plugin.id + Plugins.sampleID()
           activeRequestCancelId.value = cancelId
@@ -1312,10 +1210,6 @@ export default (Plugin) => {
                   }
 
                   if (message.content) {
-                    if (phase === 'think') {
-                      phase = 'reply'
-                      PageControl.setStatus('正在回复')
-                    }
                     pendingContent += message.content
                     if (loading.value) {
                       await flushStreamContent()
@@ -1326,10 +1220,6 @@ export default (Plugin) => {
                   }
 
                   mergeAssistantMessage(streamMessage, message)
-                  if (phase !== 'tool' && streamMessage.tool_calls?.some(Boolean)) {
-                    phase = 'tool'
-                    PageControl.setStatus('正在准备工具')
-                  }
                   if (loading.value && streamMessage.tool_calls?.some(Boolean)) {
                     await nextTick()
                     loading.value = false
@@ -1408,7 +1298,6 @@ export default (Plugin) => {
                   }
                   if (hasCompressibleMessages && estimatedTokens >= compressionThreshold.value) {
                     const { destroy } = Plugins.message.info('正在压缩工具调用前的上下文...', 999999)
-                    PageControl.setStatus('正在压缩上下文')
                     await onCompress(lastUserIndex - 1)
                     destroy()
                   }
@@ -1425,8 +1314,7 @@ export default (Plugin) => {
           } catch (error) {
             closeDanglingToolCalls(streamMessage, stopRequested.value ? '已停止，该工具未执行。' : `请求失败，该工具未执行：${error?.message || error}`)
             if (!stopRequested.value) {
-              askError = error?.message || String(error || '执行出错')
-              Plugins.message.error('请求失败：' + askError)
+              Plugins.message.error('请求失败：' + (error?.message || String(error || '执行出错')))
             }
           } finally {
             await flushStreamContent()
@@ -1440,18 +1328,12 @@ export default (Plugin) => {
             requesting.value = false
             PageControl.clearEffect()
             askDepth = Math.max(0, askDepth - 1)
-            if (askDepth === 0) {
-              if (stopRequested.value) PageControl.finishStatus('已停止', 'done')
-              else if (askError) PageControl.finishStatus(String(askError).slice(0, 60), 'error')
-              else PageControl.finishStatus('已完成', 'done')
-            }
           }
         }
 
         const onStopAI = async () => {
           stopRequested.value = true
           if (requestOperation.value) onUserOperate(false)
-          PageControl.setStatus('正在停止', 'warn')
           const cancelId = activeRequestCancelId.value
           if (!cancelId) return
 
@@ -1564,14 +1446,11 @@ export default (Plugin) => {
 
             const dangerousList = ['RemoveFile']
             if (dangerousList.includes(fnName)) {
-              PageControl.setStatus(`等待确认：${agentStatusLabel(fnName, fnArgs).replace(/^正在/, '')}`, 'confirm')
               requestOperation.value = new Promise((r) => (userAuthorized = r))
               const ok = await requestOperation.value
               requestOperation.value = undefined
               if (!ok) throw new Error('危险命令，用户拒绝执行')
             }
-
-            PageControl.setStatus(agentStatusLabel(fnName, fnArgs))
 
             if (fnName === 'GenerateImage') {
               if (!String(fnArgs.prompt || '').trim()) {
@@ -3105,12 +2984,12 @@ const PageControl = (() => {
   const clearEffect = () => {
     cursorX = null
     cursorY = null
+    pageOperating = false
     if (typeof document === 'undefined') return
     document.getElementById('gui-agent-operating')?.remove()
     document.getElementById('gui-agent-cursor')?.remove()
     document.getElementById('gui-agent-operating-style')?.remove()
-    statusSession = false
-    hideStatus()
+    clearStatus()
   }
 
   const statusCss = `
@@ -3182,10 +3061,8 @@ const PageControl = (() => {
 
   let statusStop = null
   let statusDecide = null
-  let statusTimer = 0
   let statusObserver = null
-  let statusSession = false
-  let statusState = null
+  let pageOperating = false
 
   const raiseStatus = () => {
     const status = typeof document === 'undefined' ? null : document.getElementById('gui-agent-status')
@@ -3209,9 +3086,9 @@ const PageControl = (() => {
     statusObserver.observe(document.documentElement, { childList: true })
   }
 
-  const renderStatus = () => {
-    if (!statusSession || !statusState || typeof document === 'undefined' || !document.documentElement) return
-    const { text, tone } = statusState
+  const setStatus = (text, tone = 'run') => {
+    if (!pageOperating) return
+    if (typeof document === 'undefined' || !document.documentElement) return
     ensureStatusStyle()
     let root = document.getElementById('gui-agent-status')
     if (!root) {
@@ -3255,9 +3132,7 @@ const PageControl = (() => {
     watchStatusLayer()
   }
 
-  const hideStatus = () => {
-    window.clearTimeout(statusTimer)
-    statusTimer = 0
+  const clearStatus = () => {
     statusObserver?.disconnect()
     statusObserver = null
     if (typeof document === 'undefined') return
@@ -3265,25 +3140,7 @@ const PageControl = (() => {
     document.getElementById('gui-agent-status-style')?.remove()
   }
 
-  // The top status bar is only visible between Page begin and end; updates outside are remembered for the next begin.
-  const setStatus = (text, tone = 'run') => {
-    window.clearTimeout(statusTimer)
-    statusTimer = 0
-    statusState = { text, tone }
-    renderStatus()
-  }
-
-  const clearStatus = () => {
-    statusSession = false
-    statusState = null
-    hideStatus()
-  }
-
-  const finishStatus = (text, tone) => {
-    if (!statusSession) return (statusState = null)
-    setStatus(text, tone)
-    statusTimer = window.setTimeout(hideStatus, 1800)
-  }
+  const pageChangeActions = new Set(['click', 'fill', 'select', 'press', 'hover'])
 
   const pageStatusText = (action, args) => {
     const names = {
@@ -3316,8 +3173,6 @@ const PageControl = (() => {
   const beginEffect = () => {
     if (!document.body) throw new Error('页面尚未就绪')
     ensureChromeStyle()
-    statusSession = true
-    renderStatus()
     if (document.getElementById('gui-agent-operating')) return '炫彩边框已经开着'
     const root = document.createElement('div')
     root.id = 'gui-agent-operating'
@@ -3347,8 +3202,6 @@ const PageControl = (() => {
   return {
     clearEffect,
     clearStatus,
-    setStatus,
-    finishStatus,
     bindStatus(handlers = {}) {
       statusStop = handlers.onStop || null
       statusDecide = handlers.onDecide || null
@@ -3356,9 +3209,21 @@ const PageControl = (() => {
     async run(args = {}) {
       if (!document.body) throw new Error('页面尚未就绪')
       const action = String(args.action || 'snapshot').toLowerCase()
+      if (action === 'begin') {
+        pageOperating = true
+        setStatus(pageStatusText(action, args))
+        return beginEffect()
+      }
+      if (action === 'end') {
+        pageOperating = false
+        clearStatus()
+        return endEffect()
+      }
+      if (pageChangeActions.has(action) && !pageOperating) {
+        pageOperating = true
+        beginEffect()
+      }
       setStatus(pageStatusText(action, args))
-      if (action === 'begin') return beginEffect()
-      if (action === 'end') return endEffect()
       const ctx = createContext()
       if (action === 'snapshot') return snapshot(args, ctx)
       if (action === 'query') return query(args, ctx)
