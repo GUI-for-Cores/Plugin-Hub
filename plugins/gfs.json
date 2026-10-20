@@ -404,7 +404,7 @@
   },
   {
     "id": "plugin-config-override",
-    "version": "v1.0.1",
+    "version": "v1.0.2",
     "name": "配置覆盖",
     "group": "Extensions",
     "description": "在 sing-box 启动前，将本地或远程 JSON 作为 override 合并进 GUI 生成的 config.json，支持远程缓存与数组路径追加策略。 Supported by: CorneliaMo",
