@@ -3467,6 +3467,32 @@
     "installed": false
   },
   {
+    "id": "plugin-xboard-client",
+    "name": "XBoard 面板",
+    "version": "v1.0.0",
+    "group": "Tools",
+    "description": "对接 XBoard 面板。用账号密码或 Token 登录后，查看订阅、节点、教程、工单、公告和流量，并可把订阅导入到客户端。",
+    "tags": ["实用工具"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-xboard-client.js",
+    "path": "data/plugins/plugin-xboard-client.js",
+    "triggers": ["on::manual"],
+    "hasUI": true,
+    "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-network-info",
     "version": "v1.0.0",
     "name": "当前网络信息",
