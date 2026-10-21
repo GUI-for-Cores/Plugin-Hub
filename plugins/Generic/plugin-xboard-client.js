@@ -168,7 +168,7 @@ const openUI = async (plugin) => {
         </template>
         <div v-else>
           <div class="mb-8">Token</div>
-          <Input v-model="token" class="w-full" placeholder="订阅 Token 或登录 Token" />
+          <Input v-model="token" class="w-full" placeholder="登录 Token" />
         </div>
       </div>`,
       setup(_, { expose }) {
@@ -366,7 +366,7 @@ const openUI = async (plugin) => {
             <template v-else>
               <div class="text-18 font-bold">{{ article.title }}</div>
               <div class="text-12">{{ formatTs(article.updated_at) }}</div>
-              <div class="leading-relaxed" v-html="sanitize(article.body)"></div>
+              <MarkdownViewer :content="sanitize(article.body)" />
             </template>
           </div>
           <Card v-else title="教程">
@@ -413,13 +413,11 @@ const openUI = async (plugin) => {
                 <div class="whitespace-pre-wrap px-4 py-8">{{ msg.message }}</div>
               </Card>
               <template v-if="ticket.status == 0">
-                <textarea
+                <Input
                   v-model="replyMessage"
-                  rows="3"
                   placeholder="回复内容"
-                  class="w-full rounded-4 px-8 py-8"
-                  style="background: var(--input-bg); color: var(--input-color); border: 1px solid var(--divider-color); resize: vertical"
-                ></textarea>
+                  class="w-full"
+                />
                 <div class="flex justify-end">
                   <Button type="primary" :loading="ticketSaving" @click="replyTicket">回复</Button>
                 </div>
@@ -455,7 +453,7 @@ const openUI = async (plugin) => {
           <Empty v-if="!notices.length" description="没有公告" />
           <div v-else class="flex flex-col gap-8">
             <Card v-for="item in notices" :key="item.id" :title="item.title" :subtitle="formatTs(item.created_at)">
-              <div class="leading-relaxed px-4 py-8" v-html="sanitize(item.content)"></div>
+              <MarkdownViewer :content="sanitize(item.content)" />
             </Card>
           </div>
         </template>
@@ -759,7 +757,7 @@ const openUI = async (plugin) => {
             </div>
             <div>
               <div class="mb-8">内容</div>
-              <textarea v-model="message" rows="5" placeholder="请描述遇到的问题" class="w-full rounded-4 px-8 py-8" style="background: var(--input-bg); color: var(--input-color); border: 1px solid var(--divider-color); resize: vertical"></textarea>
+              <Input v-model="message" placeholder="请描述遇到的问题" class="w-full" />
             </div>
           </div>`,
           setup(_, { expose }) {
@@ -988,7 +986,6 @@ const openUI = async (plugin) => {
     {
       default: () => Vue.h(component),
       toolbar: () => [
-        Vue.h(Vue.resolveComponent('Button'), { type: 'text', onClick: openAccounts }, () => '账号'),
         Vue.h(
           Vue.resolveComponent('Dropdown'),
           {},
@@ -1012,7 +1009,8 @@ const openUI = async (plugin) => {
                 )
               )
           }
-        )
+        ),
+        Vue.h(Vue.resolveComponent('Button'), { type: 'text', onClick: openAccounts }, () => '账号管理'),
       ]
     }
   )
