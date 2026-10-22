@@ -16,7 +16,7 @@ const TEST_SITES = [
 ]
 
 const ADVISORY_URL = 'https://pkg.go.dev/vuln/GO-2026-6809'
-const TEST_SITE_URL = 'https://dv-g3b-emudhra.we-have-a-problem.com/'
+const TEST_SITE_URL = 'https://emudhra.we-have-a-problem.com/#check'
 const FIXED_APP_VERSION = 'v1.28.1'
 
 // 结果分类
