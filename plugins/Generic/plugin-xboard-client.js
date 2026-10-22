@@ -105,27 +105,256 @@ const loginAccount = async (baseUrl, email, password, panel) => {
   throw lastError
 }
 
+const headerValue = (headers, key) => {
+  if (!headers || typeof headers !== 'object') return ''
+  const matched = Object.keys(headers).find((name) => name.toLowerCase() === String(key).toLowerCase())
+  if (!matched) return ''
+  const value = headers[matched]
+  if (Array.isArray(value)) return value.join('; ')
+  return value == null ? '' : String(value)
+}
+
+const bodyText = (body) => {
+  if (body == null) return ''
+  if (typeof body === 'string') return body
+  if (typeof body === 'object') {
+    try {
+      return JSON.stringify(body)
+    } catch {
+      return ''
+    }
+  }
+  return String(body)
+}
+
+const parseJsonBody = (body) => {
+  if (body && typeof body === 'object') return body
+  if (typeof body !== 'string') return null
+  const text = body.trim()
+  if (!text || (text[0] !== '{' && text[0] !== '[')) return null
+  try {
+    return JSON.parse(text)
+  } catch {
+    return null
+  }
+}
+
+// Cloudflare 人机：403/503 + cf-mitigated，或 server=cloudflare 且页面带挑战特征
+const isCloudflareChallenge = (res) => {
+  if (!res) return false
+  const status = res.status
+  const headers = res.headers || {}
+  const mitigated = headerValue(headers, 'cf-mitigated').toLowerCase()
+  if ((status === 403 || status === 503) && mitigated.includes('challenge')) return true
+  const server = headerValue(headers, 'server').toLowerCase()
+  const text = bodyText(res.body).slice(0, 8000).toLowerCase()
+  const challenge =
+    text.includes('just a moment') ||
+    text.includes('cf-chl') ||
+    text.includes('challenge-platform') ||
+    text.includes('cf-browser-verification') ||
+    text.includes('__cf_chl')
+  if (server.includes('cloudflare') && challenge) return true
+  if ((status === 403 || status === 503) && challenge) return true
+  return false
+}
+
+const classifyGuestConfig = (body) => {
+  const data = body && typeof body === 'object' && body.data && typeof body.data === 'object' ? body.data : null
+  if (data && body.status === 'success') return 'xboard'
+  if (data && !('status' in body) && 'is_email_verify' in data) return 'v2board'
+  return ''
+}
+
+// 把主题配置里的 API 地址收成可请求的 origin（去掉 /api、/api/v1、/aaa 等尾巴）
+const normalizeApiBase = (input) => {
+  let url = String(input || '').trim()
+  if (!url) return ''
+  if (url.startsWith('//')) url = `https:${url}`
+  if (!/^https?:\/\//i.test(url)) url = `https://${url}`
+  try {
+    const parsed = new URL(url)
+    url = `${parsed.protocol}//${parsed.host}${parsed.pathname || ''}`
+  } catch {
+    return ''
+  }
+  url = url.replace(/\/+$/, '')
+  url = url.replace(/\/api(?:\/v1)?$/i, '')
+  url = url.replace(/\/aaa$/i, '')
+  return url.replace(/\/+$/, '')
+}
+
+const decodeBase64Json = (raw) => {
+  try {
+    const lic = String(raw || '').split('@')[0]
+    const pad = lic + '='.repeat((4 - (lic.length % 4)) % 4)
+    return JSON.parse(atob(pad))
+  } catch {
+    return null
+  }
+}
+
+const pushApiCandidate = (list, value) => {
+  const base = normalizeApiBase(value)
+  if (base) list.push(base)
+}
+
+const extractApiCandidatesFromText = (text) => {
+  const found = []
+  const src = String(text || '')
+  if (!src) return found
+
+  const apiArray = src.match(/api\s*:\s*\[([^\]]*)\]/i)
+  if (apiArray) {
+    for (const item of apiArray[1].match(/https?:\/\/[^"'\s,]+|\/\/[^"'\s,]+|["'][^"']+["']/g) || []) {
+      pushApiCandidate(found, item.replace(/^["']|["']$/g, ''))
+    }
+  }
+
+  const hostFieldRe =
+    /(?:["']?(?:host|api|apiUrl|baseUrl|baseURL|API_URL)["']?)\s*:\s*["']([^"']+)["']/g
+  for (const re of [
+    /(?:window\.)?settings\s*=\s*\{[\s\S]{0,8000}?\}/i,
+    /(?:window\.)?config\s*=\s*\{[\s\S]{0,8000}?\}/i
+  ]) {
+    const block = src.match(re)
+    if (!block) continue
+    for (const m of block[0].matchAll(hostFieldRe)) {
+      pushApiCandidate(found, m[1])
+    }
+  }
+
+  for (const m of src.matchAll(hostFieldRe)) {
+    pushApiCandidate(found, m[1])
+  }
+
+  for (const m of src.matchAll(/["']license["']\s*:\s*["']([^"']+)["']/g)) {
+    const decoded = decodeBase64Json(m[1])
+    if (decoded && decoded.api) pushApiCandidate(found, decoded.api)
+  }
+
+  try {
+    const json = JSON.parse(src)
+    if (json && typeof json === 'object') {
+      if (json.license) {
+        const decoded = decodeBase64Json(json.license)
+        if (decoded && decoded.api) pushApiCandidate(found, decoded.api)
+      }
+      for (const key of ['host', 'api', 'apiUrl', 'baseUrl', 'baseURL', 'API_URL']) {
+        const value = json[key]
+        if (typeof value === 'string') pushApiCandidate(found, value)
+        if (Array.isArray(value)) value.forEach((item) => typeof item === 'string' && pushApiCandidate(found, item))
+      }
+    }
+  } catch {
+    // not json
+  }
+
+  return [...new Set(found)]
+}
+
+const collectConfigScriptUrls = (html, pageUrl) => {
+  const urls = []
+  for (const m of String(html || '').matchAll(/<script[^>]+src=["']([^"']+)["']/gi)) {
+    const src = m[1]
+    if (!/(?:^|\/)(?:config|env|settings|site-config)[^/?#]*$/i.test(src) && !/(?:config|env|settings|site-config)/i.test(src)) {
+      continue
+    }
+    try {
+      urls.push(new URL(src, pageUrl.endsWith('/') ? pageUrl : `${pageUrl}/`).href)
+    } catch {
+      // ignore bad src
+    }
+  }
+  return urls
+}
+
+const httpGetText = async (url) => {
+  try {
+    return await Plugins.HttpGet(url, { Accept: 'text/html,application/json,*/*' }, { Timeout: 10 })
+  } catch (error) {
+    return { status: 0, headers: {}, body: '', error }
+  }
+}
+
 // Xboard 的 /api/v1/guest/comm/config 用 ApiResponse 包了一层 { status: 'success', message, data, error }；
 // V2Board 及其分支只返回 { data: { is_email_verify, ... } }
-const detectPanel = async (baseUrl) => {
+const probeGuestConfig = async (baseUrl) => {
   let res
   try {
     res = await Plugins.HttpGet(`${baseUrl}/api/v1/guest/comm/config`, { Accept: 'application/json' }, { Timeout: 10 })
   } catch (error) {
     return { kind: 'error', text: (typeof error === 'string' ? error : error?.message) || '网络请求失败' }
   }
-  let body = res && res.body
-  if (typeof body === 'string') {
-    try {
-      body = JSON.parse(body)
-    } catch {
-      body = null
-    }
+  if (isCloudflareChallenge(res)) {
+    return { kind: 'blocked', text: '被 Cloudflare 人机验证拦截，请直接填写面板 API 地址' }
   }
-  const data = body && typeof body === 'object' && body.data && typeof body.data === 'object' ? body.data : null
-  if (data && body.status === 'success') return { kind: 'xboard' }
-  if (data && !('status' in body) && 'is_email_verify' in data) return { kind: 'v2board' }
-  return { kind: 'other', text: res && (res.status < 200 || res.status >= 300) ? `HTTP ${res.status}` : '' }
+  const body = parseJsonBody(res && res.body)
+  const kind = classifyGuestConfig(body)
+  if (kind) return { kind }
+  return {
+    kind: 'other',
+    text: res && (res.status < 200 || res.status >= 300) ? `HTTP ${res.status}` : ''
+  }
+}
+
+const discoverApiBases = async (siteUrl) => {
+  const bases = []
+  const seen = new Set()
+  const add = (value) => {
+    const base = normalizeApiBase(value)
+    if (!base || base === siteUrl || seen.has(base)) return
+    seen.add(base)
+    bases.push(base)
+  }
+
+  const homepage = await httpGetText(`${siteUrl}/`)
+  const homepageText = bodyText(homepage && homepage.body)
+  extractApiCandidatesFromText(homepageText).forEach(add)
+
+  const extraUrls = [
+    `${siteUrl}/config.js`,
+    `${siteUrl}/config.json`,
+    `${siteUrl}/site-config.js`,
+    ...collectConfigScriptUrls(homepageText, siteUrl).slice(0, 4)
+  ]
+  const fetched = new Set([`${siteUrl}/`, `${siteUrl}`])
+  for (const url of extraUrls) {
+    if (fetched.has(url)) continue
+    fetched.add(url)
+    const res = await httpGetText(url)
+    if (!res || res.status !== 200) continue
+    extractApiCandidatesFromText(bodyText(res.body)).forEach(add)
+  }
+  return bases.slice(0, 5)
+}
+
+const detectPanel = async (baseUrl) => {
+  const site = normalizeBaseUrl(baseUrl)
+  if (!site) return { kind: 'other', text: '' }
+
+  const primary = await probeGuestConfig(site)
+  if (primary.kind === 'xboard' || primary.kind === 'v2board') return primary
+  if (primary.kind === 'blocked') return primary
+
+  let sawBlocked = false
+  try {
+    const candidates = await discoverApiBases(site)
+    for (const apiBase of candidates) {
+      const result = await probeGuestConfig(apiBase)
+      if (result.kind === 'xboard' || result.kind === 'v2board') {
+        return { kind: result.kind, apiUrl: apiBase }
+      }
+      if (result.kind === 'blocked') sawBlocked = true
+    }
+  } catch {
+    // 发现失败时退回主探测结果
+  }
+
+  if (sawBlocked) {
+    return { kind: 'blocked', text: '被 Cloudflare 人机验证拦截，请直接填写面板 API 地址' }
+  }
+  return primary
 }
 
 const withId = (list, prefix) =>
@@ -196,8 +425,8 @@ const openUI = async (plugin) => {
       template: `
       <div class="flex flex-col gap-16">
         <div>
-          <div class="mb-8">网站地址</div>
-          <Input v-model="baseUrl" class="w-full" placeholder="https://example.com" @submit="checkBackend" />
+          <div class="mb-8">面板地址</div>
+          <Input v-model="baseUrl" class="w-full" placeholder="优先填写 API 地址，不知道的话填写机场官网地址" @submit="checkBackend" />
           <div v-if="check.kind" class="mt-4 flex items-center gap-4">
             <Icon v-if="check.kind === 'checking'" icon="loading" class="rotation" />
             <Tag :color="checkColor" size="small">{{ checkText }}</Tag>
@@ -242,12 +471,17 @@ const openUI = async (plugin) => {
           checkSeq += 1
           check.value = { kind: '' }
         })
-        const checkColor = Vue.computed(() => ({ xboard: 'green', v2board: 'green', other: 'orange', error: 'red' })[check.value.kind] || 'default')
+        const panelLabelHost = (url) => String(url || '').replace(/^https?:\/\//i, '')
+        const checkColor = Vue.computed(
+          () => ({ xboard: 'green', v2board: 'green', blocked: 'orange', other: 'orange', error: 'red' })[check.value.kind] || 'default'
+        )
         const checkText = Vue.computed(() => {
-          const { kind, text } = check.value
+          const { kind, text, apiUrl } = check.value
+          const apiHint = apiUrl && apiUrl !== checkedUrl ? `（API：${panelLabelHost(apiUrl)}）` : ''
           if (kind === 'checking') return '正在检测面板后端…'
-          if (kind === 'xboard') return '是 Xboard 面板'
-          if (kind === 'v2board') return '是 V2Board 面板'
+          if (kind === 'xboard') return `是 Xboard 面板${apiHint}`
+          if (kind === 'v2board') return `是 V2Board 面板${apiHint}`
+          if (kind === 'blocked') return text || '被 Cloudflare 人机验证拦截，请直接填写面板 API 地址'
           if (kind === 'other') return `不是 Xboard 或 V2Board 面板${text ? `（${text}）` : ''}，请确认填的是面板 API 地址`
           if (kind === 'error') return `无法连接：${text}`
           return ''
@@ -269,16 +503,31 @@ const openUI = async (plugin) => {
             Plugins.message.warn('请填写 Token')
             return
           }
-          const detected = checkedUrl === base && ['xboard', 'v2board'].includes(check.value.kind) ? check.value.kind : ''
+          let detected = checkedUrl === base && ['xboard', 'v2board'].includes(check.value.kind) ? check.value.kind : ''
+          let apiBase = detected && check.value.apiUrl ? normalizeBaseUrl(check.value.apiUrl) : base
           saving.value = true
           try {
+            if (!detected) {
+              const result = await detectPanel(base)
+              if (['xboard', 'v2board'].includes(result.kind)) {
+                detected = result.kind
+                if (result.apiUrl) apiBase = normalizeBaseUrl(result.apiUrl)
+                check.value = result
+                checkedUrl = base
+              } else if (result.kind === 'blocked') {
+                check.value = result
+                checkedUrl = base
+                Plugins.message.warn(result.text || '被 Cloudflare 人机验证拦截，请直接填写面板 API 地址')
+                return
+              }
+            }
             const logged =
               mode.value === 'password'
-                ? await loginAccount(base, accountEmail, password.value, detected)
-                : { token: pasted, ...(await probeSubscribe(base, pasted, detected)) }
+                ? await loginAccount(apiBase, accountEmail, password.value, detected)
+                : { token: pasted, ...(await probeSubscribe(apiBase, pasted, detected)) }
             const account = {
               id: nextId(),
-              baseUrl: base,
+              baseUrl: apiBase,
               panel: logged.panel,
               token: logged.token,
               email: (logged.info && logged.info.email) || accountEmail
