@@ -3520,7 +3520,7 @@
   },
   {
     "id": "plugin-emudhra-ca-check",
-    "version": "v1.0.0",
+    "version": "v1.0.1",
     "name": "eMudhra 证书信任检测",
     "description": "检测客户端 Go 后端是否仍信任被吊销的 eMudhra 中间证书（GO-2026-6809 / CVE-2026-111943），升级到 v1.28.1 及以上即可修复。",
     "tags": ["安全检测", "实用工具"],

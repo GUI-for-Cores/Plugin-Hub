@@ -16,6 +16,7 @@ const TEST_SITES = [
 ]
 
 const ADVISORY_URL = 'https://pkg.go.dev/vuln/GO-2026-6809'
+const TEST_SITE_URL = 'https://dv-g3b-emudhra.we-have-a-problem.com/'
 const FIXED_APP_VERSION = 'v1.28.1'
 
 // 结果分类
@@ -241,6 +242,7 @@ export default (plugin) => {
           modalSlots: {
             toolbar: () => [
               h(resolveComponent('Button'), { type: 'text', onClick: () => Plugins.BrowserOpenURL(ADVISORY_URL) }, () => '查看公告'),
+              h(resolveComponent('Button'), { type: 'text', onClick: () => Plugins.BrowserOpenURL(TEST_SITE_URL) }, () => '检测网站'),
               h(resolveComponent('Button'), { type: 'text', loading: state.running, onClick: run }, () => '重新检测')
             ]
           }
