@@ -3,16 +3,25 @@
  *
  * 2026 年 10 月，eMudhra 在 emSign Root TLS CA - G3 下签发的 6 张中间证书（EM DV/OV/EV TLS CA - G3B/G3C）
  * 被确认存在风险，Go 在 go1.27.3 / go1.26.10 中把它们加入了内置黑名单（GO-2026-6809 / CVE-2026-111943）。
- * 本插件通过客户端的 Go 后端（Plugins.HttpGet）访问一组使用这些中间证书的测试站点，判断客户端是否仍然信任它们。
+ * 这些中间证书同时有 Sectigo 的交叉签名，可以链到几乎所有系统都信任的 AAA Certificate Services 根证书。
+ * 本插件参照 https://emudhra.we-have-a-problem.com/#check ，通过客户端的 Go 后端（Plugins.HttpGet）访问 12 个测试站点，判断客户端是否仍然信任它们。
  */
 
+// 与 https://emudhra.we-have-a-problem.com/#check 保持一致：每张中间证书各测两条链，
+// 一条直接链到 emSign 根证书，一条经 Sectigo 交叉签名链到 AAA Certificate Services
 const TEST_SITES = [
-  { host: 'dv-g3b-emudhra.we-have-a-problem.com', type: 'DV', ca: 'EM DV TLS CA - G3B' },
-  { host: 'dv-g3c-emudhra.we-have-a-problem.com', type: 'DV', ca: 'EM DV TLS CA - G3C' },
-  { host: 'ov-g3b-emudhra.we-have-a-problem.com', type: 'OV', ca: 'EM OV TLS CA - G3B' },
-  { host: 'ov-g3c-emudhra.we-have-a-problem.com', type: 'OV', ca: 'EM OV TLS CA - G3C' },
-  { host: 'ev-g3b-emudhra.we-have-a-problem.com', type: 'EV', ca: 'EM EV TLS CA - G3B' },
-  { host: 'ev-g3c-emudhra.we-have-a-problem.com', type: 'EV', ca: 'EM EV TLS CA - G3C' }
+  { host: 'dv-g3b-emudhra.we-have-a-problem.com', type: 'DV', ca: 'EM DV TLS CA - G3B', root: 'emSign Root TLS CA - G3' },
+  { host: 'dv-g3c-emudhra.we-have-a-problem.com', type: 'DV', ca: 'EM DV TLS CA - G3C', root: 'emSign Root TLS CA - G3' },
+  { host: 'ov-g3b-emudhra.we-have-a-problem.com', type: 'OV', ca: 'EM OV TLS CA - G3B', root: 'emSign Root TLS CA - G3' },
+  { host: 'ov-g3c-emudhra.we-have-a-problem.com', type: 'OV', ca: 'EM OV TLS CA - G3C', root: 'emSign Root TLS CA - G3' },
+  { host: 'ev-g3b-emudhra.we-have-a-problem.com', type: 'EV', ca: 'EM EV TLS CA - G3B', root: 'emSign Root TLS CA - G3' },
+  { host: 'ev-g3c-emudhra.we-have-a-problem.com', type: 'EV', ca: 'EM EV TLS CA - G3C', root: 'emSign Root TLS CA - G3' },
+  { host: 'dv-g3b-aaa-emudhra.we-have-a-problem.com', type: 'DV', ca: 'EM DV TLS CA - G3B', root: 'AAA Certificate Services' },
+  { host: 'dv-g3c-aaa-emudhra.we-have-a-problem.com', type: 'DV', ca: 'EM DV TLS CA - G3C', root: 'AAA Certificate Services' },
+  { host: 'ov-g3b-aaa-emudhra.we-have-a-problem.com', type: 'OV', ca: 'EM OV TLS CA - G3B', root: 'AAA Certificate Services' },
+  { host: 'ov-g3c-aaa-emudhra.we-have-a-problem.com', type: 'OV', ca: 'EM OV TLS CA - G3C', root: 'AAA Certificate Services' },
+  { host: 'ev-g3b-aaa-emudhra.we-have-a-problem.com', type: 'EV', ca: 'EM EV TLS CA - G3B', root: 'AAA Certificate Services' },
+  { host: 'ev-g3c-aaa-emudhra.we-have-a-problem.com', type: 'EV', ca: 'EM EV TLS CA - G3C', root: 'AAA Certificate Services' }
 ]
 
 const ADVISORY_URL = 'https://pkg.go.dev/vuln/GO-2026-6809'
@@ -142,8 +151,8 @@ export default (plugin) => {
         </Card>
         <Card title="说明">
           <div class="flex flex-col gap-4 px-8 py-8 text-12" style="line-height: 1.7">
-            <div>eMudhra（印度 CA）在 emSign Root TLS CA - G3 下签发的 6 张中间证书（EM DV/OV/EV TLS CA - G3B/G3C）已被吊销并确认不可信。Go 在 go1.27.3 / go1.26.10 中内置了这几张证书的黑名单（GO-2026-6809 / CVE-2026-111943），Linux 上 Go 不检查吊销列表，只能依靠这份黑名单。</div>
-            <div>本插件通过客户端自身的 Go 后端访问上面的测试站点：能连上说明后端仍信任这些证书；出现 “x509: no valid chains built” 说明 Go 的黑名单已生效；“unknown authority” 等证书错误说明当前系统本就不信任 emSign 根证书，暂不受影响，但无法据此确认客户端是否已修复。</div>
+            <div>eMudhra（印度 CA）在 emSign Root TLS CA - G3 下签发的 6 张中间证书（EM DV/OV/EV TLS CA - G3B/G3C）因私钥生成存在缺陷、任何人都能从证书中推算出私钥，已被吊销。它们还有 Sectigo 的交叉签名，可以链到几乎所有系统都信任的 AAA Certificate Services 根证书，所以即使系统里没有 emSign 根证书也可能受影响。Go 在 go1.27.3 / go1.26.10 中内置了这几张证书的黑名单（GO-2026-6809 / CVE-2026-111943），Linux 上 Go 不检查吊销列表，只能依靠这份黑名单。</div>
+            <div>本插件通过客户端自身的 Go 后端访问上面的测试站点：能连上说明后端仍信任这些证书；出现 “x509: no valid chains built” 说明 Go 的黑名单已生效；“unknown authority” 等其它证书错误说明系统证书库已不信任这条链，暂不受影响，但无法据此确认客户端是否已修复。每张中间证书各测试两条链（emSign 根 / AAA 交叉签名），与检测网站一致。</div>
             <div>修复方式：将 GUI.for.Clash / GUI.for.SingBox 升级到 ${FIXED_APP_VERSION} 或更高版本（使用 go1.27.3 构建）。</div>
             <div>注意：本检测只覆盖 GUI 客户端本身（订阅更新、下载内核与插件等请求）。代理内核 mihomo / sing-box 是独立的程序，其 TLS 校验不在本检测范围内，需等待内核上游使用修复后的 Go 发版。</div>
           </div>
@@ -160,7 +169,8 @@ export default (plugin) => {
 
         const columns = [
           { title: '站点', key: 'host', minWidth: '220px' },
-          { title: '类型', key: 'type', align: 'center', customRender: ({ record }) => `${record.type} · ${record.ca.slice(-3)}` },
+          { title: '中间证书', key: 'ca', minWidth: '160px' },
+          { title: '根证书', key: 'root', minWidth: '160px' },
           {
             title: '结果',
             key: 'result',
@@ -198,8 +208,8 @@ export default (plugin) => {
             return {
               color: 'cyan',
               tag: '未受影响',
-              title: '当前系统不信任这些证书链，客户端无法连接测试站点',
-              desc: `系统证书库未信任 emSign 根证书或已吊销相关证书，因此暂不受影响；但这不代表客户端已包含 Go 的修复。${upgradeHint}`
+              title: '客户端无法连接测试站点，但不是 Go 黑名单拦截的',
+              desc: `系统证书库已移除或吊销了相关证书，因此暂不受影响；但这不代表客户端已包含 Go 的修复。${upgradeHint}`
             }
           }
           return {
