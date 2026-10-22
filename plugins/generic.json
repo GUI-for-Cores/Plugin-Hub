@@ -3469,7 +3469,7 @@
   {
     "id": "plugin-xboard-client",
     "name": "XBoard / V2Board 面板",
-    "version": "v1.0.4",
+    "version": "v1.0.5",
     "group": "Tools",
     "description": "对接 XBoard 和 V2Board 面板。用账号密码或 Token 登录后，查看订阅、节点、教程、工单、公告和流量，并可把订阅导入到客户端。",
     "tags": ["实用工具"],

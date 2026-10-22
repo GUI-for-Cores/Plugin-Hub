@@ -4,8 +4,38 @@ const normalizeBaseUrl = (input) => {
   let url = String(input || '').trim()
   if (!url) return ''
   if (!/^https?:\/\//i.test(url)) url = `https://${url}`
+  // 订阅链接（如 /api/v1/client/subscribe?token=...）只保留 /api 之前的部分作为面板地址
+  url = url.replace(/[?#].*$/, '').replace(/\/api(?:\/.*)?$/i, '')
   return url.replace(/\/+$/, '')
 }
+
+const HELP_MARKDOWN = [
+  '### 面板地址',
+  '',
+  '优先填写面板的 **API 地址**，不知道的话填写机场官网地址，插件会尝试自动找出 API 地址。',
+  '',
+  '获取 API 地址的几种方法：',
+  '',
+  '1. **从订阅链接获取（推荐）**：在机场官网复制订阅链接，直接粘贴到「面板地址」，插件会自动去掉后面的路径和参数。例如 `https://api.example.com/api/v1/client/subscribe?token=xxx` 会识别为 `https://api.example.com`。',
+  '2. **从浏览器开发者工具获取**：在浏览器打开机场官网并登录，按 `F12` 打开开发者工具，切到「网络 / Network」，刷新页面，找到路径以 `/api/v1/` 开头的请求，它的域名就是 API 地址。',
+  '3. **询问机场客服**，或查看机场的使用文档。',
+  '',
+  '如果提示被 Cloudflare 人机验证拦截，说明官网开启了验证，请改用上面的方法获取 API 地址。',
+  '',
+  '### Token',
+  '',
+  '能用账号密码登录时，优先使用账号密码。Token 是登录后的凭证，**不是订阅链接里的 token**。获取方法：',
+  '',
+  '1. 在浏览器打开机场官网并登录。',
+  '2. 按 `F12` 打开开发者工具，切到「控制台 / Console」。',
+  '3. 根据面板输入下面的代码后回车：',
+  "   - Xboard 默认主题：`JSON.parse(localStorage.getItem('VUE_NAIVE_ACCESS_TOKEN')).value`",
+  "   - V2Board 默认主题：`localStorage.getItem('authorization')`",
+  '   - 其他主题：在「应用 / Application」下的「本地存储 / Local Storage」里，找名字包含 `token` 或 `auth` 的项。',
+  '4. 把得到的值粘贴到 Token 输入框。Xboard 的值以 `Bearer ` 开头，带不带都行。',
+  '',
+  'Token 等同于你的登录状态，不要发给别人。'
+].join('\n')
 
 const bearerToken = (value) =>
   String(value || '')
@@ -337,6 +367,18 @@ const detectPanel = async (baseUrl) => {
   if (primary.kind === 'xboard' || primary.kind === 'v2board') return primary
   if (primary.kind === 'blocked') return primary
 
+  // 订阅链接可能用了自定义路径（如 /s/xxx），再试一下域名根路径
+  let origin = site
+  try {
+    origin = new URL(site).origin
+  } catch {
+    // keep site
+  }
+  if (origin !== site) {
+    const result = await probeGuestConfig(origin)
+    if (result.kind === 'xboard' || result.kind === 'v2board') return { kind: result.kind, apiUrl: origin }
+  }
+
   let sawBlocked = false
   try {
     const candidates = await discoverApiBases(site)
@@ -425,8 +467,11 @@ const openUI = async (plugin) => {
       template: `
       <div class="flex flex-col gap-16">
         <div>
-          <div class="mb-8">面板地址</div>
-          <Input v-model="baseUrl" class="w-full" placeholder="优先填写 API 地址，不知道的话填写机场官网地址" @submit="checkBackend" />
+          <div class="mb-8 flex items-center justify-between">
+            <span>面板地址</span>
+            <Button type="link" size="small" @click="showHelp">如何获取 API 地址和 Token？</Button>
+          </div>
+          <Input v-model="baseUrl" class="w-full" placeholder="优先填写 API 地址，也可以粘贴订阅链接，不知道的话填写机场官网地址" @submit="checkBackend" />
           <div v-if="check.kind" class="mt-4 flex items-center gap-4">
             <Icon v-if="check.kind === 'checking'" icon="loading" class="rotation" />
             <Tag :color="checkColor" size="small">{{ checkText }}</Tag>
@@ -452,6 +497,7 @@ const openUI = async (plugin) => {
         </div>
       </div>`,
       setup(_, { expose }) {
+        const showHelp = () => Plugins.alert('如何获取 API 地址和 Token', HELP_MARKDOWN, { type: 'markdown' })
         const checkBackend = async (value) => {
           const base = normalizeBaseUrl(value)
           if (base === checkedUrl) return
@@ -566,7 +612,7 @@ const openUI = async (plugin) => {
               )
           }
         })
-        return { mode, baseUrl, email, password, token, modeOptions, check, checkColor, checkText, checkBackend }
+        return { mode, baseUrl, email, password, token, modeOptions, check, checkColor, checkText, checkBackend, showHelp }
       }
     }
     const formModal = Plugins.modal({
