@@ -312,49 +312,83 @@ const CustomIcon = async () => {
     }
   }
 
-  const renderImgs = (imgs) => imgs.map((img) => `<img src="${img}" width="20" height= "20" />`).join('')
-  const renderAction = (id) => `<a onclick="window.${handlerId}('${id}')">选中</a>`
+  // 新版客户端会过滤 markdown 里的 onclick 等事件属性，所以用弹窗组件来选择图标
+  const iconId = await pickIcon(iconMap)
 
-  let iconId
-  const handlerId = Plugins.sampleID()
-  window[handlerId] = (id) => {
-    iconId = id
-    Plugins.message.success('已记住你的选择，点击确定生效。', 1000)
-  }
-
-  const items = Object.entries(iconMap).reduce((p, c) => {
-    return [...p, `| ${renderImgs(c[1].icons)} | ${c[1].title} | ${renderAction(c[0])} |`]
-  }, [])
-
-  try {
-    await Plugins.confirm('要替换成什么图标呢？', `|预览|名称|操作|\n| - | - | - |\n${items.join('\n')}\n`, { type: 'markdown' })
-
-    if (iconMap[iconId]) {
-      if (iconId === Plugins.APP_TITLE) {
-        await Plugins.RemoveFile('data/.cache/icons')
-      } else {
-        const { destroy } = Plugins.message.info('正在下载图标...', 9999)
-        const [normal, proxy, tun] = iconMap[iconId].icons
-        await Promise.all([
-          Plugins.Download(normal, 'data/.cache/icons/tray_normal_dark.ico').then(() => {
-            Plugins.CopyFile('data/.cache/icons/tray_normal_dark.ico', 'data/.cache/icons/tray_normal_light.ico')
-          }),
-          Plugins.Download(proxy, 'data/.cache/icons/tray_proxy_dark.ico').then(() => {
-            Plugins.CopyFile('data/.cache/icons/tray_proxy_dark.ico', 'data/.cache/icons/tray_proxy_light.ico')
-          }),
-          Plugins.Download(tun, 'data/.cache/icons/tray_tun_dark.ico').then(() => {
-            Plugins.CopyFile('data/.cache/icons/tray_tun_dark.ico', 'data/.cache/icons/tray_tun_light.ico')
-          })
-        ])
-        destroy()
-      }
-      if (await Plugins.confirm('替换成功', '是否立即重启客户端？').catch(() => 0)) {
-        await Plugins.RestartApp()
-      }
+  if (iconMap[iconId]) {
+    if (iconId === Plugins.APP_TITLE) {
+      await Plugins.RemoveFile('data/.cache/icons')
+    } else {
+      const { destroy } = Plugins.message.info('正在下载图标...', 9999)
+      const [normal, proxy, tun] = iconMap[iconId].icons
+      await Promise.all([
+        Plugins.Download(normal, 'data/.cache/icons/tray_normal_dark.ico').then(() => {
+          Plugins.CopyFile('data/.cache/icons/tray_normal_dark.ico', 'data/.cache/icons/tray_normal_light.ico')
+        }),
+        Plugins.Download(proxy, 'data/.cache/icons/tray_proxy_dark.ico').then(() => {
+          Plugins.CopyFile('data/.cache/icons/tray_proxy_dark.ico', 'data/.cache/icons/tray_proxy_light.ico')
+        }),
+        Plugins.Download(tun, 'data/.cache/icons/tray_tun_dark.ico').then(() => {
+          Plugins.CopyFile('data/.cache/icons/tray_tun_dark.ico', 'data/.cache/icons/tray_tun_light.ico')
+        })
+      ])
+      destroy()
     }
-  } finally {
-    delete window[handlerId]
+    if (await Plugins.confirm('替换成功', '是否立即重启客户端？').catch(() => 0)) {
+      await Plugins.RestartApp()
+    }
   }
+}
+
+/**
+ * 弹窗选择图标，取消时抛出异常，与原来的 Plugins.confirm 行为一致
+ */
+const pickIcon = (iconMap) => {
+  const { h, ref, defineComponent } = Vue
+  const selected = ref('')
+  return new Promise((resolve, reject) => {
+    const component = defineComponent({
+      setup() {
+        return () =>
+          h(
+            'div',
+            { class: 'flex flex-col gap-8' },
+            Object.entries(iconMap).map(([id, item]) =>
+              h(
+                'div',
+                {
+                  key: id,
+                  class: 'flex items-center gap-8 p-8 rounded-8',
+                  style: {
+                    cursor: 'pointer',
+                    background: 'var(--card-bg)',
+                    outline: selected.value === id ? '2px solid var(--primary-color)' : 'none'
+                  },
+                  onClick: () => (selected.value = id)
+                },
+                [...item.icons.map((src) => h('img', { src, width: 20, height: 20 })), h('span', { class: 'ml-8' }, item.title)]
+              )
+            )
+          )
+      }
+    })
+    const modal = Plugins.modal({
+      title: '要替换成什么图标呢？',
+      submitText: '确定',
+      maskClosable: true,
+      onOk: () => {
+        if (!selected.value) {
+          Plugins.message.warn('请先选择一个图标')
+          return false
+        }
+        resolve(selected.value)
+      },
+      afterClose: (isOk) => {
+        if (!isOk) reject('已取消')
+      }
+    })
+    modal.setContent(component).open()
+  })
 }
 
 /**
