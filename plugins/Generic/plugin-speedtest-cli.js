@@ -146,6 +146,14 @@ const startSpeedTestByServerId = async () => {
   await startSpeedTest(id)
 }
 
+/**
+ * 测速服务器名称由第三方提供，放进 markdown 前转义所有 ASCII 标点，避免注入 HTML
+ */
+const escapeMarkdownText = (text) =>
+  String(text ?? '')
+    .replace(/[\r\n]+/g, ' ')
+    .replace(/[!-/:-@[-`{-~]/g, '\\$&')
+
 /*
  * 插件菜单项 - 查看测速历史
  */
@@ -167,7 +175,7 @@ const speedtestHistory = async () => {
         '|',
         `${v.ping.latency}ms`,
         '|',
-        `${v.server.country} ${v.server.location}`,
+        escapeMarkdownText(`${v.server.country} ${v.server.location}`),
         '|',
         Plugins.formatDate(v.timestamp, 'YYYY-MM-DD HH:mm:ss'),
         '|',

@@ -2664,7 +2664,7 @@
   },
   {
     "id": "plugin-speedtest-cli",
-    "version": "v2.0.1",
+    "version": "v2.0.2",
     "name": "Speedtest CLI",
     "group": "Tools",
     "description": "适用于命令行的互联网速度测试",
