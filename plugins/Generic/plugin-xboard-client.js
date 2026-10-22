@@ -12,6 +12,11 @@ const bearerToken = (value) =>
     .trim()
     .replace(/^Bearer\s+/i, '')
 
+const panelOf = (account) => (account && account.panel === 'v2board' ? 'v2board' : 'xboard')
+
+// Xboard 用 Sanctum，需要 Bearer 前缀；V2Board 直接把 Authorization 当 JWT 解码，带前缀会 403
+const authHeader = (panel, token) => (panel === 'v2board' ? token : `Bearer ${token}`)
+
 const nextId = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
 
 const loadAccounts = async () => {
@@ -19,7 +24,7 @@ const loadAccounts = async () => {
     const text = await Plugins.ReadFile(STORE_PATH)
     const list = JSON.parse(text || '[]')
     if (!Array.isArray(list)) return []
-    return list.filter((item) => item && item.baseUrl && item.token)
+    return list.filter((item) => item && item.baseUrl && item.token).map((item) => ({ ...item, panel: panelOf(item) }))
   } catch {
     return []
   }
@@ -42,7 +47,7 @@ const messageFrom = (res) => {
 
 const request = async (account, path, data) => {
   const url = `${account.baseUrl}/api/v1/user${path}`
-  const headers = { Authorization: `Bearer ${account.token}` }
+  const headers = { Authorization: authHeader(panelOf(account), account.token) }
   let res
   try {
     res = data ? await Plugins.HttpPost(url, { ...headers, 'Content-Type': 'application/json' }, data) : await Plugins.HttpGet(url, headers)
@@ -50,17 +55,30 @@ const request = async (account, path, data) => {
     throw new Error(error && error.message ? error.message : '网络请求失败')
   }
   if (!res || res.status < 200 || res.status >= 300 || !res.body || typeof res.body !== 'object') {
-    throw new Error(messageFrom(res))
+    const error = new Error(messageFrom(res))
+    error.status = res && res.status
+    throw error
   }
   return res.body
 }
 
-const probeSubscribe = async (baseUrl, token) => {
-  const body = await request({ baseUrl, token }, '/getSubscribe')
-  return body.data || {}
+// 不知道面板类型时先按 Xboard 试，403 再按 V2Board 的鉴权方式重试
+const probeSubscribe = async (baseUrl, token, panel) => {
+  const panels = panel ? [panel] : ['xboard', 'v2board']
+  let lastError
+  for (const item of panels) {
+    try {
+      const body = await request({ baseUrl, token, panel: item }, '/getSubscribe')
+      return { panel: item, info: body.data || {} }
+    } catch (error) {
+      lastError = error
+      if (error.status !== 403) break
+    }
+  }
+  throw lastError
 }
 
-const loginAccount = async (baseUrl, email, password) => {
+const loginAccount = async (baseUrl, email, password, panel) => {
   let res
   try {
     res = await Plugins.HttpPost(`${baseUrl}/api/v1/passport/auth/login`, { 'Content-Type': 'application/json' }, { email, password })
@@ -71,12 +89,15 @@ const loginAccount = async (baseUrl, email, password) => {
     throw new Error(messageFrom(res))
   }
   const data = res.body.data || {}
-  const candidates = [...new Set([bearerToken(data.auth_data), bearerToken(data.token)].filter(Boolean))]
+  const candidates =
+    panel === 'v2board'
+      ? [String(data.auth_data || '').trim()].filter(Boolean)
+      : [...new Set([bearerToken(data.auth_data), bearerToken(data.token)].filter(Boolean))]
   if (!candidates.length) throw new Error('登录成功，但没有返回 Token')
   let lastError
   for (const candidate of candidates) {
     try {
-      return { token: candidate, info: await probeSubscribe(baseUrl, candidate) }
+      return { token: candidate, ...(await probeSubscribe(baseUrl, candidate, panel)) }
     } catch (error) {
       lastError = error
     }
@@ -84,9 +105,9 @@ const loginAccount = async (baseUrl, email, password) => {
   throw lastError
 }
 
-// Xboard 的 /api/v1/guest/comm/config 用 ApiResponse 包了一层 { status: 'success', message, data, error }，
-// data 里还有 captcha_type 等字段；V2Board 及其分支只返回 { data: {...} }
-const detectXboard = async (baseUrl) => {
+// Xboard 的 /api/v1/guest/comm/config 用 ApiResponse 包了一层 { status: 'success', message, data, error }；
+// V2Board 及其分支只返回 { data: { is_email_verify, ... } }
+const detectPanel = async (baseUrl) => {
   let res
   try {
     res = await Plugins.HttpGet(`${baseUrl}/api/v1/guest/comm/config`, { Accept: 'application/json' }, { Timeout: 10 })
@@ -102,8 +123,8 @@ const detectXboard = async (baseUrl) => {
     }
   }
   const data = body && typeof body === 'object' && body.data && typeof body.data === 'object' ? body.data : null
-  if (data && body.status === 'success' && ('is_email_verify' in data || 'captcha_type' in data)) return { kind: 'xboard' }
-  if (data && 'is_email_verify' in data) return { kind: 'v2board' }
+  if (data && body.status === 'success') return { kind: 'xboard' }
+  if (data && !('status' in body) && 'is_email_verify' in data) return { kind: 'v2board' }
   return { kind: 'other', text: res && (res.status < 200 || res.status >= 300) ? `HTTP ${res.status}` : '' }
 }
 
@@ -212,7 +233,7 @@ const openUI = async (plugin) => {
             return
           }
           check.value = { kind: 'checking' }
-          const result = await detectXboard(base)
+          const result = await detectPanel(base)
           if (seq === checkSeq) check.value = result
         }
         Vue.watch(baseUrl, (value) => {
@@ -221,13 +242,13 @@ const openUI = async (plugin) => {
           checkSeq += 1
           check.value = { kind: '' }
         })
-        const checkColor = Vue.computed(() => ({ xboard: 'green', v2board: 'orange', other: 'orange', error: 'red' })[check.value.kind] || 'default')
+        const checkColor = Vue.computed(() => ({ xboard: 'green', v2board: 'green', other: 'orange', error: 'red' })[check.value.kind] || 'default')
         const checkText = Vue.computed(() => {
           const { kind, text } = check.value
           if (kind === 'checking') return '正在检测面板后端…'
           if (kind === 'xboard') return '是 Xboard 面板'
-          if (kind === 'v2board') return '不是 Xboard，看起来是 V2Board 或其分支（也可能是旧版 Xboard），部分功能可能不可用'
-          if (kind === 'other') return `不是 Xboard 面板${text ? `（${text}）` : ''}，请确认填的是面板 API 地址`
+          if (kind === 'v2board') return '是 V2Board 面板'
+          if (kind === 'other') return `不是 Xboard 或 V2Board 面板${text ? `（${text}）` : ''}，请确认填的是面板 API 地址`
           if (kind === 'error') return `无法连接：${text}`
           return ''
         })
@@ -248,13 +269,17 @@ const openUI = async (plugin) => {
             Plugins.message.warn('请填写 Token')
             return
           }
+          const detected = checkedUrl === base && ['xboard', 'v2board'].includes(check.value.kind) ? check.value.kind : ''
           saving.value = true
           try {
             const logged =
-              mode.value === 'password' ? await loginAccount(base, accountEmail, password.value) : { token: pasted, info: await probeSubscribe(base, pasted) }
+              mode.value === 'password'
+                ? await loginAccount(base, accountEmail, password.value, detected)
+                : { token: pasted, ...(await probeSubscribe(base, pasted, detected)) }
             const account = {
               id: nextId(),
               baseUrl: base,
+              panel: logged.panel,
               token: logged.token,
               email: (logged.info && logged.info.email) || accountEmail
             }
