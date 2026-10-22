@@ -231,7 +231,7 @@ const fetchChangeLog = async () => {
     console.log(`[${Plugin.name}]`, '当前不是滚动发行版本')
   }
   const history = body.slice(0, releaseIndex).map((v) => ({
-    message: v.commit.message
+    message: escapeMarkdownHtml(v.commit.message)
       .replaceAll('\n\n', '\n    - ')
       .replaceAll(/#(\d+)/g, `[#$1](https://github.com/GUI-for-Cores/${Plugins.APP_TITLE}/pull/$1 "#$1")`),
     time: Plugins.formatRelativeTime(v.commit.committer.date),
@@ -249,6 +249,12 @@ const fetchChangeLog = async () => {
     '## 滚动发行日志\n\n' + history.map((v) => ` - ${v.isCurrent ? '`你的版本`' : ''}${v.message} 【[${v.time}](${v.html_url} "${v.time}")】`).join('\n') + tip
   return changelog
 }
+
+/**
+ * 提交说明来自远程仓库，放进 markdown 前转义 < > &，避免被当作 HTML 渲染
+ * 用反斜杠转义而不是 HTML 实体，新版 MarkdownViewer 会把实体原样显示出来
+ */
+const escapeMarkdownHtml = (text) => String(text ?? '').replace(/[<>&]/g, '\\$&')
 
 const addRollingReleaseTagToTitleBar = async () => {
   let rollingReleaseVersion
