@@ -84,6 +84,29 @@ const loginAccount = async (baseUrl, email, password) => {
   throw lastError
 }
 
+// Xboard 的 /api/v1/guest/comm/config 用 ApiResponse 包了一层 { status: 'success', message, data, error }，
+// data 里还有 captcha_type 等字段；V2Board 及其分支只返回 { data: {...} }
+const detectXboard = async (baseUrl) => {
+  let res
+  try {
+    res = await Plugins.HttpGet(`${baseUrl}/api/v1/guest/comm/config`, { Accept: 'application/json' }, { Timeout: 10 })
+  } catch (error) {
+    return { kind: 'error', text: (typeof error === 'string' ? error : error?.message) || '网络请求失败' }
+  }
+  let body = res && res.body
+  if (typeof body === 'string') {
+    try {
+      body = JSON.parse(body)
+    } catch {
+      body = null
+    }
+  }
+  const data = body && typeof body === 'object' && body.data && typeof body.data === 'object' ? body.data : null
+  if (data && body.status === 'success' && ('is_email_verify' in data || 'captcha_type' in data)) return { kind: 'xboard' }
+  if (data && 'is_email_verify' in data) return { kind: 'v2board' }
+  return { kind: 'other', text: res && (res.status < 200 || res.status >= 300) ? `HTTP ${res.status}` : '' }
+}
+
 const withId = (list, prefix) =>
   (Array.isArray(list) ? list : []).map((item, index) => ({
     ...item,
@@ -141,6 +164,9 @@ const openUI = async (plugin) => {
     const password = Vue.ref('')
     const token = Vue.ref('')
     const saving = Vue.ref(false)
+    const check = Vue.ref({ kind: '' })
+    let checkedUrl = ''
+    let checkSeq = 0
     const modeOptions = [
       { label: '账号密码', value: 'password' },
       { label: 'Token', value: 'token' }
@@ -150,7 +176,11 @@ const openUI = async (plugin) => {
       <div class="flex flex-col gap-16">
         <div>
           <div class="mb-8">网站地址</div>
-          <Input v-model="baseUrl" class="w-full" placeholder="https://example.com" />
+          <Input v-model="baseUrl" class="w-full" placeholder="https://example.com" @submit="checkBackend" />
+          <div v-if="check.kind" class="mt-4 flex items-center gap-4">
+            <Icon v-if="check.kind === 'checking'" icon="loading" class="rotation" />
+            <Tag :color="checkColor" size="small">{{ checkText }}</Tag>
+          </div>
         </div>
         <div>
           <div class="mb-8">登录方式</div>
@@ -172,6 +202,35 @@ const openUI = async (plugin) => {
         </div>
       </div>`,
       setup(_, { expose }) {
+        const checkBackend = async (value) => {
+          const base = normalizeBaseUrl(value)
+          if (base === checkedUrl) return
+          checkedUrl = base
+          const seq = ++checkSeq
+          if (!base) {
+            check.value = { kind: '' }
+            return
+          }
+          check.value = { kind: 'checking' }
+          const result = await detectXboard(base)
+          if (seq === checkSeq) check.value = result
+        }
+        Vue.watch(baseUrl, (value) => {
+          if (normalizeBaseUrl(value) === checkedUrl) return
+          checkedUrl = ''
+          checkSeq += 1
+          check.value = { kind: '' }
+        })
+        const checkColor = Vue.computed(() => ({ xboard: 'green', v2board: 'orange', other: 'orange', error: 'red' })[check.value.kind] || 'default')
+        const checkText = Vue.computed(() => {
+          const { kind, text } = check.value
+          if (kind === 'checking') return '正在检测面板后端…'
+          if (kind === 'xboard') return '是 Xboard 面板'
+          if (kind === 'v2board') return '不是 Xboard，看起来是 V2Board 或其分支（也可能是旧版 Xboard），部分功能可能不可用'
+          if (kind === 'other') return `不是 Xboard 面板${text ? `（${text}）` : ''}，请确认填的是面板 API 地址`
+          if (kind === 'error') return `无法连接：${text}`
+          return ''
+        })
         const submit = async () => {
           const base = normalizeBaseUrl(baseUrl.value)
           if (!base) {
@@ -233,7 +292,7 @@ const openUI = async (plugin) => {
               )
           }
         })
-        return { mode, baseUrl, email, password, token, modeOptions }
+        return { mode, baseUrl, email, password, token, modeOptions, check, checkColor, checkText, checkBackend }
       }
     }
     const formModal = Plugins.modal({
