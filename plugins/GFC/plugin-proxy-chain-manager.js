@@ -1,5 +1,20 @@
 const PATH = 'data/third/proxy-chain-manager'
 
+/**
+ * 节点名来自订阅，可能被机场塞进 HTML，放进 markdown 前必须转义
+ * 普通文本：转义所有 ASCII 标点；行内代码：用比名称里最长反引号更长的反引号包裹
+ */
+const escapeMarkdownText = (text) =>
+  String(text ?? '')
+    .replace(/[\r\n]+/g, ' ')
+    .replace(/[!-/:-@[-`{-~]/g, '\\$&')
+
+const markdownCode = (text) => {
+  const value = String(text ?? '').replace(/[\r\n]+/g, ' ')
+  const fence = '`'.repeat(Math.max(0, ...(value.match(/`+/g) || []).map((v) => v.length)) + 1)
+  return `${fence} ${value} ${fence}`
+}
+
 /* 触发器 生成配置时 */
 const onGenerate = async (config, profile) => {
   const subscribesStore = Plugins.useSubscribesStore()
@@ -199,12 +214,12 @@ const showUI = async (profile) => {
         }
       }
 
-      function renderChain(proxy) {
+      function renderChain(proxy, format = (name) => name) {
         const proxies = []
         let curr = proxy
 
         while (curr) {
-          proxies.push(curr.name)
+          proxies.push(format(curr.name))
           curr = curr.next
         }
 
@@ -237,7 +252,7 @@ const showUI = async (profile) => {
         const lines = []
 
         // 0. 代理链预览
-        lines.push('> ' + renderChain(proxy))
+        lines.push('> ' + renderChain(proxy, escapeMarkdownText))
 
         // 1. 本地封装阶段
         lines.push('## 1. 本地封装阶段')
@@ -246,23 +261,23 @@ const showUI = async (profile) => {
         lines.push('随后，核心按照代理链顺序对请求进行多层封装，形成类似“洋葱结构”的数据包：')
         lines.push('')
         lines.push(`- 目标网站请求作为最内层数据；`)
-        lines.push(`- 由 \`${proxies[0]}\` 客户端对请求进行第一层封装；`)
+        lines.push(`- 由 ${markdownCode(proxies[0])} 客户端对请求进行第一层封装；`)
 
         for (let i = 1; i < proxies.length; i++) {
-          lines.push(`- 再由 \`${proxies[i]}\` 客户端在前一层基础上继续封装；`)
+          lines.push(`- 再由 ${markdownCode(proxies[i])} 客户端在前一层基础上继续封装；`)
         }
 
         lines.push('')
-        lines.push(`封装完成后，请求被发送至最外层的 \`${proxies[proxies.length - 1]}\` 服务端。`)
+        lines.push(`封装完成后，请求被发送至最外层的 ${markdownCode(proxies[proxies.length - 1])} 服务端。`)
         lines.push('')
 
         // 2. 服务端转发阶段
         lines.push('## 2. 服务端转发阶段')
         lines.push('')
-        lines.push(`最外层的 \`${proxies[proxies.length - 1]}\` 服务端接收到请求后，解开最外层封装，获取下一跳地址。`)
+        lines.push(`最外层的 ${markdownCode(proxies[proxies.length - 1])} 服务端接收到请求后，解开最外层封装，获取下一跳地址。`)
 
         for (let i = proxies.length - 1; i > 0; i--) {
-          lines.push(`随后，\`${proxies[i]}\` 服务端将解封后的请求转发给 \`${proxies[i - 1]}\` 服务端，后者继续解封并转发。`)
+          lines.push(`随后，${markdownCode(proxies[i])} 服务端将解封后的请求转发给 ${markdownCode(proxies[i - 1])} 服务端，后者继续解封并转发。`)
         }
 
         lines.push('')
@@ -270,7 +285,7 @@ const showUI = async (profile) => {
         // 3. 最终请求阶段
         lines.push('## 3. 最终请求阶段')
         lines.push('')
-        lines.push(`当请求到达 \`${proxies[0]}\` 服务端时，最后一层封装被移除。`)
+        lines.push(`当请求到达 ${markdownCode(proxies[0])} 服务端时，最后一层封装被移除。`)
         lines.push('此时，服务端获得原始的目标请求，并将其发送至目标网站，完成整个请求链路。')
 
         Plugins.alert('此链解释如下', lines.join('\n'), { type: 'markdown' })
