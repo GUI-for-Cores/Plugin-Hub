@@ -3517,5 +3517,50 @@
     "disabled": false,
     "install": false,
     "installed": false
+  },
+  {
+    "id": "plugin-emudhra-ca-check",
+    "version": "v1.0.0",
+    "name": "eMudhra 证书信任检测",
+    "description": "检测客户端 Go 后端是否仍信任被吊销的 eMudhra 中间证书（GO-2026-6809 / CVE-2026-111943），升级到 v1.28.1 及以上即可修复。",
+    "tags": ["安全检测", "实用工具"],
+    "group": "Tools",
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-emudhra-ca-check.js",
+    "path": "data/plugins/plugin-emudhra-ca-check.js",
+    "status": 0,
+    "triggers": ["on::manual"],
+    "hasUI": true,
+    "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "configuration": [
+      {
+        "id": "ID_emudhra_proxy",
+        "title": "经内核代理检测",
+        "description": "开启后通过正在运行的内核代理访问测试站点（证书仍由客户端校验），默认直连",
+        "key": "UseKernelProxy",
+        "component": "Switch",
+        "value": false,
+        "options": []
+      },
+      {
+        "id": "ID_emudhra_timeout",
+        "title": "超时时间",
+        "description": "每个测试站点的超时时间（秒），3-60",
+        "key": "Timeout",
+        "component": "Input",
+        "value": "10",
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
   }
 ]
