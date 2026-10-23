@@ -1008,7 +1008,7 @@ const TrafficUI = {
     const steps = [1, 1.25, 2, 2.5, 4, 5, 7.5, 10, 12.5, 20, 25, 40, 50, 75, 100, 125, 200, 250, 400, 500, 750, 1000, 1024]
     return p * steps.find((x) => x * p >= v)
   },
-  buildSpark(samples, W = 600, H = 150) {
+  buildSpark(samples, W = 600, H = 220) {
     const N = 180
     const list = samples.slice(-N)
     const peak = Math.max(0, ...list.map((x) => Math.max(x.up, x.down)))
@@ -1247,10 +1247,10 @@ const TrafficUI = {
       hasData: !!t,
       note: md?.v2Since ? `端口、协议、入站、策略组、代理链和小时分布从 ${TrafficUI.time(md.v2Since)} 开始统计，此前的流量记为“${LEGACY}”。` : '',
       kpi,
-      chart: TrafficUI.buildChart(daily, st.day),
+      chart: TrafficUI.buildChart(daily, st.day, st.chartW || 960),
       days: daily.map((x) => x.day),
       heat: TrafficUI.buildHeatmap(md, daily, st.day),
-      spark: TrafficUI.buildSpark(rt),
+      spark: TrafficUI.buildSpark(rt, st.chartW || 600),
       live: !!lastRt && Date.now() - lastRt.t < 5000,
       active: Object.keys(store.lastConnections).length,
       residual: { up: md?.residual?.up || 0, down: md?.residual?.down || 0 },
@@ -1316,7 +1316,7 @@ const TrafficUI = {
 
   <div class="grid gap-8" style="grid-template-columns:repeat(auto-fit,minmax(min(420px,100%),1fr))">
     <Card title="每日流量" subtitle="点击某一天查看当天，再次点击回到全月">
-      <svg :viewBox="'0 0 ' + v.chart.W + ' ' + v.chart.H" class="mt-8" style="width:100%;height:220px;display:block" preserveAspectRatio="none">
+      <svg data-chart :viewBox="'0 0 ' + v.chart.W + ' ' + v.chart.H" class="mt-8" style="width:100%;height:220px;display:block">
         <g v-for="t in v.chart.ticks" :key="'t' + t.y"><line :x1="v.chart.L" :x2="v.chart.W" :y1="t.y" :y2="t.y" stroke="currentColor" stroke-opacity=".12" stroke-dasharray="3 3" /><text :x="v.chart.L - 6" :y="t.y + 4" font-size="11" text-anchor="end" fill="currentColor" fill-opacity=".7">{{ t.label }}</text></g>
         <g v-for="b in v.chart.bars" :key="b.day" style="cursor:pointer" @click="setDay(s.day === b.day ? '' : b.day)">
           <title>{{ b.tip }}</title>
@@ -1332,7 +1332,7 @@ const TrafficUI = {
       </div>
     </Card>
     <Card title="实时速率" :subtitle="'最近 ' + v.spark.count + ' 秒，与所选月份无关'">
-      <svg v-if="v.spark.count > 1" :viewBox="'0 0 ' + v.spark.W + ' ' + v.spark.H" class="mt-8" style="width:100%;height:220px;display:block" preserveAspectRatio="none">
+      <svg v-if="v.spark.count > 1" :viewBox="'0 0 ' + v.spark.W + ' ' + v.spark.H" class="mt-8" style="width:100%;height:220px;display:block">
         <g v-for="t in v.spark.ticks" :key="'s' + t.y"><line :x1="v.spark.L" :x2="v.spark.W" :y1="t.y" :y2="t.y" stroke="currentColor" stroke-opacity=".12" stroke-dasharray="3 3" /><text :x="v.spark.L - 6" :y="t.y + 3" font-size="10" text-anchor="end" fill="currentColor" fill-opacity=".7">{{ t.label }}</text></g>
         <polyline :points="v.spark.down" fill="none" stroke="var(--primary-color)" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linejoin="round" />
         <polyline :points="v.spark.up" fill="none" stroke="var(--primary-color)" stroke-opacity=".45" stroke-width="1.4" vector-effect="non-scaling-stroke" stroke-linejoin="round" />
@@ -1506,6 +1506,7 @@ const TrafficUI = {
           months: [store.currentMonth],
           typing: false,
           width: 0,
+          chartW: 0,
           holdUntil: 0,
           openedAt: Date.now(),
           cols: TrafficUI.RANK_COLUMNS,
@@ -1582,6 +1583,13 @@ const TrafficUI = {
           if (w <= 0) return
           s.width = w
           layout()
+          // draw the charts in real pixels so text and the y axis are never stretched
+          const svg = root.value && root.value.querySelector && root.value.querySelector('svg[data-chart]')
+          const cw = svg ? Math.floor(svg.clientWidth) : 0
+          if (cw > 0 && cw !== s.chartW) {
+            s.chartW = cw
+            v.value = TrafficUI.buildView(s, pastData)
+          }
         }
         onMounted &&
           onMounted(() => {
