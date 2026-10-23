@@ -441,7 +441,7 @@
   {
     "id": "plugin-xray-front-proxy",
     "name": "Xray 前置代理",
-    "version": "v1.0.0",
+    "version": "v1.0.1",
     "description": "使用 xray-core 作为 sing-box 的前置代理，订阅更新时自动接管 XHTTP / REALITY 节点并转为本地 SOCKS，随核心自动启停。",
     "group": "Extensions",
     "tags": ["实用工具", "功能扩展"],

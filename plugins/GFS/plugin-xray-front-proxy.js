@@ -28,6 +28,16 @@ export default (Plugin) => {
   const { env } = Plugins.useEnvStore()
   const BIN_FILE = PATH + '/xray' + (env.os === 'windows' ? '.exe' : '')
 
+  // 绝对路径不会变化，只解析一次
+  let absPaths = null
+  const getAbsPaths = () =>
+    (absPaths ??= Promise.all([Plugins.AbsolutePath(BIN_FILE), Plugins.AbsolutePath(CONFIG_FILE), Plugins.AbsolutePath(PATH)])
+      .then(([bin, config, dir]) => ({ bin, config, dir }))
+      .catch((err) => {
+        absPaths = null
+        throw err
+      }))
+
   /* 触发器 安装 */
   const onInstall = async () => {
     await installXray()
@@ -149,6 +159,7 @@ export default (Plugin) => {
 
     await Plugins.WriteFile(CONFIG_FILE, JSON.stringify(buildXrayConfig(nodes, options), null, 2))
     await startXray()
+    Plugin.status = 1
 
     return patchSingBoxConfig(config, options)
   }
@@ -241,18 +252,19 @@ export default (Plugin) => {
 
   /* ---------------------------- 进程管理 ---------------------------- */
 
-  const isXrayRunning = async () => {
-    const pid = await Plugins.ignoredError(Plugins.ReadFile, PID_FILE)
-    if (pid && pid !== '0') {
-      const name = await Plugins.ignoredError(Plugins.ProcessInfo, Number(pid))
-      return PROCESS_NAMES.includes(String(name).toLowerCase())
-    }
-    return false
+  // 返回正在运行的 xray 进程 PID，未运行返回 0
+  const getXrayPid = async () => {
+    const pid = Number(await Plugins.ignoredError(Plugins.ReadFile, PID_FILE)) || 0
+    if (!pid) return 0
+    const name = await Plugins.ignoredError(Plugins.ProcessInfo, pid)
+    return PROCESS_NAMES.includes(String(name).toLowerCase()) ? pid : 0
   }
 
+  const isXrayRunning = async () => (await getXrayPid()) !== 0
+
   const stopXray = async () => {
-    if (await isXrayRunning()) {
-      const pid = Number(await Plugins.ReadFile(PID_FILE))
+    const pid = await getXrayPid()
+    if (pid) {
       await Plugins.KillProcess(pid).catch((err) => console.log(`[${Plugin.name}]`, err))
       // 等待旧进程退出，避免端口仍被占用
       for (let i = 0; i < 30 && (await isXrayRunning()); i++) await Plugins.sleep(100)
@@ -277,9 +289,10 @@ export default (Plugin) => {
       }, 10000)
       let pid = 0
       try {
+        const abs = await getAbsPaths()
         pid = await Plugins.ExecBackground(
-          await Plugins.AbsolutePath(BIN_FILE),
-          ['run', '-c', await Plugins.AbsolutePath(CONFIG_FILE)],
+          abs.bin,
+          ['run', '-c', abs.config],
           (out) => {
             output += out + '\n'
             console.log(`[${Plugin.name}]`, out)
@@ -295,9 +308,9 @@ export default (Plugin) => {
           },
           {
             PidFile: PID_FILE,
-            WorkingDirectory: await Plugins.AbsolutePath(PATH),
+            WorkingDirectory: abs.dir,
             // 让 xray 在插件目录中查找 geoip.dat / geosite.dat
-            Env: { XRAY_LOCATION_ASSET: await Plugins.AbsolutePath(PATH) }
+            Env: { XRAY_LOCATION_ASSET: abs.dir }
           }
         )
       } catch (error) {
@@ -337,7 +350,7 @@ export default (Plugin) => {
       )
       await Plugins.UnzipZIPFile(tmp_file, PATH)
       if (env.os !== 'windows') {
-        await Plugins.Exec('chmod', ['+x', await Plugins.AbsolutePath(BIN_FILE)])
+        await Plugins.Exec('chmod', ['+x', (await getAbsPaths()).bin])
       }
       await Plugins.RemoveFile(tmp_file)
       Plugins.message.update(id, '安装Xray完成', 'success')
