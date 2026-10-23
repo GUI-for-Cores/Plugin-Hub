@@ -159,7 +159,10 @@ export default (Plugin) => {
 
     await Plugins.WriteFile(CONFIG_FILE, JSON.stringify(buildXrayConfig(nodes, options), null, 2))
     await startXray()
-    Plugin.status = 1
+    
+    setTimeout(() => {
+      Plugin.status = 1
+    }, 1000)
 
     return patchSingBoxConfig(config, options)
   }
