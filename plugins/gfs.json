@@ -437,5 +437,80 @@
     "disabled": false,
     "install": false,
     "installed": false
+  },
+  {
+    "id": "plugin-xray-front-proxy",
+    "name": "Xray 前置代理",
+    "version": "v1.0.0",
+    "description": "使用 xray-core 作为 sing-box 的前置代理，订阅更新时自动接管 XHTTP / REALITY 节点并转为本地 SOCKS，随核心自动启停。",
+    "group": "Extensions",
+    "tags": ["实用工具", "功能扩展"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-xray-front-proxy.js",
+    "path": "data/plugins/plugin-xray-front-proxy.js",
+    "triggers": ["on::manual", "on::subscribe", "on::before::core::start", "on::core::stopped"],
+    "menus": {
+      "预览Xray配置": "ViewConfig",
+      "更新Xray": "Update"
+    },
+    "hasUI": false,
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_xf_protocols",
+        "title": "接管的节点",
+        "description": "更新订阅时，把命中的 vless 节点交给 Xray 处理：XHTTP 传输（sing-box 不支持）、REALITY 安全层。修改后需重新更新订阅。",
+        "key": "Protocols",
+        "component": "CheckBox",
+        "value": ["xhttp"],
+        "options": ["XHTTP 传输,xhttp", "REALITY,reality"]
+      },
+      {
+        "id": "ID_xf_port",
+        "title": "起始端口",
+        "description": "接管的节点依次分配 127.0.0.1 上的 SOCKS5 端口，重复更新订阅时端口保持不变",
+        "key": "StartPort",
+        "component": "Input",
+        "value": "20800",
+        "options": []
+      },
+      {
+        "id": "ID_xf_dns",
+        "title": "Xray DNS",
+        "description": "Xray 解析节点域名使用的 DNS，绕开 sing-box 的 FakeIP / DNS 劫持；留空则使用系统 DNS",
+        "key": "XrayDNS",
+        "component": "InputList",
+        "value": ["223.5.5.5", "119.29.29.29"],
+        "options": []
+      },
+      {
+        "id": "ID_xf_bypass",
+        "title": "防回环规则",
+        "description": "在 sing-box 路由规则最前面插入 process_name: xray / xray.exe -> direct，TUN 模式下必须开启",
+        "key": "BypassRule",
+        "component": "Switch",
+        "value": true,
+        "options": []
+      },
+      {
+        "id": "ID_xf_log",
+        "title": "Xray 日志级别",
+        "description": "",
+        "key": "LogLevel",
+        "component": "Select",
+        "value": "warning",
+        "options": ["debug", "info", "warning", "error", "none"]
+      }
+    ],
+    "disabled": false,
+    "install": true,
+    "installed": false
   }
 ]
