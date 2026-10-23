@@ -194,7 +194,9 @@
     "hasUI": true,
     "menus": {},
     "context": {
-      "profiles": { "添加代理链": "addRelayProxy" },
+      "profiles": {
+        "添加代理链": "addRelayProxy"
+      },
       "subscriptions": {},
       "rulesets": {},
       "plugins": {},
@@ -431,6 +433,630 @@
         "key": "appendPaths",
         "component": "InputList",
         "value": [],
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
+    "id": "plugin-singbox-resilient-node-switcher",
+    "version": "v1.0.1",
+    "name": "节点弹性切换",
+    "group": "Extensions",
+    "description": "面向 GUI.for.SingBox 的 Selector 健康监控与可恢复故障切换：主动探测节点延迟，连续失败后暂时冷却故障节点，冷却到期半开验证，恢复后重新参与选择；仅在验证候选成功后才切换，不永久剔除节点。",
+    "tags": ["提升体验", "功能扩展", "故障切换"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-singbox-resilient-node-switcher.js",
+    "path": "data/plugins/plugin-singbox-resilient-node-switcher.js",
+    "status": 0,
+    "triggers": ["on::manual", "on::startup", "on::ready", "on::core::started", "on::core::stopped", "on::shutdown"],
+    "hasUI": true,
+    "menus": {
+      "启动": "Start",
+      "停止": "Stop"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "configuration": [
+      {
+        "id": "ID_selector_name",
+        "title": "主 Selector 名称",
+        "description": "需要监控并切换的主策略组名称",
+        "key": "SelectorName",
+        "component": "Input",
+        "value": "🚀 节点选择",
+        "options": []
+      },
+      {
+        "id": "ID_probe_urls",
+        "title": "探测 URL 列表",
+        "description": "节点延迟探测的目标地址，逗号分隔；多 URL 短路探测，任一可达即判健康",
+        "key": "ProbeUrls",
+        "component": "Input",
+        "value": "https://www.gstatic.com/generate_204,https://www.google.com/generate_204,https://github.com",
+        "options": []
+      },
+      {
+        "id": "ID_watch_interval_ms",
+        "title": "快探间隔(ms)",
+        "description": "当前节点快探的间隔，默认 10000",
+        "key": "WatchIntervalMs",
+        "component": "Input",
+        "value": "10000",
+        "options": []
+      },
+      {
+        "id": "ID_watch_timeout_ms",
+        "title": "快探超时(ms)",
+        "description": "当前节点单次快探的超时，默认 4000",
+        "key": "WatchTimeoutMs",
+        "component": "Input",
+        "value": "4000",
+        "options": []
+      },
+      {
+        "id": "ID_max_delay_ms",
+        "title": "绝对延迟阈值(ms)",
+        "description": "探测成功但延迟超过该值即计「慢」，连续慢达标触发切换，默认 2000",
+        "key": "MaxDelayMs",
+        "component": "Input",
+        "value": "2000",
+        "options": []
+      },
+      {
+        "id": "ID_pool_refresh_interval_ms",
+        "title": "候选池刷新间隔(ms)",
+        "description": "候选池后台刷新的间隔，默认 180000",
+        "key": "PoolRefreshIntervalMs",
+        "component": "Input",
+        "value": "180000",
+        "options": []
+      },
+      {
+        "id": "ID_pool_timeout_ms",
+        "title": "候选池探测超时(ms)",
+        "description": "候选池单节点探测超时，默认 2000",
+        "key": "PoolTimeoutMs",
+        "component": "Input",
+        "value": "2000",
+        "options": []
+      },
+      {
+        "id": "ID_pool_concurrency",
+        "title": "候选池并发",
+        "description": "候选池同批并发探测的最大节点数，默认 20",
+        "key": "PoolConcurrency",
+        "component": "Input",
+        "value": "20",
+        "options": []
+      },
+      {
+        "id": "ID_pool_failure_rate_threshold",
+        "title": "全池熔断阈值",
+        "description": "本轮失败率超过该阈值则作废本轮，默认 0.9",
+        "key": "PoolFailureRateThreshold",
+        "component": "Input",
+        "value": "0.9",
+        "options": []
+      },
+      {
+        "id": "ID_failure_threshold",
+        "title": "失败阈值",
+        "description": "连续失败多少次后进入冷却，默认 3",
+        "key": "FailureThreshold",
+        "component": "Input",
+        "value": "3",
+        "options": []
+      },
+      {
+        "id": "ID_recovery_threshold",
+        "title": "恢复阈值",
+        "description": "半开状态下连续成功多少次后恢复健康，默认 2",
+        "key": "RecoveryThreshold",
+        "component": "Input",
+        "value": "2",
+        "options": []
+      },
+      {
+        "id": "ID_initial_cooldown_ms",
+        "title": "初始冷却(ms)",
+        "description": "首次进入冷却的时长，默认 120000",
+        "key": "InitialCooldownMs",
+        "component": "Input",
+        "value": "120000",
+        "options": []
+      },
+      {
+        "id": "ID_max_cooldown_ms",
+        "title": "最大冷却(ms)",
+        "description": "指数退避的冷却上限，默认 1800000",
+        "key": "MaxCooldownMs",
+        "component": "Input",
+        "value": "1800000",
+        "options": []
+      },
+      {
+        "id": "ID_min_dwell_ms",
+        "title": "最短驻留(ms)",
+        "description": "切换后至少驻留该时长才允许再次切换，默认 60000",
+        "key": "MinDwellMs",
+        "component": "Input",
+        "value": "60000",
+        "options": []
+      },
+      {
+        "id": "ID_degradation_ratio",
+        "title": "延迟劣化倍数",
+        "description": "当前节点延迟超过基线该倍数判为劣化，默认 3",
+        "key": "DegradationRatio",
+        "component": "Input",
+        "value": "3",
+        "options": []
+      },
+      {
+        "id": "ID_degradation_threshold",
+        "title": "劣化连续次数",
+        "description": "连续劣化多少次后触发切换，默认 2",
+        "key": "DegradationThreshold",
+        "component": "Input",
+        "value": "2",
+        "options": []
+      },
+      {
+        "id": "ID_slow_threshold",
+        "title": "慢节点连续次数",
+        "description": "连续多少次超过绝对延迟阈值后触发切换，默认 2",
+        "key": "SlowThreshold",
+        "component": "Input",
+        "value": "2",
+        "options": []
+      },
+      {
+        "id": "ID_baseline_window",
+        "title": "基线窗口",
+        "description": "延迟基线的采样窗口大小，默认 5",
+        "key": "BaselineWindow",
+        "component": "Input",
+        "value": "5",
+        "options": []
+      },
+      {
+        "id": "ID_optimize_ratio",
+        "title": "性能择优倍数",
+        "description": "当前节点延迟超过候选池最优延迟该倍数时计一次择优，默认 2",
+        "key": "OptimizeRatio",
+        "component": "Input",
+        "value": "2",
+        "options": []
+      },
+      {
+        "id": "ID_optimize_threshold",
+        "title": "择优连续次数",
+        "description": "连续多少次满足择优条件后切换到最快节点，默认 3",
+        "key": "OptimizeThreshold",
+        "component": "Input",
+        "value": "3",
+        "options": []
+      },
+      {
+        "id": "ID_stalk_probe_delay_ms",
+        "title": "盯梢快探延迟(ms)",
+        "description": "切换成功后多久发起一次盯梢快探验证新节点，默认 2000",
+        "key": "StalkProbeDelayMs",
+        "component": "Input",
+        "value": "2000",
+        "options": []
+      },
+      {
+        "id": "ID_stalk_success_threshold",
+        "title": "盯梢成功次数",
+        "description": "盯梢期内新节点连续成功多少次后退出盯梢恢复正常阈值，默认 2",
+        "key": "StalkSuccessThreshold",
+        "component": "Input",
+        "value": "2",
+        "options": []
+      },
+      {
+        "id": "ID_pre_switch_max_probe",
+        "title": "切换前复核候选数",
+        "description": "切换前最多复核多少个候选节点，跳过不可达者，默认 3",
+        "key": "PreSwitchMaxProbe",
+        "component": "Input",
+        "value": "3",
+        "options": []
+      },
+      {
+        "id": "ID_real_probe_enabled",
+        "title": "真实延迟探测",
+        "description": "sing-box 的 /delay 用 HEAD 且不读 body，系统性低估真实 GET 访问延迟（实测低 3~6 倍）。开启后用 fetch 走系统代理发起真实 GET 并读响应体，测到用户实际感知延迟，作为慢判定的可靠补充",
+        "key": "RealProbeEnabled",
+        "component": "Switch",
+        "value": true,
+        "options": []
+      },
+      {
+        "id": "ID_real_probe_urls",
+        "title": "真实探测 URL 列表",
+        "description": "真实延迟探测的目标地址，逗号分隔；多 URL 全部探测取最慢延迟，默认至少两个成功才判健康，可配置成功门槛",
+        "key": "RealProbeUrls",
+        "component": "Input",
+        "value": "https://github.com,https://www.google.com",
+        "options": []
+      },
+      {
+        "id": "ID_real_delay_ms",
+        "title": "真实延迟阈值(ms)",
+        "description": "真实 GET 延迟超过该值即计「慢」，默认 3000",
+        "key": "RealDelayMs",
+        "component": "Input",
+        "value": "3000",
+        "options": []
+      },
+      {
+        "id": "ID_real_probe_min_successes",
+        "title": "真实探测最少成功 URL 数",
+        "description": "至少多少个真实探测 URL 成功才视为当前节点可达，默认2；超过 URL 数量时自动限制为 URL 数量",
+        "key": "RealProbeMinSuccesses",
+        "component": "Input",
+        "value": "2",
+        "options": []
+      },
+      {
+        "id": "ID_real_probe_timeout_ms",
+        "title": "真实探测超时(ms)",
+        "description": "单次真实 GET 探测的超时，默认 8000",
+        "key": "RealProbeTimeoutMs",
+        "component": "Input",
+        "value": "8000",
+        "options": []
+      },
+      {
+        "id": "ID_real_stalk_timeout_ms",
+        "title": "盯梢期真实探测超时(ms)",
+        "description": "切换后快速检测阶段的真实 GET 探测超时，更短以便尽快发现慢节点，默认 3000",
+        "key": "RealStalkTimeoutMs",
+        "component": "Input",
+        "value": "3000",
+        "options": []
+      },
+      {
+        "id": "ID_real_slow_threshold",
+        "title": "真实慢连续次数",
+        "description": "真实 GET 连续多少次超过阈值（或全部失败）后触发切换，默认 2",
+        "key": "RealSlowThreshold",
+        "component": "Input",
+        "value": "2",
+        "options": []
+      },
+      {
+        "id": "ID_real_probe_interval_ms",
+        "title": "真实探测间隔(ms)",
+        "description": "正常期真实 GET 探测的间隔，默认 15000；盯梢期自动缩短以尽快确认新节点",
+        "key": "RealProbeIntervalMs",
+        "component": "Input",
+        "value": "15000",
+        "options": []
+      },
+      {
+        "id": "ID_real_stalk_success_threshold",
+        "title": "盯梢退出真实达标次数",
+        "description": "切换后新节点真实 GET 连续达标多少次才退出盯梢期，默认 2；HEAD 快但真实慢的节点不会提前退出",
+        "key": "RealStalkSuccessThreshold",
+        "component": "Input",
+        "value": "2",
+        "options": []
+      },
+      {
+        "id": "ID_event_log_limit",
+        "title": "事件时间线条数",
+        "description": "内存中保留的最近事件条数（环形队列），用于诊断，默认 50",
+        "key": "EventLogLimit",
+        "component": "Input",
+        "value": "50",
+        "options": []
+      },
+      {
+        "id": "ID_scan_interval_ms",
+        "title": "扫描调度间隔(ms)",
+        "description": "评分扫描定时任务间隔，默认10000",
+        "key": "ScanIntervalMs",
+        "component": "Input",
+        "value": "10000",
+        "options": []
+      },
+      {
+        "id": "ID_foreground_reserved",
+        "title": "前台保留并发",
+        "description": "为当前节点探测和切换验证保留的请求额度，默认2",
+        "key": "ForegroundReserved",
+        "component": "Input",
+        "value": "2",
+        "options": []
+      },
+      {
+        "id": "ID_background_concurrency",
+        "title": "后台扫描并发",
+        "description": "后台扫描最大并发请求数，默认3",
+        "key": "BackgroundConcurrency",
+        "component": "Input",
+        "value": "3",
+        "options": []
+      },
+      {
+        "id": "ID_background_batch_size",
+        "title": "后台扫描批次",
+        "description": "后台每批启动的节点数，默认3",
+        "key": "BackgroundBatchSize",
+        "component": "Input",
+        "value": "3",
+        "options": []
+      },
+      {
+        "id": "ID_background_round_deadline_ms",
+        "title": "后台轮次上限(ms)",
+        "description": "后台一轮扫描的软截止时间，默认300000",
+        "key": "BackgroundRoundDeadlineMs",
+        "component": "Input",
+        "value": "300000",
+        "options": []
+      },
+      {
+        "id": "ID_background_backoff_ms",
+        "title": "后台超时退避(ms)",
+        "description": "后台轮次超时后的等待时间，默认30000",
+        "key": "BackgroundBackoffMs",
+        "component": "Input",
+        "value": "30000",
+        "options": []
+      },
+      {
+        "id": "ID_scan_main_pool_size",
+        "title": "评分主池大小",
+        "description": "每轮按评分高低优先扫描的节点数，默认20",
+        "key": "ScanMainPoolSize",
+        "component": "Input",
+        "value": "20",
+        "options": []
+      },
+      {
+        "id": "ID_scan_explore_pool_size",
+        "title": "评分探索池大小",
+        "description": "每轮从主池外轮转恢复探测的节点数，默认5",
+        "key": "ScanExplorePoolSize",
+        "component": "Input",
+        "value": "5",
+        "options": []
+      },
+      {
+        "id": "ID_scan_score_initial",
+        "title": "节点初始分",
+        "description": "新节点进入评分调度时的初始分，默认80",
+        "key": "ScanScoreInitial",
+        "component": "Input",
+        "value": "80",
+        "options": []
+      },
+      {
+        "id": "ID_scan_score_high_threshold",
+        "title": "高分阈值",
+        "description": "达到该分数每轮扫描，默认90",
+        "key": "ScanScoreHighThreshold",
+        "component": "Input",
+        "value": "90",
+        "options": []
+      },
+      {
+        "id": "ID_scan_score_medium_threshold",
+        "title": "中分阈值",
+        "description": "达到该分数每2轮扫描，默认80",
+        "key": "ScanScoreMediumThreshold",
+        "component": "Input",
+        "value": "80",
+        "options": []
+      },
+      {
+        "id": "ID_scan_score_low_threshold",
+        "title": "低分阈值",
+        "description": "达到该分数每3轮扫描，默认70",
+        "key": "ScanScoreLowThreshold",
+        "component": "Input",
+        "value": "70",
+        "options": []
+      },
+      {
+        "id": "ID_scan_backoff_rounds",
+        "title": "低分退避轮数",
+        "description": "低于低分阈值时每多少轮恢复探测，默认6",
+        "key": "ScanBackoffRounds",
+        "component": "Input",
+        "value": "6",
+        "options": []
+      },
+      {
+        "id": "ID_scan_score_max",
+        "title": "评分上限",
+        "description": "节点评分最高值，默认100",
+        "key": "ScanScoreMax",
+        "component": "Input",
+        "value": "100",
+        "options": []
+      },
+      {
+        "id": "ID_scan_success_step",
+        "title": "成功加分",
+        "description": "/delay成功时增加的分数，默认5",
+        "key": "ScanSuccessStep",
+        "component": "Input",
+        "value": "5",
+        "options": []
+      },
+      {
+        "id": "ID_scan_failure_step",
+        "title": "普通失败扣分",
+        "description": "普通探测失败扣分，默认15",
+        "key": "ScanFailureStep",
+        "component": "Input",
+        "value": "15",
+        "options": []
+      },
+      {
+        "id": "ID_scan_http_503_step",
+        "title": "503扣分",
+        "description": "HTTP 503时扣分，默认10",
+        "key": "ScanHttp503Step",
+        "component": "Input",
+        "value": "10",
+        "options": []
+      },
+      {
+        "id": "ID_scan_http_504_step",
+        "title": "504扣分",
+        "description": "HTTP 504时扣分，默认15",
+        "key": "ScanHttp504Step",
+        "component": "Input",
+        "value": "15",
+        "options": []
+      },
+      {
+        "id": "ID_scan_timeout_step",
+        "title": "超时扣分",
+        "description": "探测超时时扣分，默认20",
+        "key": "ScanTimeoutStep",
+        "component": "Input",
+        "value": "20",
+        "options": []
+      },
+      {
+        "id": "ID_scan_real_failure_step",
+        "title": "真实失败扣分",
+        "description": "真实GET失败时扣分，默认25",
+        "key": "ScanRealFailureStep",
+        "component": "Input",
+        "value": "25",
+        "options": []
+      },
+      {
+        "id": "ID_scan_slow_step",
+        "title": "真实慢扣分",
+        "description": "真实GET成功但超慢时扣分，默认5",
+        "key": "ScanSlowStep",
+        "component": "Input",
+        "value": "5",
+        "options": []
+      },
+      {
+        "id": "ID_stability_mode",
+        "title": "择优模式",
+        "description": "stable-first抑制瞬时低延迟震荡，或使用latency-first，默认stable-first",
+        "key": "StabilityMode",
+        "component": "Input",
+        "value": "stable-first",
+        "options": []
+      },
+      {
+        "id": "ID_stability_window_ms",
+        "title": "稳定性窗口(ms)",
+        "description": "稳定性样本保留时间，默认600000",
+        "key": "StabilityWindowMs",
+        "component": "Input",
+        "value": "600000",
+        "options": []
+      },
+      {
+        "id": "ID_stability_max_samples",
+        "title": "稳定性样本上限",
+        "description": "每节点每类稳定性样本上限，默认20",
+        "key": "StabilityMaxSamples",
+        "component": "Input",
+        "value": "20",
+        "options": []
+      },
+      {
+        "id": "ID_stability_head_min_samples",
+        "title": "HEAD最低样本数",
+        "description": "稳定优先所需HEAD样本数，默认5",
+        "key": "StabilityHeadMinSamples",
+        "component": "Input",
+        "value": "5",
+        "options": []
+      },
+      {
+        "id": "ID_stability_real_min_samples",
+        "title": "真实最低样本数",
+        "description": "稳定优先所需真实GET样本数，默认3",
+        "key": "StabilityRealMinSamples",
+        "component": "Input",
+        "value": "3",
+        "options": []
+      },
+      {
+        "id": "ID_stability_real_latency_min_samples",
+        "title": "真实延迟最低样本数",
+        "description": "稳定优先所需成功延迟样本数，默认5",
+        "key": "StabilityRealLatencyMinSamples",
+        "component": "Input",
+        "value": "5",
+        "options": []
+      },
+      {
+        "id": "ID_real_stability_probe_budget",
+        "title": "候选真实探测预算",
+        "description": "每轮候选真实GET最多探测数量，默认3",
+        "key": "RealStabilityProbeBudget",
+        "component": "Input",
+        "value": "3",
+        "options": []
+      },
+      {
+        "id": "ID_stable_switch_rounds",
+        "title": "稳定择优连续轮数",
+        "description": "候选连续满足多少轮才允许择优，默认3",
+        "key": "StableSwitchRounds",
+        "component": "Input",
+        "value": "3",
+        "options": []
+      },
+      {
+        "id": "ID_stability_switch_margin",
+        "title": "稳定分差门槛",
+        "description": "候选稳定分至少高于当前节点的分数，默认8",
+        "key": "StabilitySwitchMargin",
+        "component": "Input",
+        "value": "8",
+        "options": []
+      },
+      {
+        "id": "ID_latency_switch_margin",
+        "title": "延迟改善门槛",
+        "description": "稳定分不低于当前时的延迟改善比例，默认0.35",
+        "key": "LatencySwitchMargin",
+        "component": "Input",
+        "value": "0.35",
+        "options": []
+      },
+      {
+        "id": "ID_optimize_dwell_ms",
+        "title": "择优驻留(ms)",
+        "description": "择优成功后抑制再次择优的时间，默认300000",
+        "key": "OptimizeDwellMs",
+        "component": "Input",
+        "value": "300000",
+        "options": []
+      },
+      {
+        "id": "ID_optimize_cooldown_ms",
+        "title": "择优失败冷却(ms)",
+        "description": "择优失败候选的重试冷却时间，默认600000",
+        "key": "OptimizeCooldownMs",
+        "component": "Input",
+        "value": "600000",
         "options": []
       }
     ],
