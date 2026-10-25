@@ -3588,5 +3588,100 @@
     "disabled": false,
     "install": false,
     "installed": false
+  },
+  {
+    "id": "plugin-random-wallpaper",
+    "name": "随机壁纸",
+    "version": "v1.0.0",
+    "group": "Fun",
+    "description": "点一下运行就随机下载一张壁纸并设为桌面壁纸，支持必应、Wallhaven、Picsum 和自定义图源；历史壁纸保存在插件目录，可随时切回。重点支持 Windows，macOS、Linux（GNOME/KDE/Xfce 等）尽力支持。",
+    "tags": ["实用工具", "提升体验"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-random-wallpaper.js",
+    "path": "data/plugins/plugin-random-wallpaper.js",
+    "triggers": ["on::manual"],
+    "hasUI": false,
+    "menus": {
+      "历史壁纸": "History",
+      "上一张": "Previous",
+      "打开壁纸目录": "OpenFolder",
+      "清理历史": "ClearHistory"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_rw_source",
+        "title": "图源",
+        "description": "必应国内可直连；Wallhaven、Picsum 国内访问可能较慢；自定义需填写下方图片地址",
+        "key": "Source",
+        "component": "Radio",
+        "value": "bing",
+        "options": ["必应,bing", "Wallhaven,wallhaven", "Picsum,picsum", "自定义,custom"]
+      },
+      {
+        "id": "ID_rw_resolution",
+        "title": "分辨率",
+        "description": "超高清为 4K 左右，对自定义图源无效",
+        "key": "Resolution",
+        "component": "Radio",
+        "value": "uhd",
+        "options": ["超高清,uhd", "1080P,1080"]
+      },
+      {
+        "id": "ID_rw_bing_market",
+        "title": "必应地区",
+        "description": "不同地区的必应每日壁纸不一样，随机可以换到更多图片",
+        "key": "BingMarket",
+        "component": "Select",
+        "value": "random",
+        "options": ["随机,random", "中国,zh-CN", "美国,en-US", "日本,ja-JP", "英国,en-GB", "德国,de-DE", "法国,fr-FR"]
+      },
+      {
+        "id": "ID_rw_keyword",
+        "title": "Wallhaven 关键词",
+        "description": "仅 Wallhaven 图源有效，留空为不限，例如：nature",
+        "key": "Keyword",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_rw_custom_url",
+        "title": "自定义图片地址",
+        "description": "每次请求都返回一张随机图片的地址，例如：https://picsum.photos/1920/1080",
+        "key": "CustomUrl",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_rw_style",
+        "title": "填充方式",
+        "description": "仅 Windows 有效",
+        "key": "Style",
+        "component": "Select",
+        "value": "fill",
+        "options": ["填充,fill", "适应,fit", "拉伸,stretch", "居中,center", "平铺,tile", "跨区,span"]
+      },
+      {
+        "id": "ID_rw_max_history",
+        "title": "最多保留历史",
+        "description": "超出后自动删除最旧的壁纸（当前壁纸不会被删），1-1000",
+        "key": "MaxHistory",
+        "component": "Input",
+        "value": "50",
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
   }
 ]
