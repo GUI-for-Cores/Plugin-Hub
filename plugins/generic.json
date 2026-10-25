@@ -3562,5 +3562,31 @@
     "disabled": false,
     "install": false,
     "installed": false
+  },
+  {
+    "id": "plugin-overview-scroll-reverse",
+    "name": "概览页滚动反向",
+    "version": "v1.0.0",
+    "group": "Extensions",
+    "description": "将概览页控制器面板的展开、收起手势从自然滚动改为标准滚动。Supported by: Mizuno-Sachiko",
+    "tags": ["提升体验"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-overview-scroll-reverse.js",
+    "path": "data/plugins/plugin-overview-scroll-reverse.js",
+    "triggers": ["on::manual", "on::ready", "on::shutdown"],
+    "hasUI": false,
+    "menus": {},
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "configuration": [],
+    "status": 0,
+    "disabled": false,
+    "install": false,
+    "installed": false
   }
 ]
