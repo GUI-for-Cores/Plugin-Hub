@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 14,
+  "revision": 15,
   "themes": [
     {
       "id": "miku",
@@ -79,6 +79,12 @@
       "manifest": "dead-pig/dead-pig.json",
       "featured": true,
       "order": 140
+    },
+    {
+      "id": "win98",
+      "manifest": "win98/win98.json",
+      "featured": true,
+      "order": 150
     }
   ]
 }
