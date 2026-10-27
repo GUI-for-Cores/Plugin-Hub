@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 15,
+  "revision": 16,
   "themes": [
     {
       "id": "miku",
@@ -85,6 +85,12 @@
       "manifest": "win98/win98.json",
       "featured": true,
       "order": 150
+    },
+    {
+      "id": "win7",
+      "manifest": "win7/win7.json",
+      "featured": true,
+      "order": 160
     }
   ]
 }

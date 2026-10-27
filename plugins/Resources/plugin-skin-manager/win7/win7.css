@@ -1,0 +1,2259 @@
+/*
+ * Windows 7 经典皮肤（Aero Basic / Glass 风格）
+ * 天蓝半透明玻璃窗框 + 白色客户区 + 双段光泽按钮 + 资源管理器式浅蓝选中，全部为纯 CSS，无外部图片。
+ * 桌面是 CSS 径向渐变（不使用任何微软壁纸或徽标）。
+ * WebKitGTK 上 backdrop-filter 不可靠，玻璃质感主要靠「半透明底色 + 白色高光带 + 斜向反光条纹」叠加实现。
+ * 圆角统一换成 Win7 尺度：按钮 3px，窗口 / 弹窗 6px。
+ * 深色模式为「深色 Aero」：深藏青黑玻璃标题栏 + 深灰内容区，保留光泽层次。
+ */
+body.skin-theme {
+  --skin-blue: #1e5799;
+  --skin-ink: #1e1e1e;
+  --skin-muted: #5a6779;
+  --skin-glass: #ffffff;
+  --skin-glass-strong: #ffffff;
+  --skin-border: #ccd9ea;
+  --skin-shadow: none;
+
+  --w7-font: 'Segoe UI', 'Microsoft YaHei', '微软雅黑', sans-serif;
+  --w7-mono: Consolas, 'Courier New', 'Microsoft YaHei', monospace;
+
+  /* 桌面：蓝色径向渐变 + 两道柔和的斜向光带 */
+  --w7-desktop:
+    linear-gradient(118deg, transparent 38%, rgba(255, 255, 255, 0.1) 46%, transparent 54%),
+    linear-gradient(128deg, transparent 52%, rgba(160, 220, 255, 0.12) 60%, transparent 70%),
+    radial-gradient(ellipse 90% 75% at 50% 42%, #6cc3f5 0%, #2f92de 26%, #1263b4 52%, #0a3f86 76%, #062a5e 100%);
+
+  /* 玻璃：白色高光带 + 斜向反光条纹 + 天蓝半透明底 */
+  --w7-glass-shine: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.62) 0,
+    rgba(255, 255, 255, 0.28) 13px,
+    rgba(255, 255, 255, 0.04) 14px,
+    rgba(255, 255, 255, 0) 30px
+  );
+  --w7-glass-stripes: repeating-linear-gradient(
+    115deg,
+    rgba(255, 255, 255, 0) 0 44px,
+    rgba(255, 255, 255, 0.1) 44px 52px,
+    rgba(255, 255, 255, 0) 52px 70px,
+    rgba(255, 255, 255, 0.06) 70px 74px,
+    rgba(255, 255, 255, 0) 74px 120px
+  );
+  --w7-glass-tint: linear-gradient(180deg, rgba(169, 198, 232, 0.8), rgba(213, 229, 247, 0.86));
+  --w7-glass-solid: linear-gradient(180deg, #a9c6e8, #d5e5f7);
+  --w7-glass-text: #000000;
+  --w7-glass-glow: 0 0 7px rgba(255, 255, 255, 0.95), 0 0 2px rgba(255, 255, 255, 0.9);
+  --w7-frame: rgba(38, 58, 88, 0.88);
+  --w7-frame-inner: rgba(255, 255, 255, 0.62);
+  --w7-client-border: #8a9fbc;
+
+  /* 系统色 */
+  --w7-text: #1e1e1e;
+  --w7-muted: #6d6d6d;
+  --w7-heading: #1e3287;
+  --w7-link: #0066cc;
+  --w7-link-hover: #3399ff;
+  --w7-icon: #1e5799;
+  --w7-window: #ffffff;
+  --w7-face: #f0f0f0;
+  --w7-face-border: #dfdfdf;
+  --w7-divider: #d5dfe5;
+
+  /* 资源管理器命令栏 */
+  --w7-toolbar: linear-gradient(180deg, #fafcfe 0%, #eef4fb 50%, #e3ecf7 50%, #dbe6f4 100%);
+  --w7-toolbar-border: #a5b6cb;
+
+  /* 按钮：灰白双段光泽 / 悬停浅蓝 / 按下更深 */
+  --w7-btn: linear-gradient(180deg, #f2f2f2 0%, #ebebeb 50%, #dddddd 50%, #cfcfcf 100%);
+  --w7-btn-border: #707070;
+  --w7-btn-text: #000000;
+  --w7-btn-inner: inset 0 0 0 1px rgba(255, 255, 255, 0.72);
+  --w7-btn-hover: linear-gradient(180deg, #e5f4fc 0%, #d9eff9 50%, #c4e5f6 50%, #b2dcf3 100%);
+  --w7-btn-hover-border: #3c7fb1;
+  --w7-btn-pressed: linear-gradient(180deg, #e5f4fc 0%, #c4e5f6 50%, #98d1ef 50%, #68b3db 100%);
+  --w7-btn-pressed-border: #2c628b;
+  --w7-btn-pressed-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.28), inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+  --w7-btn-default-glow: inset 0 0 0 1px rgba(98, 205, 250, 0.9), 0 0 3px rgba(60, 155, 225, 0.55);
+  --w7-btn-disabled: #f4f4f4;
+  --w7-btn-disabled-border: #adb2b5;
+  --w7-btn-disabled-text: #838383;
+
+  /* 资源管理器选中 / 悬停 */
+  --w7-sel: linear-gradient(180deg, #dcebfc, #c1dbfc);
+  --w7-sel-border: #7da2ce;
+  --w7-sel-text: #000000;
+  --w7-hot: linear-gradient(180deg, #fafbfd, #ebf3fd);
+  --w7-hot-border: #b8d6fb;
+
+  /* 输入框 */
+  --w7-input-border: #abadb3;
+  --w7-input-border-side: #dbdfe6;
+  --w7-input-border-bottom: #e3e9ef;
+  --w7-input-hover: #7eb4ea;
+  --w7-input-hover-side: #c5daed;
+  --w7-input-focus: #3d7bad;
+  --w7-input-focus-side: #a4c9e3;
+  --w7-placeholder: #6d6d6d;
+
+  /* 菜单：白底 + 左侧图标栏 + 分隔线 */
+  --w7-menu-bg: #fcfcfc;
+  --w7-menu-gutter: #f1f4f9;
+  --w7-menu-sep-dark: #e2e3e3;
+  --w7-menu-sep-light: #ffffff;
+  --w7-menu-border: #979797;
+  --w7-menu-hot: linear-gradient(180deg, #eef5fd, #dce9fa);
+  --w7-menu-hot-border: #aecff7;
+
+  /* 提示气泡 */
+  --w7-tip-bg: linear-gradient(180deg, #ffffff, #e4e5f0);
+  --w7-tip-border: #767676;
+  --w7-tip-text: #575757;
+
+  /* 卡片 / 分组框 / 表头 / 标签页 */
+  --w7-card-bg: linear-gradient(180deg, #ffffff, #f7fafd);
+  --w7-card-border: #ccd9ea;
+  --w7-card-hover-border: #a6c8ec;
+  --w7-card-hover-bg: linear-gradient(180deg, #fbfdff, #f1f7fe);
+  --w7-card-hover-inner: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+
+  /* 命令栏 / 工具栏按钮（资源管理器 Organize、New folder 那种）：平时透明，悬停浅蓝光泽圆角框 */
+  --w7-tb-text: #1e1e1e;
+  --w7-tb-hover: linear-gradient(180deg, #f6fbff 0%, #e5f1fc 48%, #d4e8fb 52%, #e1effd 100%);
+  --w7-tb-hover-border: #7da2ce;
+  --w7-tb-hover-inner: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+  --w7-tb-pressed: linear-gradient(180deg, #c4dcf6 0%, #cfe3f9 48%, #bfd7f4 52%, #d2e5fa 100%);
+  --w7-tb-pressed-border: #5f86b6;
+  --w7-tb-pressed-inner: inset 0 1px 2px rgba(30, 60, 100, 0.3);
+
+  /* 弹窗遮罩：轻微变暗，不加蓝白色调 */
+  --w7-mask: rgba(0, 0, 0, 0.18);
+  --w7-th: linear-gradient(180deg, #ffffff 0%, #ffffff 45%, #f6f7f8 46%, #eef0f2 100%);
+  --w7-th-hover: linear-gradient(180deg, #f3fbff 0%, #e3f7ff 45%, #d6f0fd 46%, #c8eafc 100%);
+  --w7-th-border: #d5d5d5;
+  --w7-row-alt: #ffffff;
+  --w7-tab: linear-gradient(180deg, #f8f8f8 0%, #f0f0f0 50%, #e5e5e5 50%, #dcdcdc 100%);
+  --w7-tab-border: #898c95;
+
+  /* 进度条：绿色光泽 */
+  --w7-progress-track: linear-gradient(180deg, #e6e6e6 0%, #f7f7f7 40%, #eeeeee 52%, #fafafa 100%);
+  --w7-progress-border: #b2b2b2;
+  --w7-progress: linear-gradient(180deg, #d6f8cf 0%, #74e063 38%, #2fbb2b 50%, #3ec938 78%, #6fdc5f 100%);
+
+  /* 滚动条 */
+  --w7-track-v: linear-gradient(90deg, #e2e2e2 0%, #f0f0f0 18%, #f0f0f0 82%, #e2e2e2 100%);
+  --w7-track-h: linear-gradient(180deg, #e2e2e2 0%, #f0f0f0 18%, #f0f0f0 82%, #e2e2e2 100%);
+  --w7-thumb-v: linear-gradient(90deg, #f6f6f6 0%, #ececec 48%, #dedede 52%, #d0d0d0 100%);
+  --w7-thumb-h: linear-gradient(180deg, #f6f6f6 0%, #ececec 48%, #dedede 52%, #d0d0d0 100%);
+  --w7-thumb-hover-v: linear-gradient(90deg, #e5f4fc 0%, #d6eefb 48%, #b2dcf3 52%, #98cfee 100%);
+  --w7-thumb-hover-h: linear-gradient(180deg, #e5f4fc 0%, #d6eefb 48%, #b2dcf3 52%, #98cfee 100%);
+  --w7-thumb-border: #959595;
+  --w7-thumb-hover-border: #3c7fb1;
+  --w7-corner: #f0f0f0;
+
+  /* 标题栏按钮（最小化 / 最大化 / 关闭） */
+  --w7-cap: linear-gradient(180deg, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0.32) 45%, rgba(110, 140, 185, 0.28) 50%, rgba(195, 220, 248, 0.6) 100%);
+  --w7-cap-hover: linear-gradient(
+    180deg,
+    rgba(205, 238, 255, 0.96) 0%,
+    rgba(140, 202, 246, 0.92) 45%,
+    rgba(52, 146, 226, 0.92) 50%,
+    rgba(118, 200, 252, 0.96) 100%
+  );
+  --w7-cap-pressed: linear-gradient(
+    180deg,
+    rgba(150, 196, 232, 0.96) 0%,
+    rgba(84, 150, 210, 0.95) 45%,
+    rgba(24, 96, 178, 0.95) 50%,
+    rgba(60, 150, 220, 0.96) 100%
+  );
+  --w7-cap-border: rgba(30, 48, 76, 0.78);
+  --w7-close: linear-gradient(180deg, #e9a99c 0%, #d77665 45%, #c44f3f 50%, #d27f6d 100%);
+  --w7-close-hover: linear-gradient(180deg, #f6c3b5 0%, #ea7a62 45%, #d2321c 50%, #ea8b6c 100%);
+  --w7-close-pressed: linear-gradient(180deg, #c98a7d 0%, #b34b38 45%, #9a2412 50%, #b05b44 100%);
+  --w7-close-border: rgba(84, 22, 16, 0.86);
+
+  /* 选中标记（卡片对勾、菜单勾）、图表 */
+  --w7-check: #1e5799;
+  --w7-chart-bg: #ffffff;
+  --w7-chart-grid: #d6e3f0;
+  --w7-chart-label: #5a6779;
+  --w7-upload: #2e9a2e;
+  --w7-download: #1e6fc8;
+
+  --skin-control-border: var(--w7-btn-border);
+  --skin-control-bg: var(--w7-window);
+  --skin-control-shadow: none;
+  --skin-control-active-shadow: var(--w7-btn-pressed-shadow);
+  --skin-control-focus-shadow: none;
+
+  color: var(--w7-text);
+  /* GFC 会把「设置 → 字体」写进 body 的行内样式，这里用 !important 让 Segoe UI / 微软雅黑生效 */
+  font-family: var(--w7-font) !important;
+  font-size: 13px;
+  background: #0a3f86;
+}
+
+body.skin-theme[theme-mode='dark'] {
+  /* 深色 Aero：深藏青黑玻璃 + 深灰客户区，保留同样的高光 / 光泽层次 */
+  --skin-blue: #8fc0ff;
+  --skin-ink: #e4e4e4;
+  --skin-muted: #9aa3ad;
+  --skin-glass: #262a30;
+  --skin-glass-strong: #262a30;
+  --skin-border: #3d4550;
+
+  --w7-desktop:
+    linear-gradient(118deg, transparent 38%, rgba(140, 190, 255, 0.06) 46%, transparent 54%),
+    linear-gradient(128deg, transparent 52%, rgba(90, 150, 220, 0.07) 60%, transparent 70%),
+    radial-gradient(ellipse 90% 75% at 50% 42%, #24548a 0%, #163a66 28%, #0c2442 56%, #07152a 80%, #040a14 100%);
+  --w7-glass-shine: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.2) 0,
+    rgba(255, 255, 255, 0.08) 13px,
+    rgba(255, 255, 255, 0.01) 14px,
+    rgba(255, 255, 255, 0) 30px
+  );
+  --w7-glass-stripes: repeating-linear-gradient(
+    115deg,
+    rgba(255, 255, 255, 0) 0 44px,
+    rgba(255, 255, 255, 0.045) 44px 52px,
+    rgba(255, 255, 255, 0) 52px 70px,
+    rgba(255, 255, 255, 0.03) 70px 74px,
+    rgba(255, 255, 255, 0) 74px 120px
+  );
+  --w7-glass-tint: linear-gradient(180deg, rgba(34, 48, 72, 0.88), rgba(16, 24, 38, 0.92));
+  --w7-glass-solid: linear-gradient(180deg, #24324a, #121a28);
+  --w7-glass-text: #eef3fa;
+  --w7-glass-glow: 0 0 6px rgba(0, 0, 0, 0.9), 0 0 2px rgba(0, 0, 0, 0.85);
+  --w7-frame: rgba(0, 0, 0, 0.88);
+  --w7-frame-inner: rgba(255, 255, 255, 0.12);
+  --w7-client-border: #0e141c;
+
+  --w7-text: #e4e4e4;
+  --w7-muted: #9aa3ad;
+  --w7-heading: #8fc0ff;
+  --w7-link: #6fb3ff;
+  --w7-link-hover: #a6d0ff;
+  --w7-icon: #8fc0ff;
+  --w7-window: #262a30;
+  --w7-face: #2d3137;
+  --w7-face-border: #3b4047;
+  --w7-divider: #3b4047;
+
+  --w7-toolbar: linear-gradient(180deg, #3a414c 0%, #333944 50%, #2b313b 50%, #272c35 100%);
+  --w7-toolbar-border: #151a21;
+
+  --w7-btn: linear-gradient(180deg, #4b5059 0%, #434850 50%, #373b42 50%, #30343a 100%);
+  --w7-btn-border: #15171b;
+  --w7-btn-text: #eeeeee;
+  --w7-btn-inner: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  --w7-btn-hover: linear-gradient(180deg, #3f6489 0%, #355a7e 50%, #2a4c70 50%, #2f5679 100%);
+  --w7-btn-hover-border: #5a9bd0;
+  --w7-btn-pressed: linear-gradient(180deg, #2c4c6c 0%, #264461 50%, #1c3652 50%, #1a3150 100%);
+  --w7-btn-pressed-border: #4a86ba;
+  --w7-btn-pressed-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.55);
+  --w7-btn-default-glow: inset 0 0 0 1px rgba(90, 170, 240, 0.7), 0 0 3px rgba(80, 160, 240, 0.5);
+  --w7-btn-disabled: #2b2e33;
+  --w7-btn-disabled-border: #3a3e44;
+  --w7-btn-disabled-text: #7a7f86;
+
+  --w7-sel: linear-gradient(180deg, #3a5574, #2d4664);
+  --w7-sel-border: #5a7fa8;
+  --w7-sel-text: #ffffff;
+  --w7-hot: linear-gradient(180deg, #323c49, #2c3542);
+  --w7-hot-border: #45607f;
+
+  --w7-input-border: #5b626c;
+  --w7-input-border-side: #4a5059;
+  --w7-input-border-bottom: #4a5059;
+  --w7-input-hover: #5a8fc4;
+  --w7-input-hover-side: #48698c;
+  --w7-input-focus: #5a9bd0;
+  --w7-input-focus-side: #4a7aa6;
+  --w7-placeholder: #a3abb5;
+
+  --w7-menu-bg: #2a2e35;
+  --w7-menu-gutter: #31363e;
+  --w7-menu-sep-dark: #1c2025;
+  --w7-menu-sep-light: #3d434b;
+  --w7-menu-border: #121418;
+  --w7-menu-hot: linear-gradient(180deg, #3a5574, #2d4664);
+  --w7-menu-hot-border: #5a7fa8;
+
+  --w7-tip-bg: linear-gradient(180deg, #3c414a, #2c3037);
+  --w7-tip-border: #6a717c;
+  --w7-tip-text: #dfe3e8;
+
+  --w7-card-bg: linear-gradient(180deg, #2c3037, #272a30);
+  --w7-card-border: #3d4550;
+  --w7-card-hover-border: #4a6687;
+  --w7-card-hover-bg: linear-gradient(180deg, #2f3640, #2a3039);
+  --w7-card-hover-inner: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+
+  --w7-tb-text: #e8ecf1;
+  --w7-tb-hover: linear-gradient(180deg, #43566d 0%, #3a4d63 48%, #324459 52%, #3a4d63 100%);
+  --w7-tb-hover-border: #5f83ab;
+  --w7-tb-hover-inner: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  --w7-tb-pressed: linear-gradient(180deg, #2a3b50 0%, #30435a 100%);
+  --w7-tb-pressed-border: #6e95c0;
+  --w7-tb-pressed-inner: inset 0 1px 2px rgba(0, 0, 0, 0.45);
+
+  --w7-mask: rgba(0, 0, 0, 0.38);
+  --w7-th: linear-gradient(180deg, #383d45 0%, #353a42 45%, #2e3239 46%, #2a2e34 100%);
+  --w7-th-hover: linear-gradient(180deg, #3f6489 0%, #355a7e 45%, #2a4c70 46%, #2f5679 100%);
+  --w7-th-border: #444a53;
+  --w7-tab: linear-gradient(180deg, #41464e 0%, #3a3f46 50%, #31353b 50%, #2c3035 100%);
+  --w7-tab-border: #15171b;
+
+  --w7-progress-track: linear-gradient(180deg, #24282d 0%, #30353b 40%, #2a2e34 52%, #33383f 100%);
+  --w7-progress-border: #4a5059;
+  --w7-progress: linear-gradient(180deg, #8fdc85 0%, #45b83a 38%, #1f8f1d 50%, #2aa226 78%, #48b83e 100%);
+
+  --w7-track-v: linear-gradient(90deg, #1e2126 0%, #25292e 18%, #25292e 82%, #1e2126 100%);
+  --w7-track-h: linear-gradient(180deg, #1e2126 0%, #25292e 18%, #25292e 82%, #1e2126 100%);
+  --w7-thumb-v: linear-gradient(90deg, #5a6069 0%, #4e535b 48%, #43474e 52%, #3a3e44 100%);
+  --w7-thumb-h: linear-gradient(180deg, #5a6069 0%, #4e535b 48%, #43474e 52%, #3a3e44 100%);
+  --w7-thumb-hover-v: linear-gradient(90deg, #4a7298 0%, #3f6489 48%, #2f5679 52%, #2a4c70 100%);
+  --w7-thumb-hover-h: linear-gradient(180deg, #4a7298 0%, #3f6489 48%, #2f5679 52%, #2a4c70 100%);
+  --w7-thumb-border: #17191d;
+  --w7-thumb-hover-border: #5a9bd0;
+  --w7-corner: #25292e;
+
+  --w7-cap: linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 45%, rgba(0, 0, 0, 0.2) 50%, rgba(90, 120, 160, 0.3) 100%);
+  --w7-cap-border: rgba(0, 0, 0, 0.82);
+
+  --w7-check: #8cc4ff;
+  --w7-chart-bg: #1d2025;
+  --w7-chart-grid: #343b45;
+  --w7-chart-label: #9aa3ad;
+  --w7-upload: #5fd35f;
+  --w7-download: #6fb3ff;
+
+  background: #07152a;
+}
+
+/* ---------- 全局：去掉其他皮肤的阴影 / 位移 / 文字阴影，统一 Win7 圆角尺度 ---------- */
+body.skin-theme *,
+body.skin-theme *::before,
+body.skin-theme *::after {
+  text-shadow: none !important;
+}
+
+body.skin-theme :is(.rounded-6, .rounded-8, .rounded-12, .rounded-16) {
+  border-radius: 4px;
+}
+
+body.skin-theme svg {
+  filter: none;
+}
+
+body.skin-theme
+  :is(.backdrop-blur-sm, .gui-modal-mask, .gui-dropdown-overlay, .gui-menu, .gui-tips, .overview-toolbar, .traffic-panel, .mode-panel, .controller-panel) {
+  backdrop-filter: none !important;
+}
+
+body.skin-theme .overview-toolbar::before,
+body.skin-theme .app-titlebar::before {
+  display: none;
+}
+
+/* 桌面背景：纯 CSS 蓝色径向渐变 */
+body.skin-theme::before {
+  background: var(--w7-desktop);
+}
+
+body.skin-theme::after {
+  display: none;
+}
+
+body.skin-theme[theme-mode='dark']::before {
+  opacity: 1;
+  filter: none;
+  background: var(--w7-desktop);
+}
+
+/* 主窗口：整个 #app 画成一扇 Aero 玻璃窗，客户区（.app-content）为白底 */
+body.skin-theme #app {
+  padding: 0 7px 7px;
+  border: 1px solid var(--w7-frame);
+  border-radius: 6px 6px 0 0;
+  background: var(--w7-glass-shine), var(--w7-glass-stripes), var(--w7-glass-tint);
+  box-shadow: inset 0 0 0 1px var(--w7-frame-inner);
+}
+
+body.skin-theme #app::before {
+  display: none;
+}
+
+/* ---------- 标题栏 ---------- */
+body.skin-theme .app-titlebar {
+  height: 30px;
+  min-height: 30px;
+  padding: 0 0 0 2px;
+  gap: 6px;
+  color: var(--w7-glass-text);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+body.skin-theme .app-titlebar__logo {
+  width: 18px;
+  height: 18px;
+  filter: none;
+}
+
+body.skin-theme .app-titlebar__brand {
+  gap: 6px;
+  /* 内核运行时 GFC 会用行内样式把标题设成主色，这里固定为玻璃上的黑字 + 白色辉光 */
+  color: var(--w7-glass-text) !important;
+  font-size: 13px;
+  letter-spacing: 0;
+  text-shadow: var(--w7-glass-glow) !important;
+}
+
+body.skin-theme .app-titlebar__name {
+  font-weight: 400;
+}
+
+body.skin-theme .app-titlebar__version {
+  color: var(--w7-glass-text);
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+body.skin-theme .app-titlebar__custom-actions,
+body.skin-theme .app-titlebar__custom-actions .gui-button {
+  color: var(--w7-glass-text);
+}
+
+/* 标题栏按钮组贴住窗口上沿，连成一排（Win7 的「最小化 / 最大化 / 关闭」） */
+body.skin-theme .app-titlebar > .ml-auto {
+  align-self: flex-start;
+  gap: 0;
+}
+
+body.skin-theme .app-titlebar .window-control {
+  width: 27px;
+  min-width: 27px;
+  height: 20px;
+  padding: 0;
+  margin: -1px 0 0 -1px;
+  border: 1px solid var(--w7-cap-border);
+  border-top-width: 0;
+  border-radius: 0;
+  color: #ffffff;
+  background: var(--w7-cap);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+  transform: none;
+  filter: none;
+}
+
+body.skin-theme .app-titlebar > .ml-auto > .window-control:first-child {
+  border-bottom-left-radius: 5px;
+}
+
+body.skin-theme .app-titlebar .window-control svg {
+  width: 11px;
+  height: 11px;
+  opacity: 1;
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 1px rgba(0, 0, 0, 0.6));
+}
+
+body.skin-theme .app-titlebar .window-control:not(.window-control--close):hover {
+  color: #ffffff;
+  background: var(--w7-cap-hover) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.45),
+    0 0 6px rgba(110, 200, 255, 0.85);
+  transform: none;
+  filter: none;
+}
+
+body.skin-theme .app-titlebar .window-control:not(.window-control--close):active {
+  background: var(--w7-cap-pressed) !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+/* 关闭按钮：红色光泽，更宽 */
+body.skin-theme .app-titlebar .window-control--close,
+body.skin-theme .app-titlebar .window-control.window-control--close {
+  width: 46px;
+  min-width: 46px;
+  border-color: var(--w7-close-border);
+  border-bottom-right-radius: 5px;
+  background: var(--w7-close);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
+body.skin-theme .app-titlebar .window-control--close:hover,
+body.skin-theme .app-titlebar .window-control.hover\:\!bg-red:hover {
+  color: #ffffff;
+  background: var(--w7-close-hover) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.45),
+    0 0 7px rgba(255, 110, 70, 0.85);
+  transform: none;
+  filter: none;
+}
+
+body.skin-theme .app-titlebar .window-control--close:active,
+body.skin-theme .app-titlebar .window-control.hover\:\!bg-red:active {
+  background: var(--w7-close-pressed) !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* ---------- 客户区：白底，四周一圈细边 ---------- */
+body.skin-theme .app-content {
+  padding: 0;
+  color: var(--w7-text);
+  border: 1px solid var(--w7-client-border);
+  background: var(--w7-window);
+  box-shadow: 0 0 0 1px var(--w7-frame-inner);
+}
+
+body.skin-theme .app-page {
+  margin-top: 8px;
+  padding: 0 10px 8px;
+}
+
+body.skin-theme .app-modal-panel {
+  margin: 0 0 0 7px;
+  border: 1px solid var(--w7-client-border);
+  background: var(--w7-window);
+}
+
+/* ---------- 顶部导航：资源管理器命令栏 ---------- */
+body.skin-theme .main-nav {
+  gap: 2px;
+  min-height: 32px;
+  margin: 0;
+  padding: 3px 6px;
+  border-bottom: 1px solid var(--w7-toolbar-border);
+  background: var(--w7-toolbar);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.6);
+}
+
+body.skin-theme[theme-mode='dark'] .main-nav {
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.06);
+}
+
+body.skin-theme .main-nav::after,
+body.skin-theme .main-nav__button::before,
+body.skin-theme .main-nav__button.is-active::after,
+body.skin-theme .main-nav__item--overview:has(.is-active)::before {
+  display: none;
+}
+
+/*
+ * 命令栏按钮：未选中透明、悬停浅蓝、选中为资源管理器式浅蓝圆角高亮。
+ * 边框用 inset box-shadow 画，不改尺寸、不改字重，邻居不会移位。
+ * 选中按钮是 type=link，这里多带一层 .main-nav 提高优先级，压过全局 .gui-button.link。
+ */
+body.skin-theme .main-nav .main-nav__button {
+  min-height: 24px;
+  padding: 3px 10px;
+  border: 0;
+  border-radius: 3px;
+  color: var(--w7-text);
+  font-size: 13px;
+  font-weight: 400;
+  text-decoration: none;
+  background: transparent;
+  box-shadow: none;
+  transition: none;
+}
+
+body.skin-theme .main-nav .main-nav__button:hover {
+  color: var(--w7-text);
+  text-decoration: none;
+  background: var(--w7-hot);
+  box-shadow:
+    inset 0 0 0 1px var(--w7-hot-border),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.5);
+  transform: none;
+  filter: none;
+}
+
+body.skin-theme .main-nav .main-nav__button.is-active,
+body.skin-theme .main-nav .main-nav__button.is-active:hover {
+  color: var(--w7-sel-text);
+  font-weight: 400;
+  text-decoration: none;
+  background: var(--w7-sel);
+  box-shadow:
+    inset 0 0 0 1px var(--w7-sel-border),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.45);
+}
+
+body.skin-theme .main-nav .main-nav__button:active {
+  background: var(--w7-sel);
+  box-shadow:
+    inset 0 0 0 1px var(--w7-sel-border),
+    inset 0 1px 2px rgba(0, 0, 0, 0.18);
+}
+
+body.skin-theme[theme-mode='dark'] .main-nav .main-nav__button:hover,
+body.skin-theme[theme-mode='dark'] .main-nav .main-nav__button.is-active,
+body.skin-theme[theme-mode='dark'] .main-nav .main-nav__button.is-active:hover {
+  box-shadow:
+    inset 0 0 0 1px var(--w7-sel-border),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.06);
+}
+
+body.skin-theme[theme-mode='dark'] .main-nav .main-nav__button:hover:not(.is-active) {
+  box-shadow: inset 0 0 0 1px var(--w7-hot-border);
+}
+
+body.skin-theme .main-nav .main-nav__button svg {
+  fill: var(--w7-icon) !important;
+}
+
+/* ---------- 页面与通用面板 ---------- */
+body.skin-theme .overview-toolbar {
+  min-height: 34px;
+  padding: 3px 8px;
+  border: 1px solid var(--w7-toolbar-border);
+  border-radius: 4px;
+  background: var(--w7-toolbar);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.55);
+}
+
+/* 卡片：白底细蓝灰边，悬停浅蓝边，选中为资源管理器式选中 */
+body.skin-theme .gui-card {
+  border: 1px solid var(--w7-card-border);
+  border-radius: 4px;
+  color: var(--w7-text);
+  background: var(--w7-card-bg);
+  box-shadow: none;
+  transition: none;
+}
+
+/* 悬停：亮暗一致的资源管理器式淡蓝（淡蓝边 + 极浅蓝底），所有卡片同一规则 */
+body.skin-theme .gui-card:hover {
+  border-color: var(--w7-card-hover-border);
+  background: var(--w7-card-hover-bg);
+  box-shadow: var(--w7-card-hover-inner);
+  transform: none;
+}
+
+body.skin-theme .gui-card:active {
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+body.skin-theme .gui-card__header {
+  padding: 6px 8px 4px;
+}
+
+body.skin-theme .gui-card__title {
+  color: var(--w7-heading);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+body.skin-theme .gui-card.is-selected,
+body.skin-theme .gui-card.is-selected:hover {
+  border-color: var(--w7-sel-border);
+  color: var(--w7-sel-text);
+  background: var(--w7-sel);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+body.skin-theme[theme-mode='dark'] .gui-card.is-selected,
+body.skin-theme[theme-mode='dark'] .gui-card.is-selected:hover {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+body.skin-theme .gui-card.is-selected .gui-card__title {
+  color: var(--w7-sel-text);
+}
+
+/* 选中对勾：Icon 组件把 fill 写在 .icon svg 上（值是 --primary-color），这里统一换成 --w7-check */
+body.skin-theme .gui-card__state--selected {
+  color: var(--w7-check);
+  filter: none;
+}
+
+body.skin-theme .gui-card__state--selected svg {
+  fill: var(--w7-check) !important;
+}
+
+/* 概览统计卡：去掉其他皮肤的装饰，只保留小图标 */
+body.skin-theme .home-stat-card {
+  min-height: 72px;
+  outline: 0;
+}
+
+body.skin-theme .home-stat-card::after,
+body.skin-theme .home-stat-card .gui-card__header::after,
+body.skin-theme .skin-decoration--stats,
+body.skin-theme .home-mode-card::after,
+body.skin-theme .traffic-panel__art {
+  display: none;
+}
+
+body.skin-theme .home-stat-card .gui-card__header::before,
+body.skin-theme .home-mode-card .gui-card__header::before {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+  color: var(--w7-icon);
+  background: currentColor;
+  -webkit-mask: var(--skin-card-icon) center / contain no-repeat;
+  mask: var(--skin-card-icon) center / contain no-repeat;
+  filter: none;
+}
+
+body.skin-theme .home-mode-card .gui-card__header::before {
+  -webkit-mask-image: var(--skin-mode-icon);
+  mask-image: var(--skin-mode-icon);
+}
+
+body.skin-theme .home-stat-card__value {
+  color: var(--w7-text);
+  padding: 8px 0 2px 8px;
+}
+
+body.skin-theme .metric--upload {
+  color: var(--w7-upload);
+}
+
+body.skin-theme .metric--download {
+  color: var(--w7-download);
+}
+
+/* 流量 / 模式面板：Win7 分组框 */
+body.skin-theme .traffic-panel,
+body.skin-theme .mode-panel {
+  padding: 0 8px 8px;
+  border: 1px solid var(--w7-divider);
+  border-radius: 4px;
+  background: var(--w7-window);
+  box-shadow: none;
+}
+
+body.skin-theme .traffic-panel__title,
+body.skin-theme .mode-panel__title {
+  padding: 8px 2px 6px;
+  color: var(--w7-heading) !important;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+body.skin-theme :is(.traffic-panel__title, .mode-panel__title)::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 60%), #2f78c7;
+  box-shadow: 0 0 0 1px rgba(20, 60, 110, 0.5);
+}
+
+/* 流量图：资源监视器式白底网格 */
+body.skin-theme .gui-traffic-chart {
+  border: 1px solid var(--w7-input-border);
+  border-radius: 2px;
+  background: var(--w7-chart-bg);
+  box-shadow: none;
+}
+
+body.skin-theme .traffic-chart__grid-line {
+  stroke: var(--w7-chart-grid);
+  stroke-dasharray: none;
+  opacity: 1;
+}
+
+body.skin-theme .traffic-chart__axis-label {
+  fill: var(--w7-chart-label);
+}
+
+body.skin-theme .traffic-chart__series--upload {
+  stroke: var(--w7-upload);
+  fill: color-mix(in srgb, var(--w7-upload) 14%, transparent);
+}
+
+body.skin-theme .traffic-chart__series--download {
+  stroke: var(--w7-download);
+  fill: color-mix(in srgb, var(--w7-download) 14%, transparent);
+}
+
+body.skin-theme .home-mode-card {
+  min-height: 60px;
+}
+
+/* 底部控制器入口与面板 */
+body.skin-theme .controller-trigger .gui-divider__content {
+  padding: 2px 12px;
+  border: 1px solid var(--w7-btn-border);
+  border-radius: 3px;
+  color: var(--w7-btn-text);
+  background: var(--w7-btn);
+  box-shadow: var(--w7-btn-inner);
+}
+
+body.skin-theme .controller-trigger .gui-divider__content:hover {
+  border-color: var(--w7-btn-hover-border);
+  background: var(--w7-btn-hover);
+}
+
+body.skin-theme .controller-trigger::before,
+body.skin-theme .controller-trigger .gui-divider__content::before,
+body.skin-theme .controller-trigger .gui-divider__content::after {
+  display: none;
+}
+
+body.skin-theme .controller-panel {
+  padding: 8px;
+  border: 1px solid var(--w7-frame);
+  border-radius: 6px;
+  color: var(--w7-text);
+  background: var(--w7-window);
+  box-shadow:
+    inset 0 0 0 1px var(--w7-frame-inner),
+    0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+body.skin-theme .controller-close {
+  width: 24px;
+  height: 20px;
+  padding: 2px;
+  border: 1px solid var(--w7-btn-border);
+  border-radius: 3px;
+  color: var(--w7-btn-text);
+  background: var(--w7-btn);
+  box-shadow: var(--w7-btn-inner);
+  filter: none;
+}
+
+body.skin-theme .controller-close svg {
+  width: 12px;
+  height: 12px;
+  filter: none;
+}
+
+body.skin-theme .controller-close:hover {
+  border-color: var(--w7-btn-hover-border);
+  color: var(--w7-btn-text);
+  background: var(--w7-btn-hover);
+  filter: none;
+  transform: translateX(-50%);
+}
+
+body.skin-theme .controller-close:active {
+  border-color: var(--w7-btn-pressed-border);
+  background: var(--w7-btn-pressed);
+  box-shadow: var(--w7-btn-pressed-shadow);
+  transform: translateX(-50%);
+}
+
+/* ---------- 按钮 ---------- */
+body.skin-theme .gui-button {
+  font-family: inherit;
+  transition: none;
+}
+
+body.skin-theme .gui-button:hover,
+body.skin-theme .gui-button:active {
+  filter: none;
+  transform: none;
+}
+
+/* 普通 / 默认按钮：灰白双段光泽，3px 圆角，灰边 */
+body.skin-theme :is(.gui-button.normal, .gui-button.primary) {
+  min-width: 72px;
+  padding: 3px 12px;
+  border: 1px solid var(--w7-btn-border);
+  border-radius: 3px;
+  color: var(--w7-btn-text);
+  font-size: 13px;
+  font-weight: 400;
+  background: var(--w7-btn);
+  box-shadow: var(--w7-btn-inner);
+}
+
+/* 默认按钮（primary）：蓝色发光边 */
+body.skin-theme .gui-button.primary {
+  border-color: var(--w7-btn-hover-border);
+  box-shadow: var(--w7-btn-default-glow);
+}
+
+/* 悬停：浅蓝光泽 + #3c7fb1 边 */
+body.skin-theme :is(.gui-button.normal, .gui-button.primary):hover {
+  border-color: var(--w7-btn-hover-border);
+  color: var(--w7-btn-text);
+  background: var(--w7-btn-hover);
+  box-shadow: var(--w7-btn-inner);
+}
+
+body.skin-theme .gui-button.primary:hover {
+  box-shadow: var(--w7-btn-default-glow);
+}
+
+/* 按下：比悬停更深的蓝色光泽 */
+body.skin-theme :is(.gui-button.normal, .gui-button.primary):active {
+  border-color: var(--w7-btn-pressed-border);
+  background: var(--w7-btn-pressed);
+  box-shadow: var(--w7-btn-pressed-shadow);
+}
+
+body.skin-theme :is(.gui-button.normal, .gui-button.primary):focus-visible {
+  outline: 1px dotted var(--w7-text);
+  outline-offset: -4px;
+}
+
+body.skin-theme :is(.gui-button.normal, .gui-button.primary).small {
+  min-width: 0;
+  padding: 1px 8px;
+  font-size: 12px;
+}
+
+body.skin-theme :is(.gui-button.normal, .gui-button.primary).pointer-events-none {
+  border-color: var(--w7-btn-disabled-border);
+  color: var(--w7-btn-disabled-text);
+  background: var(--w7-btn-disabled);
+  box-shadow: none;
+}
+
+/* 链接按钮（view log、Plugin-Hub、Check for updates、Update All、Source…）：Win7 蓝色链接 + 下划线 */
+body.skin-theme .gui-button.link {
+  color: var(--w7-link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  background: transparent;
+}
+
+body.skin-theme .gui-button.link:hover {
+  color: var(--w7-link-hover);
+  text-decoration: underline;
+  background: transparent;
+}
+
+/* 用 link 类型表示「选中」的地方（标签页、下拉菜单、导航）不是链接，去掉下划线 */
+body.skin-theme :is(.gui-tabs-tab, .gui-dropdown-overlay, .gui-menu, .main-nav) .gui-button.link,
+body.skin-theme :is(.gui-tabs-tab, .gui-dropdown-overlay, .gui-menu, .main-nav) .gui-button.link:hover {
+  text-decoration: none;
+}
+
+/* 文字按钮：平时透明，悬停为资源管理器式浅蓝热区（边框用 inset 阴影画，不改尺寸） */
+body.skin-theme .gui-button.text {
+  border-radius: 3px;
+  color: var(--w7-text);
+  background: transparent;
+}
+
+body.skin-theme .gui-button.text:hover {
+  color: var(--w7-text);
+  background: var(--w7-hot);
+  box-shadow: inset 0 0 0 1px var(--w7-hot-border);
+}
+
+body.skin-theme .gui-button.text:active {
+  background: var(--w7-sel);
+  box-shadow: inset 0 0 0 1px var(--w7-sel-border);
+}
+
+/*
+ * 卡片标题右侧的操作（订阅 / 插件 / 规则集 列表视图里的 Update、Disable、Edit、Develop、Delete，都是 type=text size=small）：
+ * 做成资源管理器命令栏按钮——平时透明，悬停浅蓝光泽圆角框，按下更深；只作用于卡片 extra 区，下拉菜单里的 text 按钮不受影响。
+ */
+body.skin-theme :is(.card-header_extra, .gui-card__header > .ml-auto) .gui-button.text {
+  min-height: 22px;
+  padding: 2px 8px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  color: var(--w7-tb-text);
+  font-size: 12px;
+  background: transparent;
+  box-shadow: none;
+}
+
+body.skin-theme :is(.card-header_extra, .gui-card__header > .ml-auto) .gui-button.text:hover {
+  border-color: var(--w7-tb-hover-border);
+  color: var(--w7-tb-text);
+  background: var(--w7-tb-hover);
+  box-shadow: var(--w7-tb-hover-inner);
+}
+
+body.skin-theme :is(.card-header_extra, .gui-card__header > .ml-auto) .gui-button.text:active {
+  border-color: var(--w7-tb-pressed-border);
+  background: var(--w7-tb-pressed);
+  box-shadow: var(--w7-tb-pressed-inner);
+}
+
+body.skin-theme :is(.card-header_extra, .gui-card__header > .ml-auto) .gui-button.text.pointer-events-none {
+  color: var(--w7-btn-disabled-text);
+}
+
+/* 链接（Plugin-Hub、Check for updates、Update All、Source…）：Win7 链接蓝，平时无下划线，悬停才出现 */
+body.skin-theme .grid-list-header .gui-button.link,
+body.skin-theme .gui-card .gui-button.link {
+  color: var(--w7-link);
+  text-decoration: none;
+}
+
+body.skin-theme .grid-list-header .gui-button.link:hover,
+body.skin-theme .gui-card .gui-button.link:hover {
+  color: var(--w7-link-hover);
+  text-decoration: underline;
+}
+
+body.skin-theme .gui-button.pointer-events-none:not(.window-control) {
+  color: var(--w7-btn-disabled-text);
+}
+
+/* ---------- 单选 / 多选按钮组：连成一排的光泽按钮，选中为按下的蓝色 ---------- */
+body.skin-theme :is(.gui-radio, .gui-checkbox) {
+  gap: 0;
+  border: 0;
+  /* 组件自带 rounded-full + overflow-hidden，会把两端按钮裁成胶囊，这里换成 3px */
+  border-radius: 3px;
+  background: transparent;
+  box-shadow: none;
+}
+
+body.skin-theme :is(.gui-radio, .gui-checkbox).small > :is(.gui-radio-button, .gui-checkbox-button) {
+  padding: 2px 8px;
+  font-size: 12px;
+}
+
+body.skin-theme :is(.gui-radio, .gui-checkbox) > :is(.gui-radio-button, .gui-checkbox-button) {
+  position: relative;
+  margin-left: -1px;
+  border: 1px solid var(--w7-btn-border);
+  border-radius: 0;
+  color: var(--w7-btn-text);
+  background: var(--w7-btn);
+  box-shadow: var(--w7-btn-inner);
+  transition: none;
+}
+
+body.skin-theme :is(.gui-radio, .gui-checkbox) > :is(.gui-radio-button, .gui-checkbox-button):first-child {
+  margin-left: 0;
+  border-radius: 3px 0 0 3px;
+}
+
+body.skin-theme :is(.gui-radio, .gui-checkbox) > :is(.gui-radio-button, .gui-checkbox-button):last-child {
+  border-radius: 0 3px 3px 0;
+}
+
+body.skin-theme :is(.gui-radio, .gui-checkbox) > :is(.gui-radio-button, .gui-checkbox-button):only-child {
+  border-radius: 3px;
+}
+
+body.skin-theme :is(.gui-radio-button, .gui-checkbox-button):hover {
+  z-index: 1;
+  border-color: var(--w7-btn-hover-border);
+  color: var(--w7-btn-text);
+  background: var(--w7-btn-hover);
+}
+
+/* 选中：按下的深蓝光泽 + 内凹阴影；不加粗，避免宽度跳动 */
+body.skin-theme :is(.gui-radio-button.active, .gui-checkbox-button.active),
+body.skin-theme :is(.gui-radio-button.active, .gui-checkbox-button.active):hover,
+body.skin-theme :is(.gui-radio-button.active, .gui-checkbox-button.active):active {
+  z-index: 2;
+  border-color: var(--w7-btn-pressed-border);
+  color: var(--w7-btn-text);
+  font-weight: 400;
+  background: var(--w7-btn-pressed);
+  box-shadow: var(--w7-btn-pressed-shadow);
+  transform: translate(0, 0);
+}
+
+body.skin-theme[theme-mode='dark'] :is(.gui-radio-button.active, .gui-checkbox-button.active),
+body.skin-theme[theme-mode='dark'] :is(.gui-radio-button.active, .gui-checkbox-button.active):hover {
+  color: #ffffff;
+  border-color: var(--w7-btn-hover-border);
+}
+
+/* ---------- 输入框：白底细灰蓝边，聚焦蓝边 ---------- */
+body.skin-theme :is(.gui-input, .gui-input-list, .gui-kv-editor .gui-input) {
+  border: 1px solid;
+  border-color: var(--w7-input-border) var(--w7-input-border-side) var(--w7-input-border-bottom) var(--w7-input-border-side);
+  border-radius: 2px;
+  color: var(--w7-text);
+  background: var(--w7-window);
+  box-shadow: none;
+  transition: none;
+}
+
+body.skin-theme :is(.gui-input, .gui-input-list):hover {
+  border-color: var(--w7-input-hover) var(--w7-input-hover-side) var(--w7-input-hover-side) var(--w7-input-hover-side);
+  background: var(--w7-window);
+  box-shadow: none;
+}
+
+body.skin-theme .gui-input:focus-within {
+  border-color: var(--w7-input-focus) var(--w7-input-focus-side) var(--w7-input-focus-side) var(--w7-input-focus-side);
+  background: var(--w7-window);
+  box-shadow: none;
+}
+
+body.skin-theme .gui-input {
+  padding-left: 6px;
+}
+
+body.skin-theme :is(.gui-input, .gui-select) :is(input, textarea) {
+  color: var(--w7-text);
+  font-family: inherit;
+}
+
+/* 占位文字：原生 placeholder 与 editable 模式下的 .italic（值为空时显示的 placeholder）统一为正体灰字 */
+body.skin-theme .gui-input input::placeholder,
+body.skin-theme .gui-input textarea::placeholder {
+  color: var(--w7-placeholder);
+  font-style: normal;
+  opacity: 1;
+}
+
+body.skin-theme .gui-input .italic {
+  color: var(--w7-placeholder);
+  font-style: normal;
+}
+
+/* editable 模式下有值时显示的是普通 div（不是 .italic），保证是正常正文色 */
+body.skin-theme .gui-input.is-editable > div:not(.italic) {
+  color: var(--w7-text);
+}
+
+/* 只留外框一层：内部 <input>/<textarea> 不画聚焦框，聚焦时由外框变蓝 */
+body.skin-theme .gui-input :is(input, textarea),
+body.skin-theme .gui-input :is(input, textarea):focus,
+body.skin-theme .gui-input :is(input, textarea):focus-visible {
+  outline: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+body.skin-theme .gui-input.disabled {
+  opacity: 1;
+  filter: none;
+  border-color: var(--w7-btn-disabled-border);
+  color: var(--w7-btn-disabled-text);
+  background: var(--w7-face);
+}
+
+/* 下拉框：Win7 下拉列表样式（光泽按钮 + 右侧箭头），悬停浅蓝 */
+/* 下拉框：Win7 组合框——白底输入框边框 + 右侧光泽箭头按钮；悬停 / 展开时边框变蓝 */
+body.skin-theme .gui-select {
+  overflow: hidden;
+  border: 1px solid;
+  border-color: var(--w7-input-border) var(--w7-input-border-side) var(--w7-input-border-bottom) var(--w7-input-border-side);
+  border-radius: 2px;
+  color: var(--w7-text);
+  background: var(--w7-window);
+  box-shadow: none;
+  transition: none;
+}
+
+body.skin-theme .gui-select:hover,
+body.skin-theme .gui-select[aria-expanded='true'],
+body.skin-theme .gui-select:focus-within {
+  border-color: var(--w7-input-hover) var(--w7-input-hover-side) var(--w7-input-hover-side) var(--w7-input-hover-side);
+  background: var(--w7-window);
+  box-shadow: none;
+}
+
+/* 右侧箭头 / 清除按钮：贴右边、撑满高度的光泽小按钮（组件内联了 margin-right:-6px，需 !important 覆盖） */
+body.skin-theme .gui-select > .ml-auto {
+  align-self: stretch;
+  min-width: 18px;
+  min-height: 0;
+  margin: 0 -8px 0 auto !important;
+  padding: 0 3px;
+  border: 0;
+  border-left: 1px solid var(--w7-btn-border);
+  border-radius: 0;
+  color: var(--w7-btn-text);
+  background: var(--w7-btn);
+  box-shadow: inset 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+body.skin-theme .gui-select:hover > .ml-auto,
+body.skin-theme .gui-select > .ml-auto:hover {
+  border-left-color: var(--w7-btn-hover-border);
+  color: var(--w7-btn-text);
+  background: var(--w7-btn-hover);
+  box-shadow: inset 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+body.skin-theme .gui-select > .ml-auto:active,
+body.skin-theme .gui-select[aria-expanded='true'] > .ml-auto {
+  border-left-color: var(--w7-btn-pressed-border);
+  background: var(--w7-btn-pressed);
+  box-shadow: var(--w7-btn-pressed-shadow);
+}
+
+body.skin-theme .gui-select > .ml-auto svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* ---------- 开关：凹槽 + 光泽滑块 ---------- */
+body.skin-theme .gui-switch {
+  border: 1px solid var(--w7-input-border);
+  border-radius: 3px;
+  color: var(--w7-text);
+  background: var(--w7-progress-track);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
+  transition: none;
+}
+
+body.skin-theme .gui-switch.off,
+body.skin-theme .gui-switch.off:hover {
+  color: var(--w7-text);
+  background: var(--w7-progress-track);
+}
+
+body.skin-theme .gui-switch.off:hover {
+  border-color: var(--w7-input-hover);
+}
+
+body.skin-theme .gui-switch.on,
+body.skin-theme .gui-switch.on:hover {
+  border-color: var(--w7-btn-pressed-border);
+  color: var(--w7-btn-text);
+  background: var(--w7-btn-pressed);
+}
+
+body.skin-theme[theme-mode='dark'] .gui-switch.on,
+body.skin-theme[theme-mode='dark'] .gui-switch.on:hover {
+  color: #ffffff;
+  border-color: var(--w7-btn-hover-border);
+}
+
+body.skin-theme .gui-switch .dot {
+  top: 2px;
+  width: 14px;
+  height: calc(100% - 4px);
+  border: 1px solid var(--w7-btn-border);
+  border-radius: 3px;
+  background: var(--w7-btn) !important;
+  box-shadow: var(--w7-btn-inner);
+}
+
+body.skin-theme .gui-switch:hover .dot {
+  border-color: var(--w7-btn-hover-border);
+  background: var(--w7-btn-hover) !important;
+}
+
+body.skin-theme .gui-switch.on .dot {
+  left: calc(100% - 16px);
+}
+
+body.skin-theme .gui-switch.off .dot {
+  left: 2px;
+}
+
+body.skin-theme .gui-switch.small .dot {
+  width: 10px;
+}
+
+body.skin-theme .gui-switch.on.small .dot {
+  left: calc(100% - 12px);
+}
+
+body.skin-theme .overview-toolbar .gui-switch {
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+/* ---------- 标签页：Win7 属性页签 ---------- */
+body.skin-theme .gui-tabs-tab {
+  gap: 0;
+  padding: 0 2px;
+}
+
+body.skin-theme .gui-tabs-tab.justify-center {
+  align-items: flex-end;
+  justify-content: flex-start;
+  margin-bottom: 8px;
+  box-shadow: inset 0 -1px var(--w7-tab-border);
+}
+
+body.skin-theme .gui-tabs-tab > .gui-button {
+  position: relative;
+  margin: 2px -1px 0 0;
+  padding: 3px 12px;
+  border: 1px solid var(--w7-tab-border);
+  border-radius: 3px 3px 0 0;
+  color: var(--w7-text);
+  font-size: 13px;
+  font-weight: 400;
+  background: var(--w7-tab);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.6);
+  text-decoration: none;
+}
+
+body.skin-theme .gui-tabs-tab > .gui-button:hover {
+  z-index: 1;
+  border-color: var(--w7-btn-hover-border);
+  color: var(--w7-text);
+  background: var(--w7-btn-hover);
+}
+
+body.skin-theme .gui-tabs-tab > .gui-button.link,
+body.skin-theme .gui-tabs-tab .gui-button.link.active,
+body.skin-theme .gui-tabs-tab > .gui-button.link:hover {
+  z-index: 2;
+  margin: 0 -1px 0 0;
+  padding: 4px 14px 6px;
+  border-color: var(--w7-tab-border);
+  border-bottom-color: var(--w7-window);
+  color: var(--w7-text);
+  font-weight: 400;
+  text-decoration: none;
+  background: var(--w7-window);
+  box-shadow: none;
+}
+
+body.skin-theme[theme-mode='dark'] .gui-tabs-tab > .gui-button {
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.08);
+}
+
+/* 竖排标签（设置页左侧）：资源管理器导航窗格 */
+body.skin-theme .gui-tabs-tab.flex-col {
+  padding: 3px;
+  border: 1px solid var(--w7-card-border);
+  border-radius: 3px;
+  background: var(--w7-window);
+  box-shadow: none;
+}
+
+body.skin-theme .gui-tabs-tab.flex-col > .gui-button,
+body.skin-theme .gui-tabs-tab.flex-col > .gui-button:hover {
+  margin: 0 0 1px;
+  padding: 3px 8px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  justify-content: flex-start;
+  color: var(--w7-text);
+  background: transparent;
+  box-shadow: none;
+}
+
+body.skin-theme .gui-tabs-tab.flex-col > .gui-button:hover {
+  border-color: var(--w7-hot-border);
+  background: var(--w7-hot);
+}
+
+body.skin-theme .gui-tabs-tab.flex-col > .gui-button.link,
+body.skin-theme .gui-tabs-tab.flex-col > .gui-button.link:hover {
+  margin: 0 0 1px;
+  padding: 3px 8px;
+  border-color: var(--w7-sel-border);
+  color: var(--w7-sel-text);
+  font-weight: 400;
+  background: var(--w7-sel);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
+body.skin-theme[theme-mode='dark'] .gui-tabs-tab.flex-col > .gui-button.link {
+  box-shadow: none;
+}
+
+/* ---------- 弹窗 / 模态：玻璃标题栏 + 白色内容 + 浅灰底栏 ---------- */
+body.skin-theme .gui-modal-mask {
+  background: var(--w7-mask) !important;
+  backdrop-filter: none !important;
+}
+
+body.skin-theme .gui-modal-modal {
+  padding: 0;
+  border: 1px solid var(--w7-frame);
+  border-radius: 6px;
+  color: var(--w7-text);
+  background: var(--w7-window);
+  box-shadow:
+    inset 0 0 0 1px var(--w7-frame-inner),
+    0 0 14px rgba(0, 0, 0, 0.45);
+}
+
+body.skin-theme .gui-modal-mask.is-side .gui-modal-modal {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* 共享样式会给 modal 的第一个子元素加底色，没有标题时那是内容区，这里先还原 */
+body.skin-theme .gui-modal-modal > :first-child {
+  border-bottom: 0;
+  background: transparent;
+}
+
+body.skin-theme .gui-modal-modal > .gui-modal-header {
+  min-height: 32px;
+  padding: 4px 6px 4px 12px;
+  border-bottom: 1px solid var(--w7-client-border);
+  color: var(--w7-glass-text);
+  font-size: 13px;
+  background: var(--w7-glass-shine), var(--w7-glass-stripes), var(--w7-glass-solid);
+}
+
+body.skin-theme .gui-modal-header :is(.gui-button, .font-bold) {
+  color: var(--w7-glass-text);
+}
+
+body.skin-theme .gui-modal-header .font-bold {
+  font-weight: 400;
+  text-shadow: var(--w7-glass-glow) !important;
+}
+
+body.skin-theme .gui-modal-header .gui-button.text {
+  padding: 2px 7px;
+  color: var(--w7-glass-text);
+  background: transparent;
+  box-shadow: none;
+}
+
+/* 标题栏上的工具按钮：悬停时浮起成一枚玻璃小按钮 */
+body.skin-theme .gui-modal-header .gui-button.text:hover {
+  color: #ffffff;
+  background: var(--w7-cap-hover);
+  box-shadow:
+    inset 0 0 0 1px var(--w7-cap-border),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.35);
+}
+
+body.skin-theme .gui-modal-header .gui-button.text:active {
+  background: var(--w7-cap-pressed);
+  box-shadow: inset 0 0 0 1px var(--w7-cap-border);
+}
+
+/*
+ * 标题栏里带文字的工具按钮（皮肤中心的「更新资源」「关闭皮肤」等）：做成和底部按钮一致的光泽按钮。
+ * 识别方式：图标带 .mr-4（= 图标 + 文字），或按钮里没有任何元素（= 纯文字）；最小化 / 最大化这类纯图标按钮不匹配，保持玻璃小按钮。
+ */
+body.skin-theme .gui-modal-header .gui-button.text:is(:has(> .mr-4), :not(:has(*))) {
+  min-height: 23px;
+  margin-left: 4px;
+  padding: 2px 10px;
+  border: 1px solid var(--w7-btn-border);
+  border-radius: 3px;
+  color: var(--w7-btn-text);
+  font-size: 12px;
+  background: var(--w7-btn);
+  box-shadow: var(--w7-btn-inner);
+}
+
+body.skin-theme .gui-modal-header .gui-button.text:is(:has(> .mr-4), :not(:has(*))):hover {
+  border-color: var(--w7-btn-hover-border);
+  color: var(--w7-btn-text);
+  background: var(--w7-btn-hover);
+  box-shadow: var(--w7-btn-inner);
+}
+
+body.skin-theme .gui-modal-header .gui-button.text:is(:has(> .mr-4), :not(:has(*))):active {
+  border-color: var(--w7-btn-pressed-border);
+  background: var(--w7-btn-pressed);
+  box-shadow: var(--w7-btn-pressed-shadow);
+}
+
+body.skin-theme .gui-modal-header .gui-button.text.pointer-events-none:is(:has(> .mr-4), :not(:has(*))) {
+  border-color: var(--w7-btn-disabled-border);
+  color: var(--w7-btn-disabled-text);
+  background: var(--w7-btn-disabled);
+  box-shadow: none;
+}
+
+body.skin-theme .gui-modal-modal > :last-child,
+body.skin-theme .gui-modal-modal > .gui-modal-footer {
+  border-top: 0;
+}
+
+body.skin-theme .gui-modal-modal > .gui-modal-footer {
+  padding: 8px 12px;
+  border-top: 1px solid var(--w7-face-border);
+  background: var(--w7-face);
+}
+
+/* 底栏的「取消」是 text 类型，这里画成普通光泽按钮 */
+body.skin-theme .gui-modal-footer .gui-button.text {
+  min-width: 72px;
+  padding: 3px 12px;
+  border: 1px solid var(--w7-btn-border);
+  color: var(--w7-btn-text);
+  background: var(--w7-btn);
+  box-shadow: var(--w7-btn-inner);
+}
+
+body.skin-theme .gui-modal-footer .gui-button.text:hover {
+  border-color: var(--w7-btn-hover-border);
+  background: var(--w7-btn-hover);
+}
+
+body.skin-theme .gui-modal-footer .gui-button.text:active {
+  border-color: var(--w7-btn-pressed-border);
+  background: var(--w7-btn-pressed);
+  box-shadow: var(--w7-btn-pressed-shadow);
+}
+
+/* 确认框、选择器、消息：带玻璃标题的小窗口 */
+body.skin-theme :is(.gui-confirm, .gui-picker) {
+  border: 1px solid var(--w7-frame);
+  border-radius: 6px;
+  color: var(--w7-text);
+  background: var(--w7-window);
+  box-shadow:
+    inset 0 0 0 1px var(--w7-frame-inner),
+    0 0 14px rgba(0, 0, 0, 0.4);
+}
+
+body.skin-theme :is(.gui-confirm, .gui-picker) > .font-bold:first-child,
+body.skin-theme .gui-picker > :first-child .font-bold {
+  color: var(--w7-glass-text);
+  font-weight: 400;
+}
+
+body.skin-theme :is(.gui-confirm, .gui-picker) > .font-bold:first-child,
+body.skin-theme .gui-picker > :first-child:has(.font-bold) {
+  padding: 4px 10px;
+  border-bottom: 1px solid var(--w7-client-border);
+  border-radius: 5px 5px 0 0;
+  color: var(--w7-glass-text);
+  background: var(--w7-glass-shine), var(--w7-glass-solid);
+}
+
+body.skin-theme .gui-picker .item,
+body.skin-theme .gui-picker .item:nth-child(odd),
+body.skin-theme .gui-picker .item:nth-child(even) {
+  margin: 0 0 1px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  color: var(--w7-text);
+  background: var(--w7-window);
+}
+
+body.skin-theme .gui-picker .item:hover {
+  border-color: var(--w7-hot-border);
+  color: var(--w7-text);
+  background: var(--w7-hot);
+}
+
+body.skin-theme .gui-picker > .flex-1 {
+  padding: 2px;
+  border: 1px solid var(--w7-input-border);
+  border-radius: 2px;
+  background: var(--w7-window);
+}
+
+body.skin-theme .gui-message {
+  border: 1px solid var(--w7-tip-border);
+  border-radius: 4px;
+  color: var(--w7-text);
+  background: var(--w7-tip-bg);
+  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+/* 提示气泡：白→浅灰渐变，灰边，圆角 */
+body.skin-theme .gui-tips {
+  border: 1px solid var(--w7-tip-border);
+  border-radius: 3px;
+  color: var(--w7-tip-text);
+  background: var(--w7-tip-bg);
+  box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.25);
+}
+
+/* ---------- 下拉菜单 / 右键菜单：白底 + 左侧图标栏分隔线 + 浅蓝高亮 ---------- */
+body.skin-theme :is(.gui-dropdown-overlay, .gui-menu) {
+  padding: 2px;
+  border: 1px solid var(--w7-menu-border);
+  border-radius: 2px;
+  color: var(--w7-text);
+  background: var(--w7-menu-bg);
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* 菜单类浮层（按钮列表）才画左侧图标栏；放卡片等内容的浮层保持白底 */
+body.skin-theme .gui-menu,
+body.skin-theme .gui-dropdown-overlay:has(> div > .gui-button):not(:has(.gui-card)) {
+  background: linear-gradient(
+    90deg,
+    var(--w7-menu-gutter) 0 28px,
+    var(--w7-menu-sep-dark) 28px 29px,
+    var(--w7-menu-sep-light) 29px 30px,
+    var(--w7-menu-bg) 30px
+  );
+}
+
+body.skin-theme .gui-dropdown-overlay > div:has(> .gui-button) {
+  gap: 0;
+  padding: 0;
+}
+
+body.skin-theme .gui-menu {
+  gap: 0;
+}
+
+body.skin-theme :is(.gui-dropdown-overlay, .gui-menu) .gui-button {
+  min-width: 0;
+  justify-content: flex-start;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  color: var(--w7-text);
+  background: transparent;
+  box-shadow: none;
+  font-weight: 400;
+}
+
+body.skin-theme .gui-menu > .gui-button,
+body.skin-theme .gui-dropdown-overlay > div > .gui-button {
+  min-height: 24px;
+  padding: 2px 12px 2px 34px;
+  font-size: 13px;
+}
+
+/* Select 的选项：Button 自带 text-center，这里改成左对齐，勾号放进左侧图标栏 */
+body.skin-theme .gui-dropdown-overlay .gui-button:is([role='option'], :has(> .realtive)) {
+  position: relative;
+  text-align: left;
+}
+
+body.skin-theme .gui-dropdown-overlay .gui-button:is([role='option'], :has(> .realtive)) {
+  justify-content: flex-start !important;
+}
+
+body.skin-theme .gui-dropdown-overlay .gui-button:is([role='option'], :has(> .realtive)) > div {
+  flex: 1 1 auto;
+  width: 100%;
+}
+
+body.skin-theme .gui-dropdown-overlay .gui-button:is([role='option'], :has(> .realtive)),
+body.skin-theme .gui-dropdown-overlay .gui-button:is([role='option'], :has(> .realtive)) *,
+body.skin-theme .gui-dropdown-overlay .gui-button > .realtive,
+body.skin-theme .gui-dropdown-overlay .gui-button > .realtive * {
+  text-align: left !important;
+}
+
+/* 勾号：位于图标栏中央，跟随文字色 */
+body.skin-theme .gui-dropdown-overlay .gui-button:is([role='option'], :has(> .realtive)) .absolute {
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+body.skin-theme .gui-dropdown-overlay .gui-button:is([role='option'], :has(> .realtive)) .absolute svg {
+  width: 14px !important;
+  height: 14px !important;
+  fill: var(--w7-check) !important;
+}
+
+body.skin-theme :is(.gui-dropdown-overlay, .gui-menu) .gui-button:hover,
+body.skin-theme :is(.gui-dropdown-overlay, .gui-menu) .gui-button.primary,
+body.skin-theme :is(.gui-dropdown-overlay, .gui-menu) .gui-button.link,
+body.skin-theme .gui-dropdown-overlay .gui-button[aria-selected='true'] {
+  border-color: var(--w7-menu-hot-border);
+  color: var(--w7-text);
+  text-decoration: none;
+  background: var(--w7-menu-hot);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+}
+
+body.skin-theme[theme-mode='dark'] :is(.gui-dropdown-overlay, .gui-menu) .gui-button:hover,
+body.skin-theme[theme-mode='dark'] .gui-dropdown-overlay .gui-button[aria-selected='true'] {
+  color: #ffffff;
+  box-shadow: none;
+}
+
+/*
+ * 下拉框（Select / MultipleSelect）的选项：资源管理器式高亮——悬停淡蓝热区，已选为淡蓝选中。
+ * v1.27.0 的选项没有 role/aria-selected，用「含 .absolute 勾号」判断已选；新版用 [aria-selected='true']。
+ */
+body.skin-theme .gui-dropdown-overlay .gui-button:is([role='option'], :has(> .realtive)):hover {
+  border-color: var(--w7-hot-border);
+  color: var(--w7-text);
+  background: var(--w7-hot);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+body.skin-theme .gui-dropdown-overlay .gui-button:is([role='option'], :has(> .realtive)):is([aria-selected='true'], :has(.realtive > .absolute)),
+body.skin-theme .gui-dropdown-overlay .gui-button:is([role='option'], :has(> .realtive)):is([aria-selected='true'], :has(.realtive > .absolute)):hover {
+  border-color: var(--w7-sel-border);
+  color: var(--w7-sel-text);
+  background: var(--w7-sel);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+}
+
+body.skin-theme[theme-mode='dark'] .gui-dropdown-overlay .gui-button:is([role='option'], :has(> .realtive)):hover {
+  color: #ffffff;
+  box-shadow: none;
+}
+
+body.skin-theme[theme-mode='dark']
+  .gui-dropdown-overlay
+  .gui-button:is([role='option'], :has(> .realtive)):is([aria-selected='true'], :has(.realtive > .absolute)) {
+  box-shadow: none;
+}
+
+body.skin-theme .gui-menu .gui-divider__content {
+  color: var(--w7-muted);
+}
+
+/* ---------- 表格：资源管理器详细信息视图 ---------- */
+body.skin-theme .gui-table {
+  padding: 0;
+  border: 1px solid var(--w7-card-border);
+  border-radius: 2px;
+  color: var(--w7-text);
+  background: var(--w7-window);
+  box-shadow: none;
+}
+
+body.skin-theme .gui-table thead,
+body.skin-theme .gui-table thead tr {
+  background: var(--w7-th);
+  box-shadow: none;
+}
+
+body.skin-theme .gui-table th {
+  border: 0;
+  border-right: 1px solid var(--w7-th-border);
+  border-bottom: 1px solid var(--w7-th-border);
+  color: var(--w7-text);
+  font-weight: 400;
+  background: var(--w7-th);
+  box-shadow: none;
+}
+
+body.skin-theme .gui-table th:hover {
+  background: var(--w7-th-hover);
+}
+
+body.skin-theme .gui-table th:active {
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+body.skin-theme .gui-table td {
+  border: 0;
+}
+
+body.skin-theme .gui-table tbody tr,
+body.skin-theme .gui-table tbody tr:nth-child(odd),
+body.skin-theme .gui-table tbody tr:nth-child(even) {
+  color: var(--w7-text);
+  background: var(--w7-window);
+}
+
+body.skin-theme .gui-table tbody tr:hover,
+body.skin-theme .gui-table tbody tr:nth-child(odd):hover,
+body.skin-theme .gui-table tbody tr:nth-child(even):hover {
+  color: var(--w7-text);
+  background: var(--w7-hot);
+  box-shadow:
+    inset 0 1px var(--w7-hot-border),
+    inset 0 -1px var(--w7-hot-border);
+}
+
+/* ---------- 标签 / 进度条 / 分割线 / 取色器 ---------- */
+/* 标签：细边 + 白→浅蓝灰渐变；small 号（插件页 Dev / Deprecated / 触发器）放大到 11px */
+body.skin-theme .gui-tag {
+  border: 1px solid #c7d5e6;
+  border-radius: 3px;
+  color: #1e395b;
+  font-size: 12px;
+  line-height: 16px;
+  background: linear-gradient(180deg, #ffffff, #eef3fa);
+  box-shadow: none;
+}
+
+body.skin-theme .gui-tag.size-small {
+  padding: 0 5px;
+  font-size: 11px;
+  line-height: 15px;
+}
+
+body.skin-theme .gui-tag.color-red {
+  color: #b0281a;
+  border-color: #e4a79f;
+  background: linear-gradient(180deg, #fff8f7, #fbe5e2);
+}
+
+body.skin-theme .gui-tag.color-purple {
+  color: #6b2c91;
+  border-color: #cdb0e0;
+  background: linear-gradient(180deg, #fbf8fd, #efe4f6);
+}
+
+body.skin-theme .gui-tag.color-cyan {
+  color: #0b6a7a;
+  border-color: #9fd3dd;
+  background: linear-gradient(180deg, #f6fcfd, #e0f3f6);
+}
+
+body.skin-theme .gui-tag.color-green {
+  color: #1f7a1f;
+  border-color: #a7d9a0;
+  background: linear-gradient(180deg, #f7fdf6, #e2f5df);
+}
+
+body.skin-theme .gui-tag.color-primary {
+  color: #ffffff;
+  border-color: #1f5ea8;
+  background: linear-gradient(180deg, #5aa1e3 0%, #3a86d4 50%, #1f68b8 50%, #3b86d4 100%);
+}
+
+body.skin-theme[theme-mode='dark'] .gui-tag {
+  border-color: #4a5566;
+  color: #cfe0f5;
+  background: linear-gradient(180deg, #343a43, #2b3038);
+}
+
+body.skin-theme[theme-mode='dark'] .gui-tag.color-red {
+  color: #ff9a8c;
+  border-color: #8a3b33;
+  background: linear-gradient(180deg, #3d2a29, #33221f);
+}
+
+body.skin-theme[theme-mode='dark'] .gui-tag.color-purple {
+  color: #dcb0f5;
+  border-color: #6b4a80;
+  background: linear-gradient(180deg, #382c40, #2e2436);
+}
+
+body.skin-theme[theme-mode='dark'] .gui-tag.color-cyan {
+  color: #8de0ec;
+  border-color: #2f6d78;
+  background: linear-gradient(180deg, #273a3e, #203034);
+}
+
+body.skin-theme[theme-mode='dark'] .gui-tag.color-green {
+  color: #95e08a;
+  border-color: #3d7036;
+  background: linear-gradient(180deg, #2a3a28, #223021);
+}
+
+body.skin-theme[theme-mode='dark'] .gui-tag.color-primary {
+  color: #ffffff;
+  border-color: #5a9bd0;
+  background: linear-gradient(180deg, #3f6489 0%, #355a7e 50%, #2a4c70 50%, #2f5679 100%);
+}
+
+/* 插件运行状态圆点（卡片标题前的「●」，行内 color）：改成 9px 带高光的光泽圆珠 */
+body.skin-theme .gui-card__header > div.pr-4[style*='color'] {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0;
+  line-height: 0;
+}
+
+body.skin-theme .gui-card__header > div.pr-4[style*='color']::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  margin-left: 2px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 58%), currentColor;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+/* 进度条：灰色凹槽 + 绿色光泽 */
+/* 进度条：细的浅灰光泽凹槽（含边框共 10px）+ 绿色光泽填充；warning / danger 保留黄 / 红光泽 */
+body.skin-theme .gui-progress-line {
+  box-sizing: border-box;
+  height: 10px;
+  padding: 0;
+  border: 1px solid var(--w7-progress-border);
+  border-radius: 2px;
+  background: var(--w7-progress-track);
+  box-shadow: inset 0 1px rgba(0, 0, 0, 0.06);
+}
+
+body.skin-theme .gui-progress-line .inner {
+  border-radius: 1px;
+  background: var(--w7-progress);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+}
+
+body.skin-theme .gui-progress-line .inner.warning {
+  background: linear-gradient(180deg, #fff3c4 0%, #ffd54f 38%, #f2b600 50%, #f7c52a 78%, #ffd95e 100%);
+}
+
+body.skin-theme .gui-progress-line .inner.danger {
+  background: linear-gradient(180deg, #ffd0cc 0%, #f2766b 38%, #d9302a 50%, #e2463d 78%, #f06a60 100%);
+}
+
+body.skin-theme .gui-divider__content,
+body.skin-theme .gui-empty {
+  color: var(--w7-muted);
+}
+
+body.skin-theme .gui-color-picker {
+  border: 1px solid var(--w7-input-border);
+  border-radius: 2px;
+  background: var(--w7-window);
+  box-shadow: none;
+}
+
+/* ---------- Win7 滚动条：浅灰光泽圆角滑块 ---------- */
+/*
+ * WebKitGTK 对滚动条伪元素的 inset box-shadow 支持不稳定，滑块描边统一用 border 画，
+ * 光泽用 background 渐变，竖向 / 横向各一套方向。
+ */
+body.skin-theme ::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+  background: var(--w7-corner);
+}
+
+body.skin-theme ::-webkit-scrollbar-track,
+body.skin-theme .gui-scroll-view::-webkit-scrollbar-track {
+  border: 0;
+  border-radius: 0;
+  background: var(--w7-track-v);
+  box-shadow: none;
+}
+
+body.skin-theme ::-webkit-scrollbar-track:horizontal,
+body.skin-theme .gui-scroll-view::-webkit-scrollbar-track:horizontal {
+  background: var(--w7-track-h);
+}
+
+body.skin-theme ::-webkit-scrollbar-thumb {
+  min-width: 16px;
+  min-height: 16px;
+  border: 1px solid var(--w7-thumb-border);
+  border-radius: 3px;
+  background-color: transparent;
+  background-image: var(--w7-thumb-v);
+  background-clip: padding-box;
+  box-shadow: none;
+}
+
+body.skin-theme ::-webkit-scrollbar-thumb:horizontal {
+  background-image: var(--w7-thumb-h);
+}
+
+body.skin-theme ::-webkit-scrollbar-thumb:hover,
+body.skin-theme ::-webkit-scrollbar-thumb:active {
+  border-color: var(--w7-thumb-hover-border);
+  background-image: var(--w7-thumb-hover-v);
+}
+
+body.skin-theme ::-webkit-scrollbar-thumb:horizontal:hover,
+body.skin-theme ::-webkit-scrollbar-thumb:horizontal:active {
+  background-image: var(--w7-thumb-hover-h);
+}
+
+body.skin-theme ::-webkit-scrollbar-corner {
+  background: var(--w7-corner);
+}
+
+body.skin-theme ::-webkit-scrollbar-button:single-button {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 7px 4px;
+  box-shadow: none;
+}
+
+body.skin-theme ::-webkit-scrollbar-button:single-button:horizontal {
+  background-size: 4px 7px;
+}
+
+body.skin-theme ::-webkit-scrollbar-button:single-button:hover {
+  border-color: var(--w7-thumb-hover-border);
+  background-color: #d6eefb;
+}
+
+body.skin-theme ::-webkit-scrollbar-button:single-button:active {
+  border-color: var(--w7-btn-pressed-border);
+  background-color: #98d1ef;
+}
+
+body.skin-theme[theme-mode='dark'] ::-webkit-scrollbar-button:single-button:hover {
+  background-color: #355a7e;
+}
+
+body.skin-theme[theme-mode='dark'] ::-webkit-scrollbar-button:single-button:active {
+  background-color: #264461;
+}
+
+/* 箭头：Win7 的蓝灰色小三角，深色下浅灰 */
+body.skin-theme ::-webkit-scrollbar-button:single-button:vertical:decrement {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4' viewBox='0 0 7 4'%3E%3Cpath d='M3.5 0L7 4H0z' fill='%234d6185'/%3E%3C/svg%3E");
+}
+
+body.skin-theme ::-webkit-scrollbar-button:single-button:vertical:increment {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4' viewBox='0 0 7 4'%3E%3Cpath d='M0 0h7L3.5 4z' fill='%234d6185'/%3E%3C/svg%3E");
+}
+
+body.skin-theme ::-webkit-scrollbar-button:single-button:horizontal:decrement {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='7' viewBox='0 0 4 7'%3E%3Cpath d='M4 0v7L0 3.5z' fill='%234d6185'/%3E%3C/svg%3E");
+}
+
+body.skin-theme ::-webkit-scrollbar-button:single-button:horizontal:increment {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='7' viewBox='0 0 4 7'%3E%3Cpath d='M0 0l4 3.5L0 7z' fill='%234d6185'/%3E%3C/svg%3E");
+}
+
+body.skin-theme[theme-mode='dark'] ::-webkit-scrollbar-button:single-button:vertical:decrement {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4' viewBox='0 0 7 4'%3E%3Cpath d='M3.5 0L7 4H0z' fill='%23c8d0da'/%3E%3C/svg%3E");
+}
+
+body.skin-theme[theme-mode='dark'] ::-webkit-scrollbar-button:single-button:vertical:increment {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4' viewBox='0 0 7 4'%3E%3Cpath d='M0 0h7L3.5 4z' fill='%23c8d0da'/%3E%3C/svg%3E");
+}
+
+body.skin-theme[theme-mode='dark'] ::-webkit-scrollbar-button:single-button:horizontal:decrement {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='7' viewBox='0 0 4 7'%3E%3Cpath d='M4 0v7L0 3.5z' fill='%23c8d0da'/%3E%3C/svg%3E");
+}
+
+body.skin-theme[theme-mode='dark'] ::-webkit-scrollbar-button:single-button:horizontal:increment {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='7' viewBox='0 0 4 7'%3E%3Cpath d='M0 0l4 3.5L0 7z' fill='%23c8d0da'/%3E%3C/svg%3E");
+}
+
+/* 只保留首尾各一个箭头按钮 */
+body.skin-theme ::-webkit-scrollbar-button:vertical:start:increment,
+body.skin-theme ::-webkit-scrollbar-button:vertical:end:decrement,
+body.skin-theme ::-webkit-scrollbar-button:horizontal:start:increment,
+body.skin-theme ::-webkit-scrollbar-button:horizontal:end:decrement {
+  display: none;
+}
+
+/* ---------- 代码编辑器（CodeMirror 6，如 设置 → 代理绕过列表） ---------- */
+/* 浅色用 CM 默认主题、深色用 oneDark；统一改为 Win7 文本框 + 灰色行号栏（行号用 VS 风格的青蓝色） */
+/*
+ * 设置 → 代理绕过列表 这类独立编辑器：外框四边用同一深度的灰（Win7 文本框底边原本很浅，贴着卡片底时像被裁掉），
+ * box-sizing 包含边框；最小高度给到 3 行左右，保证不比原版矮。Input(type=code) 里的编辑器由外层 .gui-input 画框，不重复加框。
+ */
+body.skin-theme .cm-editor {
+  box-sizing: border-box;
+  min-height: 66px;
+  color: var(--w7-text);
+  border: 1px solid var(--w7-input-border);
+  border-radius: 2px;
+  background: var(--w7-window) !important;
+  box-shadow: none;
+}
+
+body.skin-theme .cm-editor.cm-focused {
+  outline: 0;
+  border-color: var(--w7-input-focus);
+}
+
+body.skin-theme .cm-editor .cm-scroller {
+  min-height: 64px;
+}
+
+body.skin-theme .gui-input .cm-editor {
+  min-height: 0;
+  border: 0;
+}
+
+body.skin-theme .gui-input .cm-editor .cm-scroller {
+  min-height: 0;
+}
+
+body.skin-theme .cm-editor .cm-scroller {
+  font-family: var(--w7-mono);
+  font-size: 13px;
+}
+
+body.skin-theme .cm-editor .cm-content {
+  caret-color: var(--w7-text);
+}
+
+body.skin-theme .cm-editor .cm-cursor {
+  border-left-color: var(--w7-text);
+}
+
+body.skin-theme .cm-editor .cm-gutters {
+  border: 0;
+  border-right: 1px solid var(--w7-face-border);
+  color: #2b91af;
+  background: var(--w7-face) !important;
+}
+
+body.skin-theme .cm-editor .cm-gutterElement {
+  color: #2b91af;
+}
+
+body.skin-theme[theme-mode='dark'] .cm-editor .cm-gutters,
+body.skin-theme[theme-mode='dark'] .cm-editor .cm-gutterElement {
+  color: #6fa8c0;
+}
+
+/* 当前行高亮淡化成极浅的蓝灰 */
+body.skin-theme .cm-editor .cm-activeLine {
+  background: rgba(0, 102, 204, 0.04) !important;
+}
+
+body.skin-theme .cm-editor .cm-activeLineGutter {
+  color: var(--w7-text);
+  background: #e5e5e5 !important;
+}
+
+body.skin-theme[theme-mode='dark'] .cm-editor .cm-activeLine {
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+body.skin-theme[theme-mode='dark'] .cm-editor .cm-activeLineGutter {
+  background: #3a3f47 !important;
+}
+
+body.skin-theme .cm-editor .cm-selectionBackground,
+body.skin-theme .cm-editor.cm-focused .cm-selectionBackground {
+  background: rgba(51, 153, 255, 0.3) !important;
+}
+
+body.skin-theme[theme-mode='dark'] .cm-editor .cm-selectionBackground,
+body.skin-theme[theme-mode='dark'] .cm-editor.cm-focused .cm-selectionBackground {
+  background: rgba(90, 155, 208, 0.38) !important;
+}
+
+body.skin-theme .cm-editor .cm-placeholder {
+  color: var(--w7-placeholder);
+  font-style: normal;
+}
+
+body.skin-theme .cm-editor .cm-foldPlaceholder {
+  border: 1px solid var(--w7-card-border);
+  border-radius: 2px;
+  color: var(--w7-text);
+  background: var(--w7-face);
+}
+
+body.skin-theme .cm-tooltip {
+  border: 1px solid var(--w7-menu-border);
+  border-radius: 2px;
+  color: var(--w7-text);
+  background: var(--w7-menu-bg) !important;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+body.skin-theme .cm-tooltip-autocomplete ul li[aria-selected] {
+  color: var(--w7-text);
+  background: var(--w7-menu-hot) !important;
+}
+
+/* ---------- 皮肤中心自身界面 ---------- */
+body.skin-theme .skin-manager-hero {
+  border: 1px solid var(--w7-card-border);
+  border-radius: 4px;
+  color: var(--w7-text);
+  background: linear-gradient(180deg, var(--w7-window), color-mix(in srgb, var(--w7-window) 88%, #a9c6e8));
+  box-shadow: none;
+}
+
+body.skin-theme .skin-manager-title {
+  color: var(--w7-heading);
+  font-weight: 400;
+}
+
+body.skin-theme .skin-manager-status {
+  border: 1px solid var(--w7-input-border);
+  border-radius: 2px;
+  color: var(--w7-text);
+  background: var(--w7-window);
+  box-shadow: none;
+}
+
+body.skin-theme .skin-manager-card {
+  border: 1px solid var(--w7-card-border);
+  border-radius: 4px;
+  color: var(--w7-text);
+  background: var(--w7-card-bg);
+  box-shadow: none;
+}
+
+body.skin-theme .skin-manager-card:hover {
+  border-color: var(--w7-card-hover-border);
+}
+
+body.skin-theme .skin-manager-card.is-active {
+  border-color: var(--w7-sel-border);
+  background: var(--w7-sel);
+  box-shadow: 0 0 4px color-mix(in srgb, var(--w7-sel-border) 70%, transparent);
+}
+
+body.skin-theme .skin-manager-preview {
+  margin: 4px 4px 0;
+  border: 1px solid var(--w7-card-border);
+  border-radius: 3px;
+  box-shadow: none;
+}
+
+body.skin-theme .skin-manager-preview::after {
+  display: none;
+}
+
+body.skin-theme .skin-manager-badge {
+  border: 1px solid #1f5ea8;
+  border-radius: 3px;
+  color: #ffffff;
+  background: linear-gradient(180deg, #5aa1e3 0%, #3a86d4 50%, #1f68b8 50%, #3b86d4 100%);
+  box-shadow: none;
+}
+
+/* 标签 chips：细边 + 白→浅蓝灰渐变 */
+body.skin-theme .skin-manager-tag {
+  border: 1px solid #c7d5e6;
+  border-radius: 3px;
+  color: #1e395b;
+  background: linear-gradient(180deg, #ffffff, #eef3fa);
+  box-shadow: none;
+}
+
+body.skin-theme[theme-mode='dark'] .skin-manager-tag {
+  border-color: #4a5566;
+  color: #cfe0f5;
+  background: linear-gradient(180deg, #343a43, #2b3038);
+}
+
+/*
+ * 卡片按钮：当前皮肤的「重新应用」传的是 type='default'（不在 Button 的类型里，没有任何样式），
+ * 这里在皮肤中心卡片内把所有按钮都画成光泽按钮；「应用皮肤」(primary) 额外加蓝色发光边。
+ */
+body.skin-theme .skin-manager-actions .gui-button {
+  min-width: 72px;
+  padding: 3px 12px;
+  border: 1px solid var(--w7-btn-border);
+  border-radius: 3px;
+  color: var(--w7-btn-text);
+  font-size: 13px;
+  font-weight: 400;
+  text-decoration: none;
+  background: var(--w7-btn);
+  box-shadow: var(--w7-btn-inner);
+}
+
+body.skin-theme .skin-manager-actions .gui-button.primary {
+  border-color: var(--w7-btn-hover-border);
+  box-shadow: var(--w7-btn-default-glow);
+}
+
+body.skin-theme .skin-manager-actions .gui-button:hover {
+  border-color: var(--w7-btn-hover-border);
+  color: var(--w7-btn-text);
+  background: var(--w7-btn-hover);
+}
+
+body.skin-theme .skin-manager-actions .gui-button:active {
+  border-color: var(--w7-btn-pressed-border);
+  background: var(--w7-btn-pressed);
+  box-shadow: var(--w7-btn-pressed-shadow);
+}
+
+body.skin-theme .skin-manager-actions .gui-button.pointer-events-none {
+  border-color: var(--w7-btn-disabled-border);
+  color: var(--w7-btn-disabled-text);
+  background: var(--w7-btn-disabled);
+  box-shadow: none;
+}
+
+/* ---------- 选中文本：Win7 亮蓝底白字 ---------- */
+body.skin-theme ::selection {
+  color: #ffffff;
+  background: #3399ff;
+}
+
+body.skin-theme :focus-visible:not(input, textarea, [contenteditable], .cm-content) {
+  outline: 1px dotted var(--w7-text);
+  outline-offset: -4px;
+}
