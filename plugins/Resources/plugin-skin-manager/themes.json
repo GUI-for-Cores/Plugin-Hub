@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 16,
+  "revision": 17,
   "themes": [
     {
       "id": "miku",
@@ -91,6 +91,12 @@
       "manifest": "win7/win7.json",
       "featured": true,
       "order": 160
+    },
+    {
+      "id": "material-card",
+      "manifest": "material-card/material-card.json",
+      "featured": true,
+      "order": 170
     }
   ]
 }

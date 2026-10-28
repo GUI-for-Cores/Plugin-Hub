@@ -1,12 +1,17 @@
 const DATA_PATH = 'data/third/plugin-skin-manager'
 const CATALOG_FILE = 'themes.json'
-const CATALOG_REVISION = 16
+const CATALOG_REVISION = 17
 const STATE_FILE = 'state.json'
 const SHARED_STYLESHEET = 'skin-manager.css'
 const FALLBACK_REMOTE_PATH = 'https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Resources/plugin-skin-manager'
 const DEFAULT_THEME_ID = 'miku'
 const ACTIVE_CLASS = 'skin-theme'
+// 皮肤 manifest 设置 "layout": "native" 时使用：不套用共享布局骨架，只注入皮肤自身样式
+const NATIVE_CLASS = 'skin-theme-native'
 const GENERATED_CLASS = 'skin-manager-generated'
+// manifest 设置 "navToggle": true 时，在导航栏里插入展开/收起按钮，状态保存在 layout.json
+const LAYOUT_FILE = 'layout.json'
+const NAV_EXPANDED_CLASS = 'skin-nav-expanded'
 
 /** @type {EsmPlugin} */
 export default (Plugin) => {
@@ -15,6 +20,8 @@ export default (Plugin) => {
   const coreStateActionId = Plugin.id + '_core_state'
   let cleanupMotion
   let cleanupDecorations
+  let cleanupNavToggle
+  let cleanupChartStretch
   let cleanupAnimationPause
   let catalogCache
 
@@ -95,7 +102,8 @@ export default (Plugin) => {
           !theme.files.backgroundMime.startsWith('image/'))) ||
       !theme.variables ||
       typeof theme.variables !== 'object' ||
-      Array.isArray(theme.variables)
+      Array.isArray(theme.variables) ||
+      (theme.layout !== undefined && theme.layout !== 'native')
     ) {
       throw new Error(`皮肤配置格式无效: ${entry.id}`)
     }
@@ -372,16 +380,100 @@ export default (Plugin) => {
     return () => observer.disconnect()
   }
 
+  const createNavToggle = (theme) => {
+    if (theme.navToggle !== true) return undefined
+    let disposed = false
+    const setExpanded = (expanded) => document.body.classList.toggle(NAV_EXPANDED_CLASS, expanded)
+    readJson(LAYOUT_FILE)
+      .then((layout) => !disposed && setExpanded(layout?.navExpanded === true))
+      .catch(() => {})
+    const onClick = async () => {
+      const expanded = !document.body.classList.contains(NAV_EXPANDED_CLASS)
+      setExpanded(expanded)
+      await Plugins.WriteFile(localPath(LAYOUT_FILE), JSON.stringify({ navExpanded: expanded }, null, 2)).catch(() => {})
+    }
+    const mount = () => {
+      const nav = document.querySelector('.main-nav')
+      if (!nav || nav.querySelector(':scope > .skin-nav-toggle')) return
+      const button = document.createElement('button')
+      button.type = 'button'
+      button.className = `${GENERATED_CLASS} skin-nav-toggle`
+      button.title = '展开 / 收起导航'
+      button.setAttribute('aria-label', '展开 / 收起导航')
+      button.addEventListener('click', onClick)
+      nav.appendChild(button)
+    }
+    mount()
+    const observer = new MutationObserver(mount)
+    observer.observe(document.getElementById('app') || document.body, { childList: true, subtree: true })
+    return () => {
+      disposed = true
+      observer.disconnect()
+      document.body.classList.remove(NAV_EXPANDED_CLASS)
+    }
+  }
+
+  // manifest 设置 "stretchTrafficChart": true 时，让首页流量图 SVG 纵向拉伸到容器高度（皮肤 CSS 负责给出高度）
+  const createChartStretch = (theme) => {
+    if (theme.stretchTrafficChart !== true) return undefined
+    const SELECTOR = '.home-view .gui-traffic-chart > svg'
+    const tracked = new Set()
+    // 折线与网格线按比例纵向缩放，坐标轴文字只平移不变形，图例保持原位
+    const fit = (svg) => {
+      const baseHeight = Number.parseFloat(svg.getAttribute('height')) || 0
+      const height = svg.clientHeight
+      if (!baseHeight || !height) return
+      const scale = height / baseHeight
+      svg.style.setProperty('--skin-chart-ky', String(scale))
+      svg.dataset.skinStretch = ''
+      svg.querySelectorAll('text.traffic-chart__axis-label').forEach((label) => {
+        const y = Number.parseFloat(label.getAttribute('y')) || 0
+        label.style.transform = `translateY(${((scale - 1) * (y - 3)).toFixed(2)}px)`
+      })
+    }
+    const resizeObserver = new ResizeObserver((entries) => entries.forEach((entry) => fit(entry.target)))
+    const scan = () => {
+      for (const svg of [...tracked]) {
+        if (svg.isConnected) continue
+        resizeObserver.unobserve(svg)
+        tracked.delete(svg)
+      }
+      document.querySelectorAll(SELECTOR).forEach((svg) => {
+        if (tracked.has(svg)) return
+        tracked.add(svg)
+        resizeObserver.observe(svg)
+        fit(svg)
+      })
+    }
+    scan()
+    const observer = new MutationObserver(scan)
+    observer.observe(document.getElementById('app') || document.body, { childList: true, subtree: true })
+    return () => {
+      observer.disconnect()
+      resizeObserver.disconnect()
+      tracked.forEach((svg) => {
+        svg.style.removeProperty('--skin-chart-ky')
+        delete svg.dataset.skinStretch
+        svg.querySelectorAll('text.traffic-chart__axis-label').forEach((label) => (label.style.transform = ''))
+      })
+      tracked.clear()
+    }
+  }
+
   const removeAppliedTheme = () => {
     cleanupAnimationPause?.()
     cleanupAnimationPause = undefined
     cleanupDecorations?.()
     cleanupDecorations = undefined
+    cleanupNavToggle?.()
+    cleanupNavToggle = undefined
+    cleanupChartStretch?.()
+    cleanupChartStretch = undefined
     cleanupMotion?.()
     cleanupMotion = undefined
     document.querySelectorAll(`.${GENERATED_CLASS}`).forEach((element) => element.remove())
     document.getElementById(styleId)?.remove()
-    document.body.classList.remove(ACTIVE_CLASS)
+    document.body.classList.remove(ACTIVE_CLASS, NATIVE_CLASS)
   }
 
   const getRuntime = () => {
@@ -420,13 +512,16 @@ export default (Plugin) => {
     const style = document.createElement('style')
     style.id = styleId
     const background = theme.background ? `url("data:${theme.files.backgroundMime};base64,${theme.background}")` : 'none'
-    style.textContent = `body.${ACTIVE_CLASS} {\n${variables}\n  --skin-manager-background: ${background};\n}\n${theme.stylesheet}`
+    const bodyClass = theme.layout === 'native' ? NATIVE_CLASS : ACTIVE_CLASS
+    style.textContent = `body.${bodyClass} {\n${variables}\n  --skin-manager-background: ${background};\n}\n${theme.stylesheet}`
     removeAppliedTheme()
     document.head.appendChild(style)
-    document.body.classList.add(ACTIVE_CLASS)
+    document.body.classList.add(bodyClass)
     cleanupAnimationPause = createAnimationPauseController()
     cleanupMotion = createMotionLayer(theme)
     cleanupDecorations = createDecorations(theme)
+    cleanupNavToggle = createNavToggle(theme)
+    cleanupChartStretch = createChartStretch(theme)
     const nextState = { selectedThemeId: theme.id, enabled: true }
     await saveState(nextState)
   }

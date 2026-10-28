@@ -1,0 +1,782 @@
+/*
+ * 素雅卡片（material-card）
+ * Material 3 风格：浅色 = 蓝色主色 + 近白卡片，深色 = 暖黑卡片 + 橙色主色；
+ * 大圆角卡片、无硬边框、柔和分层阴影、胶囊形 chip/按钮、粗体等宽数字。
+ * 首页内容铺满可用高度；主导航为左侧可收缩图标栏。
+ */
+
+/* ---------- 调色板（只在首页内生效） ---------- */
+body.skin-theme-native .home-view {
+  --mc-primary: #1684ff;
+  --mc-on-primary: #ffffff;
+  --mc-primary-container: #dcebff;
+  --mc-on-primary-container: #0b4da8;
+  --mc-series2: #96c6fe;
+  --mc-up: #6aaeff;
+  --mc-card: #fefcfd;
+  --mc-tone: #efedf0;
+  --mc-tone-hover: #e6e4e8;
+  --mc-on-surface: #0c1017;
+  --mc-on-variant: #6f737e;
+  --mc-ok: #1f9d3a;
+  --mc-ok-container: #c9f7c4;
+  --mc-on-ok-container: #0b4d14;
+  --mc-e1: 0 0.5px 1px rgba(0, 0, 0, 0.05), 0 2px 6px rgba(0, 0, 0, 0.04), 0 12px 32px -6px rgba(0, 0, 0, 0.09);
+  --mc-e2: 0 1px 3px rgba(0, 0, 0, 0.06), 0 10px 24px rgba(0, 0, 0, 0.08), 0 32px 64px -12px rgba(0, 0, 0, 0.18);
+  --mc-radius-card: 20px;
+  --mc-radius-block: 14px;
+  --mc-font: 'Inter', 'Roboto', 'SF Pro Text', -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
+
+  /* 让首页里的通用组件直接拿到本皮肤色值 */
+  --primary-color: var(--mc-primary);
+  --card-bg: var(--mc-card);
+  --card-hover-bg: var(--mc-card);
+  --card-active-bg: var(--mc-card);
+  --card-color: var(--mc-on-surface);
+  --switch-on-bg: var(--mc-primary-container);
+  --switch-on-hover-bg: var(--mc-primary-container);
+  --switch-off-bg: var(--mc-tone);
+  --switch-off-hover-bg: var(--mc-tone-hover);
+  --btn-primary-bg: var(--mc-primary);
+  --btn-primary-hover-bg: var(--mc-primary);
+  --btn-primary-active-bg: var(--mc-primary);
+  --btn-link-color: var(--mc-primary);
+  --btn-link-hover-color: var(--mc-primary);
+  --btn-link-active-color: var(--mc-primary);
+  --btn-text-hover-bg: var(--mc-tone);
+  --btn-text-active-bg: var(--mc-tone-hover);
+  --divider-color: rgba(0, 0, 0, 0.06);
+  font-family: var(--mc-font);
+  font-variant-numeric: tabular-nums;
+}
+
+body.skin-theme-native[theme-mode='dark'] .home-view {
+  --mc-primary: #f99a45;
+  --mc-on-primary: #2b1700;
+  --mc-primary-container: #4a2f17;
+  --mc-on-primary-container: #ffc896;
+  --mc-series2: #9a6438;
+  --mc-up: #d39058;
+  --mc-card: #292522;
+  --mc-tone: #37322f;
+  --mc-tone-hover: #423c38;
+  --mc-on-surface: #f9f0eb;
+  --mc-on-variant: #bfa799;
+  --mc-ok: #7be37a;
+  --mc-ok-container: #0f3d14;
+  --mc-on-ok-container: #a6f5a3;
+  --mc-e1: 0 1px 2px rgba(0, 0, 0, 0.5), 0 10px 28px -6px rgba(0, 0, 0, 0.55);
+  --mc-e2: 0 2px 6px rgba(0, 0, 0, 0.5), 0 32px 64px -12px rgba(0, 0, 0, 0.7);
+  --divider-color: rgba(255, 255, 255, 0.07);
+}
+
+/* ---------- 卡片：大圆角、无边框、柔和阴影 ---------- */
+body.skin-theme-native .home-view .gui-card,
+body.skin-theme-native .home-view .gui-traffic-chart,
+body.skin-theme-native .home-view .overview-toolbar {
+  background-color: var(--mc-card) !important;
+  color: var(--mc-on-surface);
+  border: none;
+  border-radius: var(--mc-radius-card);
+  box-shadow: var(--mc-e1);
+  transition: box-shadow 0.25s, background-color 0.25s, color 0.25s;
+}
+
+body.skin-theme-native .home-view .gui-card:hover {
+  background-color: var(--mc-card);
+  box-shadow: var(--mc-e2);
+}
+
+body.skin-theme-native .home-view .gui-card:active {
+  background-color: var(--mc-card);
+}
+
+/* 卡片标题：小号加粗 + onSurfaceVariant，行高固定 */
+body.skin-theme-native .home-view .home-stat-card .gui-card__title {
+  font-size: 13px;
+  line-height: 21px;
+  font-weight: 600;
+  letter-spacing: 0.1px;
+  color: var(--mc-on-variant);
+}
+
+/* 标题前的线性小图标，用 mask 着色，不改变卡片高度 */
+body.skin-theme-native .home-view :is(.home-stat-card, .home-mode-card) .gui-card__header::before {
+  content: '';
+  flex: 0 0 15px;
+  width: 15px;
+  height: 15px;
+  margin-right: 7px;
+  background-color: var(--mc-on-variant);
+  -webkit-mask: var(--mc-icon) center / contain no-repeat;
+  mask: var(--mc-icon) center / contain no-repeat;
+}
+
+body.skin-theme-native .home-view .home-mode-card .gui-card__header::before {
+  background-color: var(--mc-primary);
+}
+
+body.skin-theme-native .home-view .home-mode-card.is-selected .gui-card__header::before {
+  background-color: var(--mc-on-primary);
+}
+
+body.skin-theme-native .home-view .home-stat-card--realtime {
+  --mc-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 12h4l3-8 4 16 3-8h4'/%3E%3C/svg%3E");
+}
+
+body.skin-theme-native .home-view .home-stat-card--total {
+  --mc-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 4v14M3 14l4 4 4-4M17 20V6M13 10l4-4 4 4'/%3E%3C/svg%3E");
+}
+
+body.skin-theme-native .home-view .home-stat-card--connections {
+  --mc-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='6' cy='6' r='2.5'/%3E%3Ccircle cx='18' cy='6' r='2.5'/%3E%3Ccircle cx='12' cy='18' r='2.5'/%3E%3Cpath d='M8 7.5l2.8 8M16 7.5l-2.8 8M8.5 6h7'/%3E%3C/svg%3E");
+}
+
+body.skin-theme-native .home-view .home-stat-card--memory {
+  --mc-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='6' y='6' width='12' height='12' rx='2'/%3E%3Cpath d='M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4'/%3E%3C/svg%3E");
+}
+
+body.skin-theme-native .home-view .home-mode-card--global {
+  --mc-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18'/%3E%3C/svg%3E");
+}
+
+body.skin-theme-native .home-view .home-mode-card--rule {
+  --mc-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Crect x='3.5' y='4' width='17' height='16' rx='3'/%3E%3Cpath d='M8 9h.01M11 9h5M8 12h.01M11 12h5M8 15h.01M11 15h5'/%3E%3C/svg%3E");
+}
+
+body.skin-theme-native .home-view .home-mode-card--direct {
+  --mc-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Ccircle cx='12' cy='12' r='3' fill='black'/%3E%3C/svg%3E");
+}
+
+/* ---------- 大号粗体数字 ---------- */
+/*
+ * 流量数字随卡片宽度自适应（容器查询）：
+ * 卡片较窄时上/下行分两行显示，较宽时并排一行；字号用 cqi 夹在 12~24px 之间，
+ * 保证 "↑ 1023.9 KB/s ↓ 1023.9 KB/s" 这类最长值也不换行、不省略。
+ */
+body.skin-theme-native .home-view .home-stat-card {
+  container-type: inline-size;
+}
+
+body.skin-theme-native .home-view .home-stat-card__value {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+  font-size: clamp(12px, 10.4cqi, 20px) !important;
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--mc-on-surface);
+  white-space: nowrap;
+}
+
+/* 连接数、内存：单个值，字号放大到与流量卡片视觉一致 */
+body.skin-theme-native .home-view :is(.home-stat-card--connections, .home-stat-card--memory) .home-stat-card__value {
+  display: block;
+  font-size: clamp(14px, 12cqi, 24px) !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body.skin-theme-native .home-view .home-stat-card__value .metric {
+  display: inline-block;
+  max-width: 100%;
+}
+
+/* 卡片足够宽时并排显示 */
+@container (min-width: 300px) {
+  body.skin-theme-native .home-view .home-stat-card__value {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 10px;
+    font-size: clamp(16px, 6.4cqi, 24px) !important;
+  }
+}
+
+/* 箭头用主色 */
+body.skin-theme-native .home-view .home-stat-card__value .metric::first-letter {
+  color: var(--mc-primary);
+  font-weight: 800;
+}
+
+body.skin-theme-native .home-view .home-stat-card__value .metric--upload::first-letter {
+  color: var(--mc-up);
+}
+
+/* ---------- 顶部工具条：系统代理 / TUN 变成带圆点的胶囊 chip ---------- */
+body.skin-theme-native .home-view .overview-toolbar .gui-switch {
+  border-radius: 999px !important;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+body.skin-theme-native .home-view .overview-toolbar .gui-switch.on {
+  color: var(--mc-on-primary-container);
+}
+
+body.skin-theme-native .home-view .overview-toolbar .gui-switch.off {
+  color: var(--mc-on-variant);
+}
+
+/* 圆点放到左侧（左右边距对调，总宽度不变） */
+body.skin-theme-native .home-view .overview-toolbar .gui-switch.square .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50% !important;
+  left: 6px !important;
+}
+
+body.skin-theme-native .home-view .overview-toolbar .gui-switch.square.on .slot {
+  margin-left: 14px;
+  margin-right: 6px;
+}
+
+body.skin-theme-native .home-view .overview-toolbar .gui-switch.square.on .dot {
+  background-color: var(--mc-primary);
+  box-shadow: 0 0 0 2px rgba(22, 132, 255, 0.18);
+}
+
+body.skin-theme-native[theme-mode='dark'] .home-view .overview-toolbar .gui-switch.square.on .dot {
+  box-shadow: 0 0 0 2px rgba(249, 154, 69, 0.22);
+}
+
+body.skin-theme-native .home-view .overview-toolbar .gui-switch.square.off .dot {
+  background-color: var(--mc-on-variant);
+  opacity: 0.55;
+}
+
+/* 工具条上的图标按钮：圆形、悬停时出现 tonal 底色 */
+body.skin-theme-native .home-view .overview-toolbar .gui-button.text {
+  border-radius: 999px;
+  color: var(--mc-on-variant);
+}
+
+body.skin-theme-native .home-view .overview-toolbar .gui-button.text:hover {
+  background-color: var(--mc-tone);
+  color: var(--mc-primary);
+}
+
+body.skin-theme-native .home-view .overview-toolbar .gui-button.text svg,
+body.skin-theme-native .home-view .overview-toolbar .gui-button.text svg path {
+  fill: var(--mc-on-variant);
+  transition: fill 0.2s;
+}
+
+body.skin-theme-native .home-view .overview-toolbar .gui-button.text:hover svg,
+body.skin-theme-native .home-view .overview-toolbar .gui-button.text:hover svg path {
+  fill: var(--mc-primary);
+}
+
+/* ---------- 区块标题 ---------- */
+body.skin-theme-native .home-view .traffic-panel__title,
+body.skin-theme-native .home-view .mode-panel__title {
+  color: var(--mc-on-surface) !important;
+  font-weight: 700;
+  letter-spacing: 0.1px;
+}
+
+/* ---------- 流量图：主色曲线 + 浅色填充 ---------- */
+body.skin-theme-native .home-view .gui-traffic-chart .traffic-chart__series--download {
+  stroke: var(--mc-primary);
+  fill: var(--mc-primary);
+  fill-opacity: 0.14;
+  stroke-width: 2.25px;
+  stroke-linejoin: round;
+}
+
+body.skin-theme-native .home-view .gui-traffic-chart .traffic-chart__series--upload {
+  stroke: var(--mc-series2);
+  fill: var(--mc-series2);
+  fill-opacity: 0.12;
+  stroke-width: 2px;
+  stroke-linejoin: round;
+}
+
+body.skin-theme-native .home-view .gui-traffic-chart .traffic-chart__grid-line {
+  stroke: var(--mc-on-variant);
+  stroke-opacity: 0.28;
+  stroke-dasharray: 2 5;
+}
+
+body.skin-theme-native .home-view .gui-traffic-chart .traffic-chart__axis-label {
+  fill: var(--mc-on-variant);
+}
+
+/* 图例：圆点用曲线颜色，文字用次要色（被点灭时保持原来的灰色） */
+body.skin-theme-native .home-view .gui-traffic-chart circle:not([fill='gray']):first-of-type {
+  fill: var(--mc-up);
+}
+
+body.skin-theme-native .home-view .gui-traffic-chart circle:not([fill='gray']):last-of-type {
+  fill: var(--mc-primary);
+}
+
+body.skin-theme-native .home-view .gui-traffic-chart text.text-10:not([fill='gray']) {
+  fill: var(--mc-on-variant);
+}
+
+body.skin-theme-native .home-view .gui-traffic-chart text.text-10 {
+  font-weight: 600;
+}
+
+/* ---------- 模式卡片：选中的一张用主色填充，类似分段按钮 ---------- */
+body.skin-theme-native .home-view .home-mode-card .gui-card__title {
+  font-size: 15px;
+  line-height: 21px;
+  font-weight: 700;
+}
+
+body.skin-theme-native .home-view .home-mode-card .text-12 {
+  color: var(--mc-on-variant);
+}
+
+body.skin-theme-native .home-view .home-mode-card.is-selected {
+  background-color: var(--mc-primary) !important;
+  color: var(--mc-on-primary);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 8px 20px -6px var(--mc-series2);
+}
+
+body.skin-theme-native .home-view .home-mode-card.is-selected .gui-card__title,
+body.skin-theme-native .home-view .home-mode-card.is-selected .text-12 {
+  color: var(--mc-on-primary);
+}
+
+body.skin-theme-native .home-view .home-mode-card.is-selected .gui-card__state--selected {
+  fill: var(--mc-on-primary);
+  color: var(--mc-on-primary);
+}
+
+body.skin-theme-native .home-view .home-mode-card.is-selected .gui-card__state--selected * {
+  fill: var(--mc-on-primary);
+}
+
+body.skin-theme-native .home-view .home-mode-card:not(.is-selected):hover {
+  background-color: var(--mc-tone) !important;
+  box-shadow: var(--mc-e1);
+}
+
+/* ---------- 「控制器」入口：tonal 胶囊 ---------- */
+body.skin-theme-native .home-view .controller-trigger .gui-button {
+  border-radius: 999px;
+  background-color: var(--mc-primary-container);
+  color: var(--mc-on-primary-container);
+  font-weight: 600;
+}
+
+body.skin-theme-native .home-view .controller-close {
+  border-radius: 999px;
+  box-shadow: var(--mc-e2);
+}
+
+/* ---------- 未启动状态：配置卡片与启动按钮 ---------- */
+body.skin-theme-native .home-view .gui-card.is-selected:not(.home-mode-card) {
+  background-color: var(--mc-primary-container) !important;
+  color: var(--mc-on-primary-container);
+}
+
+body.skin-theme-native .home-view .gui-card.is-selected:not(.home-mode-card) .gui-card__state--selected * {
+  fill: var(--mc-primary);
+}
+
+body.skin-theme-native .home-view > div > .gui-button.primary {
+  border-radius: 999px;
+  color: var(--mc-on-primary);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 8px 20px -6px var(--mc-series2);
+}
+
+body.skin-theme-native .home-view > div > .gui-button.link {
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+/* =====================================================================
+ * 左侧可收缩导航栏（Material 桌面侧边栏风格）
+ * 收起：64px 图标栏；悬停 0.15s 后以浮层展开到 200px（不挤压内容）；
+ * 点击顶部按钮可固定展开（body.skin-nav-expanded，内容区随之右移）。
+ * 选中项 = 10px 圆角浅色底 + 左侧 3×16 主色指示条。
+ * ===================================================================== */
+body.skin-theme-native {
+  --mc-rail-w: 64px;
+  --mc-rail-open-w: 200px;
+  --mc-rail-primary: #1684ff;
+  --mc-rail-surface: rgba(12, 16, 23, 0.035);
+  --mc-rail-overlay: #fbf9fa;
+  --mc-rail-on-surface: #0c1017;
+  --mc-rail-on-variant: #6f737e;
+  --mc-rail-hover: rgba(12, 16, 23, 0.05);
+  --mc-rail-pressed: rgba(12, 16, 23, 0.08);
+  --mc-rail-selected: rgba(22, 132, 255, 0.12);
+  --mc-rail-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 10px 24px rgba(0, 0, 0, 0.08), 0 24px 48px -12px rgba(0, 0, 0, 0.16);
+  --mc-rail-ease: cubic-bezier(0.2, 0, 0, 1);
+}
+
+body.skin-theme-native[theme-mode='dark'] {
+  --mc-rail-primary: #f99a45;
+  --mc-rail-surface: rgba(249, 240, 235, 0.04);
+  --mc-rail-overlay: #2b2724;
+  --mc-rail-on-surface: #f9f0eb;
+  --mc-rail-on-variant: #bfa799;
+  --mc-rail-hover: rgba(249, 240, 235, 0.06);
+  --mc-rail-pressed: rgba(249, 240, 235, 0.1);
+  --mc-rail-selected: rgba(249, 154, 69, 0.16);
+  --mc-rail-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 12px 32px -4px rgba(0, 0, 0, 0.6);
+}
+
+/* 内容区改为两列：导航栏 | 页面 */
+body.skin-theme-native .app-content {
+  display: grid;
+  grid-template-columns: var(--mc-rail-w) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  column-gap: 12px;
+  overflow: hidden;
+  padding: 8px 12px 12px 12px;
+  transition: grid-template-columns 0.25s var(--mc-rail-ease);
+}
+
+body.skin-theme-native.skin-nav-expanded .app-content {
+  grid-template-columns: var(--mc-rail-open-w) minmax(0, 1fr);
+}
+
+body.skin-theme-native .app-page {
+  grid-column: 2;
+  grid-row: 1;
+  margin-top: 0;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  padding-left: 6px;
+  padding-right: 8px;
+}
+
+/* 导航栏本体 */
+body.skin-theme-native .main-nav {
+  grid-column: 1;
+  grid-row: 1;
+  position: relative;
+  z-index: 30;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 4px;
+  width: var(--mc-rail-w);
+  min-height: 0;
+  padding: 8px 10px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border-radius: 18px;
+  background: var(--mc-rail-surface);
+  font-family: 'Inter', 'Roboto', -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
+  transition:
+    width 0.25s var(--mc-rail-ease),
+    background-color 0.2s ease,
+    box-shadow 0.25s ease;
+  scrollbar-width: none;
+}
+
+body.skin-theme-native .main-nav::-webkit-scrollbar {
+  display: none;
+}
+
+/* 悬停：浮层展开（宽度溢出到第二列之上，不触发页面重排） */
+body.skin-theme-native:not(.skin-nav-expanded) .main-nav:hover {
+  width: var(--mc-rail-open-w);
+  background: var(--mc-rail-overlay);
+  box-shadow: var(--mc-rail-shadow);
+  transition-delay: 0.15s;
+}
+
+/* 固定展开：占满第一列 */
+body.skin-theme-native.skin-nav-expanded .main-nav {
+  width: 100%;
+}
+
+body.skin-theme-native .main-nav__item {
+  width: 100%;
+  flex: none;
+}
+
+body.skin-theme-native .main-nav__button,
+body.skin-theme-native .skin-nav-toggle {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 40px;
+  margin: 0;
+  padding: 0 0 0 10px;
+  justify-content: flex-start;
+  align-items: center;
+  overflow: hidden;
+  white-space: nowrap;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  box-shadow: none;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.1px;
+  /* 收起时隐藏文字（图标自带填充色，不受影响） */
+  color: transparent;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+body.skin-theme-native .main-nav__button:hover,
+body.skin-theme-native .skin-nav-toggle:hover {
+  background: var(--mc-rail-hover);
+}
+
+body.skin-theme-native .main-nav__button:active,
+body.skin-theme-native .skin-nav-toggle:active {
+  background: var(--mc-rail-pressed);
+}
+
+body.skin-theme-native .main-nav__button.is-active,
+body.skin-theme-native .main-nav__button.is-active:hover {
+  background: var(--mc-rail-selected);
+}
+
+/* 选中指示条 3×16 */
+body.skin-theme-native .main-nav__button::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 3px;
+  height: 0;
+  border-radius: 999px;
+  background: var(--mc-rail-primary);
+  transform: translateY(-50%);
+  transition: height 0.32s var(--mc-rail-ease);
+}
+
+body.skin-theme-native .main-nav__button.is-active::before {
+  height: 16px;
+}
+
+/* 图标：24px，未选中 onSurfaceVariant，选中主色 */
+body.skin-theme-native .main-nav__button > :first-child {
+  flex: none;
+  margin-right: 14px !important;
+}
+
+body.skin-theme-native .main-nav__button svg {
+  width: 22px !important;
+  height: 22px !important;
+}
+
+body.skin-theme-native .main-nav__button svg,
+body.skin-theme-native .main-nav__button svg path {
+  fill: var(--mc-rail-on-variant) !important;
+  transition: fill 0.15s ease;
+}
+
+body.skin-theme-native .main-nav__button.is-active svg,
+body.skin-theme-native .main-nav__button.is-active svg path {
+  fill: var(--mc-rail-primary) !important;
+}
+
+/* 展开（悬停 / 固定）时显示文字 */
+body.skin-theme-native:not(.skin-nav-expanded) .main-nav:hover .main-nav__button,
+body.skin-theme-native.skin-nav-expanded .main-nav__button {
+  color: var(--mc-rail-on-surface);
+  transition-delay: 0.2s;
+}
+
+body.skin-theme-native .main-nav:hover .main-nav__button.is-active,
+body.skin-theme-native.skin-nav-expanded .main-nav__button.is-active {
+  color: var(--mc-rail-primary);
+}
+
+/* 展开/收起按钮（插件注入，放在最上方） */
+body.skin-theme-native .main-nav > .skin-nav-toggle {
+  order: -1;
+  flex: none;
+  margin-bottom: 9px;
+  overflow: visible;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+/* 按钮下方的分隔线 */
+body.skin-theme-native .skin-nav-toggle::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: -7px;
+  height: 1px;
+  background: var(--mc-rail-hover);
+}
+
+body.skin-theme-native .skin-nav-toggle::before {
+  content: '';
+  flex: none;
+  width: 22px;
+  height: 22px;
+  background: var(--mc-rail-on-variant);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 6h18v2H3zm0 5h12v2H3zm0 5h18v2H3z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 6h18v2H3zm0 5h12v2H3zm0 5h18v2H3z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+body.skin-theme-native.skin-nav-expanded .skin-nav-toggle::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 6h13v2H3zm0 5h10v2H3zm0 5h13v2H3zm18-1.41L17.42 12 21 8.41 19.59 7l-5 5 5 5z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 6h13v2H3zm0 5h10v2H3zm0 5h13v2H3zm18-1.41L17.42 12 21 8.41 19.59 7l-5 5 5 5z'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.skin-theme-native .app-content,
+  body.skin-theme-native .main-nav,
+  body.skin-theme-native .main-nav__button,
+  body.skin-theme-native .main-nav__button::before {
+    transition: none !important;
+  }
+}
+
+/* =====================================================================
+ * 首页铺满高度：工具条、统计卡片保持自然高度，
+ * 流量图与模式卡片一起拉伸占满剩余空间（窗口越高图表越高）。
+ * 图表 SVG 的纵向拉伸由皮肤中心插件按 manifest 的 "stretchTrafficChart" 处理。
+ * ===================================================================== */
+body.skin-theme-native .home-view > div:has(> .home-overview) {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+body.skin-theme-native .home-view .home-overview {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+body.skin-theme-native .home-view .home-stats {
+  flex: none;
+  margin-top: 16px;
+}
+
+body.skin-theme-native .home-view .home-dashboard {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-bottom: 4px;
+}
+
+body.skin-theme-native .home-view .traffic-panel,
+body.skin-theme-native .home-view .mode-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+body.skin-theme-native .home-view :is(.traffic-panel__title, .mode-panel__title) {
+  flex: none;
+  padding-top: 14px;
+  padding-bottom: 10px;
+}
+
+body.skin-theme-native .home-view .traffic-panel .gui-traffic-chart {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 150px;
+  overflow: hidden;
+}
+
+body.skin-theme-native .home-view .traffic-panel .gui-traffic-chart > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100% !important;
+  display: block;
+}
+
+/* 拉伸：折线与网格线以 SVG 顶部为原点纵向缩放，线宽不变；坐标轴文字由插件逐个平移 */
+body.skin-theme-native .home-view .gui-traffic-chart > svg[data-skin-stretch] :is(polyline, line) {
+  transform-origin: 0 0;
+  transform: scaleY(var(--skin-chart-ky, 1));
+  vector-effect: non-scaling-stroke;
+}
+
+body.skin-theme-native .home-view .mode-panel__list {
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 10px;
+}
+
+body.skin-theme-native .home-view .mode-panel__list > .home-mode-card {
+  flex: 1 1 0;
+  min-height: 58px;
+  justify-content: center;
+}
+
+body.skin-theme-native .home-view .mode-panel__list > .home-mode-card > .flex-1 {
+  flex: none;
+}
+
+body.skin-theme-native .home-view .controller-trigger {
+  flex: none;
+  margin-top: 10px !important;
+  margin-bottom: 2px !important;
+}
+
+/* 连接数、内存只有一个值：在拉高后的卡片里垂直居中 */
+body.skin-theme-native .home-view :is(.home-stat-card--connections, .home-stat-card--memory) > .flex-1 {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+body.skin-theme-native .home-view :is(.home-stat-card--connections, .home-stat-card--memory) .home-stat-card__value {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* 窗口较高时模式卡片变成大块磁贴：标题放大，右侧加一枚淡色大图标填充空白 */
+body.skin-theme-native .home-view .mode-panel__list > .home-mode-card {
+  container-type: size;
+  overflow: hidden;
+}
+
+body.skin-theme-native .home-view .home-mode-card::after {
+  content: '';
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  width: 0;
+  height: 0;
+  transform: translateY(-50%);
+  background-color: var(--mc-primary);
+  opacity: 0.1;
+  -webkit-mask: var(--mc-icon) center / contain no-repeat;
+  mask: var(--mc-icon) center / contain no-repeat;
+  pointer-events: none;
+}
+
+body.skin-theme-native .home-view .home-mode-card.is-selected::after {
+  background-color: var(--mc-on-primary);
+  opacity: 0.16;
+}
+
+@container (min-height: 120px) {
+  body.skin-theme-native .home-view .home-mode-card::after {
+    width: min(42cqh, 96px);
+    height: min(42cqh, 96px);
+  }
+
+  body.skin-theme-native .home-view .home-mode-card .gui-card__title {
+    font-size: 18px;
+    line-height: 26px;
+  }
+
+  body.skin-theme-native .home-view .home-mode-card .text-12 {
+    font-size: 13px;
+  }
+}
