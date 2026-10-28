@@ -1,18 +1,28 @@
 /*
  * 素雅卡片（material-card）
- * Material 3 风格：浅色 = 蓝色主色 + 近白卡片，深色 = 暖黑卡片 + 橙色主色；
+ * Material 3 风格：主色/辅助色跟随 app 设置（--primary-color / --secondary-color），
+ * 浅色 = 近白卡片，深色 = 中性灰黑卡片；
  * 大圆角卡片、无硬边框、柔和分层阴影、胶囊形 chip/按钮、粗体等宽数字。
  * 首页内容铺满可用高度；主导航为左侧可收缩图标栏。
  */
 
 /* ---------- 调色板（只在首页内生效） ---------- */
 body.skin-theme-native .home-view {
-  --mc-primary: #1684ff;
+  /*
+   * 强调色全部取自 app 的主色 / 辅助色（设置 → 个性化，内联在 :root 上），
+   * 容器色、浅色描边等用 color-mix() 推导，不覆盖 app 自身的 --primary-color。
+   * --mc-primary：曲线、箭头、图标、指示条等前景强调；--mc-primary-fill：选中模式卡片等实心填充。
+   */
+  --mc-primary: var(--primary-color);
+  --mc-primary-fill: var(--primary-color);
   --mc-on-primary: #ffffff;
-  --mc-primary-container: #dcebff;
-  --mc-on-primary-container: #0b4da8;
-  --mc-series2: #96c6fe;
-  --mc-up: #6aaeff;
+  --mc-primary-container: color-mix(in srgb, var(--primary-color) 14%, #ffffff);
+  --mc-on-primary-container: color-mix(in srgb, var(--primary-color) 72%, #000000);
+  --mc-primary-glow: color-mix(in srgb, var(--primary-color) 40%, transparent);
+  --mc-primary-ring: color-mix(in srgb, var(--primary-color) 18%, transparent);
+  /* 上传 / 第二条曲线：辅助色适当提亮，与主色曲线拉开层次 */
+  --mc-series2: color-mix(in srgb, var(--secondary-color) 62%, #ffffff);
+  --mc-up: color-mix(in srgb, var(--secondary-color) 80%, #ffffff);
   --mc-card: #fefcfd;
   --mc-tone: #efedf0;
   --mc-tone-hover: #e6e4e8;
@@ -27,8 +37,7 @@ body.skin-theme-native .home-view {
   --mc-radius-block: 14px;
   --mc-font: 'Inter', 'Roboto', 'SF Pro Text', -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
 
-  /* 让首页里的通用组件直接拿到本皮肤色值 */
-  --primary-color: var(--mc-primary);
+  /* 让首页里的通用组件直接拿到本皮肤色值（主色相关的按钮变量沿用 app 默认，不覆盖） */
   --card-bg: var(--mc-card);
   --card-hover-bg: var(--mc-card);
   --card-active-bg: var(--mc-card);
@@ -37,12 +46,6 @@ body.skin-theme-native .home-view {
   --switch-on-hover-bg: var(--mc-primary-container);
   --switch-off-bg: var(--mc-tone);
   --switch-off-hover-bg: var(--mc-tone-hover);
-  --btn-primary-bg: var(--mc-primary);
-  --btn-primary-hover-bg: var(--mc-primary);
-  --btn-primary-active-bg: var(--mc-primary);
-  --btn-link-color: var(--mc-primary);
-  --btn-link-hover-color: var(--mc-primary);
-  --btn-link-active-color: var(--mc-primary);
   --btn-text-hover-bg: var(--mc-tone);
   --btn-text-active-bg: var(--mc-tone-hover);
   --divider-color: rgba(0, 0, 0, 0.06);
@@ -51,17 +54,22 @@ body.skin-theme-native .home-view {
 }
 
 body.skin-theme-native[theme-mode='dark'] .home-view {
-  --mc-primary: #f99a45;
-  --mc-on-primary: #2b1700;
-  --mc-primary-container: #4a2f17;
-  --mc-on-primary-container: #ffc896;
-  --mc-series2: #9a6438;
-  --mc-up: #d39058;
-  --mc-card: #292522;
-  --mc-tone: #37322f;
-  --mc-tone-hover: #423c38;
-  --mc-on-surface: #f9f0eb;
-  --mc-on-variant: #bfa799;
+  /* 深色下前景强调色混入白色提亮，保证在深色卡片上的对比度；实心填充仍用原主色 */
+  --mc-primary: color-mix(in srgb, var(--primary-color) 70%, #ffffff);
+  --mc-primary-fill: var(--primary-color);
+  --mc-on-primary: #ffffff;
+  --mc-primary-container: color-mix(in srgb, var(--primary-color) 26%, #262628);
+  --mc-on-primary-container: color-mix(in srgb, var(--primary-color) 40%, #ffffff);
+  --mc-primary-glow: color-mix(in srgb, var(--primary-color) 55%, transparent);
+  --mc-primary-ring: color-mix(in srgb, var(--mc-primary) 24%, transparent);
+  --mc-series2: color-mix(in srgb, var(--secondary-color) 45%, #b4b4bc);
+  --mc-up: color-mix(in srgb, var(--secondary-color) 50%, #ffffff);
+  /* 中性灰黑表面，避免与任意主色冲突 */
+  --mc-card: #262628;
+  --mc-tone: #343437;
+  --mc-tone-hover: #3e3e42;
+  --mc-on-surface: #f1f1f4;
+  --mc-on-variant: #a9abb3;
   --mc-ok: #7be37a;
   --mc-ok-container: #0f3d14;
   --mc-on-ok-container: #a6f5a3;
@@ -236,11 +244,7 @@ body.skin-theme-native .home-view .overview-toolbar .gui-switch.square.on .slot 
 
 body.skin-theme-native .home-view .overview-toolbar .gui-switch.square.on .dot {
   background-color: var(--mc-primary);
-  box-shadow: 0 0 0 2px rgba(22, 132, 255, 0.18);
-}
-
-body.skin-theme-native[theme-mode='dark'] .home-view .overview-toolbar .gui-switch.square.on .dot {
-  box-shadow: 0 0 0 2px rgba(249, 154, 69, 0.22);
+  box-shadow: 0 0 0 2px var(--mc-primary-ring);
 }
 
 body.skin-theme-native .home-view .overview-toolbar .gui-switch.square.off .dot {
@@ -334,9 +338,9 @@ body.skin-theme-native .home-view .home-mode-card .text-12 {
 }
 
 body.skin-theme-native .home-view .home-mode-card.is-selected {
-  background-color: var(--mc-primary) !important;
+  background-color: var(--mc-primary-fill) !important;
   color: var(--mc-on-primary);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 8px 20px -6px var(--mc-series2);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 8px 20px -6px var(--mc-primary-glow);
 }
 
 body.skin-theme-native .home-view .home-mode-card.is-selected .gui-card__title,
@@ -385,7 +389,7 @@ body.skin-theme-native .home-view > div > .gui-button.primary {
   border-radius: 999px;
   color: var(--mc-on-primary);
   font-weight: 600;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 8px 20px -6px var(--mc-series2);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 8px 20px -6px var(--mc-primary-glow);
 }
 
 body.skin-theme-native .home-view > div > .gui-button.link {
@@ -402,27 +406,27 @@ body.skin-theme-native .home-view > div > .gui-button.link {
 body.skin-theme-native {
   --mc-rail-w: 64px;
   --mc-rail-open-w: 200px;
-  --mc-rail-primary: #1684ff;
+  --mc-rail-primary: var(--primary-color);
   --mc-rail-surface: rgba(12, 16, 23, 0.035);
   --mc-rail-overlay: #fbf9fa;
   --mc-rail-on-surface: #0c1017;
   --mc-rail-on-variant: #6f737e;
   --mc-rail-hover: rgba(12, 16, 23, 0.05);
   --mc-rail-pressed: rgba(12, 16, 23, 0.08);
-  --mc-rail-selected: rgba(22, 132, 255, 0.12);
+  --mc-rail-selected: color-mix(in srgb, var(--primary-color) 12%, transparent);
   --mc-rail-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 10px 24px rgba(0, 0, 0, 0.08), 0 24px 48px -12px rgba(0, 0, 0, 0.16);
   --mc-rail-ease: cubic-bezier(0.2, 0, 0, 1);
 }
 
 body.skin-theme-native[theme-mode='dark'] {
-  --mc-rail-primary: #f99a45;
-  --mc-rail-surface: rgba(249, 240, 235, 0.04);
-  --mc-rail-overlay: #2b2724;
-  --mc-rail-on-surface: #f9f0eb;
-  --mc-rail-on-variant: #bfa799;
-  --mc-rail-hover: rgba(249, 240, 235, 0.06);
-  --mc-rail-pressed: rgba(249, 240, 235, 0.1);
-  --mc-rail-selected: rgba(249, 154, 69, 0.16);
+  --mc-rail-primary: color-mix(in srgb, var(--primary-color) 70%, #ffffff);
+  --mc-rail-surface: rgba(255, 255, 255, 0.04);
+  --mc-rail-overlay: #29292b;
+  --mc-rail-on-surface: #f1f1f4;
+  --mc-rail-on-variant: #a9abb3;
+  --mc-rail-hover: rgba(255, 255, 255, 0.06);
+  --mc-rail-pressed: rgba(255, 255, 255, 0.1);
+  --mc-rail-selected: color-mix(in srgb, var(--mc-rail-primary) 18%, transparent);
   --mc-rail-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 12px 32px -4px rgba(0, 0, 0, 0.6);
 }
 
