@@ -35,7 +35,6 @@ body.skin-theme-native .home-view {
   --mc-e2: 0 1px 3px rgba(0, 0, 0, 0.06), 0 10px 24px rgba(0, 0, 0, 0.08), 0 32px 64px -12px rgba(0, 0, 0, 0.18);
   --mc-radius-card: 20px;
   --mc-radius-block: 14px;
-  --mc-font: 'Inter', 'Roboto', 'SF Pro Text', -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
 
   /* 让首页里的通用组件直接拿到本皮肤色值（主色相关的按钮变量沿用 app 默认，不覆盖） */
   --card-bg: var(--mc-card);
@@ -49,7 +48,6 @@ body.skin-theme-native .home-view {
   --btn-text-hover-bg: var(--mc-tone);
   --btn-text-active-bg: var(--mc-tone-hover);
   --divider-color: rgba(0, 0, 0, 0.06);
-  font-family: var(--mc-font);
   font-variant-numeric: tabular-nums;
 }
 
@@ -476,7 +474,6 @@ body.skin-theme-native .main-nav {
   overflow-y: auto;
   border-radius: 18px;
   background: var(--mc-rail-surface);
-  font-family: 'Inter', 'Roboto', -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
   transition:
     width 0.25s var(--mc-rail-ease),
     background-color 0.2s ease,
