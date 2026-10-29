@@ -401,13 +401,13 @@ body.skin-theme-native .home-view > div > .gui-button.link {
 
 /* =====================================================================
  * 左侧可收缩导航栏（Material 桌面侧边栏风格）
- * 收起：64px 图标栏；悬停 0.15s 后以浮层展开到 200px（不挤压内容）；
+ * 收起：64px 图标栏；悬停 0.15s 后以浮层展开到 180px（不挤压内容）；
  * 点击顶部按钮可固定展开（body.skin-nav-expanded，内容区随之右移）。
  * 选中项 = 10px 圆角浅色底 + 左侧 3×16 主色指示条。
  * ===================================================================== */
 body.skin-theme-native {
   --mc-rail-w: 64px;
-  --mc-rail-open-w: 200px;
+  --mc-rail-open-w: 180px;
   --mc-rail-primary: var(--primary-color);
   --mc-rail-surface: rgba(12, 16, 23, 0.035);
   --mc-rail-overlay: #fbf9fa;
@@ -491,10 +491,10 @@ body.skin-theme-native .main-nav::-webkit-scrollbar {
 
 /* 悬停：浮层展开（宽度溢出到第二列之上，不触发页面重排） */
 body.skin-theme-native:not(.skin-nav-expanded) .main-nav:hover {
-  width: var(--mc-rail-open-w);
-  background: var(--mc-rail-overlay);
-  box-shadow: var(--mc-rail-shadow);
-  transition-delay: 0.15s;
+  /* width: var(--mc-rail-open-w); */
+  /* background: var(--mc-rail-overlay); */
+  /* box-shadow: var(--mc-rail-shadow); */
+  /* transition-delay: 0.15s; */
 }
 
 /* 固定展开：占满第一列 */
@@ -793,5 +793,5 @@ body.skin-theme-native .home-view .home-mode-card .gui-card__title {
 }
 
 body.skin-theme-native .home-view .home-mode-card .text-12 {
-  font-size: 14px;
+  font-size: 12px;
 }
