@@ -156,9 +156,8 @@ body.skin-theme-native .home-view .home-mode-card--direct {
 
 /* ---------- 大号粗体数字 ---------- */
 /*
- * 流量数字随卡片宽度自适应（容器查询）：
- * 卡片较窄时上/下行分两行显示，较宽时并排一行；字号用 cqi 夹在 12~24px 之间，
- * 保证 "↑ 1023.9 KB/s ↓ 1023.9 KB/s" 这类最长值也不换行、不省略。
+ * 流量数字：字号接近 app 默认（13px 粗体），不再随卡片宽度放大；
+ * 卡片较窄时上/下行分两行显示，较宽时并排一行（容器查询），最长值也不换行、不省略。
  */
 body.skin-theme-native .home-view .home-stat-card {
   container-type: inline-size;
@@ -171,18 +170,16 @@ body.skin-theme-native .home-view .home-stat-card__value {
   gap: 3px;
   padding-top: 6px !important;
   padding-bottom: 6px !important;
-  font-size: clamp(12px, 10.4cqi, 20px) !important;
-  line-height: 1.15;
+  font-size: 13px !important;
+  line-height: 1.3;
   font-weight: 700;
-  letter-spacing: -0.3px;
   color: var(--mc-on-surface);
   white-space: nowrap;
 }
 
-/* 连接数、内存：单个值，字号放大到与流量卡片视觉一致 */
+/* 连接数、内存：单个值 */
 body.skin-theme-native .home-view :is(.home-stat-card--connections, .home-stat-card--memory) .home-stat-card__value {
   display: block;
-  font-size: clamp(14px, 12cqi, 24px) !important;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -198,7 +195,6 @@ body.skin-theme-native .home-view .home-stat-card__value .metric {
     flex-direction: row;
     align-items: baseline;
     gap: 10px;
-    font-size: clamp(16px, 6.4cqi, 24px) !important;
   }
 }
 
@@ -435,7 +431,7 @@ body.skin-theme-native .app-content {
   grid-template-rows: minmax(0, 1fr);
   column-gap: 12px;
   overflow: hidden;
-  padding: 8px 12px 12px 12px;
+  padding: 8px 12px 8px 12px;
   transition: grid-template-columns 0.25s var(--mc-rail-ease);
 }
 
@@ -524,9 +520,10 @@ body.skin-theme-native .skin-nav-toggle {
   letter-spacing: 0.1px;
   /* 收起时隐藏文字（图标自带填充色，不受影响） */
   color: transparent;
+  /* 悬停底色几乎即时响应，跟手 */
   transition:
     color 0.15s ease,
-    background-color 0.15s ease;
+    background-color 0.06s linear;
 }
 
 body.skin-theme-native .main-nav__button:hover,
@@ -588,7 +585,8 @@ body.skin-theme-native .main-nav__button.is-active svg path {
 body.skin-theme-native:not(.skin-nav-expanded) .main-nav:hover .main-nav__button,
 body.skin-theme-native.skin-nav-expanded .main-nav__button {
   color: var(--mc-rail-on-surface);
-  transition-delay: 0.2s;
+  /* 只延迟文字淡入（等栏展开），底色不延迟 */
+  transition-delay: 0.2s, 0s;
 }
 
 body.skin-theme-native .main-nav:hover .main-nav__button.is-active,
@@ -668,7 +666,7 @@ body.skin-theme-native .home-view .home-stats {
 body.skin-theme-native .home-view .home-dashboard {
   flex: 1 1 auto;
   min-height: 0;
-  padding-bottom: 4px;
+  padding-bottom: 2px;
 }
 
 body.skin-theme-native .home-view .traffic-panel,
@@ -722,10 +720,23 @@ body.skin-theme-native .home-view .mode-panel__list > .home-mode-card > .flex-1 
   flex: none;
 }
 
+/* 底部「控制器」分隔条压低：去掉上下留白，避免整体内容显得偏上 */
 body.skin-theme-native .home-view .controller-trigger {
   flex: none;
-  margin-top: 10px !important;
-  margin-bottom: 2px !important;
+  margin-top: 6px !important;
+  margin-bottom: 0 !important;
+}
+
+body.skin-theme-native .home-view .controller-trigger .gui-divider__content {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+body.skin-theme-native .home-view .controller-trigger .gui-button {
+  height: 22px;
+  line-height: 22px;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 /* 连接数、内存只有一个值：在拉高后的卡片里垂直居中 */
