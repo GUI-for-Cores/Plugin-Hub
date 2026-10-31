@@ -1066,6 +1066,63 @@
     "installed": false
   },
   {
+    "id": "plugin-deepseek-chan",
+    "name": "DeepSeek 娘",
+    "version": "v1.0.0",
+    "group": "Fun",
+    "description": "把 DeepSeek 娘抱回家，安装后按引导到 VGen 免费领取模型并解压到模型目录。模型插画 Kamiya Ryoko，Live2D 绑定 霓虹猫_NeonNeko。",
+    "tags": ["UI美化"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-deepseek-chan.js",
+    "path": "data/plugins/plugin-deepseek-chan.js",
+    "triggers": ["on::manual", "on::ready"],
+    "hasUI": false,
+    "menus": {
+      "安装教程": "Guide",
+      "打开模型目录": "OpenModelDir"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_ds7c1n0m",
+        "title": "让看板娘闭嘴",
+        "description": "",
+        "key": "DisableMessage",
+        "component": "Switch",
+        "value": false,
+        "options": []
+      },
+      {
+        "id": "ID_ds4a9k2q",
+        "title": "自动运行看板娘",
+        "description": "",
+        "key": "AutoStart",
+        "component": "Switch",
+        "value": true,
+        "options": []
+      },
+      {
+        "id": "ID_ds8e3t5w",
+        "title": "使用 DeepSeek 主题色",
+        "description": "",
+        "key": "ApplyTheme",
+        "component": "Switch",
+        "value": true,
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
     "id": "plugin-live2d-widget",
     "name": "Live2D 看板娘",
     "version": "v1.0.0",
