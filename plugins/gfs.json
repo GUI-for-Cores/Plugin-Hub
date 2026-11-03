@@ -439,6 +439,69 @@
     "installed": false
   },
   {
+    "id": "plugin-sing-box-lx",
+    "name": "sing-box-lx 核心与 XHTTP",
+    "version": "v1.0.2",
+    "description": "从 sing-box-lx Releases 安装、校验和更新核心，支持回滚、恢复原核心及原生 XHTTP。订阅适配请排在「节点转换」之前，并停用「Xray 前置代理」。GUI 自带更新仍指向官方核心。",
+    "group": "Extensions",
+    "tags": ["实用工具", "功能扩展"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-sing-box-lx.js",
+    "path": "data/plugins/plugin-sing-box-lx.js",
+    "triggers": ["on::manual", "on::ready", "on::subscribe", "on::before::core::start"],
+    "menus": {
+      "安装 / 更新核心": "Update",
+      "检查 Release 更新": "CheckUpdate",
+      "查看状态和使用说明": "ViewStatus",
+      "回滚上一 lx 版本": "Rollback",
+      "恢复原核心（保持停止）": "Restore",
+      "恢复中断操作": "Recover",
+      "授予 TUN 权限": "GrantTUN",
+      "打开 Releases": "OpenReleases"
+    },
+    "hasUI": true,
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_lx_channel",
+        "title": "Release 更新渠道",
+        "description": "正式版使用 GitHub latest；最新发布按发布时间选择，包含预发布版。仅通过插件的安装 / 更新操作替换核心。",
+        "key": "Channel",
+        "component": "Select",
+        "value": "stable",
+        "options": ["正式版,stable", "最新发布（含预发布）,latest"]
+      },
+      {
+        "id": "ID_lx_convert",
+        "title": "适配 XHTTP 订阅",
+        "description": "支持 VLESS / VMess / Trojan 的 XHTTP 分享链接、Base64、Clash YAML（含 ech-opts）和原生 JSON。须排在「节点转换」之前；混合订阅的普通节点需要启用「节点转换」。修改后重新更新订阅。",
+        "key": "ConvertXHTTP",
+        "component": "Switch",
+        "value": true,
+        "options": []
+      },
+      {
+        "id": "ID_lx_check_startup",
+        "title": "启动 GUI 时检查 Release 更新",
+        "description": "仅提示可用版本，不会自动下载、替换核心或中断连接。计划任务调用本插件时同样只检查更新。",
+        "key": "CheckOnStartup",
+        "component": "Switch",
+        "value": false,
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": true,
+    "installed": false
+  },
+  {
     "id": "plugin-xray-front-proxy",
     "name": "Xray 前置代理",
     "version": "v1.0.2",
