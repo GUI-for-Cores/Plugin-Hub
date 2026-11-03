@@ -688,9 +688,9 @@ body.skin-theme-native:not(.skin-nav-expanded) .main-nav__button[data-skin-nav-l
   visibility: visible;
   transform: none;
   transition:
-    opacity 0.15s ease 1s,
-    transform 0.15s var(--mc-rail-ease) 1s,
-    visibility 0s linear 1s;
+    opacity 0.15s ease 0.5s,
+    transform 0.15s var(--mc-rail-ease) 0.5s,
+    visibility 0s linear 0.5s;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -703,7 +703,7 @@ body.skin-theme-native:not(.skin-nav-expanded) .main-nav__button[data-skin-nav-l
   }
 
   body.skin-theme-native:not(.skin-nav-expanded) .main-nav__button[data-skin-nav-label]:hover::after {
-    transition: visibility 0s linear 1s !important;
+    transition: visibility 0s linear 0.5s !important;
   }
 }
 
