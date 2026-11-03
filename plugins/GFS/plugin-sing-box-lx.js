@@ -7,6 +7,7 @@
  * Place this plugin BEFORE 节点转换. Ordinary nodes are converted through that
  * plugin's public trigger, without importing or injecting external JavaScript.
  */
+
 const LX_PATH = 'data/third/sing-box-lx'
 const LX_CACHE = 'data/.cache/sing-box-lx'
 const LX_CORE = 'data/sing-box'
@@ -937,8 +938,10 @@ const lxFromClash = (node) => {
   })
   if (node['ech-opts'] !== undefined) {
     const ech = lxClashECH(node['ech-opts'])
-    if (ech.enabled && !tls) throw new Error('ECH 需要启用 TLS，请设置 tls: true')
-    if (ech.enabled && tls.reality) throw new Error('ECH 不能与 REALITY 同时启用')
+    if (ech.enabled) {
+      if (!tls) throw new Error('ECH 需要启用 TLS，请设置 tls: true')
+      if (tls.reality) throw new Error('ECH 不能与 REALITY 同时启用')
+    }
     if (tls) tls.ech = ech
   }
   const outbound = {

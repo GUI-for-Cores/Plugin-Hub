@@ -442,7 +442,7 @@
     "id": "plugin-sing-box-lx",
     "name": "sing-box-lx 核心与 XHTTP",
     "version": "v1.0.2",
-    "description": "从 sing-box-lx Releases 安装、校验和更新核心，支持回滚、恢复原核心及原生 XHTTP。订阅适配请排在「节点转换」之前，并停用「Xray 前置代理」。GUI 自带更新仍指向官方核心。",
+    "description": "从 sing-box-lx Releases 安装、校验和更新核心，支持回滚、恢复原核心及原生 XHTTP。订阅适配请排在「节点转换」之前并停用「Xray 前置代理」。GUI 自带更新仍指向官方核心。",
     "group": "Extensions",
     "tags": ["实用工具", "功能扩展"],
     "type": "Http",
