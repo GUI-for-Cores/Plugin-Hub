@@ -12,6 +12,8 @@ const GENERATED_CLASS = 'skin-manager-generated'
 // manifest 设置 "navToggle": true 时，在导航栏里插入展开/收起按钮，状态保存在 layout.json
 const LAYOUT_FILE = 'layout.json'
 const NAV_EXPANDED_CLASS = 'skin-nav-expanded'
+// manifest 设置 "navTooltip": true 时，把导航按钮的文字同步到 data-skin-nav-label，供皮肤 CSS 用 attr() 绘制悬停提示
+const NAV_LABEL_ATTR = 'data-skin-nav-label'
 
 /** @type {EsmPlugin} */
 export default (Plugin) => {
@@ -21,6 +23,7 @@ export default (Plugin) => {
   let cleanupMotion
   let cleanupDecorations
   let cleanupNavToggle
+  let cleanupNavTooltip
   let cleanupChartStretch
   let cleanupAnimationPause
   let catalogCache
@@ -413,6 +416,25 @@ export default (Plugin) => {
     }
   }
 
+  const createNavTooltip = (theme) => {
+    if (theme.navTooltip !== true) return undefined
+    const SELECTOR = '.main-nav .main-nav__button'
+    // 导航文字是按钮里的裸文本节点，CSS 无法单独定位，因此复制到属性上；切换语言时文本变化也会同步
+    const sync = () => {
+      document.querySelectorAll(SELECTOR).forEach((button) => {
+        const label = button.textContent.trim()
+        if (button.getAttribute(NAV_LABEL_ATTR) !== label) button.setAttribute(NAV_LABEL_ATTR, label)
+      })
+    }
+    sync()
+    const observer = new MutationObserver(sync)
+    observer.observe(document.getElementById('app') || document.body, { childList: true, subtree: true, characterData: true })
+    return () => {
+      observer.disconnect()
+      document.querySelectorAll(`[${NAV_LABEL_ATTR}]`).forEach((element) => element.removeAttribute(NAV_LABEL_ATTR))
+    }
+  }
+
   // manifest 设置 "stretchTrafficChart": true 时，让首页流量图 SVG 纵向拉伸到容器高度（皮肤 CSS 负责给出高度）
   const createChartStretch = (theme) => {
     if (theme.stretchTrafficChart !== true) return undefined
@@ -467,6 +489,8 @@ export default (Plugin) => {
     cleanupDecorations = undefined
     cleanupNavToggle?.()
     cleanupNavToggle = undefined
+    cleanupNavTooltip?.()
+    cleanupNavTooltip = undefined
     cleanupChartStretch?.()
     cleanupChartStretch = undefined
     cleanupMotion?.()
@@ -521,6 +545,7 @@ export default (Plugin) => {
     cleanupMotion = createMotionLayer(theme)
     cleanupDecorations = createDecorations(theme)
     cleanupNavToggle = createNavToggle(theme)
+    cleanupNavTooltip = createNavTooltip(theme)
     cleanupChartStretch = createChartStretch(theme)
     const nextState = { selectedThemeId: theme.id, enabled: true }
     await saveState(nextState)
