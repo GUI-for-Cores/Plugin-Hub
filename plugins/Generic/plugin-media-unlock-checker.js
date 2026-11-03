@@ -1,6 +1,6 @@
 /**
  * 本插件参考代码：https://github.com/clash-verge-rev/clash-verge-rev/tree/dev/crates/clash-verge-media-unlock
- * 上游同步基准：https://github.com/clash-verge-rev/clash-verge-rev/commit/2717aaadad38908c0a3b7e17ffb655910185c85c
+ * 上游同步基准：https://github.com/clash-verge-rev/clash-verge-rev/commit/488f022c052705d9b83e8967a7c1ac0a91365d17
  */
 
 /* 触发器 手动触发 */
@@ -244,6 +244,7 @@ function formatDisplayStatus(status) {
   if (normalized === 'Blocked') return '❌已封锁'
   if (normalized === 'Soon') return '⏳即将上线'
   if (normalized === 'Unknown') return '⚠️未知'
+  if (normalized === 'Risky') return '⚠️存疑'
 
   return normalized.replace('Yes', '✅').replace('No', '❌')
 }
@@ -367,6 +368,43 @@ const Checker = {
       } catch {}
 
       return new CheckResult(this.name, status, region)
+    }
+  },
+  muse_ai: {
+    name: 'Muse AI',
+    // aymh（Are You a Human）网关对普通 HTTP 请求返回的 Meta 错误页特征
+    AymhErrorMarkers: ['Sorry, something went wrong', 'static.facebook.com/images/logos'],
+    async check() {
+      // muse.ai 由 Vercel 托管，出口地区改用通用的 Cloudflare trace 获取
+      const regionPromise = Plugins.HttpGet('https://www.cloudflare.com/cdn-cgi/trace')
+        .then(({ body }) => extractTraceRegion(body))
+        .catch(() => null)
+
+      let status = 'Failed'
+      try {
+        // 手动跟随重定向，以便判断是否落到 auth.muse.ai 反机器人网关
+        let url = 'https://muse.ai'
+        let landedOnAymh = false
+        let response
+        for (let i = 0; i < 10; i++) {
+          response = await Plugins.HttpGet(url, undefined, { Redirect: false })
+          const location = getHeaderValue(response.headers, 'location')
+          if (response.status < 300 || response.status >= 400 || !location) break
+          url = new URL(location, url).href
+          landedOnAymh = new URL(url).hostname === 'auth.muse.ai'
+        }
+
+        const bodyText = toBodyText(response.body ?? '')
+        // 所有地区都会先被重定向到 aymh 网关，非浏览器无法完成 JS 验证，只能证明出口可连通，可用性无法确认
+        if (landedOnAymh || this.AymhErrorMarkers.some((marker) => bodyText.includes(marker))) status = 'Risky'
+        else if (response.status >= 200 && response.status < 300) status = 'Yes'
+        else if (response.status === 403 || response.status === 451) status = 'No'
+        else status = 'Failed'
+      } catch {
+        status = 'Failed (Network Connection)'
+      }
+
+      return new CheckResult(this.name, status, await regionPromise)
     }
   },
   youtube_premium: {
