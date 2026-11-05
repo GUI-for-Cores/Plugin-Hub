@@ -4033,5 +4033,132 @@
     "disabled": false,
     "install": false,
     "installed": false
+  },
+  {
+    "id": "plugin-gui-bot",
+    "name": "GUI Bot",
+    "version": "v1.0.0",
+    "group": "Tools",
+    "description": "通过 Telegram 机器人管理 GUI 客户端。Supported by: 泡泡茶壶",
+    "tags": ["实用工具", "功能扩展"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-gui-bot.js",
+    "path": "data/plugins/plugin-gui-bot.js",
+    "triggers": ["on::manual", "on::ready", "on::core::started", "on::core::stopped"],
+    "hasUI": true,
+    "menus": {
+      "启动服务": "Start",
+      "停止服务": "Stop",
+      "打开面板": "OpenPanel"
+    },
+    "context": {
+      "profiles": {
+        "发送配置文件": "SendProfileConfig",
+        "发送配置摘要": "SendProfileSummary"
+      },
+      "subscriptions": {
+        "发送节点文件": "SendSubscriptionNodes",
+        "发送订阅信息": "SendSubscriptionInfo"
+      },
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_tb_workmode",
+        "title": "工作模式",
+        "description": "长轮询无需公网地址；Webhook 需要可被 Telegram 访问的 HTTPS 地址。",
+        "key": "WorkMode",
+        "component": "Select",
+        "value": "polling",
+        "options": ["长轮询,polling", "Webhook,webhook"]
+      },
+      {
+        "id": "ID_tb_token",
+        "title": "机器人 Token",
+        "description": "在 @BotFather 创建机器人后获取，例如 123456789:AA...",
+        "key": "BotToken",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_tb_admins",
+        "title": "管理员用户 ID",
+        "description": "允许控制机器人的 Telegram 用户 ID：先私聊机器人发送 /id 获取，可添加多个。",
+        "key": "AllowedUserIds",
+        "component": "InputList",
+        "value": [],
+        "options": []
+      },
+      {
+        "id": "ID_tb_polling_timeout",
+        "title": "长轮询超时（秒）",
+        "description": "5 - 60，默认 30。数值越大越省请求，但停止响应稍慢。",
+        "key": "PollingTimeout",
+        "component": "Input",
+        "value": "30",
+        "options": []
+      },
+      {
+        "id": "ID_tb_webhook_url",
+        "title": "Webhook 地址",
+        "description": "仅 Webhook 模式需要，必须为 HTTPS，机器人会向其 /webhook 路径发送更新。",
+        "key": "WebhookUrl",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_tb_webhook_listen",
+        "title": "Webhook 监听地址",
+        "description": "本机监听地址，默认 0.0.0.0。",
+        "key": "WebhookListen",
+        "component": "Input",
+        "value": "0.0.0.0",
+        "options": []
+      },
+      {
+        "id": "ID_tb_webhook_port",
+        "title": "Webhook 监听端口",
+        "description": "本机监听端口，需与反向代理配置一致，默认 8080。",
+        "key": "WebhookPort",
+        "component": "Input",
+        "value": "8080",
+        "options": []
+      },
+      {
+        "id": "ID_tb_webhook_secret",
+        "title": "Webhook Secret",
+        "description": "用于校验 Telegram 请求头，仅支持字母、数字、下划线和短横线。",
+        "key": "WebhookSecret",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_tb_drop_pending",
+        "title": "忽略积压消息",
+        "description": "启动时丢弃离线期间积压的更新。",
+        "key": "DropPendingUpdates",
+        "component": "Switch",
+        "value": true,
+        "options": []
+      },
+      {
+        "id": "ID_tb_auto_start",
+        "title": "随应用自动启动",
+        "description": "应用就绪后自动启动机器人；手动触发与计划任务不受影响。",
+        "key": "AutoStart",
+        "component": "Switch",
+        "value": false,
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
   }
 ]
