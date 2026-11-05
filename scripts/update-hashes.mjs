@@ -33,7 +33,7 @@ for (const name of indexes) {
       hashes.push(plugin.hash)
       continue
     }
-    const hash = createHash('sha256').update(content).digest('hex')
+    const hash = createHash('sha256').update(content.toString('utf8').replace(/\r\n/g, '\n'), 'utf8').digest('hex')
     if (plugin.hash !== hash) {
       changed++
       if (check) errors.push(`${name}: ${plugin.id} hash is outdated`)

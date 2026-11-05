@@ -422,7 +422,7 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-config-override.js",
     "path": "data/plugins/plugin-config-override.js",
-    "hash": "b4354b049015a18d8e0078c6d53362bb735032a65ed991cd963c5daea7ce55a6",
+    "hash": "15e5452de3696dcd03bbb956cce215ec4730888ac725fd6b64a6416f6fe5a64a",
     "status": 0,
     "triggers": ["on::manual", "on::ready", "on::before::core::start"],
     "hasUI": true,
@@ -459,7 +459,7 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-xray-front-proxy.js",
     "path": "data/plugins/plugin-xray-front-proxy.js",
-    "hash": "0da45343e08a77e9bcf2932e742d280279b312022e021cb93772535faf3ae0ab",
+    "hash": "40d099bb84664493388f562614653e474332c1e802e90919ba06f422707cd4a0",
     "triggers": ["on::manual", "on::subscribe", "on::before::core::start", "on::core::stopped"],
     "menus": {
       "预览Xray配置": "ViewConfig",

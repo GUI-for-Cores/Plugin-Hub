@@ -9,7 +9,7 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFC/plugin-proxy-chain-manager.js",
     "path": "data/plugins/plugin-proxy-chain-manager.js",
-    "hash": "7d28b9affe1ea10a6e09e0d8a1ac3dfef4d7e34694fb8e1087b7e5bbc0510e56",
+    "hash": "c42f01cd6e52cafd7822a38719895dd6a28acfd7275e7f886068f2c07c019cc2",
     "triggers": ["on::manual", "on::generate"],
     "hasUI": true,
     "menus": {},
