@@ -4044,6 +4044,7 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-gui-bot.js",
     "path": "data/plugins/plugin-gui-bot.js",
+    "hash": "b655330d24e05f4bbaea5bac5555ca66679608955fbc51994c5de6342415a16f",
     "triggers": ["on::manual", "on::ready", "on::core::started", "on::core::stopped"],
     "hasUI": true,
     "menus": {
