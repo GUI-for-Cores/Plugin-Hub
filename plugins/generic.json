@@ -4161,5 +4161,32 @@
     "disabled": false,
     "install": false,
     "installed": false
+  },
+  {
+    "id": "plugin-metadata-editor",
+    "name": "插件元数据编辑器",
+    "version": "v1.0.0",
+    "group": "Development",
+    "description": "通过 JSON 编辑器快速新增插件、批量导入或修改已安装插件的元数据。Supported by: 泡泡茶壶",
+    "tags": ["插件开发", "元数据", "JSON"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-metadata-editor.js",
+    "status": 0,
+    "path": "data/plugins/plugin-metadata-editor.js",
+    "hash": "73fa30f7aca584a0d11c361c503b787973013acf272ec0c873157bcc42ca720e",
+    "triggers": ["on::manual"],
+    "menus": {},
+    "hasUI": true,
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "configuration": [],
+    "disabled": false,
+    "install": false,
+    "installed": false
   }
 ]
