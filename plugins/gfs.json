@@ -303,7 +303,7 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-sing-box-dashboard.js",
     "path": "data/plugins/plugin-sing-box-dashboard.js",
-    "hash": "9a877b3c76ccdfa95e41ad7b63916517562a3eee908269d5e4e4e3141c9f4be1",
+    "hash": "9d3ef80b734e50eac1bfa04def1017ec0314d95270e019e24fe80bc99b49337a",
     "status": 0,
     "triggers": ["on::ready", "on::manual", "on::before::core::start", "on::core::started", "on::core::stopped"],
     "hasUI": true,
@@ -459,7 +459,7 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-xray-front-proxy.js",
     "path": "data/plugins/plugin-xray-front-proxy.js",
-    "hash": "40d099bb84664493388f562614653e474332c1e802e90919ba06f422707cd4a0",
+    "hash": "fff644ccc46ed8c7f3f3a50b66b8cd6437cad33a0fc6eace6a93e8c5878da33b",
     "triggers": ["on::manual", "on::subscribe", "on::before::core::start", "on::core::stopped"],
     "menus": {
       "预览Xray配置": "ViewConfig",

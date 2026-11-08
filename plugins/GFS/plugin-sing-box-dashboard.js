@@ -166,5 +166,12 @@ export default (plugin) => {
     add_ui()
   }
 
-  return { onRun, onBeforeCoreStart, onCoreStarted, onCoreStopped, onDispose, onReady }
+  return {
+    onRun,
+    onBeforeCoreStart,
+    onCoreStarted,
+    onCoreStopped,
+    onDispose,
+    onReady
+  }
 }

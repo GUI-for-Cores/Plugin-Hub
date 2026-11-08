@@ -411,7 +411,7 @@ const ROOT_TEMPLATE = /* template */ `
 </div>
 `
 
-const DETAIL_TEMPLATE = /* template */`
+const DETAIL_TEMPLATE = /* template */ `
 <div class="flex flex-col gap-16">
   <div class="flex items-center gap-12">
     <img

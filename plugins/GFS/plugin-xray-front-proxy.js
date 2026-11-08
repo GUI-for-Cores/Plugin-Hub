@@ -159,7 +159,7 @@ export default (Plugin) => {
 
     await Plugins.WriteFile(CONFIG_FILE, JSON.stringify(buildXrayConfig(nodes, options), null, 2))
     await startXray()
-    
+
     setTimeout(() => {
       Plugin.status = 1
     }, 1000)

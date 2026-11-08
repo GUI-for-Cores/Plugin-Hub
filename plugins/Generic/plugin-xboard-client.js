@@ -241,12 +241,8 @@ const extractApiCandidatesFromText = (text) => {
     }
   }
 
-  const hostFieldRe =
-    /(?:["']?(?:host|api|apiUrl|baseUrl|baseURL|API_URL)["']?)\s*:\s*["']([^"']+)["']/g
-  for (const re of [
-    /(?:window\.)?settings\s*=\s*\{[\s\S]{0,8000}?\}/i,
-    /(?:window\.)?config\s*=\s*\{[\s\S]{0,8000}?\}/i
-  ]) {
+  const hostFieldRe = /(?:["']?(?:host|api|apiUrl|baseUrl|baseURL|API_URL)["']?)\s*:\s*["']([^"']+)["']/g
+  for (const re of [/(?:window\.)?settings\s*=\s*\{[\s\S]{0,8000}?\}/i, /(?:window\.)?config\s*=\s*\{[\s\S]{0,8000}?\}/i]) {
     const block = src.match(re)
     if (!block) continue
     for (const m of block[0].matchAll(hostFieldRe)) {
@@ -1389,7 +1385,7 @@ const openUI = async (plugin) => {
               )
           }
         ),
-        Vue.h(Vue.resolveComponent('Button'), { type: 'text', onClick: openAccounts }, () => '账号管理'),
+        Vue.h(Vue.resolveComponent('Button'), { type: 'text', onClick: openAccounts }, () => '账号管理')
       ]
     }
   )

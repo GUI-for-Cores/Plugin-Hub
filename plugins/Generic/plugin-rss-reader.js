@@ -82,7 +82,7 @@ export default (Plugin) => {
         const viewOriginal = () => {
           openWebUI(article.value.link)
         }
-        
+
         const jumpOriginal = () => {
           Plugins.OpenURI(article.value.link)
         }

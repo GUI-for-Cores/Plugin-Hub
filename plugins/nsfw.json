@@ -9,7 +9,7 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Extra/plugin-x-archive-viewer.js",
     "path": "data/plugins/plugin-x-archive-viewer.js",
-    "hash": "7f30c7ac00c8a36b7e5f683d9946c298b38532192d375bb8bdd8b38d6c082e06",
+    "hash": "b3ff0d032f9919323160a4d7ee4af02a388742fde0983f1aef2847317a758caa",
     "triggers": ["on::manual"],
     "hasUI": true,
     "menus": {},
