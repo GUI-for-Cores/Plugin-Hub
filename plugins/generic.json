@@ -1719,14 +1719,14 @@
   {
     "id": "plugin-sub-store-v2",
     "name": "Sub-Store Nodejs版",
-    "version": "v1.3.5",
+    "version": "v1.3.6",
     "group": "Tools",
     "description": "高级订阅管理工具，Node.js版，无需编译。（Advanced Subscription Manager for QX, Loon, Surge, Stash and Shadowrocket!）",
     "tags": ["实用工具"],
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sub-store-v2.js",
     "path": "data/plugins/plugin-sub-store-v2.js",
-    "hash": "b7f660bc11229d116fa75b534a4b79c6c6ddaf87bbdab11c96c94b7f45502111",
+    "hash": "41722754d4ff850b3b44db5e0320193537ef96c96f29661bd265d4c4e349c227",
     "triggers": ["on::manual", "on::startup", "on::shutdown"],
     "hasUI": false,
     "menus": {
