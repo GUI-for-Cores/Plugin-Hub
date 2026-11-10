@@ -35,15 +35,16 @@ const openUI = () => {
           Plugins.message.error('暂未适配此客户端')
           return
         }
-        const envStore = Plugins.useEnvStore()
-        const path = envStore.env.appPath.replaceAll('\\', '\\\\')
+        const { appPath, appName, args = [] } = Plugins.useEnvStore().env
+        const command = [`"${appPath}"`, ...args.map(Plugins.quoteWindowsArg), '"%1"'].join(' ')
+        const escape = (s) => s.replaceAll('\\', '\\\\').replaceAll('"', '\\"')
         const file = 'data/.cache/register_protocol.reg'
         const reg = `Windows Registry Editor Version 5.00
 [${regKey}]
-"URL Protocol"="${path}"
-@="${envStore.env.appName}"
+"URL Protocol"="${escape(appPath)}"
+@="${appName}"
 [${regKey}\\shell\\open\\command]
-@="\\"${path}\\" \\"%1\\""`
+@="${escape(command)}"`
 
         await Plugins.WriteFile(file, reg)
         const abs_file = await Plugins.AbsolutePath(file)
