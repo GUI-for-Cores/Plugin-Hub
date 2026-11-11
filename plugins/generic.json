@@ -1669,14 +1669,14 @@
   {
     "id": "plugin-sub-store-v3",
     "name": "Sub-Store 纯净版",
-    "version": "v1.5.1",
+    "version": "v1.5.2",
     "group": "Tools",
     "description": "高级订阅管理工具。无Node.js、无MITM，优雅。（Advanced Subscription Manager for QX, Loon, Surge, Stash and Shadowrocket!）",
     "tags": ["实用工具"],
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sub-store-v3.js",
     "path": "data/plugins/plugin-sub-store-v3.js",
-    "hash": "d03265c9f3c11b91519cda8123ada888e1ea6a235c3dca841a3df7a5e644185e",
+    "hash": "b4a66f654a7c980235cf644fc5990c77d285b4ed17b2c950f795a1605ea9efef",
     "triggers": ["on::manual", "on::ready"],
     "hasUI": false,
     "menus": {
