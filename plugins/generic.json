@@ -1719,14 +1719,14 @@
   {
     "id": "plugin-sub-store-v2",
     "name": "Sub-Store Nodejs版",
-    "version": "v1.3.4",
+    "version": "v1.3.5",
     "group": "Tools",
     "description": "高级订阅管理工具，Node.js版，无需编译。（Advanced Subscription Manager for QX, Loon, Surge, Stash and Shadowrocket!）",
     "tags": ["实用工具"],
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sub-store-v2.js",
     "path": "data/plugins/plugin-sub-store-v2.js",
-    "hash": "a9f1ccce687ad06f97a408fe875a8a7f814506fee67ec7de51137ad64ad25907",
+    "hash": "b7f660bc11229d116fa75b534a4b79c6c6ddaf87bbdab11c96c94b7f45502111",
     "triggers": ["on::manual", "on::startup", "on::shutdown"],
     "hasUI": false,
     "menus": {
@@ -1764,7 +1764,7 @@
       {
         "id": "ID_rwdt9pzf",
         "title": "前端监听端口",
-        "description": "环境变量：SUB_STORE_FRONTEND_API_PORT",
+        "description": "环境变量：SUB_STORE_FRONTEND_PORT",
         "key": "SUB_STORE_FRONTEND_API_PORT",
         "component": "Input",
         "value": "3001",
