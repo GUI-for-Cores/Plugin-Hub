@@ -1755,7 +1755,7 @@
   {
     "id": "plugin-sub-store-v2",
     "name": "Sub-Store Nodejs版",
-    "version": "v1.3.5",
+    "version": "v1.3.6",
     "group": "Tools",
     "description": "高级订阅管理工具，Node.js版，无需编译。（Advanced Subscription Manager for QX, Loon, Surge, Stash and Shadowrocket!）",
     "author": "",
@@ -1763,7 +1763,7 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-sub-store-v2.js",
     "path": "data/plugins/plugin-sub-store-v2.js",
-    "hash": "b7f660bc11229d116fa75b534a4b79c6c6ddaf87bbdab11c96c94b7f45502111",
+    "hash": "41722754d4ff850b3b44db5e0320193537ef96c96f29661bd265d4c4e349c227",
     "triggers": ["on::manual", "on::startup", "on::shutdown"],
     "hasUI": false,
     "menus": {
@@ -4268,6 +4268,55 @@
       "scheduledtasks": {}
     },
     "configuration": [],
+    "disabled": false,
+    "install": false,
+    "installed": false
+  },
+  {
+    "id": "plugin-config-template-hub",
+    "name": "配置模板中心",
+    "version": "v1.0.0",
+    "group": "Tools",
+    "description": "浏览并预览运行时配置模板，一键导入为托管配置；自动跟踪清单更新，记录导入历史并支持合并升级已导入配置。Supported by: 泡泡茶壶",
+    "author": "https://github.com/Bubble-droid",
+    "tags": ["实用工具", "功能扩展"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-config-template-hub.js",
+    "path": "data/plugins/plugin-config-template-hub.js",
+    "hash": "e14694361ad52ebd0ea9ad5a8d7c1861fd036c833bfa84508298a46e806711f6",
+    "triggers": ["on::manual", "on::ready"],
+    "hasUI": true,
+    "menus": {
+      "打开模板中心": "OpenHub"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_cthub001",
+        "title": "模板源地址",
+        "description": "留空使用官方源；自建镜像请指向包含 gfs.json 与 gfc.json 清单的目录地址",
+        "key": "BaseUrl",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_cthub002",
+        "title": "在配置页顶部显示模板中心入口",
+        "description": "关闭后仍可通过插件菜单打开模板中心",
+        "key": "ShowHeaderAction",
+        "component": "Switch",
+        "value": true,
+        "options": []
+      }
+    ],
     "disabled": false,
     "install": false,
     "installed": false

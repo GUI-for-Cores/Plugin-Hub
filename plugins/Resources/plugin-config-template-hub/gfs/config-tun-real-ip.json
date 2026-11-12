@@ -1,0 +1,378 @@
+{
+  "$schema": "https://sing-box.sagernet.org/schema.json",
+  "log": {
+    "level": "warn",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "type": "local",
+        "tag": "local"
+      },
+      {
+        "tag": "dns-pod",
+        "type": "https",
+        "server": "doh.pub",
+        "domain_resolver": "dns-hosts"
+      },
+      {
+        "tag": "cloudflare",
+        "type": "https",
+        "server": "cloudflare-dns.com",
+        "detour": "Proxy",
+        "domain_resolver": "dns-hosts"
+      },
+      {
+        "tag": "dns-hosts",
+        "type": "hosts",
+        "predefined": {
+          "doh.pub": ["120.53.53.53", "1.12.12.12"],
+          "cloudflare-dns.com": ["104.16.248.249", "104.16.249.249"]
+        }
+      }
+    ],
+    "rules": [
+      {
+        "rule_set": "geosite-private",
+        "action": "route",
+        "server": "local"
+      },
+      {
+        "rule_set": ["adblock"],
+        "action": "predefined",
+        "answer": ["*. 3600 IN A 28.128.0.244"]
+      },
+      {
+        "clash_mode": "direct",
+        "action": "route",
+        "server": "dns-pod"
+      },
+      {
+        "clash_mode": "global",
+        "action": "route",
+        "server": "cloudflare"
+      },
+      {
+        "rule_set": "geosite-geolocation-cn",
+        "action": "route",
+        "server": "dns-pod"
+      },
+      {
+        "rule_set": "geosite-geolocation-!cn",
+        "invert": true,
+        "action": "evaluate",
+        "server": "cloudflare"
+      },
+      {
+        "rule_set": "geoip-cn",
+        "match_response": true,
+        "action": "respond"
+      },
+      {
+        "query_type": ["HTTPS", "SVCB"],
+        "action": "predefined",
+        "rcode": "NOTIMP"
+      },
+      {
+        "type": "logical",
+        "mode": "or",
+        "rules": [
+          {
+            "ip_version": 6
+          },
+          {
+            "query_type": "AAAA"
+          }
+        ],
+        "action": "predefined",
+        "rcode": "NOERROR"
+      }
+    ],
+    "final": "cloudflare",
+    "optimistic": true
+  },
+  "ntp": {
+    "enabled": true,
+    "server": "ntp.aliyun.com"
+  },
+  "http_clients": [
+    {
+      "tag": "request-proxy",
+      "headers": {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:150.0) Gecko/20100101 Firefox/150.0"
+      },
+      "detour": "Proxy",
+      "domain_resolver": {
+        "server": "dns-pod",
+        "strategy": "ipv4_only"
+      }
+    }
+  ],
+  "inbounds": [
+    {
+      "type": "tun",
+      "tag": "tun-in",
+      "interface_name": "sing-box-tun",
+      "address": ["11.18.0.1/30", "fdfe:dcba:9876::1/126"],
+      "dns_mode": "hijack",
+      "auto_route": true,
+      "strict_route": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "Proxy",
+      "interrupt_exist_connections": true,
+      "outbounds": ["HK", "TW", "SG", "JP"]
+    },
+    {
+      "type": "selector",
+      "tag": "Google",
+      "interrupt_exist_connections": true,
+      "outbounds": ["Proxy", "HK", "TW", "SG", "JP"]
+    },
+    {
+      "type": "selector",
+      "tag": "Telegram",
+      "interrupt_exist_connections": true,
+      "outbounds": ["Proxy", "HK", "TW", "SG", "JP"]
+    },
+
+    {
+      "type": "urltest",
+      "tag": "HK",
+      "url": "https://cp.cloudflare.com/generate_204",
+      "interval": "2m",
+      "tolerance": 50,
+      "interrupt_exist_connections": true,
+      "outbounds": []
+    },
+    {
+      "type": "urltest",
+      "tag": "TW",
+      "url": "https://cp.cloudflare.com/generate_204",
+      "interval": "2m",
+      "tolerance": 50,
+      "interrupt_exist_connections": true,
+      "outbounds": []
+    },
+    {
+      "type": "urltest",
+      "tag": "SG",
+      "url": "https://cp.cloudflare.com/generate_204",
+      "interval": "2m",
+      "tolerance": 50,
+      "interrupt_exist_connections": true,
+      "outbounds": []
+    },
+    {
+      "type": "urltest",
+      "tag": "JP",
+      "url": "https://cp.cloudflare.com/generate_204",
+      "interval": "2m",
+      "tolerance": 50,
+      "interrupt_exist_connections": true,
+      "outbounds": []
+    },
+    {
+      "type": "selector",
+      "tag": "GLOBAL",
+      "interrupt_exist_connections": true,
+      "outbounds": ["Proxy", "Google", "Telegram", "HK", "TW", "SG", "JP"]
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "type": "logical",
+        "mode": "and",
+        "rules": [
+          {
+            "ip_version": 6
+          },
+          {
+            "default_interface_address": ["2000::/3"],
+            "invert": true
+          }
+        ],
+        "action": "reject"
+      },
+      {
+        "ip_cidr": "28.128.0.244/32",
+        "action": "reject"
+      },
+      {
+        "inbound": "tun-in",
+        "port": 53,
+        "network": "udp",
+        "action": "sniff",
+        "sniffer": "dns"
+      },
+      {
+        "protocol": "dns",
+        "action": "hijack-dns"
+      },
+      {
+        "rule_set": "geoip-private",
+        "action": "route",
+        "outbound": "direct"
+      },
+      {
+        "inbound": "tun-in",
+        "action": "sniff",
+        "sniffer": ["http", "tls", "quic"]
+      },
+      {
+        "rule_set": ["adblock"],
+        "action": "reject"
+      },
+      {
+        "clash_mode": "direct",
+        "action": "route",
+        "outbound": "direct"
+      },
+      {
+        "clash_mode": "global",
+        "action": "route",
+        "outbound": "Proxy"
+      },
+      {
+        "rule_set": "geoip-cn",
+        "action": "route",
+        "outbound": "direct"
+      },
+      {
+        "rule_set": "geosite-geolocation-cn",
+        "action": "route",
+        "outbound": "direct"
+      },
+      {
+        "type": "logical",
+        "mode": "or",
+        "rules": [
+          {
+            "port": 853
+          },
+          {
+            "network": "udp",
+            "port": [443, 3478]
+          }
+        ],
+        "action": "reject"
+      },
+      {
+        "inbound": "tun-in",
+        "action": "sniff",
+        "sniffer": ["stun", "dtls"]
+      },
+      {
+        "protocol": ["quic", "stun", "dtls"],
+        "action": "reject"
+      },
+      {
+        "rule_set": ["geosite-google", "geosite-google-deepmind"],
+        "action": "route",
+        "outbound": "Google"
+      },
+      {
+        "rule_set": ["geosite-telegram", "geoip-telegram"],
+        "action": "route",
+        "outbound": "Telegram"
+      }
+    ],
+    "rule_set": [
+      {
+        "tag": "adblock",
+        "type": "remote",
+        "url": "https://raw.githubusercontent.com/217heidai/adblockfilters/main/rules/adblocksingbox.srs",
+        "format": "binary"
+      },
+      {
+        "tag": "geoip-private",
+        "type": "remote",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/refs/heads/sing/geo/geoip/private.srs",
+        "format": "binary"
+      },
+      {
+        "tag": "geosite-private",
+        "type": "remote",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/refs/heads/sing/geo/geosite/private.srs",
+        "format": "binary"
+      },
+      {
+        "tag": "geosite-google-deepmind",
+        "type": "remote",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/refs/heads/sing/geo/geosite/google-deepmind.srs",
+        "format": "binary"
+      },
+      {
+        "tag": "geosite-googlefcm",
+        "type": "remote",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/refs/heads/sing/geo/geosite/googlefcm.srs",
+        "format": "binary"
+      },
+      {
+        "tag": "geosite-google",
+        "type": "remote",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/refs/heads/sing/geo/geosite/google.srs",
+        "format": "binary"
+      },
+      {
+        "tag": "geoip-telegram",
+        "type": "remote",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/refs/heads/sing/geo/geoip/telegram.srs",
+        "format": "binary"
+      },
+      {
+        "tag": "geosite-telegram",
+        "type": "remote",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/refs/heads/sing/geo/geosite/telegram.srs",
+        "format": "binary"
+      },
+      {
+        "tag": "geosite-geolocation-cn",
+        "type": "remote",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/refs/heads/sing/geo/geosite/geolocation-cn.srs",
+        "format": "binary"
+      },
+      {
+        "tag": "geosite-geolocation-!cn",
+        "type": "remote",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/refs/heads/sing/geo/geosite/geolocation-!cn.srs",
+        "format": "binary"
+      },
+      {
+        "tag": "geoip-cn",
+        "type": "remote",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/refs/heads/sing/geo/geoip/cn.srs",
+        "format": "binary"
+      }
+    ],
+    "final": "Proxy",
+    "find_process": true,
+    "auto_detect_interface": true,
+    "default_http_client": "request-proxy",
+    "default_domain_resolver": {
+      "server": "dns-pod",
+      "strategy": "prefer_ipv6"
+    }
+  },
+  "experimental": {
+    "clash_api": {
+      "external_controller": "",
+      "secret": "",
+      "external_ui": "ui",
+      "default_mode": "rule",
+      "external_ui_download_url": "https://github.com/Zephyruso/zashboard/releases/download/v2.10.1/dist-no-fonts.zip",
+      "external_ui_download_detour": "Proxy"
+    },
+    "cache_file": {
+      "enabled": true,
+      "path": "cache.db",
+      "cache_id": "tun-real-ip",
+      "store_dns": true
+    }
+  }
+}
