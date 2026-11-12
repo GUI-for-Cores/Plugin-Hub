@@ -486,7 +486,7 @@ export default (Plugin) => {
 
   const findParentKeyFromLines = (lines) => {
     for (const line of lines) {
-      const match = /^"([^"]+)"\s*:\s*[[{]\s*$/.exec(line.trim())
+      const match = line.trim().match(/^"([^"]+)"\s*:\s*[[{]\s*$/)
       if (match?.[1]) {
         return match[1]
       }
@@ -500,7 +500,7 @@ export default (Plugin) => {
       return null
     }
 
-    const [, key, rawValue = ''] = /^"([^"]+)"\s*:\s*(.*)$/.exec(trimmed) ?? []
+    const [, key, rawValue = ''] = trimmed.match(/^"([^"]+)"\s*:\s*(.*)$/) ?? []
     if (key) {
       const known = hintForKey(key)
       if (known) {

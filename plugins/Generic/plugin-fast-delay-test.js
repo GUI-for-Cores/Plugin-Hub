@@ -120,10 +120,7 @@ export default (plugin) => {
   const subscribesStore = Plugins.useSubscribesStore()
 
   const runtimeContextMap = new Map()
-  const runtimeState = {
-    uiSubId: null,
-    automationSubIds: new Set()
-  }
+  const runtimeState = { uiSubId: null, automationSubIds: new Set() }
 
   const getParentDir = (filePath) => {
     const lastSlashIndex = filePath.lastIndexOf('/')
@@ -501,13 +498,7 @@ export default (plugin) => {
 
     try {
       const pid = await runCore(configPath, subDir)
-      const ctx = {
-        pid,
-        baseUrl,
-        secret,
-        configPath,
-        started: true
-      }
+      const ctx = { pid, baseUrl, secret, configPath, started: true }
       runtimeContextMap.set(subscription.id, ctx)
       return ctx
     } catch (err) {
@@ -565,9 +556,7 @@ export default (plugin) => {
     const { ref, computed, onMounted, defineComponent, h, resolveComponent } = Vue
 
     const settings = ref({ ...DEFAULT_PLUGIN_SETTINGS })
-    const subConfig = ref({
-      ...DEFAULT_SUBSCRIPTION_CONFIG
-    })
+    const subConfig = ref({ ...DEFAULT_SUBSCRIPTION_CONFIG })
     const uiProxiesList = ref([])
     const allTesting = ref(false)
 
@@ -704,10 +693,7 @@ export default (plugin) => {
         </div>
         `,
         setup() {
-          const urlOptions = Object.keys(TEST_URL_MAP).map((k) => ({
-            label: k,
-            value: k
-          }))
+          const urlOptions = Object.keys(TEST_URL_MAP).map((k) => ({ label: k, value: k }))
           return { draft, urlOptions }
         }
       })
@@ -1135,12 +1121,5 @@ export default (plugin) => {
     await Plugins.RemoveFile(cachePath)
   }
 
-  return {
-    testDelay,
-    onRun,
-    onSubscribe,
-    onShutdown,
-    onInstall,
-    onUninstall
-  }
+  return { testDelay, onRun, onSubscribe, onShutdown, onInstall, onUninstall }
 }

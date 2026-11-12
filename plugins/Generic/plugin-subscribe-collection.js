@@ -367,9 +367,7 @@ export default (Plugin) => {
       if (!name.trim() || !url.trim()) {
         continue
       }
-      const newSub = subscribesStore.getSubscribeTemplate(name.trim(), {
-        url: url.trim()
-      })
+      const newSub = subscribesStore.getSubscribeTemplate(name.trim(), { url: url.trim() })
       newSub.header.request = {
         'User-Agent': 'Clash.Meta'
       }
