@@ -17,14 +17,20 @@ export default (Plugin) => {
   /**
    * 启动Sub-Store服务
    */
-  const startSubStoreService = () => {
+  const startSubStoreService = async () => {
+    const [backend, frontend, dataDir] = await Promise.all([
+      Plugins.AbsolutePath(BACKEND_FILE),
+      Plugins.AbsolutePath(FRONTEND_PATH),
+      Plugins.AbsolutePath(PATH)
+    ])
+
     return new Promise(async (resolve, reject) => {
       let timeout = true
       setTimeout(() => timeout && reject('启动Sub-Store服务超时'), 15000)
       try {
         const pid = await Plugins.ExecBackground(
           Plugin.NODE_PATH || 'node',
-          [envStore.env.basePath + '/' + BACKEND_FILE],
+          [backend],
           (out) => {
             if (out.includes('[sub-store] INFO: [BACKEND]')) {
               Plugins.WriteFile(PID_FILE, pid.toString())
@@ -37,15 +43,17 @@ export default (Plugin) => {
             Env: {
               SUB_STORE_BACKEND_API_HOST: Plugin.SUB_STORE_BACKEND_API_HOST,
               SUB_STORE_FRONTEND_HOST: Plugin.SUB_STORE_FRONTEND_HOST,
-              SUB_STORE_FRONTEND_API_PORT: Plugin.SUB_STORE_FRONTEND_API_PORT,
+              SUB_STORE_FRONTEND_PORT: Plugin.SUB_STORE_FRONTEND_API_PORT,
               SUB_STORE_BACKEND_API_PORT: Plugin.SUB_STORE_BACKEND_API_PORT,
               SUB_STORE_BACKEND_CUSTOM_NAME: Plugin.SUB_STORE_BACKEND_CUSTOM_NAME,
               SUB_STORE_BACKEND_CUSTOM_ICON: Plugin.SUB_STORE_BACKEND_CUSTOM_ICON,
               SUB_STORE_BACKEND_DOWNLOAD_CRON: Plugin.SUB_STORE_BACKEND_DOWNLOAD_CRON,
               SUB_STORE_BACKEND_UPLOAD_CRON: Plugin.SUB_STORE_BACKEND_UPLOAD_CRON,
               SUB_STORE_BACKEND_SYNC_CRON: Plugin.SUB_STORE_BACKEND_SYNC_CRON,
-              SUB_STORE_FRONTEND_PATH: envStore.env.basePath + '/' + FRONTEND_PATH,
-              SUB_STORE_DATA_BASE_PATH: envStore.env.basePath + '/' + PATH
+              SUB_STORE_FRONTEND_BACKEND_PATH: '/',
+              SUB_STORE_CORS_ALLOWED_ORIGINS: 'http://127.0.0.1:' + Plugin.SUB_STORE_FRONTEND_API_PORT,
+              SUB_STORE_FRONTEND_PATH: frontend,
+              SUB_STORE_DATA_BASE_PATH: dataDir
             }
           }
         )
@@ -79,8 +87,9 @@ export default (Plugin) => {
         const name = await Plugins.ignoredError(Plugins.ProcessInfo, Number(pid))
         return name && ['node.exe', 'node', 'node-default'].includes(name)
       }
-      const processCommand = await Plugins.ignoredError(Plugins.Exec, '/usr/bin/ps', ['-p', pid.toString(), '-o', 'cmd='])
-      const match = `.*${Plugin.NODE_PATH || 'node'}\\s+${envStore.env.basePath}/${BACKEND_FILE}`
+      const processCommand = await Plugins.ignoredError(Plugins.Exec, 'ps', ['-p', pid.toString(), '-o', 'cmd='])
+      const backend = await Plugins.AbsolutePath(BACKEND_FILE)
+      const match = `.*${Plugin.NODE_PATH || 'node'}\\s+${backend}`
       return new RegExp(match, 'g').test(String(processCommand).trim())
     }
     return false

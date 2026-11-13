@@ -20,6 +20,7 @@ Use pnpm because `pnpm-lock.yaml` is committed.
 - `pnpm install` installs Prettier and Vue development dependencies.
 - `pnpm format` formats everything under `plugins/` using the repository configuration.
 - `pnpm exec prettier --check plugins/` checks formatting without modifying files and is suitable before a PR.
+- `pnpm hashes` recomputes the `hash` (SHA-256 of the file at `url`) of every catalog entry; run it after changing any plugin script. `pnpm hashes:check` verifies them and runs in CI.
 
 There is no compiled build or local development server in this repository. Load or add the changed plugin through a supported client to exercise it.
 

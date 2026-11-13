@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "id": "material-card",
   "name": "素雅卡片",
-  "description": "Material 风格的柔和卡片：首页大圆角无边框卡片、分层阴影、胶囊开关、自适应流量数字与铺满高度的图表/模式卡片；主导航改为左侧可收缩图标栏（悬停浮层展开，顶部按钮可固定展开）。强调色跟随 app 的主色与辅助色，深色为中性灰黑。",
+  "description": "Material 风格的柔和卡片：首页大圆角无边框卡片、分层阴影、胶囊开关、自适应流量数字与铺满高度的图表/模式卡片；主导航改为左侧可收缩图标栏（悬停浮层展开，顶部按钮可固定展开，收起时悬停 1 秒在右侧显示名称提示）。强调色跟随 app 的主色与辅助色，深色为中性灰黑。",
   "author": "Grok Bot & Ya",
   "tags": [
     "Material",
@@ -22,5 +22,6 @@
   "variables": {},
   "layout": "native",
   "navToggle": true,
+  "navTooltip": true,
   "stretchTrafficChart": true
 }

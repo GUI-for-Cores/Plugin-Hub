@@ -1,0 +1,26 @@
+[
+  {
+    "id": "config-sing-box-example",
+    "name": "SingBox 示例模板",
+    "description": "由 LLM 生成的 sing-box 示例条目：仅用于演示模板格式与导入流程，未经生产环境验证，请勿直接用于生产。",
+    "author": "LLM",
+    "version": "v1.0.0",
+    "tags": ["示例", "LLM 生成"],
+    "group": "示例",
+    "homepage": "https://github.com/GUI-for-Cores/Plugin-Hub/tree/main/plugins/Resources/plugin-config-template-hub",
+    "updatedAt": "2026-11-10",
+    "notes": "本条目由 LLM 生成，仅供学习与参考，未经生产环境验证。分组按 tag 匹配订阅节点；未匹配到的分组导入后为空，请在配置编辑器中调整或补充订阅。"
+  },
+  {
+    "id": "config-tun-real-ip",
+    "name": "TUN 真 IP 分流",
+    "description": "TUN 入站 + 真 IP DNS 的 sing-box 生产向配置：国内直连、海外代理，内置广告拦截与 Google / Telegram 分流，含地区自动测速分组。",
+    "author": "泡泡茶壶",
+    "version": "v1.0.1",
+    "tags": ["TUN", "真 IP", "分流", "广告拦截"],
+    "group": "通用",
+    "homepage": "https://github.com/GUI-for-Cores/Plugin-Hub/tree/main/plugins/Resources/plugin-config-template-hub",
+    "updatedAt": "2026-11-11",
+    "notes": "分组按 tag 匹配订阅节点：Proxy / Google / Telegram 引用 HK、TW、SG、JP 四个地区分组，请确保订阅节点带有同名 tag，否则分组与引用它们的规则会为空。"
+  }
+]

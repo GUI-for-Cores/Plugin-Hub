@@ -247,6 +247,7 @@ export default (Plugin) => {
           })
           // 订阅联动处理开始
           setTimeout(async () => {
+            if (!req.url.startsWith('/api/sub')) return
             const { status } = JSON.parse(response.body)
             if (status !== 'success') return
 

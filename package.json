@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "format": "prettier --write plugins/"
+    "format": "prettier --write plugins/",
+    "hashes": "node scripts/update-hashes.mjs",
+    "hashes:check": "node scripts/update-hashes.mjs --check"
   },
   "type": "module",
   "keywords": [
