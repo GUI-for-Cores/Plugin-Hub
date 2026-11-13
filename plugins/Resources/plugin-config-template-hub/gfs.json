@@ -16,7 +16,7 @@
     "name": "TUN 真 IP 分流",
     "description": "TUN 入站 + 真 IP DNS 的 sing-box 生产向配置：国内直连、海外代理，内置广告拦截与 Google / Telegram 分流，含地区自动测速分组。",
     "author": "泡泡茶壶",
-    "version": "v1.0.0",
+    "version": "v1.0.1",
     "tags": ["TUN", "真 IP", "分流", "广告拦截"],
     "group": "通用",
     "homepage": "https://github.com/GUI-for-Cores/Plugin-Hub/tree/main/plugins/Resources/plugin-config-template-hub",

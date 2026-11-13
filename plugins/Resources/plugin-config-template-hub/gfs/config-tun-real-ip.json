@@ -122,6 +122,10 @@
   ],
   "outbounds": [
     {
+      "type": "direct",
+      "tag": "Direct"
+    },
+    {
       "type": "selector",
       "tag": "Proxy",
       "interrupt_exist_connections": true,
@@ -217,7 +221,7 @@
       {
         "rule_set": "geoip-private",
         "action": "route",
-        "outbound": "direct"
+        "outbound": "Direct"
       },
       {
         "inbound": "tun-in",
@@ -231,7 +235,7 @@
       {
         "clash_mode": "direct",
         "action": "route",
-        "outbound": "direct"
+        "outbound": "Direct"
       },
       {
         "clash_mode": "global",
@@ -241,12 +245,12 @@
       {
         "rule_set": "geoip-cn",
         "action": "route",
-        "outbound": "direct"
+        "outbound": "Direct"
       },
       {
         "rule_set": "geosite-geolocation-cn",
         "action": "route",
-        "outbound": "direct"
+        "outbound": "Direct"
       },
       {
         "type": "logical",
@@ -308,12 +312,6 @@
         "format": "binary"
       },
       {
-        "tag": "geosite-googlefcm",
-        "type": "remote",
-        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/refs/heads/sing/geo/geosite/googlefcm.srs",
-        "format": "binary"
-      },
-      {
         "tag": "geosite-google",
         "type": "remote",
         "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/refs/heads/sing/geo/geosite/google.srs",
@@ -361,8 +359,6 @@
   },
   "experimental": {
     "clash_api": {
-      "external_controller": "",
-      "secret": "",
       "external_ui": "ui",
       "default_mode": "rule",
       "external_ui_download_url": "https://github.com/Zephyruso/zashboard/releases/download/v2.10.1/dist-no-fonts.zip",
