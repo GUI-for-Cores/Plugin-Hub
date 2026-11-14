@@ -601,13 +601,12 @@
     "disabled": false,
     "install": true,
     "installed": false
-  }
-,
+  },
   {
     "id": "plugin-singbox-resilient-node-switcher",
     "name": "节点弹性切换",
     "version": "v1.0.1",
-    "description": "面向 GUI.for.SingBox 的 Selector 健康监控与可恢复故障切换：主动探测节点延迟，连续失败后暂时冷却故障节点，冷却到期半开验证，恢复后重新参与选择；仅在验证候选成功后才切换，不永久剔除节点。",
+    "description": "面向 GUI.for.SingBox 的 Selector 健康监控与可恢复故障切换：主动探测节点延迟，连续失败后暂时冷却故障节点，冷却到期半开验证，恢复后重新参与选择；仅在验证候选成功后才切换，不永久剔除节点。Supported by: cycle2zhou",
     "author": "https://github.com/cycle2zhou",
     "group": "Extensions",
     "tags": [
