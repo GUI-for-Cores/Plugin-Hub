@@ -601,5 +601,93 @@
     "disabled": false,
     "install": true,
     "installed": false
+  },
+  {
+    "id": "plugin-singbox-resilient-node-switcher",
+    "name": "节点弹性切换",
+    "version": "v1.0.1",
+    "description": "面向 GUI.for.SingBox 的 Selector 健康监控与可恢复故障切换：主动探测节点延迟，连续失败后暂时冷却故障节点，冷却到期半开验证，恢复后重新参与选择；仅在验证候选成功后才切换，不永久剔除节点。Supported by: cycle2zhou",
+    "author": "https://github.com/cycle2zhou",
+    "group": "Extensions",
+    "tags": [
+      "提升体验",
+      "功能扩展",
+      "故障切换"
+    ],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/GFS/plugin-singbox-resilient-node-switcher.js",
+    "path": "data/plugins/plugin-singbox-resilient-node-switcher.js",
+    "hash": "d5cdfac33260bf98170e14d6316166574a3010506a70e6467fc40134a1b48f74",
+    "triggers": [
+      "on::manual",
+      "on::startup",
+      "on::ready",
+      "on::core::started",
+      "on::core::stopped",
+      "on::shutdown"
+    ],
+    "menus": {
+      "启动": "Start",
+      "停止": "Stop"
+    },
+    "hasUI": true,
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_selector_name",
+        "title": "主 Selector 名称",
+        "description": "需要监控并切换的主策略组名称",
+        "key": "SelectorName",
+        "component": "Input",
+        "value": "🚀 节点选择",
+        "options": []
+      },
+      {
+        "id": "ID_probe_urls",
+        "title": "探测 URL 列表",
+        "description": "节点延迟探测的目标地址，逗号分隔；多 URL 短路探测，任一可达即判健康",
+        "key": "ProbeUrls",
+        "component": "Input",
+        "value": "https://www.gstatic.com/generate_204,https://www.google.com/generate_204,https://github.com",
+        "options": []
+      },
+      {
+        "id": "ID_max_delay_ms",
+        "title": "绝对延迟阈值(ms)",
+        "description": "探测成功但延迟超过该值即计「慢」，连续慢达标触发切换，默认 2000",
+        "key": "MaxDelayMs",
+        "component": "Input",
+        "value": "2000",
+        "options": []
+      },
+      {
+        "id": "ID_failure_threshold",
+        "title": "失败阈值",
+        "description": "连续失败多少次后进入冷却，默认 3",
+        "key": "FailureThreshold",
+        "component": "Input",
+        "value": "3",
+        "options": []
+      },
+      {
+        "id": "ID_initial_cooldown_ms",
+        "title": "初始冷却(ms)",
+        "description": "首次进入冷却的时长，默认 120000",
+        "key": "InitialCooldownMs",
+        "component": "Input",
+        "value": "120000",
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
   }
 ]
