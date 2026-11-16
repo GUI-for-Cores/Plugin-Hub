@@ -3899,7 +3899,7 @@
   },
   {
     "id": "plugin-traffic-statistics-vibe",
-    "version": "v2.1.1",
+    "version": "v2.1.3",
     "name": "流量统计 Vibe",
     "group": "Extensions",
     "description": "流量统计 v2：精确采集 mihomo / sing-box 连接增量（含关闭连接、内核重启校正），按节点/策略组/代理链/域名/进程/规则/端口/协议/入站/客户端等多维统计，提供仪表盘、实时速率、每日柱状图、24 小时热力图、环形图、可搜索排序的排行与下钻、长连接与大流量连接排行，支持自动保存与 HTTP API",
@@ -3908,8 +3908,8 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-traffic-statistics-vibe.js",
     "path": "data/plugins/plugin-traffic-statistics-vibe.js",
-    "hash": "05bb016c83f1525f450aa722c27ba39b601fa259184d4f4d328ccdf249269d97",
-    "triggers": ["on::manual", "on::ready", "on::shutdown"],
+    "hash": "0bb4785749db34fce2ade84ea83cb1cd9eeda93e9c7142cfbd2ded97dd804c99",
+    "triggers": ["on::manual", "on::ready", "on::shutdown", "on::reload"],
     "hasUI": true,
     "menus": {
       "开始": "Start",

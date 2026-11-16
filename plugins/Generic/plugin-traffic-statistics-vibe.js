@@ -33,6 +33,11 @@ Object.assign(store, {
   tagsConfig: store.tagsConfig || {},
   lastConnections: store.lastConnections || {},
   lastTotals: store.lastTotals || null,
+  tracking: !!store.tracking,
+  emptyStreak: store.emptyStreak || 0,
+  lastSnapAt: store.lastSnapAt || 0,
+  pendingTotals: store.pendingTotals || null,
+  pendingAt: store.pendingAt || 0,
   unregs: store.unregs || [],
   realtime: store.realtime || [],
   autosaveTimer: store.autosaveTimer || null,
@@ -72,6 +77,7 @@ const createEmptyStats = () => {
   })
   return {
     summary: { up: 0, down: 0 },
+    residual: { up: 0, down: 0 },
     details,
     hourly: createHourly(),
     conn: { count: 0, closed: 0, durTotal: 0, durMax: 0, rejected: 0, direct: { up: 0, down: 0, hits: 0 }, proxy: { up: 0, down: 0, hits: 0 } },
@@ -119,11 +125,13 @@ const migrate = (raw) => {
   for (const k in m.daily) {
     const day = m.daily[k] || (m.daily[k] = {})
     const dayHadConn = !!day.conn
+    const dayHadResidual = day.residual && typeof day.residual.up === 'number'
     fillDefaults(day, createEmptyStats())
     if (!Array.isArray(day.hourly) || day.hourly.length !== 24) day.hourly = createHourly()
     for (const ip in day.details.clients)
       fillDefaults(day.details.clients[ip], { up: 0, down: 0, hits: 0, domains: {}, nodes: {}, processes: {}, rules: {}, tags: {} })
     if (isV1 && !dayHadConn) backfillV1(day)
+    if (!dayHadResidual) day.residualUnknown = true
   }
   for (const ip in m.details.clients)
     fillDefaults(m.details.clients[ip], { up: 0, down: 0, hits: 0, domains: {}, nodes: {}, processes: {}, rules: {}, tags: {} })
@@ -195,7 +203,84 @@ const saveMonthlyData = async () => {
   if (!store.data || !/^\d{4}-\d{2}$/.test(store.currentMonth)) return false // guards the old "-v1.json" bug
   if (store.data.version !== SCHEMA) store.data = migrate(store.data)
   pruneAll()
+  snapshotCheckpoint()
   await Plugins.WriteFile(`${PATH}/${store.currentMonth}${DataVersion}.json`, JSON.stringify(store.data))
+  return true
+}
+
+const CHECKPOINT_LIVE_CAP = 200
+
+const kernelPid = () => {
+  try {
+    const k = Plugins.useKernelApiStore()
+    let v = k && k.pid
+    if (v && typeof v === 'object' && 'value' in v) v = v.value
+    const n = Number(v)
+    return Number.isFinite(n) && n > 0 ? Math.trunc(n) : 0
+  } catch (e) {
+    return 0
+  }
+}
+
+const clearCheckpoint = () => {
+  if (store.data && store.data.checkpoint) delete store.data.checkpoint
+}
+
+// persist a bounded same-session sampling baseline in the monthly JSON (no new file)
+const snapshotCheckpoint = () => {
+  if (!store.data) return
+  const pid = kernelPid()
+  if (!pid || !store.tracking || !store.lastTotals) return // keep any existing checkpoint if identity is not yet readable
+  const live = {}
+  const ids = Object.keys(store.lastConnections || {})
+  if (ids.length <= CHECKPOINT_LIVE_CAP) {
+    for (const id of ids) {
+      const c = store.lastConnections[id]
+      if (!c) continue
+      live[id] = { u: c.upload || 0, d: c.download || 0, s: c.start || 0, up: c.up || 0, down: c.down || 0 }
+    }
+  }
+  store.data.checkpoint = {
+    pid,
+    at: store.lastSnapAt || Date.now(),
+    month: store.currentMonth,
+    totals: { up: store.lastTotals.up, down: store.lastTotals.down },
+    live
+  }
+}
+
+const restoreCheckpoint = () => {
+  const cp = store.data && store.data.checkpoint
+  if (!cp || !cp.totals) return false
+  const pid = kernelPid()
+  if (!pid) return false // onReady runs before initCoreState; do not expire yet
+  const stale = pid !== cp.pid || !cp.month || cp.month !== store.currentMonth || !cp.at || cp.at > Date.now() + 60000
+  if (stale) {
+    clearCheckpoint()
+    return false
+  }
+  store.lastTotals = { up: Number(cp.totals.up) || 0, down: Number(cp.totals.down) || 0 }
+  store.lastSnapAt = cp.at
+  store.tracking = true
+  store.emptyStreak = 0
+  store.pendingTotals = null
+  store.pendingAt = 0
+  store.lastConnections = {}
+  const live = cp.live || {}
+  for (const id of Object.keys(live)) {
+    const c = live[id]
+    if (!c) continue
+    store.lastConnections[id] = {
+      upload: c.u || 0,
+      download: c.d || 0,
+      start: c.s || 0,
+      up: c.up || 0,
+      down: c.down || 0,
+      info: null,
+      lastDiff: 0,
+      restored: true
+    }
+  }
   return true
 }
 
@@ -362,7 +447,10 @@ const buildInfo = (conn, now) => {
 const dayBucket = (now) => {
   const day = String(now.getDate())
   if (!store.data.daily[day]) store.data.daily[day] = createEmptyStats()
-  return store.data.daily[day]
+  const d = store.data.daily[day]
+  if (!d.residual) d.residual = { up: 0, down: 0 }
+  if (!store.data.residual) store.data.residual = { up: 0, down: 0 }
+  return d
 }
 
 const checkRollover = async (now) => {
@@ -378,16 +466,39 @@ const handleConnections = async (data, nowArg) => {
   await ensureData()
   const now = nowArg ? new Date(nowArg) : new Date()
   await checkRollover(now)
+  if (!store.tracking) restoreCheckpoint()
   const dayData = dayBucket(now)
   const connections = data.connections || []
   const totals = { up: Number(data.uploadTotal) || 0, down: Number(data.downloadTotal) || 0, has: data.downloadTotal !== undefined }
 
   // core restart / counter reset: totals went backwards → drop baselines
+  let rolledBack = false
   if (store.lastTotals && totals.has && (totals.down < store.lastTotals.down || totals.up < store.lastTotals.up)) {
     store.lastConnections = {}
     store.lastTotals = null
+    store.tracking = false
+    store.emptyStreak = 0
+    store.lastSnapAt = 0
+    store.pendingTotals = null
+    store.pendingAt = 0
+    clearCheckpoint()
+    rolledBack = true
   }
 
+  const liveCount = Object.keys(store.lastConnections).length
+  // empty list while still tracking live connections and totals did not reset: wait one more snapshot before closing
+  if (connections.length === 0 && liveCount && store.tracking && !rolledBack) {
+    store.emptyStreak = (store.emptyStreak || 0) + 1
+    if (totals.has) store.pendingTotals = { up: totals.up, down: totals.down }
+    store.pendingAt = now.getTime()
+    if (store.emptyStreak < 2) return
+  } else if (connections.length) {
+    store.emptyStreak = 0
+    store.pendingTotals = null
+    store.pendingAt = 0
+  }
+
+  const establishing = !store.tracking
   const seen = new Set()
   let attributedUp = 0
   let attributedDown = 0
@@ -395,15 +506,28 @@ const handleConnections = async (data, nowArg) => {
     if (!conn || !conn.id || seen.has(conn.id)) continue
     seen.add(conn.id)
     const prev = store.lastConnections[conn.id]
-    const isNew = !prev || !prev.info
+    const restored = !!(prev && prev.restored)
+    let isNew = !prev || !prev.info
+    if (restored) isNew = false
     let pDown = prev ? prev.download || 0 : 0
     let pUp = prev ? prev.upload || 0 : 0
     if ((conn.download || 0) < pDown || (conn.upload || 0) < pUp) pDown = pUp = 0 // per-conn reset
     let diffDown = Math.max(0, (conn.download || 0) - pDown)
     let diffUp = Math.max(0, (conn.upload || 0) - pUp)
-    const info = !isNew ? prev.info : buildInfo(conn, now)
+    const info = prev && prev.info ? prev.info : buildInfo(conn, now)
     info.hour = now.getHours()
     if (info.isReject) diffUp = diffDown = 0 // REJECT / REJECT-DROP: no payload is relayed
+    // first snapshot (or right after a totals reset): record baselines only, do not import absolute counters
+    if (isNew && establishing) {
+      diffUp = diffDown = 0
+      isNew = false
+    } else if (isNew && store.lastSnapAt) {
+      const started = Date.parse(conn.start) || 0
+      if (started && started < store.lastSnapAt) {
+        diffUp = diffDown = 0
+        isNew = false
+      }
+    }
     if (isNew || diffDown > 0 || diffUp > 0) {
       updateStats(store.data, diffUp, diffDown, isNew, info)
       updateStats(dayData, diffUp, diffDown, isNew, info)
@@ -417,8 +541,8 @@ const handleConnections = async (data, nowArg) => {
       info,
       start,
       lastDiff: diffUp + diffDown,
-      up: (isNew ? 0 : prev.up || 0) + diffUp,
-      down: (isNew ? 0 : prev.down || 0) + diffDown
+      up: (prev && !isNew ? prev.up || 0 : 0) + diffUp,
+      down: (prev && !isNew ? prev.down || 0 : 0) + diffDown
     }
   }
 
@@ -458,6 +582,10 @@ const handleConnections = async (data, nowArg) => {
       } else {
         store.data.residual.up += Math.max(0, resUp)
         store.data.residual.down += Math.max(0, resDown)
+        if (dayData.residual) {
+          dayData.residual.up += Math.max(0, resUp)
+          dayData.residual.down += Math.max(0, resDown)
+        }
       }
     }
   }
@@ -465,6 +593,12 @@ const handleConnections = async (data, nowArg) => {
     recordClosed(store.data, c, now.getTime())
     recordClosed(dayData, c, now.getTime())
   })
+  // idle empty snapshots also end first-frame establishing; later start>=lastSnapAt connections are new
+  store.tracking = true
+  store.emptyStreak = 0
+  store.pendingTotals = null
+  store.pendingAt = 0
+  store.lastSnapAt = now.getTime()
   if (totals.has) store.lastTotals = { up: totals.up, down: totals.down }
 }
 
@@ -555,6 +689,13 @@ const handleLogs = async (data) => {
   }
 }
 
+const flushPendingCloses = async (nowArg) => {
+  if (!store.emptyStreak || !Object.keys(store.lastConnections || {}).length) return
+  const t = store.pendingTotals || store.lastTotals
+  const when = nowArg ?? store.pendingAt ?? store.lastSnapAt
+  await handleConnections({ connections: [], uploadTotal: t?.up, downloadTotal: t?.down }, when || undefined)
+}
+
 const autosaveMinutes = () => {
   const v = Number(Plugin.AutoSaveMinutes)
   return v > 0 ? v : 5
@@ -587,6 +728,7 @@ const Stop = async () => {
   console.log(`[${Plugin.name}] Stop()`)
   if (store.autosaveTimer) clearInterval(store.autosaveTimer)
   store.autosaveTimer = null
+  await flushPendingCloses()
   await saveMonthlyData()
   await Plugins.StopServer(Plugin.id)
   unRegisterHandler()
@@ -625,6 +767,7 @@ const onShutdown = async () => {
 }
 
 const onReload = async () => {
+  await flushPendingCloses()
   await saveMonthlyData()
 }
 
@@ -1253,7 +1396,10 @@ const TrafficUI = {
       spark: TrafficUI.buildSpark(rt, st.chartW || 600),
       live: !!lastRt && Date.now() - lastRt.t < 5000,
       active: Object.keys(store.lastConnections).length,
-      residual: { up: md?.residual?.up || 0, down: md?.residual?.down || 0 },
+      residual:
+        st.day && (t?.residualUnknown || !t?.residual)
+          ? { up: 0, down: 0, unknown: true }
+          : { up: t?.residual?.up || 0, down: t?.residual?.down || 0, unknown: false },
       donuts: [
         donut('节点流量', d.nodes),
         donut('策略组', d.groups),
@@ -1481,7 +1627,8 @@ const TrafficUI = {
       </div>
       <div class="flex items-start gap-12 py-4">
         <span class="flex-none" style="width:64px;opacity:.7">未归属</span>
-        <div>
+        <div v-if="v.residual.unknown" style="opacity:.7">当日未归属未记录（升级前的日数据没有这一项）</div>
+        <div v-else>
           <div>上传 {{ fmt(v.residual.up) }}，下载 {{ fmt(v.residual.down) }}</div>
           <div style="opacity:.7">连接在两次采样之间关闭，无法归到具体连接的字节</div>
         </div>
