@@ -3540,7 +3540,7 @@
   },
   {
     "id": "plugin-fast-delay-test",
-    "version": "v2.3.4",
+    "version": "v2.4.0",
     "name": "快速延迟测试",
     "description": "快速测试订阅内节点延迟，支持按延迟排序与一键清理失败/高延迟节点，并可在订阅更新时自动处理。Supported by: 泡泡茶壶",
     "author": "https://github.com/Bubble-droid",
@@ -3549,7 +3549,7 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-fast-delay-test.js",
     "path": "data/plugins/plugin-fast-delay-test.js",
-    "hash": "b0e2f82e73c1882afdd067f2716a76d77b73412242e57e5b2dd5eda868827592",
+    "hash": "9986be5e3233d562b9f2507db18a7263c37285d8f0f97046213d98dccbfb8c0d",
     "status": 0,
     "triggers": ["on::manual", "on::subscribe", "on::shutdown"],
     "hasUI": true,
