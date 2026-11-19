@@ -120,7 +120,10 @@ export default (plugin) => {
   const subscribesStore = Plugins.useSubscribesStore()
 
   const runtimeContextMap = new Map()
-  const runtimeState = { uiSubId: null, automationSubIds: new Set() }
+  const runtimeState = {
+    uiSubId: null,
+    automationSubIds: new Set()
+  }
 
   const getParentDir = (filePath) => {
     const lastSlashIndex = filePath.lastIndexOf('/')
@@ -498,7 +501,13 @@ export default (plugin) => {
 
     try {
       const pid = await runCore(configPath, subDir)
-      const ctx = { pid, baseUrl, secret, configPath, started: true }
+      const ctx = {
+        pid,
+        baseUrl,
+        secret,
+        configPath,
+        started: true
+      }
       runtimeContextMap.set(subscription.id, ctx)
       return ctx
     } catch (err) {
@@ -552,33 +561,36 @@ export default (plugin) => {
     await subscribesStore.editSubscribe(subscription.id, subscription)
   }
 
-  const openUI = (subscription, ctx) => {
-    const { ref, computed, onMounted, defineComponent, h, resolveComponent } = Vue
+  const openUI = async (subscription, ctx) => {
+    const { ref, computed, defineComponent, h, resolveComponent } = Vue
 
     const settings = ref({ ...DEFAULT_PLUGIN_SETTINGS })
-    const subConfig = ref({ ...DEFAULT_SUBSCRIPTION_CONFIG })
+    const subConfig = ref({
+      ...DEFAULT_SUBSCRIPTION_CONFIG
+    })
     const uiProxiesList = ref([])
     const allTesting = ref(false)
 
-    const loadData = async () => {
-      settings.value = await SettingsStore.load()
-      subConfig.value = await SubConfigStore.load(subscription.id)
+    // 数据须在开窗之前读完：若于开窗动画进行中插入数百张卡片，
+    // WebKitGTK 会留下残缺或半透明的 raster 图层（窗口透明、标题与
+    // 按钮不显，悬停后始重绘）。
+    settings.value = await SettingsStore.load()
+    subConfig.value = await SubConfigStore.load(subscription.id)
 
-      const unifiedProxies = await adapter.data.readRawProxies(subscription)
-      const persistedDelayData = await DelayDataStore.load(subscription.id)
-      const persistedMap = new Map(persistedDelayData.map((d) => [getProxyKey(d), d]))
+    const unifiedProxies = await adapter.data.readRawProxies(subscription)
+    const persistedDelayData = await DelayDataStore.load(subscription.id)
+    const persistedMap = new Map(persistedDelayData.map((d) => [getProxyKey(d), d]))
 
-      uiProxiesList.value = unifiedProxies.map((p) => {
-        const key = getProxyKey(p)
-        const cache = persistedMap.get(key)
-        return {
-          ...p,
-          delay: cache?.delay ?? 0,
-          ipv6: cache?.ipv6 ?? false,
-          testing: false
-        }
-      })
-    }
+    uiProxiesList.value = unifiedProxies.map((p) => {
+      const key = getProxyKey(p)
+      const cache = persistedMap.get(key)
+      return {
+        ...p,
+        delay: cache?.delay ?? 0,
+        ipv6: cache?.ipv6 ?? false,
+        testing: false
+      }
+    })
 
     const sortedProxies = computed(() =>
       [...uiProxiesList.value].toSorted((a, b) => {
@@ -693,7 +705,10 @@ export default (plugin) => {
         </div>
         `,
         setup() {
-          const urlOptions = Object.keys(TEST_URL_MAP).map((k) => ({ label: k, value: k }))
+          const urlOptions = Object.keys(TEST_URL_MAP).map((k) => ({
+            label: k,
+            value: k
+          }))
           return { draft, urlOptions }
         }
       })
@@ -845,12 +860,12 @@ export default (plugin) => {
           <Empty />
         </div>
         <div v-else class="grid grid-cols-4 gap-8 overflow-y-auto">
-          <Card v-for="proxy in sortedProxies" :key="proxy.tag" :title="proxy.tag" @contextmenu="testSingleNode(proxy)" class="w-full">
+          <Card v-for="proxy in sortedProxies" :key="proxy.tag" :title="proxy.tag" class="w-full">
             <template #extra>
               <Button size="small" type="text" icon="delete" @click.stop="deleteNode(proxy)" />
             </template>
 
-            <div class="flex items-center justify-between min-h-[50px] pt-4">
+            <div class="flex items-center justify-between min-h-40 pt-4">
               <div class="text-12 leading-none">
                 {{ proxy.type }}{{ proxy.ipv6 ? ' / IPv6' : '' }}
               </div>
@@ -871,8 +886,6 @@ export default (plugin) => {
       </div>
       `,
       setup(_, { expose }) {
-        onMounted(loadData)
-
         expose({
           modalSlots: {
             toolbar: () => [
@@ -1002,9 +1015,10 @@ export default (plugin) => {
 
     try {
       const ctx = await startRuntimeContext(subscription)
-      openUI(subscription, ctx)
+      await openUI(subscription, ctx)
     } catch (err) {
       runtimeState.uiSubId = null
+      await stopRuntimeContext(subscription.id)
       throw err
     }
   }
@@ -1107,10 +1121,14 @@ export default (plugin) => {
     }
   }
 
-  const onShutdown = async () => {
+  const cleanup = async () => {
     for (const id of runtimeContextMap.keys()) {
       await stopRuntimeContext(id)
     }
+  }
+
+  const onShutdown = async () => {
+    await cleanup()
   }
 
   const onInstall = async () => {
@@ -1118,8 +1136,22 @@ export default (plugin) => {
   }
 
   const onUninstall = async () => {
+    await cleanup()
     await Plugins.RemoveFile(cachePath)
   }
 
-  return { testDelay, onRun, onSubscribe, onShutdown, onInstall, onUninstall }
+  /* 触发器 插件销毁时 */
+  const onDispose = async () => {
+    await cleanup()
+  }
+
+  return {
+    testDelay,
+    onRun,
+    onSubscribe,
+    onShutdown,
+    onInstall,
+    onUninstall,
+    onDispose
+  }
 }
