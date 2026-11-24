@@ -44,6 +44,61 @@ const exportLogs = () => {
   URL.revokeObjectURL(url)
 }
 
+const SECRET_KEY = /pass|secret|token|auth|uuid|psk|private|cert|^key$|authorization|cookie|script|^header$/i
+
+/** 仅脱敏 URL 查询参数中名称匹配 SECRET_KEY 的值，不改 path、host 或其它参数。 */
+const maskSecretUrl = (url) => {
+  if (typeof url !== 'string' || !url) return url
+  const hashIdx = url.indexOf('#')
+  const hash = hashIdx >= 0 ? url.slice(hashIdx) : ''
+  const withoutHash = hashIdx >= 0 ? url.slice(0, hashIdx) : url
+  const qIdx = withoutHash.indexOf('?')
+  if (qIdx < 0) return url
+  const base = withoutHash.slice(0, qIdx)
+  const query = withoutHash.slice(qIdx + 1)
+  const masked = query.split('&').map((pair) => {
+    if (!pair) return pair
+    const eq = pair.indexOf('=')
+    const k = eq < 0 ? pair : pair.slice(0, eq)
+    const v = eq < 0 ? null : pair.slice(eq + 1)
+    let name = k
+    try {
+      name = decodeURIComponent(k.replace(/\+/g, ' '))
+    } catch {
+      name = k
+    }
+    if (!SECRET_KEY.test(name)) return pair
+    return v === null ? k : k + '=【已脱敏】'
+  }).join('&')
+  return base + '?' + masked + hash
+}
+
+/** 仅脱敏请求头中名称匹配 SECRET_KEY 的字段，不递归、不处理 body。 */
+const maskSecretHeaders = (headers) => {
+  if (!headers || typeof headers !== 'object' || Array.isArray(headers)) return headers
+  for (const key of Object.keys(headers)) {
+    if (SECRET_KEY.test(key)) headers[key] = '【已脱敏】'
+  }
+  return headers
+}
+
+/**
+ * 按 IPC 参数位置，只打码请求 URL 与请求头。
+ * Requests: args[1]=url, args[2]=headers；Download/Upload: args[1]=url, args[3]=headers。
+ */
+const maskSecretRequest = (name, args) => {
+  if (!Array.isArray(args)) return
+  if (name === 'bridge.App.Requests') {
+    if (args.length > 1) args[1] = maskSecretUrl(args[1])
+    if (args.length > 2) maskSecretHeaders(args[2])
+    return
+  }
+  if (name === 'bridge.App.Download' || name === 'bridge.App.Upload') {
+    if (args.length > 1) args[1] = maskSecretUrl(args[1])
+    if (args.length > 3) maskSecretHeaders(args[3])
+  }
+}
+
 const securelyExportLogs = () => {
   const list = Plugins.deepClone(logs.value)
   const maskedLogs = []
@@ -138,6 +193,7 @@ const securelyExportLogs = () => {
         break
       }
     }
+    maskSecretRequest(name, item.args)
     maskedLogs.push(item)
   })
   const content = JSON.stringify(maskedLogs, null, 2)
