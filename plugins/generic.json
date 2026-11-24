@@ -489,7 +489,7 @@
   {
     "id": "plugin-ipc-logs",
     "name": "日志系统",
-    "version": "v2.4.2",
+    "version": "v2.4.3",
     "group": "Extensions",
     "description": "GUI日志系统，包含敏感信息，用于debug。",
     "author": "",
@@ -497,7 +497,7 @@
     "type": "Http",
     "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-ipc-logs.js",
     "path": "data/plugins/plugin-ipc-logs.js",
-    "hash": "b01612b951abd489d0829c055baae7278c07911572404abf1c31a14ccbe6c5be",
+    "hash": "99b168c717be86d56c3d3fea395cbab1c3309699cc7334ed5016d358a1daf0af",
     "triggers": ["on::ready", "on::manual"],
     "hasUI": true,
     "menus": {
