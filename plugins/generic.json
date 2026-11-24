@@ -4320,5 +4320,101 @@
     "disabled": false,
     "install": false,
     "installed": false
+  },
+  {
+    "id": "plugin-mcp-server",
+    "name": "MCP Server",
+    "version": "v1.0.0",
+    "group": "Development",
+    "description": "通过 MCP 协议连接 AI 客户端，提供配置、订阅、规则集、插件、计划任务及核心管理能力，支持令牌鉴权与操作权限控制。",
+    "author": "",
+    "tags": ["功能扩展"],
+    "type": "Http",
+    "url": "https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/Generic/plugin-mcp-server.js",
+    "path": "data/plugins/plugin-mcp-server.js",
+    "hash": "a9f25ec221113053937b868b4f47fed5fefe2c085ccc5f88be43d6bb45bac0ec",
+    "triggers": ["on::manual", "on::ready", "on::shutdown"],
+    "hasUI": false,
+    "menus": {
+      "启动服务": "Start",
+      "停止服务": "Stop",
+      "复制地址": "CopyURL"
+    },
+    "context": {
+      "profiles": {},
+      "subscriptions": {},
+      "rulesets": {},
+      "plugins": {},
+      "scheduledtasks": {}
+    },
+    "status": 0,
+    "configuration": [
+      {
+        "id": "ID_mcp_address",
+        "title": "监听地址",
+        "description": "默认 127.0.0.1:8765，插件按你填写的地址原样绑定，不会改写。IPv4 全网卡用 0.0.0.0:8765；IPv6 回环用 [::1]:8765；IPv6 全网卡用 [::]:8765（::1 只是 IPv6 回环，不是全网卡）。",
+        "key": "Address",
+        "component": "Input",
+        "value": "127.0.0.1:8765",
+        "options": []
+      },
+      {
+        "id": "ID_mcp_token",
+        "title": "AuthToken",
+        "description": "请求头 Authorization: Bearer <token>。留空则每次启动生成临时密钥并弹窗一次，不会写入配置，也不会出现在工具返回里。",
+        "key": "AuthToken",
+        "component": "Input",
+        "value": "",
+        "options": []
+      },
+      {
+        "id": "ID_mcp_autostart",
+        "title": "自动启动",
+        "description": "跟随 GUI 启动？默认关闭。服务总会随 GUI 退出停止。",
+        "key": "AutoStart",
+        "component": "Switch",
+        "value": false,
+        "options": []
+      },
+      {
+        "id": "ID_mcp_allowwrites",
+        "title": "AllowWrites",
+        "description": "允许新建/修改/删除配置、订阅、规则集、插件、任务、设置和 MMDB，以及执行计划任务。默认关闭。",
+        "key": "AllowWrites",
+        "component": "Switch",
+        "value": false,
+        "options": []
+      },
+      {
+        "id": "ID_mcp_allowcore",
+        "title": "AllowCoreControl",
+        "description": "允许启动/停止/重启核心，以及切换模式和 TUN。默认关闭。",
+        "key": "AllowCoreControl",
+        "component": "Switch",
+        "value": false,
+        "options": []
+      },
+      {
+        "id": "ID_mcp_allowproxy",
+        "title": "AllowSystemProxy",
+        "description": "允许设置或清除系统代理。默认关闭。",
+        "key": "AllowSystemProxy",
+        "component": "Switch",
+        "value": false,
+        "options": []
+      },
+      {
+        "id": "ID_mcp_allowpluginrun",
+        "title": "AllowPluginRun",
+        "description": "允许调用已安装插件的声明方法（默认 onRun）。不能执行任意脚本。默认关闭。",
+        "key": "AllowPluginRun",
+        "component": "Switch",
+        "value": false,
+        "options": []
+      }
+    ],
+    "disabled": false,
+    "install": false,
+    "installed": false
   }
 ]
